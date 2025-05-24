@@ -1,0 +1,112 @@
+import 'package:flutter/material.dart';
+
+/// A widget that smoothly expands or collapses its child with an animation.
+///
+/// The animation can be configured to expand either vertically or horizontally
+/// and includes both size and fade transitions.
+///
+/// [AnimatedExpanded] is useful for cases where you want to dynamically show
+/// or hide content with a smooth animation, such as expanding a section of a
+/// list or a collapsible panel.
+///
+/// The widget automatically listens for changes to the [expand] property and
+/// triggers the animation accordingly.
+class AnimatedExpanded extends StatefulWidget {
+  /// The widget to display inside the animated container.
+  final Widget child;
+
+  /// A boolean flag indicating whether to expand or collapse the [child]
+  final bool expand;
+
+  final Duration duration;
+  final Curve sizeCurve;
+  final Axis axis;
+
+  const AnimatedExpanded({
+    this.expand = false,
+    required this.child,
+    this.duration = const Duration(milliseconds: 250),
+    this.sizeCurve = Curves.fastOutSlowIn,
+    this.axis = Axis.horizontal,
+    super.key,
+  });
+
+  @override
+  _AnimatedExpandedState createState() => _AnimatedExpandedState();
+}
+
+class _AnimatedExpandedState extends State<AnimatedExpanded> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> sizeAnimation;
+  late final Animation<double> fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: widget.duration, value: widget.expand ? 1.0 : 0.0);
+    sizeAnimation = CurvedAnimation(parent: _controller, curve: widget.sizeCurve);
+    fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+    if (widget.expand) {
+      _controller.value = 1.0;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AnimatedExpanded oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.expand) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: fadeAnimation,
+      child: SizeTransition(axis: widget.axis, axisAlignment: 1.0, sizeFactor: sizeAnimation, child: widget.child),
+    );
+  }
+}
+
+/// A widget that switches between two children with an animated size transition.
+///
+/// [AnimatedSizeSwitcher] ensures that the old widget remains visible until the new one
+/// has fully transitioned in, making the transition smoother. It uses [AnimatedSwitcher]
+/// internally, with a custom transition that animates the size of the child widget.
+class AnimatedSizeSwitcher extends StatelessWidget {
+  const AnimatedSizeSwitcher({
+    required this.child,
+    this.duration = const Duration(milliseconds: 250),
+    this.enabled = true,
+    this.axis = Axis.vertical,
+    super.key,
+  });
+
+  final Widget child;
+  final Duration duration;
+  final bool enabled;
+  final Axis axis;
+
+  @override
+  Widget build(BuildContext context) {
+    if (enabled == false) return child;
+
+    return AnimatedSwitcher(
+      switchInCurve: Curves.fastEaseInToSlowEaseOut,
+      switchOutCurve: Curves.fastOutSlowIn,
+      duration: duration,
+      transitionBuilder: (child, animation) {
+        return SizeTransition(axisAlignment: 1, sizeFactor: animation, axis: axis, child: child);
+      },
+      child: child,
+    );
+  }
+}

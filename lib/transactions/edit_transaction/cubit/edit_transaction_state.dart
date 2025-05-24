@@ -1,0 +1,71 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+part of 'edit_transaction_cubit.dart';
+
+enum EditTransactionStatus {
+  initial,
+  loading,
+  success,
+  failure;
+
+  bool get isLoadingOrSuccess => [EditTransactionStatus.loading, EditTransactionStatus.success].contains(this);
+  bool get isFailureOrSuccess => [EditTransactionStatus.failure, EditTransactionStatus.success].contains(this);
+}
+
+class EditTransactionState extends Equatable {
+  const EditTransactionState({
+    this.status = EditTransactionStatus.initial,
+    this.id,
+    this.userId,
+    this.quantity,
+    required this.amount, //? required ?
+    this.date,
+    this.amc,
+    this.notes,
+  });
+
+  final EditTransactionStatus status;
+  final String? id;
+  final String? userId;
+  final double? quantity;
+  final double? amount;
+  final DateTime? date;
+  final InveslyAmc? amc;
+  final String? notes;
+
+  bool get isNewTransaction => id == null;
+
+  // Check if all required fields are filled and valid
+  bool get canSave {
+    return userId != null &&
+        amc != null &&
+        amount != null &&
+        (amount?.isFinite ?? false) &&
+        !(amount?.isNegative ?? true) &&
+        !(amount?.isZero ?? true);
+  }
+
+  EditTransactionState copyWith({
+    EditTransactionStatus? status,
+    InveslyTransaction? initialTransaction,
+    String? userId,
+    double? quantity,
+    double? amount,
+    DateTime? date,
+    InveslyAmc? amc,
+    String? notes,
+  }) {
+    return EditTransactionState(
+      id: id,
+      status: status ?? this.status,
+      userId: userId ?? this.userId,
+      quantity: quantity ?? this.quantity,
+      amount: amount ?? this.amount,
+      date: date ?? this.date,
+      amc: amc ?? this.amc,
+      notes: notes ?? this.notes,
+    );
+  }
+
+  @override
+  List<Object?> get props => [status, id, userId, quantity, amount, date, amc, notes];
+}

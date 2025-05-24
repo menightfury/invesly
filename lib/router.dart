@@ -1,0 +1,140 @@
+// ignore_for_file: avoid_print
+
+import 'dart:async';
+
+import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/transactions/model/transaction_model.dart';
+import 'package:invesly/users/cubit/users_cubit.dart';
+import 'package:invesly/users/profile/view/profile_screen.dart';
+
+import 'amcs/view/amc_overview/amc_overview_screen.dart';
+import 'amcs/view/edit_amc/edit_amc_screen.dart';
+import 'common/presentations/widgets/error_screen.dart';
+import 'common_libs.dart';
+import 'transactions/dashboard/view/dashboard_screen.dart';
+import 'intro/intro_screen.dart';
+import 'transactions/edit_transaction/edit_transaction_screen.dart';
+import 'settings/backup_restore_screen.dart';
+import 'settings/cubit/settings_cubit.dart';
+import 'settings/settings_screen.dart';
+import 'splash/splash_screen.dart';
+import 'test/tests_screen.dart';
+import 'users/edit_user/view/edit_user_screen.dart';
+import 'users/model/user_model.dart';
+
+class AppRouter {
+  static const String test = '/test';
+  static const String splash = '/';
+  static const String intro = '/intro';
+  static const String editUser = '/edit_user';
+  static const String dashboard = '/dashboard'; // requires at least one user
+  static String amcDetails(String id) => '/amc/$id'; // requires at least one user
+  static const String editTransaction = '/edit_transaction'; // requires at least one user
+  static const String editAmc = '/edit_amc';
+  static const String settings = '/settings'; // settings screen is moved to profile screen
+  static const String profile = '/profile';
+  static const String backup = '/settings/backup';
+  static const String error = '/error';
+
+  static final GlobalKey<NavigatorState> _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
+  // Routing table, matches string paths to UI Screens
+  static final _router = GoRouter(
+    navigatorKey: _rootKey,
+    redirect: _handleRedirect,
+    debugLogDiagnostics: true,
+    initialLocation: dashboard,
+    routes: <RouteBase>[
+      AppRoute(test, (_) => const TestsScreen()), //! This is for testing purpose only
+      AppRoute(splash, (_) => const SplashScreen()),
+      AppRoute(intro, (_) => const IntroScreen()),
+      AppRoute(editUser, (state) => EditUserScreen(initialUser: state.extra as InveslyUser?)),
+      AppRoute(dashboard, (_) => const DashboardScreen()),
+      AppRoute(amcDetails(':id'), (state) => AmcOverviewScreen(state.pathParameters['id']!)),
+      AppRoute(editAmc, (state) => EditAmcScreen(initialAmc: state.extra as InveslyAmc?)),
+      AppRoute(
+        editTransaction,
+        (state) => EditTransactionScreen(initialTransaction: state.extra as InveslyTransaction?),
+      ),
+      AppRoute(profile, (_) => const ProfileScreen()),
+      AppRoute(settings, (_) => const SettingsScreen()),
+      AppRoute(backup, (_) => const BackupRestoreScreen(), _rootKey),
+      AppRoute(error, (_) => const ErrorScreen()),
+    ],
+  );
+
+  static GoRouter get router => _router;
+  static String? get initialDeeplink => _initialDeeplink;
+  static String? _initialDeeplink;
+
+  static FutureOr<String?> _handleRedirect(BuildContext context, GoRouterState state) {
+    final settingState = context.read<SettingsCubit>().state;
+    final userState = context.read<UsersCubit>().state;
+
+    final initializing = state.uri.path == splash;
+    final onboarding = state.uri.path == intro;
+
+    if (userState is UsersErrorState && state.uri.path != error) {
+      return error;
+    }
+
+    if (userState is UsersInitialState) {
+      if (!initializing) {
+        _initialDeeplink ??= state.uri.path;
+        $logger.i('1. Redirecting from $_initialDeeplink to $splash');
+        return splash;
+      }
+      return null;
+    }
+
+    if (!settingState.isOnboarded) {
+      if (!onboarding) {
+        $logger.i('2. Redirecting from ${state.uri.path} to $intro');
+        return intro;
+      }
+      return null;
+    }
+
+    if (userState is UsersLoadedState && userState.hasNoUser) {
+      if (state.uri.path != editUser) {
+        $logger.i('3. Redirecting from ${state.uri.path} to $editUser');
+        return editUser;
+      }
+      return null;
+    }
+
+    if (initializing || onboarding) {
+      $logger.i('4. Redirecting from ${state.uri.path} to ${_initialDeeplink ?? dashboard}');
+      return _initialDeeplink ?? dashboard;
+    }
+
+    return null;
+  }
+}
+
+/// Custom GoRoute sub-class
+class AppRoute extends GoRoute {
+  AppRoute(String path, Widget Function(GoRouterState st) builder, [GlobalKey<NavigatorState>? parentNavigatorKey])
+    : super(
+        path: path,
+        parentNavigatorKey: parentNavigatorKey,
+        pageBuilder: (context, state) {
+          // default Scaffold removed to enable more control, like AppBar and FAB
+          final Widget content = builder(state);
+
+          // if (fade) {
+          //   return CustomTransitionPage(
+          //     key: state.pageKey,
+          //     child: pageContent,
+          //     transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          //       return FadeTransition(opacity: animation, child: child);
+          //     },
+          //   );
+          // }
+
+          return MaterialPage(key: state.pageKey, child: content);
+        },
+      );
+
+  // final bool fade;
+}

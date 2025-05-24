@@ -1,0 +1,70 @@
+import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/transactions/model/transaction_model.dart';
+import 'package:invesly/transactions/model/transaction_repository.dart';
+import 'package:invesly/common_libs.dart';
+
+part 'edit_transaction_state.dart';
+
+class EditInvestmentCubit extends Cubit<EditTransactionState> {
+  EditInvestmentCubit({required TransactionRepository repository, InveslyTransaction? initialInvestment})
+    : _repository = repository,
+      super(
+        EditTransactionState(
+          id: initialInvestment?.id,
+          userId: initialInvestment?.userId,
+          quantity: initialInvestment?.quantity,
+          amount: initialInvestment?.totalAmount,
+          amc: initialInvestment?.amc,
+          notes: initialInvestment?.note,
+        ),
+      );
+
+  final TransactionRepository _repository;
+
+  void updateUser(String userId) {
+    emit(state.copyWith(userId: userId));
+  }
+
+  void updateQuantity(double result) {
+    emit(state.copyWith(quantity: result));
+  }
+
+  void updateAmount(double result) {
+    emit(state.copyWith(amount: result));
+  }
+
+  void updateAmc(InveslyAmc amc) {
+    emit(state.copyWith(amc: amc));
+  }
+
+  void updateDate(DateTime date) {
+    emit(state.copyWith(date: date));
+  }
+
+  void updateNotes(String notes) {
+    emit(state.copyWith(notes: notes));
+  }
+
+  Future<void> save() async {
+    if (!state.canSave) return;
+
+    final inv = InveslyTransaction(
+      id: state.id ?? $uuid.v1(),
+      userId: state.userId!,
+      amc: state.amc,
+      quantity: state.quantity ?? 0.0,
+      totalAmount: state.amount!,
+      investedOn: state.date ?? DateTime.now(),
+      note: state.notes,
+    );
+    $logger.i(inv);
+
+    try {
+      await _repository.saveTransaction(inv);
+      emit(state.copyWith(status: EditTransactionStatus.success));
+    } on Exception catch (e) {
+      $logger.e(e);
+      emit(state.copyWith(status: EditTransactionStatus.failure));
+    }
+  }
+}
