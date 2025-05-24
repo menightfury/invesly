@@ -73,7 +73,7 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
   void _handleCompletePressed(BuildContext context) {
     if (_currentPage.value != _pageData.length - 1) return;
 
-    context.read<SettingsCubit>().onboardingComplete();
+    context.read<SettingsCubit>().completeOnboarding();
     context.go(AppRouter.dashboard); // TODO: Make a cubit for this
   }
 

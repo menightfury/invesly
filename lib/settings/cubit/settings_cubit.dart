@@ -5,20 +5,20 @@ part 'settings_state.dart';
 class SettingsCubit extends HydratedCubit<SettingsState> {
   SettingsCubit() : super(const SettingsState());
 
-  void initialize() {
-    emit(state.copyWith(initialized: true));
-  }
+  // void initialize() {
+  //   emit(state.copyWith(initialized: true));
+  // }
 
-  void onboardingComplete() {
+  void completeOnboarding() {
     emit(state.copyWith(isOnboarded: true));
   }
 
-  // void saveCurrentUser(InveslyUser user) {
-  //   emit(state.copyWith(currentUser: user));
-  // }
+  void saveCurrentUser(String userId) {
+    emit(state.copyWith(currentUserId: userId));
+  }
 
-  void setDarkTheme(bool status) async {
-    emit(state.copyWith(isDarkMode: status));
+  void setDarkTheme(bool isDarkMode) async {
+    emit(state.copyWith(isDarkMode: isDarkMode));
   }
 
   @override
