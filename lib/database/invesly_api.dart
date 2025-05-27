@@ -5,7 +5,6 @@ import 'package:path/path.dart' as p;
 
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/database/data_access_object.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/users/model/user_model.dart';
 
@@ -59,10 +58,4 @@ class InveslyApi {
   UserTable get userTable => getTable<UserTable>()!;
   AmcTable get amcTable => getTable<AmcTable>()!;
   TransactionTable get trnTable => getTable<TransactionTable>()!;
-
-  DataAccessObject table(TableSchema table) {
-    assert(tables.contains(table), 'Table not found in initialized tables');
-
-    return DataAccessObject(db: db, table: table);
-  }
 }

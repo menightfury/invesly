@@ -1,33 +1,26 @@
 import 'dart:async';
-import 'package:invesly/database/table_schema.dart';
+import 'package:invesly/database/data_access_object.dart';
 
 import 'user_model.dart';
 
 import 'package:invesly/database/invesly_api.dart';
 
-class UserRepository {
-  const UserRepository(InveslyApi api) : _api = api;
-
-  final InveslyApi _api;
-
-  UserTable get _userTable => _api.userTable;
-
-  /// Stream of UserTable changes
-  Stream<TableChangeEvent> get onTableChange => _api.table(_userTable).tableChangeEvent;
+class UserRepository extends DataAccessObject<UserInDb> {
+  UserRepository(InveslyApi api) : super(db: api.db, table: api.userTable);
 
   /// Get all users
   Future<List<InveslyUser>> getUsers() async {
-    final list = await _api.table(_userTable).select().toList();
+    final list = await select().toList();
 
-    return list.map<InveslyUser>((el) => InveslyUser.fromDb(_userTable.encode(el))).toList();
+    return list.map<InveslyUser>((el) => InveslyUser.fromDb(table.encode(el))).toList();
   }
 
   /// Add or update user to database
   Future<void> saveUser(UserInDb user, [bool isNew = true]) async {
     if (isNew) {
-      await _api.table(_userTable).insert(user);
+      await insert(user);
     } else {
-      await _api.table(_userTable).update(user);
+      await update(user);
     }
   }
 }

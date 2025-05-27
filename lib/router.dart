@@ -17,7 +17,7 @@ import 'transactions/edit_transaction/edit_transaction_screen.dart';
 import 'settings/backup_restore_screen.dart';
 import 'settings/cubit/settings_cubit.dart';
 import 'settings/settings_screen.dart';
-import 'splash/splash_screen.dart';
+import 'intro/splash_screen.dart';
 import 'test/tests_screen.dart';
 import 'users/edit_user/view/edit_user_screen.dart';
 import 'users/model/user_model.dart';

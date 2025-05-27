@@ -2,20 +2,17 @@ import 'dart:async';
 
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/database/data_access_object.dart';
 import 'package:invesly/database/invesly_api.dart';
-import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 
-class TransactionRepository {
-  const TransactionRepository(InveslyApi api) : _api = api;
+class TransactionRepository extends DataAccessObject<TransactionInDb> {
+  TransactionRepository(InveslyApi api) : _api = api, super(db: api.db, table: api.trnTable);
 
   final InveslyApi _api;
 
   AmcTable get _amcTable => _api.amcTable;
-  TransactionTable get _trnTable => _api.trnTable;
-
-  /// Stream of TransactionTable changes
-  Stream<TableChangeEvent> get onTableChange => _api.table(_trnTable).tableChangeEvent;
+  TransactionTable get _trnTable => table as TransactionTable;
 
   /// Get transactions
   Future<List<InveslyTransaction>> getTransactions({String? userId, String? amcId, int? showItems}) async {
@@ -30,7 +27,7 @@ class TransactionRepository {
 
     late final List<InveslyTransaction> transactions;
     try {
-      final result = await _api.table(_trnTable).select().join([_amcTable]).filter(filter).toList();
+      final result = await select().join([_amcTable]).filter(filter).toList();
       // orderBy: '${_trnTable.dateColumn.title} DESC',
       // limit: showItems,
 
@@ -40,7 +37,7 @@ class TransactionRepository {
       transactions =
           result.map<InveslyTransaction>((map) {
             return InveslyTransaction.fromDb(
-              _trnTable.encode(map),
+              table.encode(map),
               _amcTable.encode(map[_amcTable.type.toString().toCamelCase()] as Map<String, dynamic>),
             );
           }).toList();
@@ -58,17 +55,12 @@ class TransactionRepository {
 
     try {
       final result =
-          await _api
-              .table(_trnTable)
-              .select([
-                _trnTable.userIdColumn.alias('user_id'),
-                _amcTable.genreColumn.alias('genre'),
-                _trnTable.amountColumn.sum('total_amount'),
-                _trnTable.idColumn.count('num_transactions'),
-              ])
-              .join([_amcTable])
-              .groupBy([_trnTable.userIdColumn, _amcTable.genreColumn])
-              .toList();
+          await select([
+            _trnTable.userIdColumn.alias('user_id'),
+            _amcTable.genreColumn.alias('genre'),
+            _trnTable.amountColumn.sum('total_amount'),
+            _trnTable.idColumn.count('num_transactions'),
+          ]).join([_amcTable]).groupBy([_trnTable.userIdColumn, _amcTable.genreColumn]).toList();
       $logger.w(result);
       stats =
           result.map<TransactionStat>((map) {
@@ -90,9 +82,9 @@ class TransactionRepository {
   /// Add or update a transaction
   Future<void> saveTransaction(InveslyTransaction trn, [bool isNew = true]) async {
     if (isNew) {
-      await _api.table(_trnTable).insert(trn);
+      await insert(trn);
     } else {
-      await _api.table(_trnTable).update(trn);
+      await update(trn);
     }
   }
 }

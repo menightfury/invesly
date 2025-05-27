@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 
 import 'package:invesly/common_libs.dart';
@@ -139,40 +140,42 @@ abstract class DaoFilterBuilder<T extends InveslyDataModel> {
 }
 
 // ~~~ Data Access Object ~~~
-class DataAccessObject<T extends InveslyDataModel> {
-  DataAccessObject({required Database db, required TableSchema table}) : _db = db, _table = table;
+abstract class DataAccessObject<T extends InveslyDataModel> {
+  DataAccessObject({required Database db, required this.table})
+    : _db = db,
+      _tableChangeEventController = StreamController<TableChangeEvent>.broadcast();
 
   final Database _db;
-  final TableSchema _table;
-  final StreamController<TableChangeEvent> _tableChangeEventController = StreamController<TableChangeEvent>.broadcast();
+  final TableSchema<T> table;
+  final StreamController<TableChangeEvent> _tableChangeEventController;
 
   // Stream of TableChangeEvent
-  Stream<TableChangeEvent> get tableChangeEvent => _tableChangeEventController.stream;
+  Stream<TableChangeEvent> get onTableChange => _tableChangeEventController.stream;
 
   Future<int> insert(T data) async {
-    final r = await _db.insert(_table.name, _table.decode(data));
-    _tableChangeEventController.add(TableChangeEvent(_table, TableChangeEventType.insertion));
+    final r = await _db.insert(table.name, table.decode(data));
+    _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.insertion));
     return r;
   }
 
   Future<int> update(T data) async {
     final r = await _db.update(
-      _table.name,
-      _table.decode(data),
-      where: '${_table.idColumn.title} = ?',
+      table.name,
+      table.decode(data),
+      where: '${table.idColumn.title} = ?',
       whereArgs: [data.id],
     );
-    _tableChangeEventController.add(TableChangeEvent(_table, TableChangeEventType.updation));
+    _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.updation));
     return r;
   }
 
   Future<int> delete(T data) async {
     final r = await Future.delayed(2.seconds, () => 1); // TODO: implement
-    _tableChangeEventController.add(TableChangeEvent(_table, TableChangeEventType.deletion));
+    _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.deletion));
     return r;
   }
 
   DaoQueryBuilder select([List<TableColumnBase>? columns]) {
-    return DaoQueryBuilder(db: _db, table: _table, columns: columns);
+    return DaoQueryBuilder(db: _db, table: table, columns: columns);
   }
 }
