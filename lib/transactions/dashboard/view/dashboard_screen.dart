@@ -56,28 +56,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 return SingleChildScrollView(
                   controller: _scrollController,
+                  padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 56.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       // ~~~ Greeting message ~~~
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        child: Text(DateTime.now().greetingsMsg, style: textTheme.headlineMedium),
-                      ),
+                      Text(DateTime.now().greetingsMsg, style: textTheme.headlineSmall),
 
-                      // // ~~~ Add user button ~~~
-                      // IconButton(
-                      //   onPressed: () => context.push(AppRouter.editUser),
-                      //   icon: Icon(Icons.add_circle_outline_rounded),
-                      //   tooltip: 'Add user',
-                      // ),
+                      Text('Satyajyoti', style: textTheme.headlineMedium),
 
                       // ~~~ Transactions Stats ~~~
                       BlocProvider(
                         create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
                         child: _DashboardContents(users),
                       ),
-                      const SizedBox(height: 56.0),
+                      // const SizedBox(height: 56.0),
                     ],
                   ),
                 );
@@ -136,7 +129,7 @@ class _DashboardContentsState extends State<_DashboardContents> {
   @override
   Widget build(BuildContext context) {
     // final colorScheme = Theme.of(context).colorScheme;
-    // final textTheme = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
@@ -153,6 +146,27 @@ class _DashboardContentsState extends State<_DashboardContents> {
             spacing: 16.0,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Column(
+                    children: <Widget>[
+                      Text('Rs. 2045.20', style: textTheme.headlineLarge?.copyWith(fontSize: 48.0, height: 1.5)),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(text: 'Rs. 105.80', style: textTheme.headlineSmall?.copyWith(fontSize: 13.0)),
+                            TextSpan(text: ' invested this month'),
+                          ],
+                          style: TextStyle(fontSize: 13.0),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
               _TransactionStatsWidget(stats, widget.users),
 
               _RecentTransactions(recentTransactions: recentTransactions),
@@ -173,33 +187,30 @@ class _RecentTransactions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Column(
-        spacing: 8.0,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text('Recent transactions', style: Theme.of(context).textTheme.headlineSmall),
-          ColumnBuilder(
-            itemBuilder: (context, index) {
-              final rt = recentTransactions[index];
-              return ListTile(
-                title: Text(rt.amc?.name ?? 'NULL'),
-                subtitle: Text(
-                  rt.userId,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall,
-                ),
-                trailing: Text('Rs. ${rt.totalAmount}'),
-                onTap: () {},
-                contentPadding: EdgeInsets.zero,
-              );
-            },
-            itemCount: recentTransactions.length,
-          ),
-        ],
-      ),
+    return Column(
+      spacing: 8.0,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text('Recent transactions', style: Theme.of(context).textTheme.headlineSmall),
+        ColumnBuilder(
+          itemBuilder: (context, index) {
+            final rt = recentTransactions[index];
+            return ListTile(
+              title: Text(rt.amc?.name ?? 'NULL'),
+              subtitle: Text(
+                rt.userId,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+              trailing: Text('Rs. ${rt.totalAmount}'),
+              onTap: () {},
+              contentPadding: EdgeInsets.zero,
+            );
+          },
+          itemCount: recentTransactions.length,
+        ),
+      ],
     );
   }
 }
@@ -234,6 +245,34 @@ class _TransactionStatsWidgetState extends State<_TransactionStatsWidget> {
     // grouping stats based on user_id
     final statsMap = groupBy(widget.stats, (stat) => stat.userId);
     final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 8.0,
+      children: [
+        Row(
+          spacing: 8.0,
+          children: <Widget>[
+            Expanded(
+              child: Material(
+                color: Colors.amberAccent,
+                borderRadius: BorderRadius.all(Radius.circular(4.0)).copyWith(topLeft: Radius.circular(16.0)),
+                elevation: 1.0,
+                child: SizedBox(height: 100.0),
+              ),
+            ),
+            Expanded(child: Material(color: Colors.greenAccent, child: SizedBox(height: 100.0))),
+          ],
+        ),
+        Row(
+          spacing: 8.0,
+          children: <Widget>[
+            Expanded(child: Material(color: Colors.amberAccent, child: SizedBox(height: 100.0))),
+            Expanded(child: Material(color: Colors.greenAccent, child: SizedBox(height: 100.0))),
+          ],
+        ),
+      ],
+    );
 
     return SizedBox(
       height: 280.0,

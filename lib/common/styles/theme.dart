@@ -55,7 +55,7 @@ class AppStyle {
       fontFamily: AppConstants.primaryFont,
       dividerColor: colorScheme.primary,
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(fontFamily: AppConstants.currencyFont, fontSize: 30.0),
+        headlineLarge: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 30.0),
         headlineMedium: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 24.0),
         headlineSmall: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 18.0),
         titleLarge: TextStyle(fontSize: 22.0), // appbar title
