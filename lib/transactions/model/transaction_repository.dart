@@ -15,19 +15,16 @@ class TransactionRepository extends DataAccessObject<TransactionInDb> {
   TransactionTable get _trnTable => table as TransactionTable;
 
   /// Get transactions
-  Future<List<InveslyTransaction>> getTransactions({String? userId, String? amcId, int? showItems}) async {
-    final filter = <String, dynamic>{};
-    if (userId != null) {
-      filter.putIfAbsent(_trnTable.userIdColumn.title, () => userId);
-    }
+  Future<List<InveslyTransaction>> getTransactions(String userId, {String? amcId, int? showItems}) async {
+    final filter = {_trnTable.userIdColumn: userId};
 
     if (amcId != null) {
-      filter.putIfAbsent(_trnTable.amcIdColumn.title, () => amcId);
+      filter.putIfAbsent(_trnTable.amcIdColumn, () => amcId);
     }
 
     late final List<InveslyTransaction> transactions;
     try {
-      final result = await select().join([_amcTable]).filter(filter).toList();
+      final result = await select().join([_amcTable]).where(filter).toList();
       // orderBy: '${_trnTable.dateColumn.title} DESC',
       // limit: showItems,
 
@@ -50,9 +47,10 @@ class TransactionRepository extends DataAccessObject<TransactionInDb> {
   }
 
   /// Get transaction statistics
-  Future<List<TransactionStat>> getTransactionStats() async {
-    late final List<TransactionStat> stats;
+  Future<List<TransactionStat>> getTransactionStats(String userId) async {
+    final filter = {_trnTable.userIdColumn: userId};
 
+    late final List<TransactionStat> stats;
     try {
       final result =
           await select([
@@ -60,7 +58,7 @@ class TransactionRepository extends DataAccessObject<TransactionInDb> {
             _amcTable.genreColumn.alias('genre'),
             _trnTable.amountColumn.sum('total_amount'),
             _trnTable.idColumn.count('num_transactions'),
-          ]).join([_amcTable]).groupBy([_trnTable.userIdColumn, _amcTable.genreColumn]).toList();
+          ]).join([_amcTable]).where(filter).groupBy([_amcTable.genreColumn]).toList();
       $logger.w(result);
       stats =
           result.map<TransactionStat>((map) {

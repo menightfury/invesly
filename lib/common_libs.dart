@@ -42,6 +42,7 @@ export 'package:sqflite/sqflite.dart';
 // export 'package:supabase_flutter/supabase_flutter.dart';
 export 'router.dart';
 export 'package:gap/gap.dart';
+export 'package:flutter_spinkit/flutter_spinkit.dart';
 export 'package:flutter_slidable/flutter_slidable.dart' hide ConfirmDismissCallback;
 
 const $uuid = Uuid();

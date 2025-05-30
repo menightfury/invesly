@@ -16,7 +16,7 @@ class DaoQueryBuilder<T extends InveslyDataModel> implements DaoFilterBuilder<T>
   final List<TableColumnBase> _columns;
 
   final List<TableSchema> _joinTables = [];
-  final Map<String, dynamic> _filter = {};
+  final Map<TableColumn, dynamic> _where = {};
   final List<TableColumnBase> _group = [];
 
   String get effectiveTableName {
@@ -30,7 +30,7 @@ class DaoQueryBuilder<T extends InveslyDataModel> implements DaoFilterBuilder<T>
         if (fkc == null) continue;
 
         tableName.write(
-          ' JOIN ${joinTable.name} ON ${fkc.title} = ${joinTable.name}.${fkc.foreignReference!.columnName}',
+          ' JOIN ${joinTable.name} ON ${fkc.fullTitle} = ${joinTable.name}.${fkc.foreignReference!.columnName}',
         );
       }
     }
@@ -49,7 +49,7 @@ class DaoQueryBuilder<T extends InveslyDataModel> implements DaoFilterBuilder<T>
           if (fkc == null) continue;
 
           final joinTableColumns = joinTable.columns.map<TableColumnBase>((col) {
-            return col.alias('${joinTable.type.toString().toCamelCase()}_${col.name}');
+            return col.alias('${joinTable.type.toString().toCamelCase()}_${col.title}');
           });
 
           _columns.addAll(joinTableColumns);
@@ -57,7 +57,7 @@ class DaoQueryBuilder<T extends InveslyDataModel> implements DaoFilterBuilder<T>
       }
     }
 
-    return _columns.map<String>((col) => col.title).toList();
+    return _columns.map<String>((col) => col.fullTitle).toList();
   }
 
   DaoQueryBuilder<T> join(List<TableSchema> tables) {
@@ -68,9 +68,9 @@ class DaoQueryBuilder<T extends InveslyDataModel> implements DaoFilterBuilder<T>
   }
 
   @override
-  DaoFilterBuilder filter(Map<String, dynamic> condition) {
+  DaoFilterBuilder where(Map<TableColumn, dynamic> condition) {
     if (condition.isNotEmpty) {
-      _filter.addAll(condition);
+      _where.addAll(condition);
     }
     return this;
   }
@@ -87,11 +87,10 @@ class DaoQueryBuilder<T extends InveslyDataModel> implements DaoFilterBuilder<T>
   Future<List<Map<String, dynamic>>> toList() async {
     final List<Map<String, dynamic>> data = [];
 
-    final where =
-        _filter.isEmpty ? null : _filter.keys.map<String>((key) => '${_table.name}.${key.trim()} = ?').join(' AND ');
-    final whereArgs = _filter.isEmpty ? null : _filter.values.toList();
+    final where = _where.isEmpty ? null : _where.keys.map<String>((key) => '${key.fullTitle} = ?').join(' AND ');
+    final whereArgs = _where.isEmpty ? null : _where.values.toList();
 
-    final groupBy = _group.isEmpty ? null : _group.map<String>((col) => col.title).join(', ');
+    final groupBy = _group.isEmpty ? null : _group.map<String>((col) => col.fullTitle).join(', ');
 
     try {
       final list = await _db.query(
@@ -128,7 +127,7 @@ class DaoQueryBuilder<T extends InveslyDataModel> implements DaoFilterBuilder<T>
 
 // ~~~ Filter Builder ~~~
 abstract class DaoFilterBuilder<T extends InveslyDataModel> {
-  DaoFilterBuilder filter(Map<String, dynamic> condition);
+  DaoFilterBuilder where(Map<TableColumn, dynamic> condition);
 
   DaoFilterBuilder groupBy(List<TableColumn> columns);
 
@@ -162,7 +161,7 @@ abstract class DataAccessObject<T extends InveslyDataModel> {
     final r = await _db.update(
       table.name,
       table.decode(data),
-      where: '${table.idColumn.title} = ?',
+      where: '${table.idColumn.fullTitle} = ?',
       whereArgs: [data.id],
     );
     _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.updation));

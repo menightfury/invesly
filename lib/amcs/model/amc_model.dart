@@ -67,20 +67,20 @@ class AmcTable extends TableSchema<AmcInDb> {
   @override
   Map<String, dynamic> decode(AmcInDb data) {
     return {
-      idColumn.name: data.id,
-      nameColumn.name: data.name,
-      genreColumn.name: data.genreIndex,
-      tagsColumn.name: data.tagsString,
+      idColumn.title: data.id,
+      nameColumn.title: data.name,
+      genreColumn.title: data.genreIndex,
+      tagsColumn.title: data.tagsString,
     };
   }
 
   @override
   AmcInDb encode(Map<String, dynamic> map) {
     return AmcInDb(
-      id: map[idColumn.name] as String,
-      name: map[nameColumn.name] as String,
-      genreIndex: map[genreColumn.name] as int?,
-      tagsString: map[tagsColumn.name] as String?,
+      id: map[idColumn.title] as String,
+      name: map[nameColumn.title] as String,
+      genreIndex: map[genreColumn.title] as int?,
+      tagsString: map[tagsColumn.title] as String?,
     );
   }
 }

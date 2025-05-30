@@ -45,41 +45,41 @@ abstract class TableSchema<T extends InveslyDataModel> extends Equatable {
 }
 
 class TableColumnBase extends Equatable {
-  const TableColumnBase(this.name, this.tableName, [this.aggregateFunc, this.aliasName]);
+  const TableColumnBase(this.title, this.tableName, [this.aggregateFunc, this.aliasTitle]);
 
-  final String name;
+  final String title;
   final String tableName;
   final String? aggregateFunc;
-  final String? aliasName;
+  final String? aliasTitle;
 
   /// Effective title of the column in the SQL query
-  String get title {
+  String get fullTitle {
     final buffer = StringBuffer();
 
     if (aggregateFunc != null) {
       buffer.write('$aggregateFunc(');
     }
 
-    buffer.write('$tableName.$name');
+    buffer.write('$tableName.$title');
 
     if (aggregateFunc != null) {
       buffer.write(')');
     }
 
-    if (aliasName != null) {
-      buffer.write(' AS $aliasName');
+    if (aliasTitle != null) {
+      buffer.write(' AS $aliasTitle');
     }
 
     return buffer.toString();
   }
 
   @override
-  List<Object?> get props => [name, tableName, aggregateFunc, aliasName];
+  List<Object?> get props => [title, tableName, aggregateFunc, aliasTitle];
 }
 
 class TableColumn<T extends Object> extends TableColumnBase {
   const TableColumn(
-    super.name,
+    super.title,
     super.tableName, {
     this.type = TableColumnType.string,
     this.defaultValue,
@@ -96,20 +96,20 @@ class TableColumn<T extends Object> extends TableColumnBase {
   final bool isUnique;
   final ForeignReference? foreignReference;
 
-  TableColumnBase alias(String title) => TableColumnBase(name, tableName, null, title);
+  TableColumnBase alias(String aliasTitle) => TableColumnBase(title, tableName, null, aliasTitle);
 
-  TableColumnBase count([String? alias]) => TableColumnBase(name, tableName, 'COUNT', alias);
+  TableColumnBase count([String? alias]) => TableColumnBase(title, tableName, 'COUNT', alias);
 
-  TableColumnBase sum([String? alias]) => TableColumnBase(name, tableName, 'SUM', alias);
+  TableColumnBase sum([String? alias]) => TableColumnBase(title, tableName, 'SUM', alias);
 
-  TableColumnBase avg([String? alias]) => TableColumnBase(name, tableName, 'AVG', alias);
+  TableColumnBase avg([String? alias]) => TableColumnBase(title, tableName, 'AVG', alias);
 
-  TableColumnBase min([String? alias]) => TableColumnBase(name, tableName, 'MIN', alias);
+  TableColumnBase min([String? alias]) => TableColumnBase(title, tableName, 'MIN', alias);
 
-  TableColumnBase max([String? alias]) => TableColumnBase(name, tableName, 'MAX', alias);
+  TableColumnBase max([String? alias]) => TableColumnBase(title, tableName, 'MAX', alias);
 
   @override
-  List<Object?> get props => [title, type, defaultValue, isPrimary, isNullable, isUnique, foreignReference];
+  List<Object?> get props => [fullTitle, type, defaultValue, isPrimary, isNullable, isUnique, foreignReference];
 }
 
 class ForeignReference extends Equatable {

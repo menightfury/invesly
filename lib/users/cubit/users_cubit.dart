@@ -28,7 +28,7 @@ class UsersCubit extends Cubit<UsersState> {
 
     // getting users when users table changes
     _subscription ??= _repository.onTableChange.listen(null, onError: (err) => emit(UsersErrorState(err.toString())));
-    _subscription?.onData((query) async {
+    _subscription?.onData((_) async {
       emit(const UsersLoadingState());
       _subscription?.pause();
       try {

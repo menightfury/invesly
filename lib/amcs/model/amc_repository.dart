@@ -15,7 +15,7 @@ class AmcRepository extends DataAccessObject<AmcInDb> {
   /// Get amc by Id
   Future<InveslyAmc?> getAmc(String id) async {
     // return _api.getAmc(id);
-    final list = await select().filter({table.idColumn.title: id}).toList(); // TODO: fix this
+    final list = await select().where({table.idColumn: id}).toList(); // TODO: fix this
 
     if (list.isEmpty) return null;
 

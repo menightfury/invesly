@@ -158,7 +158,7 @@ class __ContentState extends State<_Content> {
                           const Gap(12.0),
 
                           // ~ Aadhaar number
-                          const Text('Aadhar Number'),
+                          const Text('Aadhaar Number'),
                           TextFormField(
                             decoration: const InputDecoration(hintText: 'e.g. 1234-5678-9101'),
                             initialValue: cubit.state.aadhaarNumber,
@@ -286,7 +286,7 @@ class __ContentState extends State<_Content> {
   // ~ Save user
   Future<void> _handleSavePressed(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      context.read<EditUserCubit>().submit();
+      context.read<EditUserCubit>().save();
       // if (!context.mounted) return;
       // context.read<SettingsCubit>().saveCurrentUser(user);
     } else if (_validateMode.value != AutovalidateMode.always) {

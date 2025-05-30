@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
@@ -56,22 +57,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 return SingleChildScrollView(
                   controller: _scrollController,
-                  padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 56.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      // ~~~ Greeting message ~~~
-                      Text(DateTime.now().greetingsMsg, style: textTheme.headlineSmall),
+                  child: BlocSelector<SettingsCubit, SettingsState, String?>(
+                    selector: (state) => state.currentUserId,
+                    builder: (context, userId) {
+                      final currentUser =
+                          users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          // ~~~ Greeting message ~~~
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>[
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Text(DateTime.now().greetingsMsg, style: textTheme.headlineSmall),
+                                    Text(currentUser?.name ?? 'Investor', style: textTheme.headlineMedium),
+                                  ],
+                                ),
+                                IconButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => context.push(AppRouter.profile),
+                                  icon: CircleAvatar(
+                                    backgroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
+                                    child: currentUser == null ? Icon(Icons.person_pin) : null,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
 
-                      Text('Satyajyoti', style: textTheme.headlineMedium),
+                          // ~~~ Dashboard contents ~~~
+                          BlocProvider(
+                            create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
+                            child: _DashboardContents(currentUser),
+                          ),
 
-                      // ~~~ Transactions Stats ~~~
-                      BlocProvider(
-                        create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
-                        child: _DashboardContents(users),
-                      ),
-                      // const SizedBox(height: 56.0),
-                    ],
+                          // const SizedBox(height: 56.0),
+                        ],
+                      );
+                    },
                   ),
                 );
               }
@@ -111,9 +140,9 @@ class NewTransactionButton extends StatelessWidget {
 }
 
 class _DashboardContents extends StatefulWidget {
-  const _DashboardContents(this.users, {super.key});
+  const _DashboardContents(this.user, {super.key});
 
-  final List<InveslyUser> users;
+  final InveslyUser? user;
 
   @override
   State<_DashboardContents> createState() => _DashboardContentsState();
@@ -123,256 +152,163 @@ class _DashboardContentsState extends State<_DashboardContents> {
   @override
   void initState() {
     super.initState();
-    context.read<DashboardCubit>().fetchTransactionStats();
+    context.read<DashboardCubit>().fetchTransactionStats(widget.user?.id);
   }
+
+  // @override
+  // void didUpdateWidget(covariant _DashboardContents oldWidget) {
+  //   // TODO: implement didUpdateWidget
+  //   super.didUpdateWidget(oldWidget);
+  // }
 
   @override
   Widget build(BuildContext context) {
     // final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return BlocBuilder<DashboardCubit, DashboardState>(
-      builder: (context, state) {
-        if (state is DashboardErrorState) {
-          return const PMErrorWidget();
-        }
-
-        if (state is DashboardLoadedState) {
-          final stats = state.summaries;
-          final totalAmount = stats.fold<double>(0, (v, el) => v + el.totalAmount);
-          final recentTransactions = state.recentTransactions;
-
-          return Column(
-            spacing: 16.0,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: Column(
-                    children: <Widget>[
-                      Text('Rs. 2045.20', style: textTheme.headlineLarge?.copyWith(fontSize: 48.0, height: 1.5)),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(text: 'Rs. 105.80', style: textTheme.headlineSmall?.copyWith(fontSize: 13.0)),
-                            TextSpan(text: ' invested this month'),
-                          ],
-                          style: TextStyle(fontSize: 13.0),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              _TransactionStatsWidget(stats, widget.users),
-
-              _RecentTransactions(recentTransactions: recentTransactions),
-            ],
-          );
-        }
-
-        return const Center(child: CircularProgressIndicator());
-      },
-    );
-  }
-}
-
-class _RecentTransactions extends StatelessWidget {
-  const _RecentTransactions({super.key, required this.recentTransactions});
-
-  final List<InveslyTransaction> recentTransactions;
-
-  @override
-  Widget build(BuildContext context) {
     return Column(
-      spacing: 8.0,
+      spacing: 16.0,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text('Recent transactions', style: Theme.of(context).textTheme.headlineSmall),
-        ColumnBuilder(
-          itemBuilder: (context, index) {
-            final rt = recentTransactions[index];
-            return ListTile(
-              title: Text(rt.amc?.name ?? 'NULL'),
-              subtitle: Text(
-                rt.userId,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelSmall,
-              ),
-              trailing: Text('Rs. ${rt.totalAmount}'),
-              onTap: () {},
-              contentPadding: EdgeInsets.zero,
-            );
-          },
-          itemCount: recentTransactions.length,
+        Align(
+          alignment: Alignment.topCenter,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Column(
+              children: <Widget>[
+                // ~~~ Total amount ~~~
+                BlocBuilder<DashboardCubit, DashboardState>(
+                  builder: (context, state) {
+                    if (state is DashboardLoadedState) {
+                      final totalAmount = state.summaries.fold<double>(0, (v, el) => v + el.totalAmount);
+                      return Text(
+                        totalAmount.toCompact(),
+                        style: textTheme.headlineLarge?.copyWith(fontSize: 48.0, height: 1.5),
+                      );
+                    }
+                    return Text('Loading...');
+                  },
+                ),
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(text: 'Rs. 0.0', style: textTheme.headlineSmall?.copyWith(fontSize: 13.0)),
+                      TextSpan(text: ' invested this month'),
+                    ],
+                    style: TextStyle(fontSize: 13.0),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
+
+        _TransactionStatsWidget(),
+
+        _RecentTransactions(),
       ],
     );
   }
 }
 
-class _TransactionStatsWidget extends StatefulWidget {
-  const _TransactionStatsWidget(this.stats, this.users, {super.key});
+class _RecentTransactions extends StatelessWidget {
+  const _RecentTransactions({super.key});
 
-  final List<TransactionStat> stats;
-  final List<InveslyUser> users;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        spacing: 8.0,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text('Recent transactions', style: Theme.of(context).textTheme.headlineSmall),
+          BlocBuilder<DashboardCubit, DashboardState>(
+            builder: (context, state) {
+              if (state is DashboardLoadedState) {
+                final recentTransactions = state.recentTransactions;
+                return ColumnBuilder(
+                  itemBuilder: (context, index) {
+                    final rt = recentTransactions[index];
+                    return ListTile(
+                      title: Text(rt.amc?.name ?? 'NULL'),
+                      subtitle: Text(
+                        rt.userId,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                      trailing: Text('Rs. ${rt.totalAmount}'),
+                      onTap: () {},
+                      contentPadding: EdgeInsets.zero,
+                    );
+                  },
+                  itemCount: recentTransactions.length,
+                );
+              }
+
+              return const Center(child: CircularProgressIndicator());
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TransactionStatsWidget extends StatefulWidget {
+  const _TransactionStatsWidget({super.key});
 
   @override
   State<_TransactionStatsWidget> createState() => _TransactionStatsWidgetState();
 }
 
 class _TransactionStatsWidgetState extends State<_TransactionStatsWidget> {
-  late final PageController _pageController;
-
-  @override
-  void initState() {
-    _pageController = PageController(initialPage: 0, viewportFraction: 0.9);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    // grouping stats based on user_id
-    final statsMap = groupBy(widget.stats, (stat) => stat.userId);
     final textTheme = Theme.of(context).textTheme;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      spacing: 8.0,
-      children: [
-        Row(
-          spacing: 8.0,
-          children: <Widget>[
-            Expanded(
-              child: Material(
-                color: Colors.amberAccent,
-                borderRadius: BorderRadius.all(Radius.circular(4.0)).copyWith(topLeft: Radius.circular(16.0)),
-                elevation: 1.0,
-                child: SizedBox(height: 100.0),
-              ),
-            ),
-            Expanded(child: Material(color: Colors.greenAccent, child: SizedBox(height: 100.0))),
-          ],
-        ),
-        Row(
-          spacing: 8.0,
-          children: <Widget>[
-            Expanded(child: Material(color: Colors.amberAccent, child: SizedBox(height: 100.0))),
-            Expanded(child: Material(color: Colors.greenAccent, child: SizedBox(height: 100.0))),
-          ],
-        ),
-      ],
-    );
+    // final colorScheme = Theme.of(context).colorScheme;
 
     return SizedBox(
-      height: 280.0,
-      child: PageView.builder(
-        clipBehavior: Clip.none,
-        controller: _pageController,
+      height: 120.0,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
-          final statEntry = statsMap.entries.elementAt(index);
-          final user = widget.users.firstWhereOrNull((u) => u.id == statEntry.key);
-          final totalAmount = statEntry.value.fold<double>(0, (v, el) => v + el.totalAmount);
+          final genre = AmcGenre.getByIndex(index);
 
-          return AnimatedBuilder(
-            animation: _pageController,
-            builder: (context, _) {
-              double scale = 1.0;
-              double itemOffset = 0.0;
-              double page = _pageController.initialPage.toDouble();
-              final position = _pageController.position;
-              if (position.hasPixels && position.hasContentDimensions) {
-                page = _pageController.page ?? page;
-              }
-              itemOffset = page - index;
+          return Material(
+            borderRadius: BorderRadius.circular(8.0),
+            elevation: 3.0,
+            clipBehavior: Clip.hardEdge,
+            child: SizedBox(
+              width: 160.0,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(genre.title, style: textTheme.bodyLarge, overflow: TextOverflow.ellipsis),
+                    const Gap(8.0),
+                    BlocBuilder<DashboardCubit, DashboardState>(
+                      builder: (context, state) {
+                        if (state is DashboardLoadedState) {
+                          final stats = state.summaries.firstWhereOrNull((stat) => stat.amcGenre == genre);
 
-              final num t = (1 - (itemOffset.abs() * 0.6)).clamp(0.3, 1.0);
-              scale = Curves.easeOut.transform(t as double);
-
-              return Transform.scale(
-                scale: scale,
-                child: Material(
-                  elevation: 3.0,
-                  borderRadius: BorderRadius.circular(12.0),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: () {},
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 16.0,
-                        children: <Widget>[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            spacing: 32.0,
-                            children: <Widget>[
-                              Expanded(
-                                child: Column(
-                                  spacing: 4.0,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(user?.name ?? statEntry.key, maxLines: 1, overflow: TextOverflow.ellipsis),
-                                    Text(
-                                      totalAmount.toCompact(),
-                                      style: textTheme.headlineLarge?.copyWith(fontSize: 24.0),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              CircleAvatar(
-                                backgroundImage: user != null ? AssetImage(user.avatar) : null,
-                                child: user == null ? Icon(Icons.person_pin) : null,
-                              ),
-                            ],
-                          ),
-
-                          ColumnBuilder(
-                            mainAxisSize: MainAxisSize.min,
-
-                            itemCount: AmcGenre.values.length,
-                            itemBuilder: (context, index) {
-                              final genre = AmcGenre.values[index];
-                              final stat = statEntry.value.firstWhereOrNull((el) => el.amcGenre == genre);
-                              return Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text(genre.title),
-                                      Text('${stat?.numTransactions ?? 0} transactions', style: textTheme.labelSmall),
-                                    ],
-                                  ),
-                                  Text(
-                                    '${stat?.totalAmount ?? 0}',
-                                    style: textTheme.headlineLarge?.copyWith(fontSize: 16.0),
-                                  ),
-                                ],
-                              );
-                            },
-                            separatorBuilder: (_, __) => const SizedBox(height: 12.0),
-                          ),
-                        ],
-                      ),
+                          return Text(stats?.totalAmount.toCompact() ?? '0.0', style: textTheme.headlineMedium);
+                        }
+                        return const Center(child: CircularProgressIndicator());
+                      },
                     ),
-                  ),
+                  ],
                 ),
-              );
-            },
+              ),
+            ),
           );
         },
-        itemCount: statsMap.length,
+        itemCount: AmcGenre.values.length,
+        separatorBuilder: (_, _) => SizedBox(width: 16.0),
       ),
     );
   }

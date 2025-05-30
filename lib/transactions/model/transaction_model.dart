@@ -134,28 +134,28 @@ class TransactionTable extends TableSchema<TransactionInDb> {
   @override
   Map<String, dynamic> decode(TransactionInDb data) {
     return <String, dynamic>{
-      idColumn.name: data.id,
-      userIdColumn.name: data.userId,
-      typeColumn.name: data.typeIndex,
-      amcIdColumn.name: data.amcId,
-      quantityColumn.name: data.quantity,
-      amountColumn.name: data.totalAmount,
-      dateColumn.name: data.date,
-      noteColumn.name: data.note,
+      idColumn.title: data.id,
+      userIdColumn.title: data.userId,
+      typeColumn.title: data.typeIndex,
+      amcIdColumn.title: data.amcId,
+      quantityColumn.title: data.quantity,
+      amountColumn.title: data.totalAmount,
+      dateColumn.title: data.date,
+      noteColumn.title: data.note,
     };
   }
 
   @override
   TransactionInDb encode(Map<String, dynamic> map) {
     return TransactionInDb(
-      id: map[idColumn.name] as String,
-      userId: map[userIdColumn.name] as String,
-      typeIndex: map[typeColumn.name] as int,
-      amcId: map[amcIdColumn.name] as String?,
-      quantity: (map[quantityColumn.name] as num).toDouble(),
-      totalAmount: (map[amountColumn.name] as num).toDouble(),
-      date: map[dateColumn.name] as int,
-      note: map[noteColumn.name] as String?,
+      id: map[idColumn.title] as String,
+      userId: map[userIdColumn.title] as String,
+      typeIndex: map[typeColumn.title] as int,
+      amcId: map[amcIdColumn.title] as String?,
+      quantity: (map[quantityColumn.title] as num).toDouble(),
+      totalAmount: (map[amountColumn.title] as num).toDouble(),
+      date: map[dateColumn.title] as int,
+      note: map[noteColumn.title] as String?,
     );
   }
 }

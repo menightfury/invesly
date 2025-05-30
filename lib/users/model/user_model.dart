@@ -69,22 +69,22 @@ class UserTable extends TableSchema<UserInDb> {
   @override
   Map<String, dynamic> decode(UserInDb data) {
     return {
-      idColumn.name: data.id,
-      nameColumn.name: data.name,
-      avatarColumn.name: data.avatarIndex,
-      panNumberColumn.name: data.panNumber,
-      aadhaarNumberColumn.name: data.aadhaarNumber,
+      idColumn.title: data.id,
+      nameColumn.title: data.name,
+      avatarColumn.title: data.avatarIndex,
+      panNumberColumn.title: data.panNumber,
+      aadhaarNumberColumn.title: data.aadhaarNumber,
     };
   }
 
   @override
   UserInDb encode(Map<String, dynamic> map) {
     return UserInDb(
-      id: map[idColumn.name] as String,
-      name: map[nameColumn.name] as String,
-      avatarIndex: map[avatarColumn.name] as int,
-      panNumber: map[panNumberColumn.name] as String?,
-      aadhaarNumber: map[aadhaarNumberColumn.name] as String?,
+      id: map[idColumn.title] as String,
+      name: map[nameColumn.title] as String,
+      avatarIndex: map[avatarColumn.title] as int,
+      panNumber: map[panNumberColumn.title] as String?,
+      aadhaarNumber: map[aadhaarNumberColumn.title] as String?,
     );
   }
 }

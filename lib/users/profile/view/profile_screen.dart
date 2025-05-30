@@ -5,6 +5,7 @@ import 'package:invesly/users/cubit/users_cubit.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/google_drive/google_drive.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
+import 'package:invesly/users/widget/user_picker_widget.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -35,21 +36,43 @@ class ProfileScreen extends StatelessWidget {
 
                     if (state is UsersLoadedState) {
                       final users = state.users;
-                      return Row(
-                        spacing: 16.0,
-                        children:
-                            users.map<Widget>((user) {
-                              return Column(
+                      return BlocSelector<SettingsCubit, SettingsState, String?>(
+                        selector: (state) => state.currentUserId,
+                        builder: (context, userId) {
+                          final currentUser =
+                              users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+
+                          return Material(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                              child: Row(
                                 spacing: 4.0,
                                 children: <Widget>[
                                   CircleAvatar(
-                                    backgroundImage: AssetImage(user.avatar),
-                                    // child: Text(user.name[0].toUpperCase()),
+                                    backgroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
+                                    child: currentUser == null ? Icon(Icons.person_pin) : null,
                                   ),
-                                  Text(user.name.toCapitalize()),
+                                  Text(currentUser?.name.toCapitalize() ?? ''),
+                                  Spacer(),
+                                  IconButton(
+                                    onPressed: () async {
+                                      final bla = await InveslyUserPickerWidget.showModal(context, currentUser?.id);
+                                      // if (mounted) return;
+                                      if (bla != null) {
+                                        context.read<SettingsCubit>().saveCurrentUser(bla);
+                                      }
+                                    },
+                                    icon: Icon(Icons.keyboard_arrow_down_rounded),
+                                  ),
+                                  IconButton(
+                                    onPressed: () => context.go(AppRouter.editUser, extra: currentUser),
+                                    icon: Icon(Icons.edit_note_rounded),
+                                  ),
                                 ],
-                              );
-                            }).toList(),
+                              ),
+                            ),
+                          );
+                        },
                       );
                     }
 

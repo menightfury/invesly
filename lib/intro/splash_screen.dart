@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/users/cubit/users_cubit.dart';
 import 'package:invesly/common_libs.dart';
 
@@ -31,12 +32,17 @@ class _SplashScreenState extends State<SplashScreen> {
     return BlocListener<UsersCubit, UsersState>(
       listener: (context, state) async {
         if (state is UsersLoadedState) {
-          await _completer.future;
+          await _completer.future; // show tips message in splash screen for few seconds
           if (!context.mounted) return;
 
           if (state.hasNoUser) {
             context.go(AppRouter.editUser);
           } else {
+            // set first user as current user if not set
+            if (context.read<SettingsCubit>().state.currentUserId == null) {
+              context.read<SettingsCubit>().saveCurrentUser(state.users.first.id);
+            }
+            // go to initial requested screen or dashboard
             context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
           }
         }

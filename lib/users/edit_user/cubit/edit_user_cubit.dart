@@ -35,17 +35,17 @@ class EditUserCubit extends Cubit<EditUserState> {
     emit(state.copyWith(aadhaarNumber: value));
   }
 
-  void submit() async {
+  void save() async {
     emit(state.copyWith(status: EditUserStatus.loading));
     final name = state.name.trim();
-    if (name.trim().isEmpty) {
+    if (name.isEmpty) {
       emit(state.copyWith(status: EditUserStatus.failure));
       return;
     }
 
     final user = UserInDb(
       id: state.initialUser?.id ?? $uuid.v1(),
-      name: name.trim(),
+      name: name,
       avatarIndex: state.avatarIndex,
       panNumber: state.panNumber,
       aadhaarNumber: state.aadhaarNumber,

@@ -17,12 +17,17 @@ class DashboardCubit extends Cubit<DashboardState> {
   StreamSubscription<TableChangeEvent>? _subscription;
 
   /// Fetch transaction statistics
-  Future<void> fetchTransactionStats() async {
+  Future<void> fetchTransactionStats(String? userId) async {
+    if (userId == null) {
+      emit(DashboardErrorState('No user exists'));
+      return;
+    }
+
     // Get initial transactions
     emit(const DashboardLoadingState());
     try {
-      final transactions = await _repository.getTransactions();
-      final transactionStats = await _repository.getTransactionStats();
+      final transactions = await _repository.getTransactions(userId);
+      final transactionStats = await _repository.getTransactionStats(userId);
 
       emit(DashboardLoadedState(summaries: transactionStats, recentTransactions: transactions));
     } on Exception catch (error) {
@@ -40,8 +45,8 @@ class DashboardCubit extends Cubit<DashboardState> {
       _subscription?.pause();
 
       try {
-        final transactions = await _repository.getTransactions();
-        final transactionStats = await _repository.getTransactionStats();
+        final transactions = await _repository.getTransactions(userId);
+        final transactionStats = await _repository.getTransactionStats(userId);
 
         emit(DashboardLoadedState(summaries: transactionStats, recentTransactions: transactions));
       } on Exception catch (error) {
