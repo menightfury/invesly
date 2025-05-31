@@ -92,8 +92,8 @@ class _AppViewState extends State<_AppView> {
           title: 'Expense Manager',
           debugShowCheckedModeBanner: false,
           routerConfig: AppRouter.router,
-          theme: AppStyle().lightTheme,
-          darkTheme: AppStyle().darkTheme,
+          theme: AppStyle.instance.lightTheme,
+          darkTheme: AppStyle.instance.darkTheme,
           themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
         );
       },

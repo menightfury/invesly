@@ -2,10 +2,9 @@
 
 import 'dart:async';
 
-import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/transactions/model/transaction_model.dart';
-import 'package:invesly/users/cubit/users_cubit.dart';
-import 'package:invesly/users/profile/view/profile_screen.dart';
+import 'amcs/model/amc_model.dart';
+import 'transactions/model/transaction_model.dart';
+import 'users/cubit/users_cubit.dart';
 
 import 'amcs/view/amc_overview/amc_overview_screen.dart';
 import 'amcs/view/edit_amc/edit_amc_screen.dart';
@@ -14,7 +13,6 @@ import 'common_libs.dart';
 import 'transactions/dashboard/view/dashboard_screen.dart';
 import 'intro/intro_screen.dart';
 import 'transactions/edit_transaction/edit_transaction_screen.dart';
-import 'settings/backup_restore_screen.dart';
 import 'settings/cubit/settings_cubit.dart';
 import 'settings/settings_screen.dart';
 import 'intro/splash_screen.dart';
@@ -31,10 +29,8 @@ class AppRouter {
   static String amcDetails(String id) => '/amc/$id'; // requires at least one user
   static const String editTransaction = '/edit_transaction'; // requires at least one user
   static const String editAmc = '/edit_amc';
-  static const String settings = '/settings'; // settings screen is moved to profile screen
-  static const String profile = '/profile';
-  static const String backup = '/settings/backup';
-  static const String error = '/error';
+  static const String settings = '/settings';
+  static const String error = '/error'; // ??
 
   static final GlobalKey<NavigatorState> _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
@@ -56,9 +52,7 @@ class AppRouter {
         editTransaction,
         (state) => EditTransactionScreen(initialTransaction: state.extra as InveslyTransaction?),
       ),
-      AppRoute(profile, (_) => const ProfileScreen()),
       AppRoute(settings, (_) => const SettingsScreen()),
-      AppRoute(backup, (_) => const BackupRestoreScreen(), _rootKey),
       AppRoute(error, (_) => const ErrorScreen()),
     ],
   );

@@ -8,10 +8,7 @@ import 'package:invesly/constants.dart';
 class AppStyle {
   // Singleton pattern
   const AppStyle._();
-  static final _instance = AppStyle._();
-  factory AppStyle() {
-    return _instance;
-  }
+  static final instance = AppStyle._();
 
   // ~ Light theme colors
   final _lightScheme = const ColorScheme.light(
