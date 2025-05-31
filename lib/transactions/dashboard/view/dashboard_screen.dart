@@ -216,42 +216,51 @@ class _RecentTransactions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        spacing: 8.0,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text('Recent transactions', style: Theme.of(context).textTheme.headlineSmall),
-          BlocBuilder<DashboardCubit, DashboardState>(
-            builder: (context, state) {
-              if (state is DashboardLoadedState) {
-                final recentTransactions = state.recentTransactions;
-                return ColumnBuilder(
-                  itemBuilder: (context, index) {
-                    final rt = recentTransactions[index];
-                    return ListTile(
-                      title: Text(rt.amc?.name ?? 'NULL'),
-                      subtitle: Text(
-                        rt.userId,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelSmall,
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      spacing: 8.0,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text('Recent transactions', style: Theme.of(context).textTheme.headlineSmall),
+        ),
+        BlocBuilder<DashboardCubit, DashboardState>(
+          builder: (context, state) {
+            if (state is DashboardLoadedState) {
+              final recentTransactions = state.recentTransactions;
+              return ColumnBuilder(
+                itemBuilder: (context, index) {
+                  final rt = recentTransactions[index];
+                  return ListTile(
+                    leading:
+                        rt.transactionType == TransactionType.invested
+                            ? Icon(Icons.north_east_rounded)
+                            : Icon(Icons.south_west_rounded), // TODO: Icon of AmcGenre
+                    title: Text(rt.amc?.name ?? 'NULL', style: textTheme.bodyMedium),
+                    subtitle: Text(
+                      rt.investedOn.toReadable(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.labelSmall,
+                    ),
+                    trailing: Text(
+                      'Rs. ${rt.totalAmount}',
+                      style: textTheme.headlineSmall?.copyWith(
+                        color: rt.transactionType == TransactionType.invested ? Colors.deepOrange : Colors.teal,
                       ),
-                      trailing: Text('Rs. ${rt.totalAmount}'),
-                      onTap: () {},
-                      contentPadding: EdgeInsets.zero,
-                    );
-                  },
-                  itemCount: recentTransactions.length,
-                );
-              }
+                    ),
+                    onTap: () {},
+                  );
+                },
+                itemCount: recentTransactions.length,
+              );
+            }
 
-              return const Center(child: CircularProgressIndicator());
-            },
-          ),
-        ],
-      ),
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
+      ],
     );
   }
 }
