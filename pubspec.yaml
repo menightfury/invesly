@@ -37,8 +37,8 @@ dependencies:
   flutter:
     sdk: flutter
   # flutter_animate: ^4.1.1+1
-  flutter_localizations:
-    sdk: flutter
+  # flutter_localizations:
+  #   sdk: flutter
   faker: ^2.1.0
   flutter_bloc: ^9.1.0
   # flutter_keyboard_visibility: ^6.0.0
