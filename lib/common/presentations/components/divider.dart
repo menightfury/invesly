@@ -4,6 +4,8 @@ class InveslyDivider extends StatelessWidget {
   /// A list of colors used to create a gradient effect on the dotted line.
   final List<Color>? colors;
 
+  final List<double>? stops;
+
   /// The thickness of the line (height for horizontal, width for vertical).
   final double thickness;
 
@@ -26,19 +28,21 @@ class InveslyDivider extends StatelessWidget {
     super.key,
     this.thickness = 1.0,
     this.colors,
+    this.stops,
     this.direction = Axis.horizontal,
     this.indent,
     this.endIndent,
   }) : assert(thickness >= 0.0, 'Thickness must be non-negative'),
-       dashGap = double.infinity,
-       dashWidth = 0.0;
+       dashGap = 0.0,
+       dashWidth = double.infinity;
 
   const InveslyDivider.dashed({
     super.key,
     this.thickness = 1.0,
     this.colors,
+    this.stops,
     this.direction = Axis.horizontal,
-    this.dashGap = 5.0,
+    this.dashGap = 10.0,
     this.dashWidth = 5.0,
     this.indent,
     this.endIndent,
@@ -57,6 +61,7 @@ class InveslyDivider extends StatelessWidget {
         size: direction == Axis.horizontal ? Size(double.infinity, thickness) : Size(thickness, double.infinity),
         painter: _LinePainter(
           colors: effectiveColors,
+          stops: stops,
           thickness: thickness,
           axis: direction,
           dashGap: dashGap,
@@ -70,6 +75,7 @@ class InveslyDivider extends StatelessWidget {
 /// A custom painter that draws a dotted line with optional gradient and shadow
 class _LinePainter extends CustomPainter {
   final List<Color> colors;
+  final List<double>? stops;
   final double thickness;
   final double dashGap;
   final double dashWidth;
@@ -77,6 +83,7 @@ class _LinePainter extends CustomPainter {
 
   _LinePainter({
     required this.colors,
+    this.stops,
     required this.thickness,
     required this.dashGap,
     required this.dashWidth,
@@ -87,9 +94,9 @@ class _LinePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Paint paint =
         Paint()
-          ..style = PaintingStyle.stroke
+          ..style = PaintingStyle.fill
           ..strokeWidth = thickness
-          ..strokeCap = StrokeCap.round;
+          ..strokeCap = StrokeCap.butt;
 
     // Apply gradient shader if multiple colors are provided
     if (colors.length > 1) {
@@ -100,6 +107,7 @@ class _LinePainter extends CustomPainter {
 
       paint.shader = LinearGradient(
         colors: colors,
+        stops: stops,
         begin: begin,
         end: end,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
@@ -128,18 +136,19 @@ class _LinePainter extends CustomPainter {
         }
         isGap = !isGap;
       }
-    } else {
-      position += dashWidth;
+    }
+    // set the last position
+    if (dashArray.length.isOdd) {
       if (axis == Axis.horizontal) {
-        dashArray.add(Offset(position, size.height / 2));
+        dashArray.add(Offset(size.width, size.height / 2));
       } else {
-        dashArray.add(Offset(size.width / 2, position));
+        dashArray.add(Offset(size.width / 2, size.height));
       }
     }
 
     // Draw actual dotted line segment
-    for (int i = 0; i < dashArray.length / 2; i++) {
-      canvas.drawLine(dashArray[2 * i], dashArray[2 * i + 1], paint); // TODO: fix for odd length array
+    for (int i = 0; i < dashArray.length; i += 2) {
+      canvas.drawLine(dashArray[i], dashArray[i + 1], paint);
     }
   }
 
