@@ -1,5 +1,6 @@
 import 'package:invesly/users/cubit/users_cubit.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/users/edit_user/view/edit_user_screen.dart';
 
 class InveslyUserPickerWidget extends StatelessWidget {
   const InveslyUserPickerWidget({super.key, this.userId, this.onPickup});
@@ -54,7 +55,8 @@ class InveslyUserPickerWidget extends StatelessWidget {
                   title: const Text('Add new user'),
                   onTap: () {
                     // Navigator.maybePop(context);
-                    context.push(AppRouter.editUser);
+                    // context.push(AppRouter.editUser);
+                    context.push(const EditUserScreen());
                   },
                 ),
               ],

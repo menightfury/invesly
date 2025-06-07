@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:intl/intl.dart';
+import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 import 'package:pattern_formatter/numeric_formatter.dart';
 
 import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
@@ -98,10 +99,11 @@ class _EditInvestmentScreenState extends State<_EditInvestmentScreen> {
         late final SnackBar message;
 
         if (state.status == EditTransactionStatus.success) {
-          if (context.canPop()) {
+          if (context.canPop) {
             context.pop();
           } else {
-            context.go(AppRouter.dashboard);
+            // context.go(AppRouter.dashboard);
+            context.go(DashboardScreen());
           }
           message = const SnackBar(content: Text('Investment saved successfully'), backgroundColor: Colors.teal);
         } else if (state.status == EditTransactionStatus.failure) {

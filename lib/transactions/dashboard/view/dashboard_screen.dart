@@ -5,10 +5,13 @@ import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
+import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/users/cubit/users_cubit.dart';
+import 'package:invesly/users/edit_user/view/edit_user_screen.dart';
 import 'package:invesly/users/model/user_model.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -43,7 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return BlocListener<UsersCubit, UsersState>(
       listener: (context, state) {
         if (state is UsersLoadedState && state.hasNoUser && context.read<SettingsCubit>().state.currentUserId == null) {
-          context.go(AppRouter.editUser);
+          context.go(const EditUserScreen());
         }
         // if (state is UsersErrorState) {
         //   context.go(AppRouter.error);
@@ -81,7 +84,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           IconButton(
                             padding: EdgeInsets.zero,
-                            onPressed: () => context.push(AppRouter.settings),
+                            onPressed: () => context.push(const SettingsScreen()),
                             icon: CircleAvatar(
                               backgroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
                               child: currentUser == null ? Icon(Icons.person_pin) : null,
@@ -124,7 +127,7 @@ class NewTransactionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
       heroTag: null,
-      onPressed: () => context.push(AppRouter.editTransaction),
+      onPressed: () => context.push(const EditTransactionScreen()),
       icon: const Icon(Icons.add_rounded),
       extendedPadding: const EdgeInsetsDirectional.only(start: 16, end: 16),
       extendedIconLabelSpacing: isExtended ? 8 : 0,

@@ -3,6 +3,7 @@
 import 'package:invesly/common_libs.dart';
 
 import 'package:invesly/settings/cubit/settings_cubit.dart';
+import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
@@ -74,7 +75,7 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
     if (_currentPage.value != _pageData.length - 1) return;
 
     context.read<SettingsCubit>().completeOnboarding();
-    context.go(AppRouter.dashboard); // TODO: Make a cubit for this
+    context.go(const DashboardScreen()); // TODO: Make a cubit for this
   }
 
   void _animateToPage(int index) {

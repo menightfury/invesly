@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
@@ -98,7 +99,7 @@ class _AmcOverviewScreenState extends State<AmcOverviewScreen> {
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 16.0, right: 16.0),
                       child: ElevatedButton.icon(
-                        onPressed: () => context.push(AppRouter.editTransaction),
+                        onPressed: () => context.push(const EditTransactionScreen()),
                         icon: const Icon(Icons.add),
                         label: const Text('Add transaction'),
                       ),
@@ -170,7 +171,7 @@ class _TransactionListState extends State<_TransactionList> {
                       // label: 'Delete',
                     ),
                     SlidableAction(
-                      onPressed: (context) => context.push(AppRouter.editTransaction, extra: transaction),
+                      onPressed: (context) => context.push(EditTransactionScreen(initialTransaction: transaction)),
                       backgroundColor: Colors.amberAccent,
                       foregroundColor: Colors.black,
                       icon: Icons.edit_note_rounded,
@@ -193,7 +194,7 @@ class _TransactionListState extends State<_TransactionList> {
                 ),
               );
             },
-            separatorBuilder: (_, __) => const InveslyDivider(indent: 8.0, color: Colors.black12),
+            separatorBuilder: (_, _) => const InveslyDivider(indent: 8.0, colors: [Colors.black12]),
             itemCount: data.length,
           );
         }

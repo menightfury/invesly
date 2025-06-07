@@ -128,7 +128,7 @@ class _LinePainter extends CustomPainter {
       bool isGap = false;
 
       while (position < (axis == Axis.horizontal ? size.width : size.height)) {
-        position += isGap ? dashGap : dashWidth;
+        position += isGap ? dashGap + thickness : dashWidth;
         if (axis == Axis.horizontal) {
           dashArray.add(Offset(position, size.height / 2));
         } else {

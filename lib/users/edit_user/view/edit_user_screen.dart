@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:invesly/common/data/bank.dart';
+import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 import 'package:invesly/users/edit_user/cubit/edit_user_cubit.dart';
 import 'package:invesly/users/model/user_model.dart';
@@ -59,10 +60,10 @@ class __ContentState extends State<_Content> {
         late final SnackBar message;
 
         if (state.status == EditUserStatus.success) {
-          if (context.canPop()) {
+          if (context.canPop) {
             context.pop();
           } else {
-            context.go(AppRouter.dashboard);
+            context.go(const DashboardScreen());
           }
           message = const SnackBar(content: Text('User saved successfully'), backgroundColor: Colors.teal);
         } else if (state.status == EditUserStatus.failure) {

@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:invesly/settings/cubit/settings_cubit.dart';
+import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 import 'package:invesly/users/cubit/users_cubit.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/users/edit_user/view/edit_user_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -36,14 +38,15 @@ class _SplashScreenState extends State<SplashScreen> {
           if (!context.mounted) return;
 
           if (state.hasNoUser) {
-            context.go(AppRouter.editUser);
+            context.go(const EditUserScreen());
           } else {
             // set first user as current user if not set
             if (context.read<SettingsCubit>().state.currentUserId == null) {
               context.read<SettingsCubit>().saveCurrentUser(state.users.first.id);
             }
             // go to initial requested screen or dashboard
-            context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
+            // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
+            context.go(const DashboardScreen());
           }
         }
       },
@@ -92,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       'Your data will only be stored on your device, and will be safe as long as you don\'t uninstall the app or change phone. To prevent data loss, it is recommended to make a backup regularly from the app settings.',
                       style: textTheme.labelSmall,
                     ),
-                    InveslyDivider(color: colorScheme.primaryContainer, thickness: 1.0),
+                    InveslyDivider(colors: [colorScheme.primaryContainer], thickness: 1.0),
                     Text.rich(
                       TextSpan(
                         children: [

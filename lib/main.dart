@@ -1,6 +1,7 @@
 // import 'package:flutter/scheduler.dart' show timeDilation;
 
 import 'package:flutter/foundation.dart';
+import 'package:invesly/intro/splash_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'bloc_observer.dart';
@@ -88,13 +89,14 @@ class _AppViewState extends State<_AppView> {
       builder: (context, isDarkMode) {
         $logger.i('Material app rebuilds 😟.');
 
-        return MaterialApp.router(
+        return MaterialApp(
           title: 'Expense Manager',
           debugShowCheckedModeBanner: false,
-          routerConfig: AppRouter.router,
+          // routerConfig: AppRouter.router,
           theme: AppStyle.instance.lightTheme,
           darkTheme: AppStyle.instance.darkTheme,
           themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          home: const SplashScreen(),
         );
       },
       // ),
