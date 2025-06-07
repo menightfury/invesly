@@ -82,8 +82,8 @@ class SettingsTile2 extends StatelessWidget {
 }
 
 class SettingsTile extends StatelessWidget {
-  final Widget title;
-  final Widget? description;
+  final String title;
+  final String? description;
   final Widget? icon;
   final Widget? trailingIcon;
   final VoidCallback? onTap;
@@ -101,31 +101,27 @@ class SettingsTile extends StatelessWidget {
 
   factory SettingsTile.navigation({
     Key? key,
-    required Widget title,
-    Widget? description,
+    required String title,
+    String? description,
     Widget? icon,
     Widget? trailingIcon,
-    WidgetBuilder? routeBuilder,
-    String? routeLocation,
     bool enabled = true,
+    required VoidCallback onTap,
   }) {
-    assert(routeBuilder != null || routeLocation != null);
-    assert(routeBuilder == null || routeLocation == null);
     return _SettingsNavigationTile(
       key: key,
       title: title,
       description: description,
       icon: icon,
       trailingIcon: trailingIcon,
-      routeBuilder: routeBuilder,
-      routeLocation: routeLocation,
+      onTap: onTap,
     );
   }
 
   factory SettingsTile.switchTile({
     Key? key,
-    required Widget title,
-    Widget? description,
+    required String title,
+    String? description,
     Widget? icon,
     required bool value,
     required ValueChanged<bool>? onChanged,
@@ -143,8 +139,11 @@ class SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: title,
-      subtitle: description,
+      title: Text(title),
+      subtitle:
+          description != null
+              ? Text(description!, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.grey))
+              : null,
       leading: icon,
       trailing: trailingIcon,
       onTap: onTap,
@@ -160,22 +159,21 @@ class _SettingsNavigationTile extends SettingsTile {
     super.description,
     super.icon,
     super.trailingIcon,
-    this.routeBuilder,
-    this.routeLocation,
+    required super.onTap,
   });
-
-  final WidgetBuilder? routeBuilder;
-  final String? routeLocation;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       key: key,
-      title: title,
-      subtitle: description,
+      title: Text(title),
+      subtitle:
+          description != null
+              ? Text(description!, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.grey))
+              : null,
       leading: icon,
-      trailing: trailingIcon ?? const Icon(Icons.chevron_right_rounded),
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: routeBuilder!)),
+      trailing: trailingIcon ?? const Icon(Icons.keyboard_double_arrow_right_outlined),
+      onTap: onTap,
     );
   }
 }
@@ -197,8 +195,11 @@ class _SettingsSwitchTile extends SettingsTile {
   Widget build(BuildContext context) {
     return SwitchListTile(
       key: key,
-      title: title,
-      subtitle: description,
+      title: Text(title),
+      subtitle:
+          description != null
+              ? Text(description!, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.grey))
+              : null,
       secondary: icon,
       value: value,
       onChanged: onChanged,

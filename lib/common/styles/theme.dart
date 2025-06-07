@@ -175,6 +175,7 @@ class AppStyle {
         clipBehavior: Clip.hardEdge,
         showDragHandle: true,
       ),
+      listTileTheme: ListTileThemeData(dense: true, minVerticalPadding: 16.0),
     );
   }
 }

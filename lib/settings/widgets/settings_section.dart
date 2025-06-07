@@ -1,48 +1,38 @@
-import 'package:flutter/material.dart';
-
-// Widget createListSeparator(BuildContext context, String title) {
-//   return Padding(
-//     padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-//     child: Text(
-//       title.toUpperCase(),
-//       style: TextStyle(
-//           fontSize: 14,
-//           fontWeight: FontWeight.w700,
-//           color: Theme.of(context).colorScheme.primary),
-//     ),
-//   );
-// }
+import 'package:invesly/common_libs.dart';
 
 class SettingsSection extends StatelessWidget {
-  const SettingsSection({super.key, this.title, required this.tiles});
+  const SettingsSection({super.key, this.title, this.subTitle, this.icon, required this.tiles});
 
-  final Widget? title;
+  final String? title;
+  final String? subTitle;
+  final Widget? icon;
   final List<Widget> tiles;
 
   @override
   Widget build(BuildContext context) {
-    if (title == null) {
-      return buildTileList();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(padding: const EdgeInsetsDirectional.only(top: 24, bottom: 10, start: 24, end: 24), child: title),
-        buildTileList(),
-      ],
-    );
-  }
-
-  Widget buildTileList() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          // color: theme.disabledColor, // TODO: fix background color
-          borderRadius: BorderRadius.circular(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Material(
+        color: Colors.blueGrey[50],
+        borderRadius: BorderRadius.circular(16.0),
+        clipBehavior: Clip.hardEdge,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (title != null) ...[
+              ListTile(
+                title: Text(title!, style: context.textTheme.bodyMedium),
+                leading: icon,
+                subtitle:
+                    subTitle != null
+                        ? Text(subTitle!, style: context.textTheme.labelSmall?.copyWith(color: Colors.grey))
+                        : null,
+              ),
+              InveslyDivider.dashed(dashGap: 2.0, dashWidth: 2.0, colors: [Colors.grey]),
+            ],
+            ...tiles,
+          ],
         ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: tiles),
       ),
     );
   }

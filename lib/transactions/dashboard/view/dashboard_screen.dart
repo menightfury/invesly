@@ -11,7 +11,6 @@ import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.da
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/users/cubit/users_cubit.dart';
-import 'package:invesly/users/edit_user/view/edit_user_screen.dart';
 import 'package:invesly/users/model/user_model.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -41,78 +40,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final textTheme = context.textTheme;
 
-    return BlocListener<UsersCubit, UsersState>(
-      listener: (context, state) {
-        if (state is UsersLoadedState && state.hasNoUser && context.read<SettingsCubit>().state.currentUserId == null) {
-          context.go(const EditUserScreen());
-        }
-        // if (state is UsersErrorState) {
-        //   context.go(AppRouter.error);
-        // } else if (state is UsersLoadedState && state.hasNoUser) {
-        //   context.go(AppRouter.editUser);
-        // }
-      },
-      child: Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            child: BlocSelector<SettingsCubit, SettingsState, String?>(
-              selector: (state) => state.currentUserId,
-              builder: (context, userId) {
-                final usersState = context.read<UsersCubit>().state;
-                final users = usersState is UsersLoadedState ? usersState.users : <InveslyUser>[];
-                final currentUser =
-                    users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    // ~~~ Greeting message ~~~
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Text(DateTime.now().greetingsMsg, style: textTheme.headlineSmall),
-                              Text(currentUser?.name ?? 'Investor', style: textTheme.headlineMedium),
-                            ],
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: BlocSelector<SettingsCubit, SettingsState, String?>(
+            selector: (state) => state.currentUserId,
+            builder: (context, userId) {
+              final usersState = context.read<UsersCubit>().state;
+              final users = usersState is UsersLoadedState ? usersState.users : <InveslyUser>[];
+              final currentUser =
+                  users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  // ~~~ Greeting message ~~~
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Text(DateTime.now().greetingsMsg, style: textTheme.headlineSmall),
+                            Text(currentUser?.name ?? 'Investor', style: textTheme.headlineMedium),
+                          ],
+                        ),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () => context.push(const SettingsScreen()),
+                          icon: CircleAvatar(
+                            backgroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
+                            child: currentUser == null ? Icon(Icons.person_pin) : null,
                           ),
-                          IconButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: () => context.push(const SettingsScreen()),
-                            icon: CircleAvatar(
-                              backgroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
-                              child: currentUser == null ? Icon(Icons.person_pin) : null,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
 
-                    // ~~~ Dashboard contents ~~~
-                    BlocProvider(
-                      create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
-                      child: _DashboardContents(currentUser, key: ValueKey<String?>(currentUser?.id)),
-                    ),
+                  // ~~~ Dashboard contents ~~~
+                  BlocProvider(
+                    create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
+                    child: _DashboardContents(currentUser, key: ValueKey<String?>(currentUser?.id)),
+                  ),
 
-                    // const SizedBox(height: 56.0),
-                  ],
-                );
-              },
-            ),
+                  // const SizedBox(height: 56.0),
+                ],
+              );
+            },
           ),
         ),
-        floatingActionButton: ValueListenableBuilder(
-          valueListenable: isFloatingButtonExtended,
-          builder: (context, isExtended, _) {
-            return NewTransactionButton(isExtended: isExtended);
-          },
-        ),
+      ),
+      floatingActionButton: ValueListenableBuilder(
+        valueListenable: isFloatingButtonExtended,
+        builder: (context, isExtended, _) {
+          return NewTransactionButton(isExtended: isExtended);
+        },
       ),
     );
   }
