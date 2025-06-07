@@ -23,12 +23,12 @@ void main() async {
   Bloc.observer = InveslyBlocObserver();
 
   await Bootstrap.initialize();
-  runApp(const PortfolioManagerApp());
+  runApp(const InveslyApp());
   // timeDilation = 4.0;
 }
 
-class PortfolioManagerApp extends StatelessWidget {
-  const PortfolioManagerApp({super.key});
+class InveslyApp extends StatelessWidget {
+  const InveslyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

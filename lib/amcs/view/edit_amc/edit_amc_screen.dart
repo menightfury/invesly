@@ -61,7 +61,7 @@ class __EditViewState extends State<_EditView> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final textTheme = context.textTheme;
     final isNewEntry = context.select<EditAmcCubit, bool>((cubit) => cubit.state.isNewAmc);
     final editAmcCubit = context.read<EditAmcCubit>();
 
