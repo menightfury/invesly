@@ -55,7 +55,7 @@ class AppStyle {
         headlineLarge: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 30.0),
         headlineMedium: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 24.0),
         headlineSmall: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 18.0),
-        titleLarge: TextStyle(fontSize: 22.0), // appbar title
+        titleLarge: TextStyle(fontSize: 18.0), // appbar title
         titleMedium: TextStyle(fontSize: 15.0), // textfield
         bodyLarge: TextStyle(fontSize: 16.0, height: 1.5), // chip
         bodyMedium: TextStyle(fontSize: 15.0, height: 1.25), // body

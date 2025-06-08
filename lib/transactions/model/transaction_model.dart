@@ -1,9 +1,31 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/database/table_schema.dart';
 
-enum TransactionType { invested, redeemed }
+enum TransactionType {
+  invested,
+  redeemed;
+
+  IconData get icon {
+    switch (this) {
+      case invested:
+        return Icons.north_east_rounded;
+      case redeemed:
+        return Icons.south_west_rounded;
+    }
+  }
+
+  Color color(BuildContext context) {
+    switch (this) {
+      case invested:
+        return Colors.deepOrange;
+      case redeemed:
+        return Colors.teal;
+    }
+  }
+}
 
 class InveslyTransaction extends TransactionInDb {
   InveslyTransaction({

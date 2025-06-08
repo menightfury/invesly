@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:invesly/database/table_schema.dart';
 
 enum AmcGenre {
@@ -20,6 +21,19 @@ enum AmcGenre {
     }
 
     return AmcGenre.values[index];
+  }
+
+  IconData get icon {
+    switch (this) {
+      case AmcGenre.mf:
+        return Icons.pie_chart;
+      case AmcGenre.stock:
+        return Icons.show_chart;
+      case AmcGenre.insurance:
+        return Icons.security;
+      case AmcGenre.misc:
+        return Icons.category;
+    }
   }
 }
 

@@ -56,7 +56,7 @@ class SettingsScreen extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(horizontal: 16.0),
                               child: Material(
                                 color: Colors.blueGrey[50],
-                                borderRadius: BorderRadius.circular(8.0),
+                                borderRadius: BorderRadius.circular(16.0),
                                 child: Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                                   child: Column(
@@ -247,8 +247,13 @@ class SettingsScreen extends StatelessWidget {
                       SettingsTile(
                         icon: const Icon(Icons.restore_rounded),
                         title: 'Manual import',
-                        description:
-                            'Restore your data from a previously saved backup. This action will overwrite your current data.',
+                        description: 'Import transaction from a .csv file.',
+                        onTap: () {},
+                      ),
+                      SettingsTile(
+                        title: 'Export',
+                        icon: const Icon(Icons.backup_outlined),
+                        description: 'Export your data locally to .csv file.',
                         onTap: () {},
                       ),
                       SettingsTile(
@@ -276,6 +281,12 @@ class SettingsScreen extends StatelessWidget {
                         description: 'Read our terms of use',
                         onTap: () {},
                       ),
+                    ],
+                  ),
+                  SettingsSection(
+                    title: 'Help us',
+                    subTitle: 'Thank you for your contribution to Invesly',
+                    tiles: [
                       SettingsTile.navigation(
                         icon: const Icon(Icons.star_rate_rounded),
                         title: 'Rate us',
@@ -295,7 +306,7 @@ class SettingsScreen extends StatelessWidget {
                         onTap: () {},
                       ),
                       SettingsTile(
-                        icon: const Icon(Icons.favorite_border_rounded),
+                        icon: const Icon(Icons.volunteer_activism_rounded),
                         title: 'Donate',
                         description: 'Support the development of Invesly',
                         onTap: () {},
