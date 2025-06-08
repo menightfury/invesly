@@ -4,19 +4,21 @@ class Tappable extends StatelessWidget {
   const Tappable({
     super.key,
     this.bgColor,
-    this.borderRadius,
-    this.onTap,
+    this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
     this.shape,
-    required this.child,
+    this.margin,
+    this.padding = const EdgeInsets.all(16.0),
+    this.onTap,
     this.onLongPress,
     this.onDoubleTap,
-    this.margin,
+    required this.child,
   });
 
   final Color? bgColor;
   final BorderRadius? borderRadius;
   final ShapeBorder? shape;
-  final EdgeInsets? margin;
+  final EdgeInsetsGeometry? margin;
+  final EdgeInsetsGeometry? padding;
 
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
@@ -26,21 +28,31 @@ class Tappable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: margin ?? EdgeInsets.zero,
-      child: Material(
-        color: bgColor,
-        borderRadius: borderRadius,
-        shape: shape,
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
-          onDoubleTap: onDoubleTap,
-          customBorder: shape,
-          borderRadius: borderRadius,
-          child: child,
-        ),
+    Widget content = child;
+
+    if (padding != null) {
+      content = Padding(padding: padding!, child: content);
+    }
+
+    content = Material(
+      color: bgColor,
+      type: MaterialType.canvas,
+      borderRadius: borderRadius,
+      shape: shape,
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        onDoubleTap: onDoubleTap,
+        customBorder: shape,
+        borderRadius: borderRadius ?? const BorderRadius.all(Radius.circular(16.0)),
+        child: content,
       ),
     );
+
+    if (margin != null) {
+      return Padding(padding: margin!, child: content);
+    }
+
+    return content;
   }
 }

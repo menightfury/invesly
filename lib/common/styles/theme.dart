@@ -11,34 +11,42 @@ class AppStyle {
   static final instance = AppStyle._();
 
   // ~ Light theme colors
+  // Based on FlexColorScheme.sepia
   final _lightScheme = const ColorScheme.light(
-    primary: AppLightColors.teal,
-    onPrimary: AppLightColors.white,
-    primaryContainer: AppLightColors.teal100,
-    onPrimaryContainer: AppLightColors.teal900,
-    secondary: AppLightColors.amber,
-    onSecondary: AppLightColors.black,
-    secondaryContainer: AppLightColors.amber100,
-    onSecondaryContainer: AppLightColors.amber900,
-    error: AppLightColors.red,
-    onError: AppLightColors.white,
-    errorContainer: AppLightColors.red100,
-    onErrorContainer: AppLightColors.red900,
-    surface: AppLightColors.offwhite,
-    onSurface: AppLightColors.black,
+    primary: Color(0xFF413D32),
+    onPrimary: Color(0xFFFFFFFF),
+    primaryContainer: Color(0xFFE7E6E4),
+    onPrimaryContainer: Color(0xFF000000),
+    secondary: Color(0xFF8F8880),
+    onSecondary: Color(0xFFFFFFFF),
+    secondaryContainer: Color(0xFFDEDCD6),
+    onSecondaryContainer: Color(0xFF000000),
+    error: Color(0xFFBA1A1A),
+    onError: Color(0xFFFFFFFF),
+    errorContainer: Color(0xFFFFDAD6),
+    onErrorContainer: Color(0xFF000000),
+    surface: Color(0xFFF7FEFF),
+    onSurface: Color(0xFF111111),
   );
   ThemeData get lightTheme => _getThemeData(_lightScheme);
 
   // ~ Dark theme colors
+  // Based on FlexColorScheme.sepia
   final _darkScheme = const ColorScheme.dark(
-    primary: AppDarkColors.primary,
-    onPrimary: AppDarkColors.black,
-    secondary: AppDarkColors.secondary,
-    onSecondary: AppDarkColors.black,
-    error: AppDarkColors.error,
-    onError: AppDarkColors.black,
-    surface: AppDarkColors.surface,
-    onSurface: AppDarkColors.white,
+    primary: Color(0xFFF1E8D9),
+    onPrimary: Color(0xFF000000),
+    primaryContainer: Color(0xFF363024),
+    onPrimaryContainer: Color(0xFFFFFFFF),
+    secondary: Color(0xFFE5E1D6),
+    onSecondary: Color(0xFF000000),
+    secondaryContainer: Color(0xFF958D82),
+    onSecondaryContainer: Color(0xFFFFFFFF),
+    error: Color(0xFFFFB4AB),
+    onError: Color(0xFF000000),
+    errorContainer: Color(0xFF93000A),
+    onErrorContainer: Color(0xFFFFFFFF),
+    surface: Color(0xFF14130f),
+    onSurface: Color(0xFFF1F1F1),
   );
   ThemeData get darkTheme => _getThemeData(_darkScheme);
 
@@ -47,7 +55,8 @@ class AppStyle {
       brightness: colorScheme.brightness,
       useMaterial3: true,
       scaffoldBackgroundColor: colorScheme.surface,
-      canvasColor: colorScheme.surface,
+      canvasColor: colorScheme.primaryContainer,
+      cardColor: colorScheme.primaryContainer,
       colorScheme: colorScheme,
       fontFamily: AppConstants.primaryFont,
       dividerColor: colorScheme.primary,
@@ -129,7 +138,7 @@ class AppStyle {
           padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
           minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
           backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
-            if (state.contains(WidgetState.disabled)) return Colors.black26;
+            if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);
             if (state.contains(WidgetState.error)) return colorScheme.error;
             return colorScheme.primary;
           }),
@@ -167,10 +176,17 @@ class AppStyle {
           ),
         ),
       ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        elevation: 2.0,
+        shape: const ContinuousRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
+      ),
+
       bottomSheetTheme: BottomSheetThemeData(
         elevation: 10.0,
         dragHandleSize: const Size(25.0, 4.0),
-        modalBackgroundColor: colorScheme.surface,
+        // modalBackgroundColor: colorScheme.surface,
         dragHandleColor: Colors.grey[300],
         clipBehavior: Clip.hardEdge,
         showDragHandle: true,

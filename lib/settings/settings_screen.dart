@@ -55,7 +55,6 @@ class SettingsScreen extends StatelessWidget {
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16.0),
                               child: Material(
-                                color: Colors.blueGrey[50],
                                 borderRadius: BorderRadius.circular(16.0),
                                 child: Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),

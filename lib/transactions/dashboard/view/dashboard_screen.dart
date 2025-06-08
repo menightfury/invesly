@@ -195,7 +195,7 @@ class _RecentTransactions extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Material(
-        color: Colors.blueGrey[50],
+        // color: Colors.blueGrey[50],
         borderRadius: BorderRadius.circular(16.0),
         clipBehavior: Clip.hardEdge,
         child: Column(
@@ -203,7 +203,7 @@ class _RecentTransactions extends StatelessWidget {
           children: <Widget>[
             ListTile(
               title: Text('Recent transactions', style: context.textTheme.headlineSmall),
-              // leading: icon,
+              leading: Icon(Icons.swap_vert_rounded),
             ),
             InveslyDivider.dashed(dashGap: 2.0, dashWidth: 2.0, colors: [Colors.grey]),
             BlocBuilder<DashboardCubit, DashboardState>(
@@ -262,7 +262,6 @@ class _TransactionStatsWidgetState extends State<_TransactionStatsWidget> {
           final genre = AmcGenre.getByIndex(index);
 
           return Material(
-            color: Colors.blueGrey[50],
             borderRadius: BorderRadius.circular(16.0),
             clipBehavior: Clip.hardEdge,
             child: SizedBox(
@@ -271,7 +270,7 @@ class _TransactionStatsWidgetState extends State<_TransactionStatsWidget> {
                 children: <Widget>[
                   Align(
                     alignment: Alignment(1.25, -1.5),
-                    child: Icon(genre.icon, size: 64.0, color: Colors.blueGrey[100]),
+                    child: Icon(genre.icon, size: 64.0, color: context.color.secondary.withAlpha(50)),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),

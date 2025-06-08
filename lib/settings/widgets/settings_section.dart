@@ -13,7 +13,6 @@ class SettingsSection extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Material(
-        color: Colors.blueGrey[50],
         borderRadius: BorderRadius.circular(16.0),
         clipBehavior: Clip.hardEdge,
         child: Column(
@@ -25,7 +24,7 @@ class SettingsSection extends StatelessWidget {
                 leading: icon,
                 subtitle:
                     subTitle != null
-                        ? Text(subTitle!, style: context.textTheme.labelSmall?.copyWith(color: Colors.grey))
+                        ? Text(subTitle!, style: context.textTheme.labelSmall?.copyWith(color: context.color.secondary))
                         : null,
               ),
               InveslyDivider.dashed(dashGap: 2.0, dashWidth: 2.0, colors: [Colors.grey]),

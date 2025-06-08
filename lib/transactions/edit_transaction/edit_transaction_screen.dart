@@ -57,23 +57,6 @@ class _EditInvestmentScreenState extends State<_EditInvestmentScreen> {
     super.dispose();
   }
 
-  // void _showNoteEditor(BuildContext context) async {
-  //   final cubit = context.read<EditInvestmentCubit>();
-
-  //   final notes = await showModalBottomSheet<String>(
-  //     context: context,
-  //     isScrollControlled: true,
-  //     builder:
-  //         (context) => _NotesEditor(
-  //           initialNote: cubit.state.notes,
-  //           onSubmit: (value) => Navigator.maybePop<String>(context, value),
-  //         ),
-  //   );
-  //   if (notes == null) return;
-
-  //   cubit.updateNotes(notes);
-  // }
-
   Future<void> _handleSavePressed(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       await context.read<EditInvestmentCubit>().save();
@@ -116,13 +99,6 @@ class _EditInvestmentScreenState extends State<_EditInvestmentScreen> {
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
-          // resizeToAvoidBottomInset: false,
-          appBar: AppBar(
-            actions: <Widget>[
-              _UserPickerWidget(),
-              // InveslyUserPickerWidget(value: _user, onPickup: (value) => cubit.updateUser(value.id))
-            ],
-          ),
           // ~ Form
           body: SafeArea(
             child: ValueListenableBuilder<AutovalidateMode>(
@@ -130,197 +106,204 @@ class _EditInvestmentScreenState extends State<_EditInvestmentScreen> {
               builder: (context, validateMode, child) {
                 return Form(key: _formKey, autovalidateMode: validateMode, child: child!);
               },
-              child: Column(
-                children: <Widget>[
-                  Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-                      children: <Widget>[
-                        // ~ Title
-                        Align(
-                          alignment: Alignment.topLeft,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(cubit.state.isNewTransaction ? 'Add' : 'Edit', style: textTheme.headlineSmall),
-                              // const Gap(AppConstants.formFieldLabelSpacing),
-                              Text('Investment', style: textTheme.headlineMedium),
-                            ],
-                          ),
-                        ),
-                        const Gap(12.0),
+              child: CustomScrollView(
+                slivers: <Widget>[
+                  SliverAppBar(pinned: true, floating: true, actions: [_UserPickerWidget()]),
 
-                        Row(
-                          spacing: 12.0,
-                          children: <Widget>[
-                            // ~ Units
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                spacing: AppConstants.formFieldLabelSpacing,
-                                children: <Widget>[
-                                  const Text('No. of units'),
-                                  TextFormField(
-                                    decoration: const InputDecoration(hintText: 'e.g. 5'),
-                                    textAlign: TextAlign.end,
-                                    keyboardType: const TextInputType.numberWithOptions(),
-                                    inputFormatters: [
-                                      ThousandsFormatter(
-                                        allowFraction: true,
-                                        formatter: NumberFormat.decimalPattern('en_IN'),
-                                      ),
-                                    ],
-                                    onChanged: (value) {
-                                      cubit.updateQuantity(double.tryParse(value.trim().replaceAll(',', '')) ?? 0.0);
-                                    },
-                                  ),
-                                  // TextButton(
-                                  //   onPressed: () async {
-                                  //     final result = await InveslyCalculatorWidget.showModal(
-                                  //       context,
-                                  //       cubit.state.quantity,
-                                  //     );
-                                  //     $logger.d('Result is $result');
-                                  //     if (result == null) return;
-                                  //     cubit.updateQuantity(result);
-                                  //   },
-                                  //   style: TextButton.styleFrom(alignment: Alignment.centerRight),
-                                  //   child: BlocSelector<EditInvestmentCubit, EditInvestmentState, num?>(
-                                  //     selector: (state) => state.quantity,
-                                  //     builder: (context, value) {
-                                  //       return Text((value ?? 0.0).toString(), textAlign: TextAlign.right);
-                                  //     },
-                                  //   ),
-                                  // ),
-                                ],
-                              ),
-                            ),
-
-                            // ~ Price
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                spacing: AppConstants.formFieldLabelSpacing,
-                                children: <Widget>[
-                                  const Text('Total amount'),
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      hintText: 'e.g. 500',
-                                      prefixText: '₹ ',
-                                      prefixStyle: TextStyle(color: Colors.black),
-                                    ),
-                                    textAlign: TextAlign.end,
-                                    keyboardType: const TextInputType.numberWithOptions(),
-                                    inputFormatters: [
-                                      ThousandsFormatter(
-                                        allowFraction: true,
-                                        formatter: NumberFormat.decimalPattern('en_IN'),
-                                      ),
-                                    ],
-                                    onChanged: (value) {
-                                      cubit.updateAmount(double.tryParse(value.trim().replaceAll(',', '')) ?? 0.0);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Gap(12.0),
-
-                        // ~~~ AMC picker ~~~
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          spacing: AppConstants.formFieldLabelSpacing,
-                          children: <Widget>[
-                            const Text('Asset management company (AMC)'),
-                            Tappable(
-                              onTap: () async {
-                                final amc = await InveslyAmcPickerWidget.showModal(context);
-                                if (amc != null) {
-                                  cubit.updateAmc(amc);
-                                }
-                              },
-                              child: const Text('Asset Management Company', overflow: TextOverflow.ellipsis),
-                            ),
-                          ],
-                        ),
-
-                        const Gap(12.0),
-
-                        Row(
-                          spacing: 12.0,
-                          children: <Widget>[
-                            // ~ Type selection
-                            const Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                spacing: AppConstants.formFieldLabelSpacing,
-                                children: <Widget>[Text('Transaction type'), InveslyTogglerExample()],
-                              ),
-                            ),
-
-                            // ~~~ Date picker ~~~
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                spacing: AppConstants.formFieldLabelSpacing,
-                                children: <Widget>[
-                                  const Text('Transaction date'),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: InveslyDatePicker(
-                                      date: cubit.state.date,
-                                      prefixIcon: const Icon(Icons.edit_calendar_rounded),
-                                      onPickup: (value) => cubit.updateDate(value),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Gap(12.0),
-
-                        // ~~~ Note ~~~
-                        Column(
+                  SliverList(
+                    delegate: SliverChildListDelegate.fixed(<Widget>[
+                      // ~ Title
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: AppConstants.formFieldLabelSpacing,
                           children: <Widget>[
-                            const Text('Note'),
-                            TextFormField(
-                              decoration: const InputDecoration(hintText: 'Notes'),
-                              onChanged: (value) => cubit.updateNotes(value),
+                            Text(cubit.state.isNewTransaction ? 'Add' : 'Edit', style: textTheme.headlineSmall),
+                            // const Gap(AppConstants.formFieldLabelSpacing),
+                            Text('Investment', style: textTheme.headlineMedium),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12.0),
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          spacing: 12.0,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              spacing: 12.0,
+                              children: <Widget>[
+                                // ~ Units
+                                Expanded(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    spacing: AppConstants.formFieldLabelSpacing,
+                                    children: <Widget>[
+                                      const Text('No. of units'),
+                                      TextFormField(
+                                        decoration: const InputDecoration(hintText: 'e.g. 5'),
+                                        textAlign: TextAlign.end,
+                                        keyboardType: const TextInputType.numberWithOptions(),
+                                        inputFormatters: [
+                                          ThousandsFormatter(
+                                            allowFraction: true,
+                                            formatter: NumberFormat.decimalPattern('en_IN'),
+                                          ),
+                                        ],
+                                        onChanged: (value) {
+                                          cubit.updateQuantity(
+                                            double.tryParse(value.trim().replaceAll(',', '')) ?? 0.0,
+                                          );
+                                        },
+                                      ),
+                                      // TextButton(
+                                      //   onPressed: () async {
+                                      //     final result = await InveslyCalculatorWidget.showModal(
+                                      //       context,
+                                      //       cubit.state.quantity,
+                                      //     );
+                                      //     $logger.d('Result is $result');
+                                      //     if (result == null) return;
+                                      //     cubit.updateQuantity(result);
+                                      //   },
+                                      //   style: TextButton.styleFrom(alignment: Alignment.centerRight),
+                                      //   child: BlocSelector<EditInvestmentCubit, EditInvestmentState, num?>(
+                                      //     selector: (state) => state.quantity,
+                                      //     builder: (context, value) {
+                                      //       return Text((value ?? 0.0).toString(), textAlign: TextAlign.right);
+                                      //     },
+                                      //   ),
+                                      // ),
+                                    ],
+                                  ),
+                                ),
+
+                                // ~ Price
+                                Expanded(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    spacing: AppConstants.formFieldLabelSpacing,
+                                    children: <Widget>[
+                                      const Text('Total amount'),
+                                      TextFormField(
+                                        decoration: const InputDecoration(
+                                          hintText: 'e.g. 500',
+                                          prefixText: '₹ ',
+                                          prefixStyle: TextStyle(color: Colors.black),
+                                        ),
+                                        textAlign: TextAlign.end,
+                                        keyboardType: const TextInputType.numberWithOptions(),
+                                        inputFormatters: [
+                                          ThousandsFormatter(
+                                            allowFraction: true,
+                                            formatter: NumberFormat.decimalPattern('en_IN'),
+                                          ),
+                                        ],
+                                        onChanged: (value) {
+                                          cubit.updateAmount(double.tryParse(value.trim().replaceAll(',', '')) ?? 0.0);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            // ~~~ AMC picker ~~~
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              spacing: AppConstants.formFieldLabelSpacing,
+                              children: <Widget>[
+                                const Text('Asset management company (AMC)'),
+                                Tappable(
+                                  onTap: () async {
+                                    final amc = await InveslyAmcPickerWidget.showModal(context);
+                                    if (amc != null) {
+                                      cubit.updateAmc(amc);
+                                    }
+                                  },
+                                  child: const Text('Asset Management Company', overflow: TextOverflow.ellipsis),
+                                ),
+                              ],
+                            ),
+
+                            Row(
+                              spacing: 12.0,
+                              children: <Widget>[
+                                // ~ Type selection
+                                const Expanded(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    spacing: AppConstants.formFieldLabelSpacing,
+                                    children: <Widget>[Text('Transaction type'), InveslyTogglerExample()],
+                                  ),
+                                ),
+
+                                // ~~~ Date picker ~~~
+                                Expanded(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    spacing: AppConstants.formFieldLabelSpacing,
+                                    children: <Widget>[
+                                      const Text('Transaction date'),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: InveslyDatePicker(
+                                          date: cubit.state.date,
+                                          prefixIcon: const Icon(Icons.edit_calendar_rounded),
+                                          onPickup: (value) => cubit.updateDate(value),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            // ~~~ Note ~~~
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              spacing: AppConstants.formFieldLabelSpacing,
+                              children: <Widget>[
+                                const Text('Note'),
+                                TextFormField(
+                                  decoration: const InputDecoration(hintText: 'Notes'),
+                                  onChanged: (value) => cubit.updateNotes(value),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ]),
                   ),
 
-                  const InveslyDivider(),
-
                   // ~~~ Save button ~~~
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: BlocSelector<EditInvestmentCubit, EditTransactionState, bool>(
-                        selector: (state) => state.canSave,
-                        builder: (context, canSave) {
-                          return ElevatedButton.icon(
-                            icon: const Icon(Icons.check_rounded),
-                            onPressed: canSave ? () => _handleSavePressed(context) : null,
-                            label: const Text('Save'),
-                          );
-                        },
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: BlocSelector<EditInvestmentCubit, EditTransactionState, bool>(
+                          selector: (state) => state.canSave,
+                          builder: (context, canSave) {
+                            return ElevatedButton.icon(
+                              icon: const Icon(Icons.save_alt_rounded),
+                              onPressed: canSave ? () => _handleSavePressed(context) : null,
+                              label: const Text('Save transaction'),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),

@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:invesly/common/presentations/components/tappable.dart';
+import 'package:invesly/common_libs.dart';
 
 class SettingsTile2 extends StatelessWidget {
   const SettingsTile2({
@@ -142,7 +141,7 @@ class SettingsTile extends StatelessWidget {
       title: Text(title),
       subtitle:
           description != null
-              ? Text(description!, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.grey))
+              ? Text(description!, style: context.textTheme.labelSmall?.copyWith(color: context.color.secondary))
               : null,
       leading: icon,
       trailing: trailingIcon,
@@ -169,7 +168,7 @@ class _SettingsNavigationTile extends SettingsTile {
       title: Text(title),
       subtitle:
           description != null
-              ? Text(description!, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.grey))
+              ? Text(description!, style: context.textTheme.labelSmall?.copyWith(color: context.color.secondary))
               : null,
       leading: icon,
       trailing: trailingIcon ?? const Icon(Icons.keyboard_double_arrow_right_outlined),
@@ -198,7 +197,10 @@ class _SettingsSwitchTile extends SettingsTile {
       title: Text(title),
       subtitle:
           description != null
-              ? Text(description!, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.grey))
+              ? Text(
+                description!,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(color: context.color.secondary),
+              )
               : null,
       secondary: icon,
       value: value,
