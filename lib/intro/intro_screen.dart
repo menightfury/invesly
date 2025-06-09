@@ -4,6 +4,8 @@ import 'package:invesly/common_libs.dart';
 
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
+import 'package:invesly/users/cubit/users_cubit.dart';
+import 'package:invesly/users/edit_user/view/edit_user_screen.dart';
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
@@ -75,7 +77,35 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
     if (_currentPage.value != _pageData.length - 1) return;
 
     context.read<SettingsCubit>().completeOnboarding();
-    context.go(const DashboardScreen()); // TODO: Make a cubit for this
+    final usersState = context.read<UsersCubit>().state;
+    final settingsState = context.read<SettingsCubit>().state;
+
+    if (usersState is UsersLoadedState) {
+      if (!context.mounted) return;
+
+      // If there are no users, go to EditUserScreen
+      if (usersState.hasNoUser) {
+        context.go(const EditUserScreen());
+        return;
+      }
+
+      // If there are users but currentUserId is null, set the first user as current user
+      if (settingsState.currentUserId == null) {
+        context.read<SettingsCubit>().saveCurrentUser(usersState.users.first.id);
+      }
+      // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
+      context.go(const DashboardScreen());
+    } else if (usersState is UsersErrorState) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: context.color.errorContainer,
+          content: Text(
+            'Error loading users: ${usersState.errorMsg}',
+            style: TextStyle(color: context.color.onErrorContainer),
+          ),
+        ),
+      );
+    }
   }
 
   void _animateToPage(int index) {
@@ -84,8 +114,6 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       body: Stack(
         children: <Widget>[
@@ -134,7 +162,7 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
                       dotWidth: 8.0,
                       dotHeight: 8.0,
                       expansionFactor: 2.0,
-                      activeDotColor: theme.colorScheme.secondary,
+                      activeDotColor: context.color.secondary,
                     ),
                     onDotClicked: (index) => _animateToPage(index),
                   ),
@@ -151,8 +179,6 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
   }
 
   Widget _buildFinishBtn(BuildContext context) {
-    final theme = Theme.of(context);
-
     return ValueListenableBuilder<int>(
       valueListenable: _currentPage,
       builder: (_, pageIndex, child) {
@@ -165,10 +191,7 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
       child: IconButton(
         icon: const Icon(Icons.arrow_forward_rounded),
         onPressed: () => _handleCompletePressed(context),
-        style: IconButton.styleFrom(
-          foregroundColor: theme.colorScheme.onPrimary,
-          backgroundColor: theme.colorScheme.primary,
-        ),
+        style: IconButton.styleFrom(foregroundColor: context.color.onPrimary, backgroundColor: context.color.primary),
         padding: const EdgeInsets.all(16.0),
       ),
     );
@@ -191,8 +214,6 @@ class _Page extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     return Align(
       alignment: Alignment.bottomLeft,
       child: Padding(
@@ -203,7 +224,7 @@ class _Page extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(data.title, style: textTheme.headlineLarge),
+              Text(data.title, style: context.textTheme.headlineLarge),
               const SizedBox(height: 16.0),
               if (data.description != null) Text(data.description!),
               const SizedBox(height: 112.0),

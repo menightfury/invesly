@@ -34,8 +34,8 @@ class _SplashScreenState extends State<SplashScreen> {
     final settingsState = context.read<SettingsCubit>().state;
 
     return BlocListener<UsersCubit, UsersState>(
-      listener: (context, state) async {
-        if (state is UsersLoadedState) {
+      listener: (context, usersState) async {
+        if (usersState is UsersLoadedState) {
           await _completer.future; // show tips message in splash screen for few seconds
           if (!context.mounted) return;
 
@@ -46,21 +46,27 @@ class _SplashScreenState extends State<SplashScreen> {
           }
 
           // If there are no users, go to EditUserScreen
-          if (state.hasNoUser) {
+          if (usersState.hasNoUser) {
             context.go(const EditUserScreen());
             return;
           }
 
           // If there are users but currentUserId is null, set the first user as current user
           if (settingsState.currentUserId == null) {
-            context.read<SettingsCubit>().saveCurrentUser(state.users.first.id);
+            context.read<SettingsCubit>().saveCurrentUser(usersState.users.first.id);
             // go to initial requested screen or dashboard
             // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
           }
           context.go(const DashboardScreen());
-        } else if (state is UsersErrorState) {
+        } else if (usersState is UsersErrorState) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(backgroundColor: context.color.error, content: Text('Error loading users: ${state.errorMsg}')),
+            SnackBar(
+              backgroundColor: context.color.errorContainer,
+              content: Text(
+                'Error loading users: ${usersState.errorMsg}',
+                style: TextStyle(color: context.color.onErrorContainer),
+              ),
+            ),
           );
         }
       },
@@ -107,7 +113,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   children: <Widget>[
                     Text(
                       'Your data will only be stored on your device, and will be safe as long as you don\'t uninstall the app or change phone. To prevent data loss, it is recommended to make a backup regularly from the app settings.',
-                      style: textTheme.labelSmall,
+                      style: textTheme.bodySmall,
                     ),
                     InveslyDivider(colors: [colorScheme.primaryContainer], thickness: 1.0),
                     Text.rich(

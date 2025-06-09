@@ -65,12 +65,12 @@ class AppStyle {
         headlineMedium: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 24.0),
         headlineSmall: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 18.0),
         titleLarge: TextStyle(fontSize: 18.0), // appbar title
-        titleMedium: TextStyle(fontSize: 15.0), // textfield
-        bodyLarge: TextStyle(fontSize: 16.0, height: 1.5), // chip
-        bodyMedium: TextStyle(fontSize: 15.0, height: 1.25), // body
+        titleMedium: TextStyle(fontSize: 16.0), // textfield
+        bodyLarge: TextStyle(fontSize: 18.0, height: 1.25), // chip
+        bodyMedium: TextStyle(fontSize: 16.0, height: 1.25), // body
         bodySmall: TextStyle(fontSize: 13.0), // textfield helper
-        labelLarge: TextStyle(fontSize: 15.0), // button, *-chip
-        labelMedium: TextStyle(fontSize: 12.0), // bottomNavBar
+        labelLarge: TextStyle(fontSize: 16.0), // button, *-chip
+        labelMedium: TextStyle(fontSize: 13.0), // bottomNavBar
       ),
       iconTheme: IconThemeData(color: colorScheme.onSurface),
       chipTheme: ChipThemeData(
