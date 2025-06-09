@@ -59,18 +59,18 @@ class AppStyle {
       cardColor: colorScheme.primaryContainer,
       colorScheme: colorScheme,
       fontFamily: AppConstants.primaryFont,
-      dividerColor: colorScheme.primary,
+      dividerColor: colorScheme.primary.withAlpha(50),
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 30.0),
-        headlineMedium: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 24.0),
-        headlineSmall: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 18.0),
-        titleLarge: TextStyle(fontSize: 18.0), // appbar title
-        titleMedium: TextStyle(fontSize: 16.0), // textfield
-        bodyLarge: TextStyle(fontSize: 18.0, height: 1.25), // chip
-        bodyMedium: TextStyle(fontSize: 16.0, height: 1.25), // body
-        bodySmall: TextStyle(fontSize: 13.0), // textfield helper
+        headlineLarge: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 32.0),
+        headlineMedium: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 26.0),
+        headlineSmall: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 22.0),
+        titleLarge: TextStyle(fontSize: 20.0), // appbar title
+        titleMedium: TextStyle(fontSize: 18.0), // textfield
+        bodyLarge: TextStyle(fontSize: 20.0, height: 1.25), // chip
+        bodyMedium: TextStyle(fontSize: 18.0, height: 1.25), // body
+        bodySmall: TextStyle(fontSize: 14.0), // textfield helper
         labelLarge: TextStyle(fontSize: 16.0), // button, *-chip
-        labelMedium: TextStyle(fontSize: 13.0), // bottomNavBar
+        labelMedium: TextStyle(fontSize: 14.0), // bottomNavBar
       ),
       iconTheme: IconThemeData(color: colorScheme.onSurface),
       chipTheme: ChipThemeData(

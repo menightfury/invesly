@@ -154,7 +154,7 @@ class _DashboardContentsState extends State<_DashboardContents> {
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: Column(
               children: <Widget>[
-                Text('Total investment', style: context.textTheme.labelSmall),
+                Text('Total investment', style: context.textTheme.bodySmall),
                 // ~~~ Total amount ~~~
                 BlocBuilder<DashboardCubit, DashboardState>(
                   builder: (context, state) {
@@ -168,10 +168,10 @@ class _DashboardContentsState extends State<_DashboardContents> {
                 Text.rich(
                   TextSpan(
                     children: [
-                      TextSpan(text: 'Rs. 0.0', style: context.textTheme.headlineSmall?.copyWith(fontSize: 11.0)),
+                      TextSpan(text: 'Rs. 0.0', style: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0)),
                       TextSpan(text: ' invested this month'),
                     ],
-                    style: context.textTheme.labelSmall,
+                    style: context.textTheme.bodySmall,
                   ),
                 ),
               ],
@@ -195,7 +195,6 @@ class _RecentTransactions extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Material(
-        // color: Colors.blueGrey[50],
         borderRadius: BorderRadius.circular(16.0),
         clipBehavior: Clip.hardEdge,
         child: Column(
@@ -205,14 +204,33 @@ class _RecentTransactions extends StatelessWidget {
               title: Text('Recent transactions', style: context.textTheme.headlineSmall),
               leading: Icon(Icons.swap_vert_rounded),
             ),
-            InveslyDivider.dashed(dashGap: 2.0, dashWidth: 2.0, colors: [Colors.grey]),
+            InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
             BlocBuilder<DashboardCubit, DashboardState>(
               builder: (context, state) {
                 if (state is DashboardLoadedState) {
-                  final recentTransactions = state.recentTransactions;
+                  final rts = state.recentTransactions;
+                  if (rts.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                      child: Center(
+                        child: Column(
+                          spacing: 16.0,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Text('Oops! This is so empty', style: context.textTheme.titleLarge),
+                            Text(
+                              'No transactions have been found.\nAdd a few transactions.',
+                              textAlign: TextAlign.center,
+                              style: context.textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
                   return ColumnBuilder(
                     itemBuilder: (context, index) {
-                      final rt = recentTransactions[index];
+                      final rt = rts[index];
                       return ListTile(
                         leading: Icon(rt.transactionType.icon),
                         title: Text(rt.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
@@ -229,7 +247,7 @@ class _RecentTransactions extends StatelessWidget {
                         onTap: () {},
                       );
                     },
-                    itemCount: recentTransactions.length,
+                    itemCount: rts.length,
                   );
                 }
 
@@ -254,7 +272,7 @@ class _TransactionStatsWidgetState extends State<_TransactionStatsWidget> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 104.0,
+      height: 112.0,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         scrollDirection: Axis.horizontal,

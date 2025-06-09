@@ -42,11 +42,12 @@ class InveslyDivider extends StatelessWidget {
     this.colors,
     this.stops,
     this.direction = Axis.horizontal,
-    this.dashGap = 10.0,
+    double? dashGap,
     this.dashWidth = 5.0,
     this.indent,
     this.endIndent,
-  }) : assert(thickness >= 0.0, 'Thickness must be non-negative');
+  }) : assert(thickness >= 0.0 && dashWidth >= 0.0, 'thickness and dashWidth must be non-negative'),
+       dashGap = dashGap ?? dashWidth + thickness;
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +97,7 @@ class _LinePainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.fill
           ..strokeWidth = thickness
-          ..strokeCap = StrokeCap.butt;
+          ..strokeCap = StrokeCap.round;
 
     // Apply gradient shader if multiple colors are provided
     if (colors.length > 1) {
