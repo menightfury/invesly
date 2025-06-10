@@ -8,8 +8,7 @@ import 'package:invesly/common_libs.dart';
 class AppConstants {
   const AppConstants._();
 
-  static const primaryFont = 'Fredoka';
-  static const currencyFont = 'DMSerif';
+  static const primaryFont = 'ZillaSlab';
   static const headerFont = 'Maragsa';
   static const buttonPadding = EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0);
   static const buttonBorderRadius = BorderRadius.all(Radius.circular(16.0));
