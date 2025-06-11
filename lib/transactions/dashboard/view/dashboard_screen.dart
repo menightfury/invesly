@@ -563,7 +563,7 @@ class _TransactionSummeryWidget extends StatelessWidget {
             ),
           );
         },
-        separatorBuilder: (_, __) => const SizedBox(width: 16.0),
+        separatorBuilder: (_, _) => const SizedBox(width: 16.0),
       ),
     );
   }

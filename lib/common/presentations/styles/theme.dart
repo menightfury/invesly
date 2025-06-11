@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:invesly/constants.dart';
+import 'constants.dart';
 
 @immutable
 class AppStyle {
@@ -10,9 +10,13 @@ class AppStyle {
   const AppStyle._();
   static final instance = AppStyle._();
 
+  // data for theme
+  static const _primaryFont = 'ZillaSlab';
+  static const _headerFont = 'Maragsa';
+
   // ~ Light theme colors
   // Based on FlexColorScheme.sepia
-  final _lightScheme = const ColorScheme.light(
+  static const _lightColorScheme = ColorScheme.light(
     primary: Color(0xFF413D32),
     onPrimary: Color(0xFFFFFFFF),
     primaryContainer: Color(0xFFE7E6E4),
@@ -28,11 +32,10 @@ class AppStyle {
     surface: Color(0xFFF7FEFF),
     onSurface: Color(0xFF111111),
   );
-  ThemeData get lightTheme => _getThemeData(_lightScheme);
 
   // ~ Dark theme colors
   // Based on FlexColorScheme.sepia
-  final _darkScheme = const ColorScheme.dark(
+  static const _darkColorScheme = ColorScheme.dark(
     primary: Color(0xFFF1E8D9),
     onPrimary: Color(0xFF000000),
     primaryContainer: Color(0xFF363024),
@@ -48,7 +51,6 @@ class AppStyle {
     surface: Color(0xFF14130f),
     onSurface: Color(0xFFF1F1F1),
   );
-  ThemeData get darkTheme => _getThemeData(_darkScheme);
 
   ThemeData _getThemeData(ColorScheme colorScheme) {
     return ThemeData(
@@ -58,12 +60,12 @@ class AppStyle {
       canvasColor: colorScheme.primaryContainer,
       cardColor: colorScheme.primaryContainer,
       colorScheme: colorScheme,
-      fontFamily: AppConstants.primaryFont,
+      fontFamily: _primaryFont,
       dividerColor: colorScheme.primary.withAlpha(50),
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 32.0),
-        headlineMedium: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 26.0),
-        headlineSmall: TextStyle(fontFamily: AppConstants.headerFont, fontSize: 22.0),
+        headlineLarge: TextStyle(fontFamily: _headerFont, fontSize: 32.0),
+        headlineMedium: TextStyle(fontFamily: _headerFont, fontSize: 26.0),
+        headlineSmall: TextStyle(fontFamily: _headerFont, fontSize: 22.0),
         titleLarge: TextStyle(fontSize: 20.0), // appbar title
         titleMedium: TextStyle(fontSize: 18.0), // textfield
         bodyLarge: TextStyle(fontSize: 20.0, height: 1.25), // chip
@@ -192,8 +194,13 @@ class AppStyle {
         showDragHandle: true,
       ),
       listTileTheme: ListTileThemeData(dense: true, minVerticalPadding: 16.0),
+      navigationBarTheme: NavigationBarThemeData(backgroundColor: colorScheme.surface),
     );
   }
+
+  ThemeData get lightTheme => _getThemeData(_lightColorScheme);
+
+  ThemeData get darkTheme => _getThemeData(_darkColorScheme);
 }
 
 class CustomChipBorderSide extends WidgetStateBorderSide {

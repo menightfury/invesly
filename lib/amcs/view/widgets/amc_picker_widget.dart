@@ -104,7 +104,7 @@ class _InveslyAmcPickerWidgetState extends State<InveslyAmcPickerWidget> {
                                 subtitle: Text(amc.genre?.title ?? 'NULL'),
                               );
                             },
-                            separatorBuilder: (_, __) => const InveslyDivider(),
+                            separatorBuilder: (_, _) => const InveslyDivider(),
                           );
                         }
                       }

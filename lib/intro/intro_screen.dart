@@ -127,7 +127,7 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
                   position: _offsetAnimation,
                   child: ValueListenableBuilder<int>(
                     valueListenable: _currentPage,
-                    builder: (_, value, __) {
+                    builder: (_, value, _) {
                       return AnimatedSwitcher(
                         duration: EMTimes.med,
                         child: Image.asset(_pageData[value].imgSrc, key: ValueKey(value), width: 320.0),

@@ -65,7 +65,7 @@ class _AmcOverviewScreenState extends State<AmcOverviewScreen> {
                         height: 24.0,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8.0),
+                          separatorBuilder: (_, _) => const SizedBox(width: 8.0),
                           itemBuilder: (context, i) {
                             final tag = tags[i];
                             return Center(

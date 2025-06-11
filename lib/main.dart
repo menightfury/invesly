@@ -6,14 +6,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'bloc_observer.dart';
 // import 'connectivity/cubit/internet_cubit.dart';
-// import 'common/api/settings_api.dart';
-// import 'common/repository/settings_repository.dart';
 
 import 'users/cubit/users_cubit.dart';
 import 'amcs/model/amc_repository.dart';
 import 'transactions/model/transaction_repository.dart';
 import 'users/model/user_repository.dart';
-import 'common/styles/theme.dart';
+import 'common/presentations/styles/theme.dart';
 import 'common_libs.dart';
 import 'settings/cubit/settings_cubit.dart';
 

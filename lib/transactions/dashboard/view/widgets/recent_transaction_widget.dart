@@ -64,7 +64,7 @@ class _RecentTransactionsWidgetState extends State<RecentTransactionsWidget> {
           ),
         );
       },
-      separatorBuilder: (_, __) => const SizedBox(height: 8.0),
+      separatorBuilder: (_, _) => const SizedBox(height: 8.0),
       itemCount: widget.transactions.length,
     );
   }

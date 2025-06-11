@@ -1,20 +1,18 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
-import 'package:invesly/common_libs.dart';
 
 // *** New Constants ***
+
 @immutable
 class AppConstants {
   const AppConstants._();
 
-  static const primaryFont = 'ZillaSlab';
-  static const headerFont = 'Maragsa';
-  static const buttonPadding = EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0);
+  static const buttonPadding = EdgeInsetsGeometry.symmetric(horizontal: 20.0, vertical: 12.0);
   static const buttonBorderRadius = BorderRadius.all(Radius.circular(16.0));
   static const formFieldLabelSpacing = 6.0;
   static const minButtonSize = Size(112.0, 48.0);
-  static const textFieldPadding = EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0);
+  static const textFieldPadding = EdgeInsetsGeometry.symmetric(horizontal: 12.0, vertical: 12.0);
   static const textFieldBorderRadius = BorderRadius.all(Radius.circular(8.0));
 }
 // *** New Constants ***
@@ -50,13 +48,4 @@ class EMInsets {
   static const double xl = 48;
   static const double xxl = 56;
   static const double offset = 80;
-
-  // bootstrap5 logic
-  // t - for classes that set padding-top
-  // b - for classes that set padding-bottom
-  // s - (start) for classes that set padding-left in LTR, padding-right in RTL
-  // e - (end) for classes that set padding-right in LTR, padding-left in RTL
-  // x - for classes that set both *-left and *-right
-  // y - for classes that set both *-top and *-bottom
-  // blank - for classes that set a padding on all 4 sides of the element
 }
