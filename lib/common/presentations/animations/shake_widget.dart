@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:invesly/common/presentations/animations/animation_controller.dart';
 
 class ShakeWidget extends StatefulWidget {
   const ShakeWidget({
@@ -18,8 +17,7 @@ class ShakeWidget extends StatefulWidget {
   final Duration duration;
 
   @override
-  // ignore: no_logic_in_create_state
-  State<ShakeWidget> createState() => ShakeWidgetState(duration);
+  State<ShakeWidget> createState() => _ShakeWidgetState();
 }
 
 class SineCurve extends Curve {
@@ -32,35 +30,36 @@ class SineCurve extends Curve {
   }
 }
 
-class ShakeWidgetState extends AnimationControllerState<ShakeWidget> {
-  ShakeWidgetState(super.duration);
-
-  late final Animation<double> _sineAnimation = Tween(
-    begin: 0.0,
-    end: 1.0,
-  ).animate(CurvedAnimation(parent: animationController, curve: SineCurve(count: widget.shakeCount.toDouble())));
+class _ShakeWidgetState extends State<ShakeWidget> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _sineAnimation;
 
   @override
   void initState() {
     super.initState();
-    animationController.addStatusListener(_updateStatus);
+    _controller = AnimationController(vsync: this, duration: widget.duration);
+    _sineAnimation = Tween(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: SineCurve(count: widget.shakeCount.toDouble())));
+    _controller.addStatusListener(_updateStatus);
   }
 
   @override
   void dispose() {
-    animationController.removeStatusListener(_updateStatus);
+    _controller.removeStatusListener(_updateStatus);
     super.dispose();
   }
 
   void _updateStatus(AnimationStatus status) {
     // Reset animationController when the animation is complete
     if (status == AnimationStatus.completed) {
-      animationController.reset();
+      _controller.reset();
     }
   }
 
   void shake() {
-    animationController.forward();
+    _controller.forward();
   }
 
   @override

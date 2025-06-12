@@ -1,8 +1,7 @@
 // ignore_for_file: unused_element
 
-import 'package:flutter/rendering.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/common/presentations/animations/animated_expanded.dart';
+import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/settings/settings_screen.dart';
@@ -22,21 +21,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final ScrollController _scrollController = ScrollController();
-  final ValueNotifier<bool> isFloatingButtonExtended = ValueNotifier<bool>(true);
-
-  @override
-  void initState() {
-    super.initState();
-
-    _scrollController.addListener(() {
-      bool shouldExtendButton =
-          _scrollController.offset <= 10 || _scrollController.position.userScrollDirection != ScrollDirection.reverse;
-
-      if (isFloatingButtonExtended.value != shouldExtendButton) {
-        isFloatingButtonExtended.value = shouldExtendButton;
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,35 +100,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     );
                   },
                 ),
+                SizedBox(height: 400.0), // ! for testing
               ]),
             ),
           ],
         ),
       ),
-      floatingActionButton: ValueListenableBuilder(
-        valueListenable: isFloatingButtonExtended,
-        builder: (context, isExtended, _) {
-          return NewTransactionButton(isExtended: isExtended);
-        },
+      // floatingActionButton: ValueListenableBuilder(
+      //   valueListenable: isFloatingButtonExtended,
+      //   builder: (context, isExtended, _) {
+      //     return NewTransactionButton(isExtended: isExtended);
+      //   },
+      // ),
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
+        onPressed: () => context.push(const EditTransactionScreen()),
+        icon: const Icon(Icons.add_rounded),
+        extendedPadding: const EdgeInsetsDirectional.only(start: 16.0, end: 16.0),
+        extendedIconLabelSpacing: 0.0,
+        label: ScrollToHide(
+          scrollController: _scrollController,
+          hideAxis: Axis.horizontal,
+          child: Padding(padding: const EdgeInsets.only(left: 8.0), child: Text('New transaction')),
+        ),
       ),
-    );
-  }
-}
-
-class NewTransactionButton extends StatelessWidget {
-  const NewTransactionButton({super.key, this.isExtended = true});
-
-  final bool isExtended;
-
-  @override
-  Widget build(BuildContext context) {
-    return FloatingActionButton.extended(
-      heroTag: null,
-      onPressed: () => context.push(const EditTransactionScreen()),
-      icon: const Icon(Icons.add_rounded),
-      extendedPadding: const EdgeInsetsDirectional.only(start: 16, end: 16),
-      extendedIconLabelSpacing: isExtended ? 8 : 0,
-      label: AnimatedExpanded(expand: isExtended, child: Text('New transaction')),
     );
   }
 }
