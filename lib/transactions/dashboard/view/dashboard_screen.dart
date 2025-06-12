@@ -43,56 +43,82 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final textTheme = context.textTheme;
 
     return Scaffold(
+      // appBar: EmptyAppBar(),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: CustomScrollView(
           controller: _scrollController,
-          child: BlocSelector<SettingsCubit, SettingsState, String?>(
-            selector: (state) => state.currentUserId,
-            builder: (context, userId) {
-              final usersState = context.read<UsersCubit>().state;
-              final users = usersState is UsersLoadedState ? usersState.users : <InveslyUser>[];
-              final currentUser =
-                  users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  // ~~~ Greeting message ~~~
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Text(DateTime.now().greetingsMsg, style: textTheme.headlineSmall),
-                            Text(currentUser?.name ?? 'Investor', style: textTheme.headlineMedium),
-                          ],
-                        ),
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () => context.push(const SettingsScreen()),
-                          icon: CircleAvatar(
-                            backgroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
-                            child: currentUser == null ? Icon(Icons.person_pin) : null,
+          slivers: [
+            SliverAppBar(
+              leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 32.0)),
+              title: Text(DateTime.now().greetingsMsg, overflow: TextOverflow.ellipsis),
+              titleSpacing: 0.0,
+              actions: <Widget>[
+                BlocSelector<SettingsCubit, SettingsState, String?>(
+                  selector: (state) => state.currentUserId,
+                  builder: (context, userId) {
+                    final usersState = context.read<UsersCubit>().state;
+                    final users = usersState is UsersLoadedState ? usersState.users : <InveslyUser>[];
+                    final currentUser =
+                        users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+
+                    return IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () => context.push(const SettingsScreen()),
+                      icon: CircleAvatar(
+                        backgroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
+                        child: currentUser == null ? Icon(Icons.person_pin) : null,
+                      ),
+                    );
+                  },
+                ),
+              ],
+              actionsPadding: EdgeInsets.only(right: 16.0),
+            ),
+            SliverList(
+              delegate: SliverChildListDelegate.fixed([
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          BlocSelector<SettingsCubit, SettingsState, String?>(
+                            selector: (state) => state.currentUserId,
+                            builder: (context, userId) {
+                              final usersState = context.read<UsersCubit>().state;
+                              final users = usersState is UsersLoadedState ? usersState.users : <InveslyUser>[];
+                              final currentUser =
+                                  users.isEmpty
+                                      ? null
+                                      : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+
+                              return Text(currentUser?.name ?? 'Investor', style: textTheme.headlineMedium);
+                            },
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ),
-
-                  // ~~~ Dashboard contents ~~~
-                  BlocProvider(
-                    create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
-                    child: _DashboardContents(currentUser, key: ValueKey<String?>(currentUser?.id)),
-                  ),
-
-                  // const SizedBox(height: 56.0),
-                ],
-              );
-            },
-          ),
+                ),
+                BlocSelector<SettingsCubit, SettingsState, String?>(
+                  selector: (state) => state.currentUserId,
+                  builder: (context, userId) {
+                    final usersState = context.read<UsersCubit>().state;
+                    final users = usersState is UsersLoadedState ? usersState.users : <InveslyUser>[];
+                    final currentUser =
+                        users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+                    return BlocProvider(
+                      create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
+                      child: _DashboardContents(currentUser, key: ValueKey<String?>(currentUser?.id)),
+                    );
+                  },
+                ),
+              ]),
+            ),
+          ],
         ),
       ),
       floatingActionButton: ValueListenableBuilder(
@@ -567,4 +593,16 @@ class _TransactionSummeryWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+class EmptyAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const EmptyAppBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox();
+  }
+
+  @override
+  Size get preferredSize => const Size(0.0, 64.0);
 }

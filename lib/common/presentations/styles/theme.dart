@@ -1,7 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
-
+import 'package:invesly/common_libs.dart';
 import 'constants.dart';
 
 @immutable
@@ -81,13 +81,14 @@ class AppStyle {
         padding: const EdgeInsets.all(4.0),
       ),
       appBarTheme: AppBarTheme(
+        color: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
         scrolledUnderElevation: 1.0,
-        // elevation: 0.1,
+        elevation: 0,
         surfaceTintColor: colorScheme.surface,
-        shadowColor: Colors.black38,
+        systemOverlayStyle: SystemUiOverlayStyle(systemNavigationBarColor: colorScheme.surface),
+        // shadowColor: Colors.black38,
         // iconTheme: IconThemeData(color: colorScheme.onBackground),
-        // foregroundColor: colorScheme.onBackground,
-        // backgroundColor: colorScheme.background,
       ),
       // toggleButtonsTheme: ToggleButtonsThemeData(
       //   color: colorScheme.secondary,

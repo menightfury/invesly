@@ -115,65 +115,67 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          // ~ Image
-          Align(
-            alignment: Alignment.topCenter,
-            child: Column(
-              children: <Widget>[
-                SizedBox(height: MediaQuery.viewPaddingOf(context).top + 56.0),
-                SlideTransition(
-                  position: _offsetAnimation,
-                  child: ValueListenableBuilder<int>(
-                    valueListenable: _currentPage,
-                    builder: (_, value, _) {
-                      return AnimatedSwitcher(
-                        duration: EMTimes.med,
-                        child: Image.asset(_pageData[value].imgSrc, key: ValueKey(value), width: 320.0),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          PageView.builder(
-            controller: _pageController,
-            itemBuilder: (context, index) => _Page(_pageData[index]),
-            itemCount: _pageData.length,
-            onPageChanged: (value) => _currentPage.value = value,
-          ),
-
-          // ~ Bottom indicator and button
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: SafeArea(
+        child: Stack(
+          children: <Widget>[
+            // ~ Image
+            Align(
+              alignment: Alignment.topCenter,
+              child: Column(
                 children: <Widget>[
-                  // ~ Page indicator
-                  SmoothPageIndicator(
-                    controller: _pageController,
-                    count: _pageData.length,
-                    effect: ExpandingDotsEffect(
-                      dotWidth: 8.0,
-                      dotHeight: 8.0,
-                      expansionFactor: 2.0,
-                      activeDotColor: context.color.secondary,
+                  SizedBox(height: MediaQuery.viewPaddingOf(context).top + 56.0),
+                  SlideTransition(
+                    position: _offsetAnimation,
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: _currentPage,
+                      builder: (_, value, _) {
+                        return AnimatedSwitcher(
+                          duration: EMTimes.med,
+                          child: Image.asset(_pageData[value].imgSrc, key: ValueKey(value), width: 320.0),
+                        );
+                      },
                     ),
-                    onDotClicked: (index) => _animateToPage(index),
                   ),
-
-                  // ~ Finish button
-                  _buildFinishBtn(context),
                 ],
               ),
             ),
-          ),
-        ],
+
+            PageView.builder(
+              controller: _pageController,
+              itemBuilder: (context, index) => _Page(_pageData[index]),
+              itemCount: _pageData.length,
+              onPageChanged: (value) => _currentPage.value = value,
+            ),
+
+            // ~ Bottom indicator and button
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    // ~ Page indicator
+                    SmoothPageIndicator(
+                      controller: _pageController,
+                      count: _pageData.length,
+                      effect: ExpandingDotsEffect(
+                        dotWidth: 8.0,
+                        dotHeight: 8.0,
+                        expansionFactor: 2.0,
+                        activeDotColor: context.color.secondary,
+                      ),
+                      onDotClicked: (index) => _animateToPage(index),
+                    ),
+
+                    // ~ Finish button
+                    _buildFinishBtn(context),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
