@@ -1,7 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
-import 'package:invesly/common_libs.dart';
+import 'package:flutter/services.dart';
 import 'constants.dart';
 
 @immutable
@@ -11,7 +11,7 @@ class AppStyle {
   static final instance = AppStyle._();
 
   // data for theme
-  static const _primaryFont = 'ZillaSlab';
+  static const _primaryFont = 'CrimsonPro';
   static const _headerFont = 'Maragsa';
 
   // ~ Light theme colors
@@ -57,8 +57,8 @@ class AppStyle {
       brightness: colorScheme.brightness,
       useMaterial3: true,
       scaffoldBackgroundColor: colorScheme.surface,
-      canvasColor: colorScheme.primaryContainer,
-      cardColor: colorScheme.primaryContainer,
+      canvasColor: colorScheme.surfaceContainer,
+      cardColor: colorScheme.surfaceContainer,
       colorScheme: colorScheme,
       fontFamily: _primaryFont,
       dividerColor: colorScheme.primary.withAlpha(50),
