@@ -2,6 +2,7 @@
 
 // import 'package:googleapis/admin/directory_v1.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
+import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/users/cubit/users_cubit.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/google_drive/google_drive.dart';
@@ -208,6 +209,10 @@ class SettingsScreen extends StatelessWidget {
                         icon: const Icon(Icons.color_lens_rounded),
                         description: 'Choose the accent color to emphasize certain elements',
                         trailingIcon: CircleAvatar(backgroundColor: Theme.of(context).colorScheme.primary),
+                        onTap: () async {
+                          final colorInt = await InveslyColorPickerWidget.showModal(context);
+                          print(colorInt);
+                        },
                         // value: Text(context.watch<SettingsRepository>().currentLocale.name),
                       ),
                       // SettingsTile

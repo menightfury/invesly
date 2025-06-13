@@ -87,14 +87,18 @@ class _AppViewState extends State<_AppView> {
       builder: (context, isDarkMode) {
         $logger.i('Material app rebuilds 😟.');
 
-        return MaterialApp(
-          title: 'Expense Manager',
-          debugShowCheckedModeBanner: false,
-          // routerConfig: AppRouter.router,
-          theme: AppStyle.instance.lightTheme,
-          darkTheme: AppStyle.instance.darkTheme,
-          themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          home: const SplashScreen(),
+        return DynamicColorBuilder(
+          builder: (lightScheme, darkScheme) {
+            return MaterialApp(
+              title: 'Invesly',
+              debugShowCheckedModeBanner: false,
+              // routerConfig: AppRouter.router,
+              theme: AppStyle.instance.lightTheme(lightScheme),
+              darkTheme: AppStyle.instance.darkTheme(darkScheme),
+              themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              home: const SplashScreen(),
+            );
+          },
         );
       },
       // ),

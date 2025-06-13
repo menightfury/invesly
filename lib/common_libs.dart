@@ -26,6 +26,7 @@ export 'common/presentations/widgets/month_picker.dart';
 export 'common/presentations/styles/constants.dart';
 
 export 'package:collection/collection.dart';
+export 'package:dynamic_color/dynamic_color.dart';
 // export 'package:connectivity_plus/connectivity_plus.dart';
 export 'package:equatable/equatable.dart';
 export 'package:file_picker/file_picker.dart';

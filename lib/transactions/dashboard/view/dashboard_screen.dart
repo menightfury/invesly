@@ -27,14 +27,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final textTheme = context.textTheme;
 
     return Scaffold(
-      // appBar: EmptyAppBar(),
+      // appBar: AppBar(),
       body: SafeArea(
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
             SliverAppBar(
               leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 32.0)),
-              title: Text(DateTime.now().greetingsMsg, overflow: TextOverflow.ellipsis),
+              // title:
               titleSpacing: 0.0,
               actions: <Widget>[
                 BlocSelector<SettingsCubit, SettingsState, String?>(
@@ -69,6 +69,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
+                          Text(
+                            DateTime.now().greetingsMsg,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.headlineSmall,
+                          ),
                           BlocSelector<SettingsCubit, SettingsState, String?>(
                             selector: (state) => state.currentUserId,
                             builder: (context, userId) {
@@ -79,7 +84,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       ? null
                                       : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
 
-                              return Text(currentUser?.name ?? 'Investor', style: textTheme.headlineMedium);
+                              return Text(
+                                currentUser?.name ?? 'Investor',
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.headlineMedium,
+                              );
                             },
                           ),
                         ],
@@ -579,9 +588,9 @@ class EmptyAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox();
+    return Container();
   }
 
   @override
-  Size get preferredSize => const Size(0.0, 64.0);
+  Size get preferredSize => const Size.fromHeight(0.0);
 }

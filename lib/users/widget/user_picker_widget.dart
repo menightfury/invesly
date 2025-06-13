@@ -11,7 +11,6 @@ class InveslyUserPickerWidget extends StatelessWidget {
   static Future<String?> showModal(BuildContext context, [String? userId]) async {
     return await showModalBottomSheet<String>(
       context: context,
-      showDragHandle: true,
       builder: (context) {
         return InveslyUserPickerWidget(userId: userId, onPickup: (userId) => Navigator.maybePop(context, userId));
       },

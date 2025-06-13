@@ -1,7 +1,9 @@
 // ignore_for_file: library_private_types_in_public_api
 
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'constants.dart';
 
 @immutable
@@ -15,50 +17,51 @@ class AppStyle {
   static const _headerFont = 'Maragsa';
 
   // ~ Light theme colors
-  // Based on FlexColorScheme.sepia
-  static const _lightColorScheme = ColorScheme.light(
-    primary: Color(0xFF413D32),
-    onPrimary: Color(0xFFFFFFFF),
-    primaryContainer: Color(0xFFE7E6E4),
-    onPrimaryContainer: Color(0xFF000000),
-    secondary: Color(0xFF8F8880),
-    onSecondary: Color(0xFFFFFFFF),
-    secondaryContainer: Color(0xFFDEDCD6),
-    onSecondaryContainer: Color(0xFF000000),
-    error: Color(0xFFBA1A1A),
-    onError: Color(0xFFFFFFFF),
-    errorContainer: Color(0xFFFFDAD6),
-    onErrorContainer: Color(0xFF000000),
-    surface: Color(0xFFF7FEFF),
-    onSurface: Color(0xFF111111),
-  );
+  // Based on FlexColorScheme.brandBlue
+  // static const _defaultLightColorScheme = ColorScheme.light(
+  //   primary: Color(0xFF413D32),
+  //   onPrimary: Color(0xFFFFFFFF),
+  //   primaryContainer: Color(0xFFE7E6E4),
+  //   onPrimaryContainer: Color(0xFF000000),
+  //   secondary: Color(0xFF8F8880),
+  //   onSecondary: Color(0xFFFFFFFF),
+  //   secondaryContainer: Color(0xFFDEDCD6),
+  //   onSecondaryContainer: Color(0xFF000000),
+  //   error: Color(0xFFBA1A1A),
+  //   onError: Color(0xFFFFFFFF),
+  //   errorContainer: Color(0xFFFFDAD6),
+  //   onErrorContainer: Color(0xFF000000),
+  //   surface: Color(0xFFF7FEFF),
+  //   onSurface: Color(0xFF111111),
+  //   surfaceContainer: Color(0xFFE7E6E4),
+  // );
 
   // ~ Dark theme colors
   // Based on FlexColorScheme.sepia
-  static const _darkColorScheme = ColorScheme.dark(
-    primary: Color(0xFFF1E8D9),
-    onPrimary: Color(0xFF000000),
-    primaryContainer: Color(0xFF363024),
-    onPrimaryContainer: Color(0xFFFFFFFF),
-    secondary: Color(0xFFE5E1D6),
-    onSecondary: Color(0xFF000000),
-    secondaryContainer: Color(0xFF958D82),
-    onSecondaryContainer: Color(0xFFFFFFFF),
-    error: Color(0xFFFFB4AB),
-    onError: Color(0xFF000000),
-    errorContainer: Color(0xFF93000A),
-    onErrorContainer: Color(0xFFFFFFFF),
-    surface: Color(0xFF14130f),
-    onSurface: Color(0xFFF1F1F1),
-  );
+  // static const _darkColorScheme = ColorScheme.dark(
+  //   primary: Color(0xFFF1E8D9),
+  //   onPrimary: Color(0xFF000000),
+  //   primaryContainer: Color(0xFF363024),
+  //   onPrimaryContainer: Color(0xFFFFFFFF),
+  //   secondary: Color(0xFFE5E1D6),
+  //   onSecondary: Color(0xFF000000),
+  //   secondaryContainer: Color(0xFF958D82),
+  //   onSecondaryContainer: Color(0xFFFFFFFF),
+  //   error: Color(0xFFFFB4AB),
+  //   onError: Color(0xFF000000),
+  //   errorContainer: Color(0xFF93000A),
+  //   onErrorContainer: Color(0xFFFFFFFF),
+  //   surface: Color(0xFF14130f),
+  //   onSurface: Color(0xFFF1F1F1),
+  // );
 
   ThemeData _getThemeData(ColorScheme colorScheme) {
     return ThemeData(
       brightness: colorScheme.brightness,
       useMaterial3: true,
       scaffoldBackgroundColor: colorScheme.surface,
-      canvasColor: colorScheme.surfaceContainer,
-      cardColor: colorScheme.surfaceContainer,
+      canvasColor: colorScheme.primaryContainer,
+      cardColor: colorScheme.primaryContainer,
       colorScheme: colorScheme,
       fontFamily: _primaryFont,
       dividerColor: colorScheme.primary.withAlpha(50),
@@ -86,7 +89,11 @@ class AppStyle {
         scrolledUnderElevation: 1.0,
         elevation: 0,
         surfaceTintColor: colorScheme.surface,
-        systemOverlayStyle: SystemUiOverlayStyle(systemNavigationBarColor: colorScheme.surface),
+        systemOverlayStyle: SystemUiOverlayStyle(
+          systemNavigationBarColor: colorScheme.surface,
+          systemNavigationBarIconBrightness:
+              colorScheme.brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+        ),
         // shadowColor: Colors.black38,
         // iconTheme: IconThemeData(color: colorScheme.onBackground),
       ),
@@ -199,9 +206,35 @@ class AppStyle {
     );
   }
 
-  ThemeData get lightTheme => _getThemeData(_lightColorScheme);
+  ThemeData lightTheme(ColorScheme? dynamicScheme) {
+    late final ColorScheme colorScheme;
+    // if (accentColor == 'auto' && lightScheme != null ) {
+    if (dynamicScheme != null) {
+      colorScheme = dynamicScheme.harmonized();
+    } else {
+      colorScheme = ColorScheme.fromSeed(
+        // seedColor: accentColor == 'auto' ? Color(0xFF413D32) : ColorHex.get(accentColor),
+        seedColor: Color(0xFF413D32),
+        brightness: Brightness.light,
+      );
+    }
+    return _getThemeData(colorScheme);
+  }
 
-  ThemeData get darkTheme => _getThemeData(_darkColorScheme);
+  ThemeData darkTheme(ColorScheme? dynamicScheme) {
+    late final ColorScheme colorScheme;
+    // if (accentColor == 'auto' && lightScheme != null ) {
+    if (dynamicScheme != null) {
+      colorScheme = dynamicScheme.harmonized();
+    } else {
+      colorScheme = ColorScheme.fromSeed(
+        // seedColor: accentColor == 'auto' ? Color(0xFF413D32) : ColorHex.get(accentColor),
+        seedColor: Color(0xFFF1E8D9),
+        brightness: Brightness.dark,
+      );
+    }
+    return _getThemeData(colorScheme);
+  }
 }
 
 class CustomChipBorderSide extends WidgetStateBorderSide {

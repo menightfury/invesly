@@ -4,10 +4,11 @@ class Tappable extends StatelessWidget {
   const Tappable({
     super.key,
     this.bgColor,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
+    this.borderRadius,
     this.shape,
     this.margin,
-    this.padding = const EdgeInsets.all(16.0),
+    this.padding,
+    this.size,
     this.onTap,
     this.onLongPress,
     this.onDoubleTap,
@@ -17,6 +18,7 @@ class Tappable extends StatelessWidget {
   final Color? bgColor;
   final BorderRadius? borderRadius;
   final ShapeBorder? shape;
+  final Size? size;
   final EdgeInsetsGeometry? margin;
   final EdgeInsetsGeometry? padding;
 
@@ -24,11 +26,11 @@ class Tappable extends StatelessWidget {
   final VoidCallback? onLongPress;
   final VoidCallback? onDoubleTap;
 
-  final Widget child;
+  final Widget? child;
 
   @override
   Widget build(BuildContext context) {
-    Widget content = child;
+    Widget content = SizedBox.fromSize(size: size, child: child);
 
     if (padding != null) {
       content = Padding(padding: padding!, child: content);
@@ -37,7 +39,7 @@ class Tappable extends StatelessWidget {
     content = Material(
       color: bgColor,
       type: MaterialType.canvas,
-      borderRadius: borderRadius,
+      borderRadius: shape != null ? null : (borderRadius ?? const BorderRadius.all(Radius.circular(8.0))),
       shape: shape,
       child: InkWell(
         onTap: onTap,
