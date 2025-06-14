@@ -196,24 +196,34 @@ class SettingsScreen extends StatelessWidget {
                     subTitle: 'App theme, colors',
                     icon: const Icon(Icons.palette_outlined),
                     tiles: <Widget>[
-                      SettingsTile.switchTile(
-                        title: 'Dynamic color',
-                        icon: const Icon(Icons.color_lens_rounded),
-                        description: 'Choose the accent color to emphasize certain elements',
-                        value: false,
-                        onChanged: (_) {},
-                        // value: Text(context.watch<SettingsRepository>().currentLocale.name),
-                      ),
-                      SettingsTile(
-                        title: 'Accent color',
-                        icon: const Icon(Icons.color_lens_rounded),
-                        description: 'Choose the accent color to emphasize certain elements',
-                        trailingIcon: CircleAvatar(backgroundColor: Theme.of(context).colorScheme.primary),
-                        onTap: () async {
-                          final colorInt = await InveslyColorPickerWidget.showModal(context);
-                          print(colorInt);
+                      BlocSelector<SettingsCubit, SettingsState, int?>(
+                        selector: (state) => state.accentColor,
+                        builder: (context, accentColor) {
+                          return SettingsTile.switchTile(
+                            title: 'Dynamic color',
+                            icon: const Icon(Icons.color_lens_rounded),
+                            description: 'Choose the accent color to emphasize certain elements',
+                            value: accentColor == null,
+                            onChanged: (value) => context.read<SettingsCubit>().setDarkTheme(value),
+                            // value: Text(context.watch<SettingsRepository>().currentLocale.name),
+                          );
                         },
-                        // value: Text(context.watch<SettingsRepository>().currentLocale.name),
+                      ),
+                      BlocSelector<SettingsCubit, SettingsState, int?>(
+                        selector: (state) => state.accentColor,
+                        builder: (context, accentColor) {
+                          return SettingsTile(
+                            title: 'Accent color',
+                            icon: const Icon(Icons.color_lens_rounded),
+                            description: 'Choose the accent color to emphasize certain elements',
+                            trailingIcon: CircleAvatar(backgroundColor: Theme.of(context).colorScheme.primary),
+                            onTap: () async {
+                              final colorInt = await InveslyColorPickerWidget.showModal(context);
+                              print(colorInt);
+                            },
+                            // value: Text(context.watch<SettingsRepository>().currentLocale.name),
+                          );
+                        },
                       ),
                       // SettingsTile
                       BlocSelector<SettingsCubit, SettingsState, bool>(

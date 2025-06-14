@@ -21,6 +21,16 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
     emit(state.copyWith(isDarkMode: isDarkMode));
   }
 
+  void setAccentColor(int? color) async {
+    // if color is null, set null explicitly
+    final color = Person copyWith({String? Function()? name}) =>
+      Person(name != null ? name() : this.name);
+    if (color == null) {
+      emit(state.copyWith(accentColor: ));
+    }
+    emit(state.copyWith(accentColor: isDarkMode));
+  }
+
   @override
   SettingsState fromJson(Map<String, dynamic> json) {
     return SettingsState.fromMap(json);

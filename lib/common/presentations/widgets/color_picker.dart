@@ -69,18 +69,17 @@ class InveslyColorPickerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColors = (colors?.isNotEmpty ?? false) ? colors : _defaultColors;
+    final effectiveColors = (colors?.isNotEmpty ?? false) ? colors! : _defaultColors;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Column(
         // crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 8.0,
+        spacing: 16.0,
         children: <Widget>[
           Text('Pick a color'),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
               controller: scrollController,
               child: Align(
                 alignment: Alignment.center,
@@ -89,7 +88,7 @@ class InveslyColorPickerWidget extends StatelessWidget {
                   runAlignment: WrapAlignment.center,
                   spacing: 6.0,
                   runSpacing: 12.0,
-                  children: effectiveColors!.map((color) => _buildSelectableColorCircle(context, color)).toList(),
+                  children: effectiveColors.map((color) => _buildSelectableColorCircle(context, color)).toList(),
                 ),
               ),
             ),
