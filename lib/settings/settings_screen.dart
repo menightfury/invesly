@@ -165,15 +165,15 @@ class SettingsScreen extends StatelessWidget {
                     tiles: <Widget>[
                       SettingsTile(
                         title: 'App language',
+                        // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                         icon: const Icon(Icons.language_rounded),
                         description: 'English',
-                        // value: Text(context.watch<SettingsRepository>().currentLocale.name),
                       ),
                       SettingsTile(
                         title: 'Currency',
+                        // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                         icon: const Icon(Icons.attach_money_rounded),
                         description: 'Choose your preferred currency',
-                        // value: Text(context.watch<SettingsRepository>().currentLocale.name),
                       ),
                       SettingsTile.switchTile(
                         icon: const Icon(Icons.privacy_tip_outlined),
@@ -185,8 +185,8 @@ class SettingsScreen extends StatelessWidget {
                       SettingsTile.navigation(
                         icon: const Icon(Icons.account_balance_outlined),
                         title: 'Add AMC',
+                        // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                         description: 'Add a new Asset Management Company to your list',
-                        // value: Text(context.watch<SettingsRepository>().currentLocale.name),
                         onTap: () => context.push(const EditAmcScreen()),
                       ),
                     ],
@@ -196,43 +196,49 @@ class SettingsScreen extends StatelessWidget {
                     subTitle: 'App theme, colors',
                     icon: const Icon(Icons.palette_outlined),
                     tiles: <Widget>[
-                      BlocSelector<SettingsCubit, SettingsState, int?>(
-                        selector: (state) => state.accentColor,
-                        builder: (context, accentColor) {
+                      BlocSelector<SettingsCubit, SettingsState, bool>(
+                        selector: (state) => state.isDynamicColor,
+                        builder: (context, isDynamic) {
                           return SettingsTile.switchTile(
                             title: 'Dynamic color',
-                            icon: const Icon(Icons.color_lens_rounded),
+                            // title: Text(context.watch<SettingsRepository>().currentLocale.name),
+                            icon: const Icon(Icons.format_color_fill_rounded),
                             description: 'Choose the accent color to emphasize certain elements',
-                            value: accentColor == null,
-                            onChanged: (value) => context.read<SettingsCubit>().setDarkTheme(value),
-                            // value: Text(context.watch<SettingsRepository>().currentLocale.name),
+                            value: isDynamic,
+                            onChanged: (value) => context.read<SettingsCubit>().setDynamicColorMode(value),
                           );
                         },
                       ),
-                      BlocSelector<SettingsCubit, SettingsState, int?>(
-                        selector: (state) => state.accentColor,
-                        builder: (context, accentColor) {
+                      BlocSelector<SettingsCubit, SettingsState, (bool, int?)>(
+                        selector: (state) => (state.isDynamicColor, state.accentColor),
+                        builder: (context, state) {
+                          final (isDynamic, accentColor) = state;
                           return SettingsTile(
                             title: 'Accent color',
+                            // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                             icon: const Icon(Icons.color_lens_rounded),
                             description: 'Choose the accent color to emphasize certain elements',
-                            trailingIcon: CircleAvatar(backgroundColor: Theme.of(context).colorScheme.primary),
+                            trailingIcon: CircleAvatar(
+                              backgroundColor: accentColor != null ? Color(accentColor) : context.color.primary,
+                            ),
                             onTap: () async {
                               final colorInt = await InveslyColorPickerWidget.showModal(context);
-                              print(colorInt);
+                              if (context.mounted && colorInt != null) {
+                                context.read<SettingsCubit>().setAccentColor(colorInt);
+                              }
                             },
-                            // value: Text(context.watch<SettingsRepository>().currentLocale.name),
+                            enabled: !isDynamic,
                           );
                         },
                       ),
                       // SettingsTile
                       BlocSelector<SettingsCubit, SettingsState, bool>(
                         selector: (state) => state.isDarkMode,
-                        builder: (context, value) {
+                        builder: (context, isDarkMode) {
                           return SettingsTile.switchTile(
                             title: 'Dark mode',
                             icon: const Icon(Icons.format_paint),
-                            value: value,
+                            value: isDarkMode,
                             onChanged: (value) => context.read<SettingsCubit>().setDarkTheme(value),
                           );
                         },
