@@ -1,4 +1,4 @@
-extension MapExtension on Map {
+extension MapX on Map {
   Map<String, dynamic> toUpperKeys() => map((key, value) => MapEntry(key.toUpperCase(), value));
 
   Map<String, String> toStringValues() => map((key, value) => MapEntry('$key', '$value'));

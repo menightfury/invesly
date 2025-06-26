@@ -1,4 +1,4 @@
-extension EMStringExtension on String {
+extension StringX on String {
   String toCapitalize() {
     if (isEmpty) return '';
     return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';

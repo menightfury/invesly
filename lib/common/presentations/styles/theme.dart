@@ -1,6 +1,5 @@
 // ignore_for_file: library_private_types_in_public_api
 
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -21,8 +20,8 @@ class AppStyle {
       brightness: colorScheme.brightness,
       useMaterial3: true,
       scaffoldBackgroundColor: colorScheme.surface,
-      canvasColor: colorScheme.primaryContainer,
-      cardColor: colorScheme.primaryContainer,
+      canvasColor: colorScheme.secondaryContainer,
+      cardColor: colorScheme.secondaryContainer,
       colorScheme: colorScheme,
       fontFamily: _primaryFont,
       dividerColor: colorScheme.primary.withAlpha(50),
@@ -58,15 +57,6 @@ class AppStyle {
         // shadowColor: Colors.black38,
         // iconTheme: IconThemeData(color: colorScheme.onBackground),
       ),
-      // toggleButtonsTheme: ToggleButtonsThemeData(
-      //   color: colorScheme.secondary,
-      //   borderColor: colorScheme.secondary,
-      //   selectedColor: colorScheme.primary,
-      //   selectedBorderColor: colorScheme.primary,
-      //   fillColor: colorScheme.primary.withOpacity(0.1),
-      //   splashColor: colorScheme.primary.withOpacity(0.1),
-      //   borderRadius: BorderRadius.circular(EMCorners.sm),
-      // ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: WidgetStateColor.resolveWith((state) {
@@ -138,7 +128,6 @@ class AppStyle {
         style: ButtonStyle(
           padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
           minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
-          // side: WidgetStatePropertyAll<BorderSide>(),
           shape: WidgetStatePropertyAll<OutlinedBorder>(
             ContinuousRectangleBorder(
               side: BorderSide(color: colorScheme.primary),
@@ -153,7 +142,6 @@ class AppStyle {
         elevation: 2.0,
         shape: const ContinuousRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
       ),
-
       bottomSheetTheme: BottomSheetThemeData(
         elevation: 10.0,
         dragHandleSize: const Size(25.0, 4.0),

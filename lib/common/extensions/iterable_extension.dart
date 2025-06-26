@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 // import 'package:flutter/widgets.dart';
 
-extension EMEnumExt<T extends Enum> on Iterable<T> {
+extension IterableX<T extends Enum> on Iterable<T> {
   T? byNameOrNull(String name) {
     return firstWhereOrNull((value) => value.name == name);
   }

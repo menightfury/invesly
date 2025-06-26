@@ -212,14 +212,15 @@ class SettingsScreen extends StatelessWidget {
                       BlocSelector<SettingsCubit, SettingsState, (bool, int?)>(
                         selector: (state) => (state.isDynamicColor, state.accentColor),
                         builder: (context, state) {
-                          final (isDynamic, accentColor) = state;
+                          final (isDynamic, accentColorInt) = state;
+                          final accentColor = accentColorInt != null ? Color(accentColorInt) : context.color.primary;
                           return SettingsTile(
                             title: 'Accent color',
                             // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                             icon: const Icon(Icons.color_lens_rounded),
                             description: 'Choose the accent color to emphasize certain elements',
                             trailingIcon: CircleAvatar(
-                              backgroundColor: accentColor != null ? Color(accentColor) : context.color.primary,
+                              backgroundColor: isDynamic ? accentColor.withAlpha(120) : accentColor,
                             ),
                             onTap: () async {
                               final colorInt = await InveslyColorPickerWidget.showModal(context);

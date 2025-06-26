@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:intl/intl.dart';
 
-extension EMIntExtension on int {
+extension IntX on int {
   Duration get microseconds => Duration(microseconds: round());
   Duration get ms => (this * 1000).microseconds;
   Duration get milliseconds => (this * 1000).microseconds;
