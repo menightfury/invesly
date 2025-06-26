@@ -82,20 +82,37 @@ class _AppViewState extends State<_AppView> {
     //     $logger.d(state);
     //   },
     //   child:
-    BlocSelector<SettingsCubit, SettingsState, bool>(
-      selector: (state) => state.isDarkMode,
-      builder: (context, isDarkMode) {
+    BlocBuilder<SettingsCubit, SettingsState>(
+      buildWhen: (previous, current) {
+        return previous.isDarkMode != current.isDarkMode ||
+            previous.isDynamicColor != current.isDynamicColor ||
+            previous.accentColor != current.accentColor;
+      },
+      builder: (context, state) {
         $logger.i('Material app rebuilds 😟.');
 
         return DynamicColorBuilder(
-          builder: (lightScheme, darkScheme) {
+          builder: (lightDynamic, darkDynamic) {
+            final lightScheme =
+                state.isDynamicColor && lightDynamic != null
+                    ? lightDynamic.harmonized()
+                    : ColorScheme.fromSeed(
+                      seedColor: Color(state.accentColor ?? 0xFF413D32),
+                      brightness: Brightness.light,
+                    );
+            final darkScheme =
+                state.isDynamicColor && darkDynamic != null
+                    ? darkDynamic.harmonized()
+                    : ColorScheme.fromSeed(
+                      seedColor: Color(state.accentColor ?? 0xFFF1E8D9),
+                      brightness: Brightness.dark,
+                    );
             return MaterialApp(
               title: 'Invesly',
               debugShowCheckedModeBanner: false,
-              // routerConfig: AppRouter.router,
-              theme: AppStyle.instance.lightTheme(lightScheme),
-              darkTheme: AppStyle.instance.darkTheme(darkScheme),
-              themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              theme: AppStyle.instance.getTheme(lightScheme),
+              darkTheme: AppStyle.instance.getTheme(darkScheme),
+              themeMode: state.isDarkMode ? ThemeMode.dark : ThemeMode.light,
               home: const SplashScreen(),
             );
           },
