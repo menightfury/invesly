@@ -43,7 +43,7 @@ export 'package:permission_handler/permission_handler.dart';
 export 'package:rxdart/rxdart.dart';
 export 'package:smooth_page_indicator/smooth_page_indicator.dart';
 export 'package:sqflite/sqflite.dart';
-export 'router.dart';
+// export 'router.dart';
 export 'package:gap/gap.dart';
 export 'package:flutter_spinkit/flutter_spinkit.dart';
 export 'package:flutter_slidable/flutter_slidable.dart' hide ConfirmDismissCallback;

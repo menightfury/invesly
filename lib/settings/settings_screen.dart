@@ -254,8 +254,8 @@ class SettingsScreen extends StatelessWidget {
                       SettingsTile(
                         icon: const Icon(Icons.login),
                         title: 'Google Sign-in',
+                        // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                         description: 'me.nightfury@gmail.com',
-                        // value: Text(context.watch<SettingsRepository>().currentLocale.name),
                         onTap: () => context.push(const SignInDemo()),
                       ),
                       SettingsTile(

@@ -1,7 +1,3 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:async';
 
 // #docregion Import
@@ -18,16 +14,13 @@ final GoogleSignIn _googleSignIn = GoogleSignIn(
   scopes: <String>[PeopleServiceApi.contactsReadonlyScope],
 );
 
-/// The main widget of this demo.
 class SignInDemo extends StatefulWidget {
-  /// Creates the main widget of this demo.
   const SignInDemo({super.key});
 
   @override
   State createState() => SignInDemoState();
 }
 
-/// The state of the main widget.
 class SignInDemoState extends State<SignInDemo> {
   GoogleSignInAccount? _currentUser;
   String _contactText = '';
@@ -51,7 +44,7 @@ class SignInDemoState extends State<SignInDemo> {
       _contactText = 'Loading contact info...';
     });
 
-// #docregion CreateAPIClient
+    // #docregion CreateAPIClient
     // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
     final auth.AuthClient? client = await _googleSignIn.authenticatedClient();
 
@@ -79,13 +72,9 @@ class SignInDemoState extends State<SignInDemo> {
 
   String? _pickFirstNamedContact(List<Person>? connections) {
     return connections
-        ?.firstWhere(
-          (Person person) => person.names != null,
-        )
+        ?.firstWhere((Person person) => person.names != null)
         .names
-        ?.firstWhere(
-          (Name name) => name.displayName != null,
-        )
+        ?.firstWhere((Name name) => name.displayName != null)
         .displayName;
   }
 
@@ -106,22 +95,14 @@ class SignInDemoState extends State<SignInDemo> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[
           ListTile(
-            leading: GoogleUserCircleAvatar(
-              identity: user,
-            ),
+            leading: GoogleUserCircleAvatar(identity: user),
             title: Text(user.displayName ?? ''),
             subtitle: Text(user.email),
           ),
           const Text('Signed in successfully.'),
           Text(_contactText),
-          ElevatedButton(
-            onPressed: _handleSignOut,
-            child: const Text('SIGN OUT'),
-          ),
-          ElevatedButton(
-            onPressed: _handleGetContact,
-            child: const Text('REFRESH'),
-          ),
+          ElevatedButton(onPressed: _handleSignOut, child: const Text('SIGN OUT')),
+          ElevatedButton(onPressed: _handleGetContact, child: const Text('REFRESH')),
         ],
       );
     } else {
@@ -129,10 +110,7 @@ class SignInDemoState extends State<SignInDemo> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[
           const Text('You are not currently signed in.'),
-          ElevatedButton(
-            onPressed: _handleSignIn,
-            child: const Text('SIGN IN'),
-          ),
+          ElevatedButton(onPressed: _handleSignIn, child: const Text('SIGN IN')),
         ],
       );
     }
@@ -141,12 +119,8 @@ class SignInDemoState extends State<SignInDemo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Google Sign In + googleapis'),
-        ),
-        body: ConstrainedBox(
-          constraints: const BoxConstraints.expand(),
-          child: _buildBody(),
-        ));
+      appBar: AppBar(title: const Text('Google Sign In + googleapis')),
+      body: ConstrainedBox(constraints: const BoxConstraints.expand(), child: _buildBody()),
+    );
   }
 }
