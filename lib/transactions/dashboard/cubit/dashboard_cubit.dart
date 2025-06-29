@@ -26,7 +26,7 @@ class DashboardCubit extends Cubit<DashboardState> {
     // Get initial transactions
     emit(const DashboardLoadingState());
     try {
-      final transactions = await _repository.getTransactions(userId);
+      final transactions = await _repository.getTransactions(userId: userId);
       final transactionStats = await _repository.getTransactionStats(userId);
 
       emit(DashboardLoadedState(summaries: transactionStats, recentTransactions: transactions));
@@ -45,7 +45,7 @@ class DashboardCubit extends Cubit<DashboardState> {
       _subscription?.pause();
 
       try {
-        final transactions = await _repository.getTransactions(userId);
+        final transactions = await _repository.getTransactions(userId: userId);
         final transactionStats = await _repository.getTransactionStats(userId);
 
         emit(DashboardLoadedState(summaries: transactionStats, recentTransactions: transactions));

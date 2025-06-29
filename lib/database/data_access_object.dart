@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 
+import 'package:csv/csv.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 
@@ -176,5 +177,14 @@ abstract class DataAccessObject<T extends InveslyDataModel> {
 
   DaoQueryBuilder select([List<TableColumnBase>? columns]) {
     return DaoQueryBuilder(db: _db, table: table, columns: columns);
+  }
+
+  Future<String> tableDataToCsv([String separator = ',']) async {
+    final csvHeader = table.columns.map((col) => col.title.toCamelCase()).toList();
+    final data = await select().toList();
+
+    final csvData = data.map((d) => d.values.toList()).toList();
+
+    return const ListToCsvConverter().convert([csvHeader, ...csvData], fieldDelimiter: separator);
   }
 }

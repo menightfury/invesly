@@ -204,7 +204,7 @@ class __EditViewState extends State<_EditView> {
                                           setInnerState(() => _tagErrorText = 'Please enter a proper tag!');
                                           return;
                                         }
-                                        editAmcCubit.updateSelectedTags(_tagFieldController.text.toCapitalize());
+                                        editAmcCubit.updateSelectedTags(_tagFieldController.text.toSentenceCase());
                                         _tagFieldController.clear();
                                         _tagFieldFocusNode.unfocus();
 

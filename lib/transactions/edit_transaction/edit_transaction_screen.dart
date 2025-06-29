@@ -375,7 +375,7 @@ class _InveslyTogglerExampleState extends State<InveslyTogglerExample> {
   Widget build(BuildContext context) {
     return InveslyToggler<TransactionType>(
       value: _value,
-      displayStringForOption: (option) => option.name.toCapitalize(),
+      displayStringForOption: (option) => option.name.toSentenceCase(),
       options: TransactionType.values.toSet(),
       onChanged:
           (value) => setState(() {

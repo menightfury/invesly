@@ -3,6 +3,9 @@
 // import 'package:googleapis/admin/directory_v1.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
+import 'package:invesly/database/backup/backup_service.dart';
+import 'package:invesly/transactions/model/transaction_repository.dart';
+
 import 'package:invesly/users/cubit/users_cubit.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/google_drive/google_drive.dart';
@@ -73,7 +76,7 @@ class SettingsScreen extends StatelessWidget {
                                               Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: <Widget>[
-                                                  Text(currentUser.name.toCapitalize()),
+                                                  Text(currentUser.name.toSentenceCase()),
                                                   Text(
                                                     'PAN: ${currentUser.panNumber ?? "..."}',
                                                     style: TextStyle(fontSize: 12.0, color: Colors.grey[600]),
@@ -128,7 +131,7 @@ class SettingsScreen extends StatelessWidget {
                                                         children: <Widget>[
                                                           CircleAvatar(backgroundImage: AssetImage(user.avatar)),
                                                           Text(
-                                                            user.name.toCapitalize(),
+                                                            user.name.toSentenceCase(),
                                                             style: textTheme.labelSmall?.copyWith(
                                                               color: Colors.grey[600],
                                                             ),
@@ -255,7 +258,7 @@ class SettingsScreen extends StatelessWidget {
                         icon: const Icon(Icons.login),
                         title: 'Google Sign-in',
                         // title: Text(context.watch<SettingsRepository>().currentLocale.name),
-                        description: 'me.nightfury@gmail.com',
+                        description: 'NA',
                         onTap: () => context.push(const SignInDemo()),
                       ),
                       SettingsTile(
@@ -272,15 +275,84 @@ class SettingsScreen extends StatelessWidget {
                         onTap: () {},
                       ),
                       SettingsTile(
-                        title: 'Export',
+                        title: 'Export transactions',
                         icon: const Icon(Icons.backup_outlined),
-                        description: 'Export your data locally to .csv file.',
-                        onTap: () {},
+                        description: 'Export transactions locally to .csv file.',
+                        onTap: () async {
+                          late final SnackBar snackBar;
+                          try {
+                            String? path = await FilePicker.platform.getDirectoryPath();
+                            if (path == null || path.isEmpty || !context.mounted) {
+                              return;
+                            }
+
+                            final csvData = await context.read<TransactionRepository>().tableDataToCsv();
+                            final file = await BackupDatabaseService.exportCsv(csvData, path);
+                            if (file != null) {
+                              snackBar = SnackBar(
+                                content: Text('File saved successfully, ${file.path}'),
+                                backgroundColor: Colors.teal,
+                              );
+                            } else {
+                              snackBar = SnackBar(
+                                content: Text('Error in saving file'),
+                                backgroundColor: Colors.deepOrange,
+                              );
+                            }
+                          } catch (err) {
+                            $logger.e(err);
+                            snackBar = SnackBar(
+                              content: Text('Error in saving file'),
+                              backgroundColor: Colors.deepOrange,
+                            );
+                          }
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                          }
+                        },
                       ),
                       SettingsTile(
-                        title: 'Backup',
+                        title: 'Backup locally',
                         icon: const Icon(Icons.backup_outlined),
-                        description: 'Backup your data to Google Drive. This will create a new backup file.',
+                        description: 'This will create a new backup file locally.',
+                        onTap: () async {
+                          late final SnackBar snackBar;
+                          try {
+                            String? path = await FilePicker.platform.getDirectoryPath();
+                            if (path == null || path.isEmpty || !context.mounted) {
+                              return;
+                            }
+
+                            final file = await BackupDatabaseService.exportDatabaseFile(path);
+                            if (file != null) {
+                              snackBar = SnackBar(
+                                content: Text('File saved successfully, ${file.path}'),
+                                backgroundColor: Colors.teal,
+                              );
+                            } else {
+                              snackBar = SnackBar(
+                                content: Text('Error in saving file'),
+                                backgroundColor: Colors.deepOrange,
+                              );
+                            }
+                          } catch (err) {
+                            $logger.e(err);
+                            snackBar = SnackBar(
+                              content: Text('Error in saving file'),
+                              backgroundColor: Colors.deepOrange,
+                            );
+                          }
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                          }
+                        },
+                      ),
+                      SettingsTile(
+                        title: 'Drive backup',
+                        icon: const Icon(Icons.backup_outlined),
+                        description: 'Backup your data in a new backup file to Google Drive.',
                         onTap: () {},
                       ),
                     ],

@@ -4,6 +4,7 @@ import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/data_access_object.dart';
 import 'package:invesly/database/invesly_api.dart';
+import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 
 class TransactionRepository extends DataAccessObject<TransactionInDb> {
@@ -15,8 +16,11 @@ class TransactionRepository extends DataAccessObject<TransactionInDb> {
   TransactionTable get _trnTable => table as TransactionTable;
 
   /// Get transactions
-  Future<List<InveslyTransaction>> getTransactions(String userId, {String? amcId, int? showItems}) async {
-    final filter = {_trnTable.userIdColumn: userId};
+  Future<List<InveslyTransaction>> getTransactions({String? userId, String? amcId, int? showItems}) async {
+    final filter = <TableColumn, String>{};
+    if (userId != null) {
+      filter.putIfAbsent(_trnTable.userIdColumn, () => userId);
+    }
 
     if (amcId != null) {
       filter.putIfAbsent(_trnTable.amcIdColumn, () => amcId);
@@ -85,4 +89,13 @@ class TransactionRepository extends DataAccessObject<TransactionInDb> {
       await update(trn);
     }
   }
+
+  // Future<String> transactionsToCsv([String separator = ',']) async {
+  //   final csvHeader = table.columns.map((col) => col.title.toCamelCase()).toList();
+  //   final transactions = await getTransactions();
+
+  //   final csvData = transactions.map((trn) => table.decode(trn).values.toList()).toList();
+
+  //   return const ListToCsvConverter().convert([csvHeader, ...csvData], fieldDelimiter: separator);
+  // }
 }
