@@ -143,6 +143,17 @@ class Bootstrap {
       FlutterError.dumpErrorToConsole(details);
     };
 
+    // ask for permission to access external storage
+    // Not required for Android 13 (Api 33) and above
+    if (!kIsWeb) {
+      final status = await Permission.storage.request();
+      if (status.isDenied || status.isPermanentlyDenied) {
+        // If the user denies the permission, you can show a dialog or a snackbar
+        // to inform them that the app needs this permission to function properly.
+        $logger.w('Storage permission denied. App may not work as expected.');
+      }
+    }
+
     // declare directory where both the databases will be stored
     final directory = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
     // Initialize hydrated storage (i.e. hive database) in that declared directory.
@@ -153,7 +164,7 @@ class Bootstrap {
     );
 
     // Initialize local storage i.e. sqlite
-    final api = await InveslyApi.initialize(directory);
+    final api = await InveslyApi.initialize(directory.path);
     return _instance = Bootstrap._(api);
   }
 }

@@ -13,7 +13,7 @@ class AppStyle {
   static final instance = AppStyle._();
 
   // data for theme
-  // static const _primaryFont = 'Jost';
+  // static const _primaryFont = 'SourceSans3';
   static const _headerFont = 'Maragsa';
 
   ThemeData getTheme(ColorScheme colorScheme) {
@@ -24,7 +24,7 @@ class AppStyle {
       canvasColor: colorScheme.secondaryContainer,
       cardColor: colorScheme.secondaryContainer,
       colorScheme: colorScheme,
-      fontFamily: GoogleFonts.arvo().fontFamily,
+      fontFamily: GoogleFonts.sourceSans3().fontFamily,
       dividerColor: colorScheme.primary.withAlpha(50),
       textTheme: const TextTheme(
         headlineLarge: TextStyle(fontFamily: _headerFont, fontSize: 32.0),

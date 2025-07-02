@@ -23,26 +23,26 @@ class InveslyApi {
     return _instance!;
   }
 
-  static Future<InveslyApi> initialize(Directory directory) async {
+  static Future<InveslyApi> initialize(String path) async {
     if (_instance != null) return _instance!;
 
     // Initialize sqlite database in that declared directory and open the database.
-    final path = p.join(directory.path, 'invesly.db');
+    final dbPath = p.join(path, 'invesly.db');
 
     // sqflite - copy from assets (for optimizing performance, asset is copied only once)
-    final isDbExists = await databaseExists(path);
+    final isDbExists = await databaseExists(dbPath);
     if (!isDbExists) {
       // should happen only first time the application is launched copy from asset
       final data = await rootBundle.load('assets/data/initial.db');
       final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
 
       // write and flush the bytes written
-      await File(path).writeAsBytes(bytes, flush: true);
+      await File(dbPath).writeAsBytes(bytes, flush: true);
     } else {
       $logger.d('Opening existing database');
     }
 
-    final db = await openDatabase(path, version: 1);
+    final db = await openDatabase(dbPath, version: 1);
 
     // initialize all necessary tables
     final userTable = UserTable();

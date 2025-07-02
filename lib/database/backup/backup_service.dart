@@ -10,6 +10,19 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 class BackupDatabaseService {
+  static Future<Directory> _getDownloadsDirectory() async {
+    final dir = await getDownloadsDirectory();
+    if (dir != null) {
+      return dir;
+    }
+
+    final dir2 = Directory('/storage/emulated/0/Download');
+    if (await dir2.exists()) {
+      return dir2;
+    }
+
+    return await getTemporaryDirectory();
+  }
   // AppDB db = AppDB.instance;
 
   // Future<void> downloadDatabaseFile() async {
@@ -71,25 +84,16 @@ class BackupDatabaseService {
   //   return false;
   // }
 
-  // Future<File?> readFile() async {
-  //   FilePickerResult? result = await FilePicker.platform.pickFiles();
+  static List<List<dynamic>> processCsv(String csvData) {
+    return const CsvToListConverter().convert(csvData, eol: '\n');
+  }
 
-  //   if (result != null) {
-  //     return File(result.files.single.path!);
-  //   }
-
-  //   return null;
-  // }
-
-  // Future<List<List<dynamic>>> processCsv(String csvData) async {
-  //   return const CsvToListConverter().convert(csvData, eol: '\n');
-  // }
-
-  static Future<File?> exportDatabaseFile(String exportPath) async {
+  static Future<File?> exportDatabaseFile() async {
     final source = File(InveslyApi.instance.db.path);
     final fileName = 'invesly-${DateTime.now().millisecondsSinceEpoch}.db';
 
-    final destination = Directory(path.join(exportPath, fileName));
+    final dir = await getApplicationDocumentsDirectory();
+    final destination = Directory(path.join(dir.path, fileName));
     // if ((await destination.exists())) {
     //   final status = await Permission.storage.status;
     //   if (!status.isGranted) {
@@ -107,9 +111,10 @@ class BackupDatabaseService {
     return await source.copy(destination.path);
   }
 
-  static Future<File?> exportCsv(String csvData, String exportPath) async {
+  static Future<File?> exportCsv(String csvData) async {
+    final dir = await _getDownloadsDirectory();
     final fileName = 'transactions-${DateTime.now().millisecondsSinceEpoch}.csv';
-    final file = File(path.join(exportPath, fileName));
+    final file = File(path.join(dir.path, fileName));
 
     try {
       return await file.writeAsString(csvData, flush: true);

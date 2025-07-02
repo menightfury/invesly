@@ -4,6 +4,7 @@
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/database/backup/backup_service.dart';
+import 'package:invesly/settings/import_transactions_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
 import 'package:invesly/users/cubit/users_cubit.dart';
@@ -268,11 +269,11 @@ class SettingsScreen extends StatelessWidget {
                             'Restore your data from a previously saved backup. This action will overwrite your current data.',
                         onTap: () {},
                       ),
-                      SettingsTile(
+                      SettingsTile.navigation(
                         icon: const Icon(Icons.restore_rounded),
                         title: 'Manual import',
                         description: 'Import transaction from a .csv file.',
-                        onTap: () {},
+                        onTap: () => context.push(const ImportTransactionsScreen()),
                       ),
                       SettingsTile(
                         title: 'Export transactions',
@@ -281,13 +282,12 @@ class SettingsScreen extends StatelessWidget {
                         onTap: () async {
                           late final SnackBar snackBar;
                           try {
-                            String? path = await FilePicker.platform.getDirectoryPath();
-                            if (path == null || path.isEmpty || !context.mounted) {
-                              return;
-                            }
-
+                            // String? path = await FilePicker.platform.getDirectoryPath();
+                            // if (path == null || path.isEmpty || !context.mounted) {
+                            //   return;
+                            // }
                             final csvData = await context.read<TransactionRepository>().tableDataToCsv();
-                            final file = await BackupDatabaseService.exportCsv(csvData, path);
+                            final file = await BackupDatabaseService.exportCsv(csvData);
                             if (file != null) {
                               snackBar = SnackBar(
                                 content: Text('File saved successfully, ${file.path}'),
@@ -319,12 +319,12 @@ class SettingsScreen extends StatelessWidget {
                         onTap: () async {
                           late final SnackBar snackBar;
                           try {
-                            String? path = await FilePicker.platform.getDirectoryPath();
-                            if (path == null || path.isEmpty || !context.mounted) {
-                              return;
-                            }
+                            // String? path = await FilePicker.platform.getDirectoryPath();
+                            // if (path == null || path.isEmpty || !context.mounted) {
+                            //   return;
+                            // }
 
-                            final file = await BackupDatabaseService.exportDatabaseFile(path);
+                            final file = await BackupDatabaseService.exportDatabaseFile();
                             if (file != null) {
                               snackBar = SnackBar(
                                 content: Text('File saved successfully, ${file.path}'),
