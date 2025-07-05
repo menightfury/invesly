@@ -4,7 +4,7 @@
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/database/backup/backup_service.dart';
-import 'package:invesly/settings/import_transactions_screen.dart';
+import 'package:invesly/settings/import_transactions/import_transactions_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
 import 'package:invesly/users/cubit/users_cubit.dart';
