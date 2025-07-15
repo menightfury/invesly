@@ -9,7 +9,6 @@ export 'common/extensions/datetime_extension.dart';
 export 'common/extensions/map_extension.dart';
 export 'common/extensions/num_extension.dart';
 export 'common/extensions/string_extension.dart';
-
 export 'common/presentations/components/checkbox.dart';
 export 'common/presentations/components/choice_chips.dart';
 export 'common/presentations/components/column_builder.dart';
@@ -18,16 +17,14 @@ export 'common/presentations/components/selection_indicator.dart';
 export 'common/presentations/components/tab_indicator.dart';
 export 'common/presentations/components/tappable.dart';
 export 'common/presentations/components/tapzoom_effect.dart';
+export 'common/presentations/styles/constants.dart';
 export 'common/presentations/widgets/date_picker.dart';
 export 'common/presentations/widgets/empty_widget.dart';
 export 'common/presentations/widgets/error_widget.dart';
 export 'common/presentations/widgets/month_picker.dart';
-
-export 'common/presentations/styles/constants.dart';
-
 export 'package:collection/collection.dart';
 export 'package:dynamic_color/dynamic_color.dart';
-// export 'package:connectivity_plus/connectivity_plus.dart';
+export 'package:connectivity_plus/connectivity_plus.dart';
 export 'package:equatable/equatable.dart';
 export 'package:file_picker/file_picker.dart';
 export 'package:flutter/material.dart';

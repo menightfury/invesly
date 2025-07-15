@@ -48,9 +48,6 @@ class _AnimatedExpandedState extends State<AnimatedExpanded> with SingleTickerPr
     _controller = AnimationController(vsync: this, duration: widget.duration, value: widget.expand ? 1.0 : 0.0);
     sizeAnimation = CurvedAnimation(parent: _controller, curve: widget.sizeCurve);
     fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-    // if (widget.expand) {
-    //   _controller.value = 1.0;
-    // }
   }
 
   @override

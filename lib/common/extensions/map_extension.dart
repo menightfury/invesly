@@ -1,7 +1,5 @@
-extension MapX on Map {
+extension MapX on Map<String, dynamic> {
   Map<String, dynamic> toUpperKeys() => map((key, value) => MapEntry(key.toUpperCase(), value));
-
-  Map<String, String> toStringValues() => map((key, value) => MapEntry('$key', '$value'));
 
   void nest(String name, [String symbol = '_']) {
     final Map<String, dynamic> nested = {};
@@ -26,5 +24,11 @@ extension MapX on Map {
       removeWhere((key, _) => key.startsWith('$name$symbol'));
       this[name] = nested;
     }
+  }
+}
+
+extension MapX2<K, V> on Map<K, V> {
+  Iterable<K> keysWhere(bool Function(V value) test) {
+    return entries.where((e) => test(e.value)).map<K>((e) => e.key);
   }
 }

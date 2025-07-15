@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+// import 'package:google_fonts/google_fonts.dart';
 
 import 'constants.dart';
 
@@ -13,7 +13,7 @@ class AppStyle {
   static final instance = AppStyle._();
 
   // data for theme
-  // static const _primaryFont = 'SourceSans3';
+  static const _primaryFont = 'Source Sans Pro';
   static const _headerFont = 'Maragsa';
 
   ThemeData getTheme(ColorScheme colorScheme) {
@@ -24,7 +24,8 @@ class AppStyle {
       canvasColor: colorScheme.secondaryContainer,
       cardColor: colorScheme.secondaryContainer,
       colorScheme: colorScheme,
-      fontFamily: GoogleFonts.sourceSans3().fontFamily,
+      // fontFamily: GoogleFonts.sourceSans3().fontFamily,
+      fontFamily: _primaryFont,
       dividerColor: colorScheme.primary.withAlpha(50),
       textTheme: const TextTheme(
         headlineLarge: TextStyle(fontFamily: _headerFont, fontSize: 32.0),
@@ -110,6 +111,21 @@ class AppStyle {
           ),
         ),
       ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: ButtonStyle(
+          padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
+          minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
+          backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
+            if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);
+            if (state.contains(WidgetState.error)) return colorScheme.error;
+            return colorScheme.primary;
+          }),
+          foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimary),
+          shape: const WidgetStatePropertyAll<OutlinedBorder>(
+            ContinuousRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
+          ),
+        ),
+      ),
       textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
           padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
@@ -120,9 +136,19 @@ class AppStyle {
             return colorScheme.primaryContainer;
           }),
           foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimaryContainer),
-          shape: const WidgetStatePropertyAll<OutlinedBorder>(
-            ContinuousRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
-          ),
+          shape: WidgetStateProperty.resolveWith<OutlinedBorder>((state) {
+            Color borderColor = colorScheme.primary;
+            if (state.contains(WidgetState.disabled)) {
+              borderColor = colorScheme.primaryContainer;
+            } else if (state.contains(WidgetState.error)) {
+              borderColor = colorScheme.error;
+            }
+
+            return ContinuousRectangleBorder(
+              side: BorderSide(width: 1.0, color: borderColor),
+              borderRadius: AppConstants.buttonBorderRadius,
+            );
+          }),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(

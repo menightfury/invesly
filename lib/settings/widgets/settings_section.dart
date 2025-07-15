@@ -20,12 +20,9 @@ class SettingsSection extends StatelessWidget {
           children: [
             if (title != null) ...[
               ListTile(
-                title: Text(title!, style: context.textTheme.bodyMedium),
+                title: Text(title!),
                 leading: icon,
-                subtitle:
-                    subTitle != null
-                        ? Text(subTitle!, style: context.textTheme.labelSmall?.copyWith(color: context.color.secondary))
-                        : null,
+                subtitle: subTitle != null ? Text(subTitle!, style: TextStyle(color: context.color.secondary)) : null,
               ),
               InveslyDivider.dashed(dashGap: 2.0, dashWidth: 2.0, colors: [Colors.grey]),
             ],

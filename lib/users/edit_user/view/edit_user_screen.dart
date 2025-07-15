@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:invesly/common/data/bank.dart';
+import 'package:invesly/common/presentations/animations/shake_widget.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 import 'package:invesly/users/edit_user/cubit/edit_user_cubit.dart';
@@ -19,22 +20,24 @@ class EditUserScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => EditUserCubit(repository: context.read<UserRepository>(), initialUser: initialUser),
-      child: const _Content(),
+      child: const _EditUserScreen(),
     );
   }
 }
 
-class _Content extends StatefulWidget {
-  const _Content({super.key});
+class _EditUserScreen extends StatefulWidget {
+  const _EditUserScreen({super.key});
 
   @override
-  State<_Content> createState() => __ContentState();
+  State<_EditUserScreen> createState() => __EditUserScreenState();
 }
 
-class __ContentState extends State<_Content> {
+class __EditUserScreenState extends State<_EditUserScreen> {
   final _formKey = GlobalKey<FormState>();
   // final _sliverAnimatedListKey = GlobalKey<SliverAnimatedListState>();
   late final ValueNotifier<AutovalidateMode> _validateMode;
+
+  final _shakeKey = GlobalKey<ShakeWidgetState>();
 
   @override
   void initState() {
@@ -130,7 +133,7 @@ class __ContentState extends State<_Content> {
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 8.0,
+                          spacing: 16.0,
                           children: <Widget>[
                             // ~ Name
                             Column(
@@ -141,19 +144,22 @@ class __ContentState extends State<_Content> {
                                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
                                   child: const Text('Nickname', overflow: TextOverflow.ellipsis),
                                 ),
-                                TextFormField(
-                                  decoration: InputDecoration(
-                                    hintText: 'e.g. John Doe',
-                                    helperText: cubit.state.isNewUser ? 'Nickname can\'t be changed later' : null,
-                                  ),
-                                  initialValue: cubit.state.name,
-                                  validator: (value) {
-                                    if (value == null || !value.isValidText) return 'Please enter your name';
+                                ShakeWidget(
+                                  key: _shakeKey,
+                                  child: TextFormField(
+                                    decoration: InputDecoration(
+                                      hintText: 'e.g. John Doe',
+                                      helperText: cubit.state.isNewUser ? 'Nickname can\'t be changed later' : null,
+                                    ),
+                                    initialValue: cubit.state.name,
+                                    validator: (value) {
+                                      if (value == null || !value.isValidText) return 'Please enter your name';
 
-                                    return null;
-                                  },
-                                  onChanged: (value) => cubit.updateName(value),
-                                  enabled: cubit.state.isNewUser,
+                                      return null;
+                                    },
+                                    onChanged: (value) => cubit.updateName(value),
+                                    enabled: cubit.state.isNewUser,
+                                  ),
                                 ),
                               ],
                             ),
@@ -318,8 +324,11 @@ class __ContentState extends State<_Content> {
       context.read<EditUserCubit>().save();
       // if (!context.mounted) return;
       // context.read<SettingsCubit>().saveCurrentUser(user);
-    } else if (_validateMode.value != AutovalidateMode.always) {
-      _validateMode.value = AutovalidateMode.always;
+    } else {
+      _shakeKey.currentState?.shake();
+      if (_validateMode.value != AutovalidateMode.always) {
+        _validateMode.value = AutovalidateMode.always;
+      }
     }
   }
 }
@@ -334,7 +343,7 @@ class _AvatarPickerWidget extends FormField<int> {
     super.onSaved,
   }) : super(
          builder: (FormFieldState<int> field) {
-           final __AvatarState state = field as __AvatarState;
+           final __AvatarPickerWidgetState state = field as __AvatarPickerWidgetState;
            void onChangedHandler(int idx) {
              onChanged?.call(idx);
            }
@@ -378,10 +387,10 @@ class _AvatarPickerWidget extends FormField<int> {
        );
 
   @override
-  FormFieldState<int> createState() => __AvatarState();
+  FormFieldState<int> createState() => __AvatarPickerWidgetState();
 }
 
-class __AvatarState extends FormFieldState<int> {
+class __AvatarPickerWidgetState extends FormFieldState<int> {
   late final PageController _avatarController;
 
   PageController get controller => _avatarController;

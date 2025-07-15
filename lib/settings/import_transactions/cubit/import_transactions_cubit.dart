@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:equatable/equatable.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
 
@@ -10,15 +8,21 @@ part 'import_transactions_state.dart';
 class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
   ImportTransactionsCubit() : super(ImportTransactionsInitialState());
 
-  Future<List<List>?> readFile() async {
-    // final messenger = ScaffoldMessenger.of(context);
+  void readFile() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
+    if (result == null || result.files.isEmpty) {
+      emit(const ImportTransactionsErrorState('No file selected'));
+
+      return;
+    }
+
     emit(const ImportTransactionsLoadingState());
 
-    try {
-      final result = await FilePicker.platform.pickFiles(); // TODO: Move to screen
-      if (result == null) return null;
+    // ! testing // TODO: remove this line
+    await Future.delayed(3.seconds);
 
-      final csvString = await File(result.files.single.path!).readAsString();
+    try {
+      final csvString = await File(result.files.first.path!).readAsString();
       final parsedCSV = BackupDatabaseService.processCsv(csvString);
 
       final firstRowLength = parsedCSV.first.length;
@@ -36,16 +40,47 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
       final allRowsSameLength = parsedCSV.every((row) => row.length == firstRowLength);
 
       if (!allRowsSameLength) {
-        // messenger.showSnackBar(const SnackBar(content: Text()));
         emit(ImportTransactionsErrorState('All rows in the CSV must have the same number of columns.'));
-        return null;
+        return;
       }
 
-      return parsedCSV;
+      emit(
+        ImportTransactionsLoadedState(
+          csvHeaders: parsedCSV.first.map((e) => e.toString()).toList(),
+          csvData: parsedCSV.sublist(1),
+        ),
+      );
     } catch (err) {
       emit(ImportTransactionsErrorState(err.toString()));
-      return null;
     }
+  }
+
+  void updateColumn(CsvColumn column, int? value) {
+    if (state is! ImportTransactionsLoadedState) return;
+    final st = state as ImportTransactionsLoadedState;
+
+    if (value != null && value < 0) {
+      emit(ImportTransactionsErrorState('Column index cannot be negative.'));
+      return;
+    }
+    if (value != null && value >= st.csvHeaders.length) {
+      emit(ImportTransactionsErrorState('Column index exceeds the number of headers.'));
+      return;
+    }
+
+    final columns = Map.of(st.columns);
+    if (value != null) {
+      // find out keys (i.e. column names) that has this new value and set those column values to null
+      final keysAlreadyHasThisValue = columns.keysWhere((v) => v == value);
+      if (keysAlreadyHasThisValue.isNotEmpty) {
+        for (final key in keysAlreadyHasThisValue) {
+          columns[key] = null;
+        }
+      }
+    }
+    columns[column] = value;
+    $logger.i(columns);
+    emit(st.copyWith(columns: columns));
   }
 
   Future<void> addTransactions() async {

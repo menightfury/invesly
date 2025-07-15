@@ -60,7 +60,7 @@ dependencies:
   flutter_native_splash: ^2.4.0
   hive_flutter: ^1.1.0
   hive: ^2.2.3
-  loading_animation_widget: ^1.2.1
+  loading_animation_widget: ^1.3.0
   flutter_slidable: ^4.0.0
   gap: ^3.0.1
   flutter_typeahead: ^5.2.0
@@ -116,6 +116,14 @@ flutter:
     - family: Maragsa
       fonts:
         - asset: assets/fonts/Maragsa.otf
+    - family: Source Sans Pro
+      fonts:
+        - asset: assets/fonts/SourceSansPro-Regular.ttf
+        - asset: assets/fonts/SourceSansPro-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/SourceSansPro-Bold.ttf
+          weight: 800
+
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
 

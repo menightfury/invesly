@@ -1,12 +1,10 @@
 import 'dart:io';
 
 import 'package:csv/csv.dart';
-import 'package:file_picker/file_picker.dart';
 
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/invesly_api.dart';
-import 'package:invesly/database/table_schema.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 class BackupDatabaseService {
@@ -93,7 +91,7 @@ class BackupDatabaseService {
     final fileName = 'invesly-${DateTime.now().millisecondsSinceEpoch}.db';
 
     final dir = await getApplicationDocumentsDirectory();
-    final destination = Directory(path.join(dir.path, fileName));
+    final destination = Directory(p.join(dir.path, fileName));
     // if ((await destination.exists())) {
     //   final status = await Permission.storage.status;
     //   if (!status.isGranted) {
@@ -112,9 +110,14 @@ class BackupDatabaseService {
   }
 
   static Future<File?> exportCsv(String csvData) async {
-    final dir = await _getDownloadsDirectory();
+    // final dir = await _getDownloadsDirectory();
+    String? path = await FilePicker.platform.getDirectoryPath();
+    if (path == null || path.isEmpty) {
+      return null;
+    }
     final fileName = 'transactions-${DateTime.now().millisecondsSinceEpoch}.csv';
-    final file = File(path.join(dir.path, fileName));
+    // final file = File(p.join(dir.path, fileName));
+    final file = File(p.join(path, fileName));
 
     try {
       return await file.writeAsString(csvData, flush: true);

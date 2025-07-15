@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 class ShakeWidget extends StatefulWidget {
   const ShakeWidget({
     required this.child,
-    required this.duration,
-    required this.shakeCount,
-    required this.shakeOffset,
+    this.duration = const Duration(milliseconds: 200),
+    this.shakeCount = 3,
+    this.shakeOffset = 10.0,
     super.key,
   });
 
@@ -17,12 +17,12 @@ class ShakeWidget extends StatefulWidget {
   final Duration duration;
 
   @override
-  State<ShakeWidget> createState() => _ShakeWidgetState();
+  State<ShakeWidget> createState() => ShakeWidgetState();
 }
 
 class SineCurve extends Curve {
   const SineCurve({this.count = 3});
-  final double count;
+  final int count;
 
   @override
   double transformInternal(double t) {
@@ -30,7 +30,7 @@ class SineCurve extends Curve {
   }
 }
 
-class _ShakeWidgetState extends State<ShakeWidget> with SingleTickerProviderStateMixin {
+class ShakeWidgetState extends State<ShakeWidget> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _sineAnimation;
 
@@ -41,7 +41,7 @@ class _ShakeWidgetState extends State<ShakeWidget> with SingleTickerProviderStat
     _sineAnimation = Tween(
       begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: SineCurve(count: widget.shakeCount.toDouble())));
+    ).animate(CurvedAnimation(parent: _controller, curve: SineCurve(count: widget.shakeCount)));
     _controller.addStatusListener(_updateStatus);
   }
 

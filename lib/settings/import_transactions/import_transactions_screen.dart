@@ -1,7 +1,5 @@
-import 'dart:io';
-
+import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/database/backup/backup_service.dart';
 import 'package:invesly/settings/import_transactions/cubit/import_transactions_cubit.dart';
 
 class ImportTransactionsScreen extends StatelessWidget {
@@ -28,15 +26,9 @@ class _ImportTransactionsScreen extends StatefulWidget {
 class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
   int currentStep = 0;
 
-  int? amountColumn;
-  int? accountColumn;
-  int? dateColumn;
-  int? categoryColumn;
-  int? notesColumn;
-  int? titleColumn;
   final TextEditingController _dateFormatController = TextEditingController(text: 'yyyy-MM-dd HH:mm:ss');
 
-  Step buildStep({required int index, required String title, String? description, required List<Widget> content}) {
+  Step buildStep({required int index, required String title, String? description, required Widget content}) {
     return Step(
       title: Text(title),
       isActive: currentStep >= index,
@@ -46,10 +38,14 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
               : currentStep == index
               ? StepState.editing
               : StepState.disabled,
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 16.0,
-        children: [if (description != null) Text(description, style: context.textTheme.bodySmall), ...content],
+      content: Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 16.0,
+          mainAxisSize: MainAxisSize.min,
+          children: [if (description != null) Text(description, style: context.textTheme.bodySmall), content],
+        ),
       ),
     );
   }
@@ -59,270 +55,288 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
     return Stepper(
       type: StepperType.vertical,
       currentStep: currentStep,
-      onStepTapped: (value) {
-        setState(() {
-          currentStep = value;
-        });
-      },
+      onStepTapped: (value) => setState(() => currentStep = value),
       controlsBuilder: (context, details) {
-        final currentStep = details.currentStep;
-        bool nextButtonDisabled =
-            currentStep == 0 && csvData == null ||
-            // currentStep == 3 && defaultCategory == null ||
-            currentStep == 3 ||
-            currentStep == 1 && amountColumn == null ||
-            currentStep == 4 && _dateFormatController.text.isEmpty;
-
-        return Padding(
-          padding: const EdgeInsets.only(top: 12.0),
-          child:
-              currentStep == 5
-                  ? SizedBox(
-                    width: double.infinity,
+        return BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+          builder: (context, state) {
+            return Row(
+              spacing: 8.0,
+              children: <Widget>[
+                if (state is ImportTransactionsLoadedState)
+                  Flexible(
+                    fit: currentStep == 5 ? FlexFit.tight : FlexFit.loose,
                     child: FilledButton.icon(
-                      onPressed:
-                          nextButtonDisabled ? null : () => context.read<ImportTransactionsCubit>().addTransactions(),
-                      label: Text('import your data'),
-                      icon: const Icon(Icons.check_rounded),
+                      onPressed: currentStep == 5 ? () {} : details.onStepContinue,
+                      icon: currentStep == 5 ? const Icon(Icons.upload_file_rounded) : const Icon(Icons.check_rounded),
+                      label: currentStep == 5 ? Text('Import CSV') : Text('Continue'),
                     ),
-                  )
-                  : Row(
-                    children: [
-                      FilledButton(
-                        onPressed: nextButtonDisabled ? null : details.onStepContinue,
-                        child: Text('Continue'),
-                      ),
-                      if (currentStep == 0 && csvData != null) ...[
-                        const SizedBox(width: 8),
-                        OutlinedButton.icon(
-                          onPressed: () => readFile(),
-                          icon: const Icon(Icons.upload_file_rounded),
-                          label: Text('Select other file'),
-                        ),
-                      ],
-                      if (currentStep == 2) ...[
-                        const SizedBox(width: 8),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              // defaultAccount = null;
-                            });
-                          },
-                          icon: const Icon(Icons.delete_outline_rounded),
-                          label: Text('Remove default account'),
-                        ),
-                      ],
-                    ],
                   ),
+
+                if (currentStep == 0)
+                  Flexible(
+                    child: TextButton.icon(
+                      onPressed: () => context.read<ImportTransactionsCubit>().readFile(),
+                      icon:
+                          state is ImportTransactionsLoadedState
+                              ? const Icon(Icons.restore_rounded)
+                              : const Icon(Icons.upload_file_rounded),
+                      label: Text('Select file'),
+                    ),
+                  ),
+              ],
+            );
+          },
         );
       },
-      onStepContinue: () {
-        setState(() => currentStep++);
-      },
+      onStepContinue: () => setState(() => currentStep++),
       steps: [
         buildStep(
           index: 0,
-          title: 'Select your file',
-          description:
-              'Select a .csv file from your device. Make sure it has a first row that describes the name of each column',
-          content: [
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
-                if (state is ImportTransactionsLoadedState) {
-                  return _CsvPreviewTable(state.csvHeaders, state.csvData);
-                }
+          title: 'Select CSV file',
+          description: 'Make sure it has a first row that describes the name of each column',
+          content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+            builder: (context, state) {
+              if (state is ImportTransactionsLoadingState) {
+                return LoadingAnimationWidget.staggeredDotsWave(color: context.color.primary, size: 48.0);
+              }
 
-                return _SelectCsvButton();
-              },
-            ),
-          ],
+              if (state is ImportTransactionsErrorState) {
+                return Text(state.errorMsg, style: TextStyle(color: Colors.redAccent));
+              }
+
+              if (state is ImportTransactionsLoadedState) {
+                return AnimatedExpanded(
+                  axis: Axis.vertical,
+                  expand: true,
+                  child: _CsvPreviewTable(state.csvHeaders, state.csvData),
+                ); // TODO: Animation not working
+              }
+
+              return SizedBox();
+            },
+          ),
         ),
         buildStep(
           index: 1,
-          title: 'Column for quantity',
+          title: 'Column for amount ',
           description:
-              'Select the column where the value of each transaction is specified. Use negative values for expenses and positive values for income. Use a point as a decimal separator',
-          content: [
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
-                if (state is ImportTransactionsLoadedState) {
-                  return Column(
-                    children: <Widget>[
-                      _ColumnSelector(
-                        value: amountColumn,
-                        columns: state.csvHeaders,
-                        onChanged: (value) {
-                          setState(() {
-                            amountColumn = value;
-                          });
-                        },
-                      ),
-                      _ColumnSelector(
-                        value: accountColumn,
-                        columns: state.csvHeaders.whereIndexed((index, element) => index != amountColumn),
-                        onChanged: (value) {
-                          setState(() {
-                            accountColumn = value;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      _Selector(
-                        title: 'Default account',
-                        // inputValue: defaultAccount?.name,
-                        // icon: defaultAccount?.icon,
-                        iconColor: null,
-                        onClick: () async {
-                          // final modalRes = await showAccountSelectorBottomSheet(
-                          //   context,
-                          //   AccountSelectorModal(
-                          //     allowMultiSelection: false,
-                          //     filterSavingAccounts: true,
-                          //     selectedAccounts: [if (defaultAccount != null) defaultAccount!],
-                          //   ),
-                          // );
-
-                          // if (modalRes != null && modalRes.isNotEmpty) {
-                          //   setState(() {
-                          //     defaultAccount = modalRes.first;
-                          //   });
-                          // }
-                        },
-                      ),
-
-                      Builder(
-                        builder: (context) {
-                          final headersToSelect = state.csvHeaders.whereIndexed(
-                            (index, element) => index != amountColumn && index != accountColumn,
-                          );
-
-                          return _ColumnSelector(
-                            value: categoryColumn,
-                            columns: headersToSelect,
-                            onChanged: (value) {
-                              setState(() {
-                                categoryColumn = value;
-                              });
-                            },
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      _Selector(
-                        title: 'Default category *',
-                        // inputValue: defaultCategory?.name,
-                        // icon: defaultCategory?.icon,
-                        isRequired: true,
-                        // iconColor: defaultCategory != null ? ColorHex.get(defaultCategory!.color) : null,
-                        onClick: () async {
-                          // final modalRes = await showCategoryPickerModal(
-                          //   context,
-                          //   modal: CategoryPicker(selectedCategory: null, categoryType: const [CategoryType.B]),
-                          // );
-
-                          // if (modalRes != null) {
-                          //   setState(() {
-                          //     defaultCategory = modalRes;
-                          //   });
-                          // }
-                        },
-                      ),
-
-                      _ColumnSelector(
-                        value: dateColumn,
-                        columns: state.csvHeaders.whereIndexed(
-                          (index, element) =>
-                              index != amountColumn &&
-                              index != accountColumn &&
-                              (categoryColumn == null || index != categoryColumn),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            dateColumn = value;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _dateFormatController,
-                        enabled: dateColumn != null,
-                        decoration: const InputDecoration(labelText: 'Date format'),
-                        // validator: (value) => fieldValidator(value),
-                        autovalidateMode: AutovalidateMode.always,
-                      ),
-
-                      Builder(
-                        builder: (context) {
-                          final headersToSelect = state.csvHeaders.whereIndexed(
-                            (index, element) =>
-                                index != amountColumn &&
-                                index != accountColumn &&
-                                index != dateColumn &&
-                                (categoryColumn == null || index != categoryColumn),
-                          );
-
-                          return Column(
-                            children: [
-                              _ColumnSelector(
-                                value: notesColumn,
-                                labelText: 'Note column',
-                                columns: headersToSelect,
-                                onChanged: (value) {
-                                  setState(() {
-                                    notesColumn = value;
-                                  });
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              _ColumnSelector(
-                                value: titleColumn,
-                                labelText: 'Title column',
-                                columns: headersToSelect,
-                                onChanged: (value) {
-                                  setState(() {
-                                    titleColumn = value;
-                                  });
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
-                  );
-                }
-                return SizedBox();
-              },
-            ),
-          ],
+              'Select the column where the total value of each transaction is specified. Use positive values for investment and negative values for redemption or dividends. Use a point as a decimal separator.',
+          content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+            builder: (context, state) {
+              if (state is ImportTransactionsLoadedState) {
+                return _ColumnSelector(
+                  value: state.columns[CsvColumn.amount],
+                  // columns:
+                  //     state.csvHeaders
+                  //         .whereNotIndexed((index, _) => state.otherColumnValues(CsvColumn.amount).contains(index))
+                  //         .toList(),
+                  allColumns: state.csvHeaders,
+                  onChanged: (value) {
+                    context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.amount, value);
+                  },
+                );
+              }
+              return SizedBox();
+            },
+          ),
         ),
         buildStep(
           index: 2,
           title: 'Column for account',
           description:
-              'Select the column where the account to which each transaction belongs is specified. You can also select a default account in case we cannot find the account you want. If a default account is not specified, we will create one with the same name ',
-          content: [],
+              'Select the column where the account to which each transaction belongs is specified. You can also select a default account in case we cannot find the account you want. If a default account is not specified, we will create one with the same name.',
+          content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+            builder: (context, state) {
+              if (state is ImportTransactionsLoadedState) {
+                return Column(
+                  children: <Widget>[
+                    _ColumnSelector(
+                      value: state.columns[CsvColumn.account],
+                      // columns:
+                      //   state.csvHeaders
+                      //     .whereNotIndexed((index, _) => state.otherColumnValues(CsvColumn.account).contains(index))
+                      //     .toList(),
+                      allColumns: state.csvHeaders,
+                      columnsToExclude: [state.columns[CsvColumn.amount]],
+                      onChanged: (value) {
+                        context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.account, value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _Selector(
+                      title: 'Default account',
+                      // inputValue: defaultAccount?.name,
+                      // icon: defaultAccount?.icon,
+                      iconColor: null,
+                      onClick: () async {
+                        // final modalRes = await showAccountSelectorBottomSheet(
+                        //   context,
+                        //   AccountSelectorModal(
+                        //     allowMultiSelection: false,
+                        //     filterSavingAccounts: true,
+                        //     selectedAccounts: [if (defaultAccount != null) defaultAccount!],
+                        //   ),
+                        // );
+
+                        // if (modalRes != null && modalRes.isNotEmpty) {
+                        //   setState(() {
+                        //     defaultAccount = modalRes.first;
+                        //   });
+                        // }
+                      },
+                    ),
+                  ],
+                );
+              }
+              return SizedBox();
+            },
+          ),
         ),
         buildStep(
           index: 3,
           title: 'Column for category',
           description:
-              'Specify the column where the transaction category name is located. You must specify a default category so that we assign this category to transactions, in case the category cannot be found',
-          content: [],
+              'Specify the column where the transaction category name is located. You must specify a default category so that we assign this category to transactions, in case the category cannot be found.',
+          content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+            builder: (context, state) {
+              if (state is ImportTransactionsLoadedState) {
+                return Column(
+                  children: <Widget>[
+                    _ColumnSelector(
+                      value: state.columns[CsvColumn.category],
+                      // columns:
+                      //   state.csvHeaders
+                      //     .whereNotIndexed(
+                      //       (index, _) => state.otherColumnValues(CsvColumn.category).contains(index),
+                      //     ).toList(),
+                      allColumns: state.csvHeaders,
+                      columnsToExclude: [state.columns[CsvColumn.amount], state.columns[CsvColumn.account]],
+                      onChanged: (value) {
+                        context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.category, value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _Selector(
+                      title: 'Default category *',
+                      // inputValue: defaultCategory?.name,
+                      // icon: defaultCategory?.icon,
+                      isRequired: true,
+                      // iconColor: defaultCategory != null ? ColorHex.get(defaultCategory!.color) : null,
+                      onClick: () async {
+                        // final modalRes = await showCategoryPickerModal(
+                        //   context,
+                        //   modal: CategoryPicker(selectedCategory: null, categoryType: const [CategoryType.B]),
+                        // );
+
+                        // if (modalRes != null) {
+                        //   setState(() {
+                        //     defaultCategory = modalRes;
+                        //   });
+                        // }
+                      },
+                    ),
+                  ],
+                );
+              }
+              return SizedBox();
+            },
+          ),
         ),
         buildStep(
           index: 4,
           title: 'Column for date',
           description:
               'Select the column where the date of each transaction is specified. If not specified, transactions will be created with the current date',
-
-          content: [],
+          content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+            builder: (context, state) {
+              if (state is ImportTransactionsLoadedState) {
+                return Column(
+                  children: <Widget>[
+                    _ColumnSelector(
+                      value: state.columns[CsvColumn.date],
+                      // allColumns:
+                      //   state.csvHeaders
+                      //     .whereNotIndexed((index, _) => state.otherColumnValues(CsvColumn.date).contains(index))
+                      //     .toList(),
+                      allColumns: state.csvHeaders,
+                      columnsToExclude: [
+                        state.columns[CsvColumn.amount],
+                        state.columns[CsvColumn.account],
+                        state.columns[CsvColumn.category],
+                      ],
+                      onChanged: (value) {
+                        context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.date, value);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _dateFormatController,
+                      enabled: state.columns[CsvColumn.date] != null,
+                      decoration: const InputDecoration(labelText: 'Date format'),
+                      // validator: (value) => fieldValidator(value),
+                      autovalidateMode: AutovalidateMode.always,
+                    ),
+                  ],
+                );
+              }
+              return SizedBox();
+            },
+          ),
         ),
         buildStep(
           index: 5,
           title: 'other columns',
           description: 'Specifies the columns for other optional transaction attributes',
-          content: [],
+          content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+            builder: (context, state) {
+              if (state is ImportTransactionsLoadedState) {
+                return Column(
+                  children: <Widget>[
+                    _ColumnSelector(
+                      value: state.columns[CsvColumn.notes],
+                      labelText: 'Note column',
+                      // allColumns:
+                      //   state.csvHeaders
+                      //     .whereNotIndexed((index, _) => state.otherColumnValues(CsvColumn.notes).contains(index))
+                      //     .toList(),
+                      allColumns: state.csvHeaders,
+                      columnsToExclude: [
+                        state.columns[CsvColumn.amount],
+                        state.columns[CsvColumn.account],
+                        state.columns[CsvColumn.category],
+                        state.columns[CsvColumn.date],
+                        state.columns[CsvColumn.title],
+                      ],
+                      onChanged: (value) {
+                        context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.notes, value);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _ColumnSelector(
+                      value: state.columns[CsvColumn.title],
+                      labelText: 'Title column',
+                      // allColumns:
+                      //   state.csvHeaders
+                      //     .whereNotIndexed((index, _) => state.otherColumnValues(CsvColumn.title).contains(index))
+                      //     .toList(),
+                      allColumns: state.csvHeaders,
+                      columnsToExclude: [
+                        state.columns[CsvColumn.amount],
+                        state.columns[CsvColumn.account],
+                        state.columns[CsvColumn.category],
+                        state.columns[CsvColumn.date],
+                        state.columns[CsvColumn.notes],
+                      ],
+                      onChanged: (value) {
+                        context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.title, value);
+                      },
+                    ),
+                  ],
+                );
+              }
+              return SizedBox();
+            },
+          ),
         ),
       ],
     );
@@ -332,76 +346,38 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
 class _ColumnSelector extends StatelessWidget {
   const _ColumnSelector({
     required this.value,
-    required this.columns,
+    required this.allColumns,
+    this.columnsToExclude = const [],
     this.labelText,
     this.isNullable = true,
     required this.onChanged,
   });
 
   final int? value;
-  final Iterable<String> columns;
+  final List<String> allColumns;
+  final List<int?> columnsToExclude;
   final String? labelText;
   final bool isNullable;
   final void Function(int? value) onChanged;
 
-  Future<String?> _showModal(BuildContext context, [String? userId]) async {
-    return await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) {
-        return SizedBox();
-        // return DropdownButtonFormField<int>(
-        //   value: value,
-        //   decoration: InputDecoration(labelText: labelText),
-        //   items: [
-        //     if (isNullable) DropdownMenuItem(value: null, child: Text('Unspecified')),
-        //     ...List.generate(
-        //       columns.length,
-        //       (index) => DropdownMenuItem(
-        //         value: csvHeaders!.toList().indexWhere((element) => element == columns.toList()[index]),
-        //         child: Text(columns.toList()[index]),
-        //       ),
-        //     ),
-        //   ],
-        //   onChanged: (value) {
-        //     if (dateColumn == value) dateColumn = null;
-        //     if (notesColumn == value) notesColumn = null;
-        //     if (titleColumn == value) titleColumn = null;
-        //     if (amountColumn == value) amountColumn = null;
-        //     if (accountColumn == value) accountColumn = null;
-        //     if (categoryColumn == value) categoryColumn = null;
-
-        //     onChanged(value);
-        //   },
-        // );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<int>(
-      value: value,
-      decoration: InputDecoration(labelText: labelText),
-      items: [
-        if (isNullable) DropdownMenuItem(value: null, child: Text('Unspecified')),
-        ...List.generate(
-          columns.length,
-          (index) => DropdownMenuItem(
-            value: csvHeaders!.toList().indexWhere((element) => element == columns.toList()[index]),
-            child: Text(columns.toList()[index]),
-          ),
-        ),
-      ],
-      onChanged: (value) {
-        if (dateColumn == value) dateColumn = null;
-        if (notesColumn == value) notesColumn = null;
-        if (titleColumn == value) titleColumn = null;
-        if (amountColumn == value) amountColumn = null;
-        if (accountColumn == value) accountColumn = null;
-        if (categoryColumn == value) categoryColumn = null;
+    final columns = allColumns.asMap().entries.whereNot((entry) => columnsToExclude.contains(entry.key));
 
-        onChanged(value);
-      },
+    return DropdownMenu<int?>(
+      initialSelection: value,
+      label: labelText != null ? Text(labelText!) : null,
+      enableSearch: false,
+      dropdownMenuEntries: [
+        if (isNullable) DropdownMenuEntry(value: null, label: 'Unspecified'),
+        ...columns.map((entry) => DropdownMenuEntry(value: entry.key, label: entry.value)),
+      ],
+      menuStyle: MenuStyle(
+        shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0))),
+        padding: WidgetStatePropertyAll(const EdgeInsets.all(8.0)),
+      ),
+
+      onSelected: onChanged,
     );
     // return TextFormField(
     //   controller: TextEditingController(text: value?.toString() ?? 'Unspecified'),
@@ -421,34 +397,6 @@ class _ColumnSelector extends StatelessWidget {
   }
 }
 
-class _SelectCsvButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => context.read<ImportTransactionsCubit>().readFile(),
-      child: Material(
-        color: Colors.grey.withAlpha(128),
-        shape: RoundedRectangleBorder(side: BorderSide(width: 1.0), borderRadius: BorderRadius.circular(12.0)),
-        child: SizedBox(
-          height: 150.0,
-          width: double.infinity,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 68.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              spacing: 4.0,
-              children: [
-                Icon(Icons.add, size: 48.0, color: Colors.grey.withAlpha(200)),
-                Text('Tap to select file', textAlign: TextAlign.center, style: context.textTheme.bodySmall),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _CsvPreviewTable extends StatelessWidget {
   const _CsvPreviewTable(this.csvHeaders, this.csvData, {super.key, this.rowsToPreview = 5});
 
@@ -459,13 +407,24 @@ class _CsvPreviewTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(vertical: 1.0),
           child: DataTable(
-            headingRowColor: WidgetStateProperty.resolveWith<Color?>((states) => context.color.primary.withAlpha(50)),
-            clipBehavior: Clip.hardEdge,
             headingTextStyle: context.textTheme.labelLarge,
+            headingRowColor: WidgetStateProperty.all<Color?>(context.color.primary.withAlpha(50)),
+            columnSpacing: 24.0,
+            horizontalMargin: 12.0,
+            border: TableBorder.all(
+              color: context.color.primary.withAlpha(100),
+              width: 1.0,
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+
+            clipBehavior: Clip.hardEdge,
             dataTextStyle: context.textTheme.bodySmall,
             columns: csvHeaders.map((item) => DataColumn(label: Text(item))).toList(),
             rows:
@@ -475,10 +434,13 @@ class _CsvPreviewTable extends StatelessWidget {
           ),
         ),
         if (csvData.length - rowsToPreview >= 1)
-          Text(
-            '+${csvData.length - rowsToPreview} rows',
-            textAlign: TextAlign.left,
-            style: context.textTheme.labelSmall,
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              '+${csvData.length - rowsToPreview} rows',
+              textAlign: TextAlign.left,
+              style: context.textTheme.labelSmall,
+            ),
           ),
         const SizedBox(height: 12.0),
       ],

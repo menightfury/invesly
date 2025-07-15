@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, avoid_print
 
 // import 'package:googleapis/admin/directory_v1.dart';
+import 'package:flutter/foundation.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/database/backup/backup_service.dart';
@@ -12,12 +13,45 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/google_drive/google_drive.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/users/edit_user/view/edit_user_screen.dart';
+import 'package:path/path.dart';
 
 import 'widgets/settings_section.dart';
 import 'widgets/settings_tile.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // _askForPermission(); // TODO: Popup not showing. Fix this
+  }
+
+  // Future<void> _askForPermission() async {
+  //   // ask for permission to access external storage
+  //   // Not required for Android 13 (Api 33) and above
+  //   if (!kIsWeb) {
+  //     final status = await Permission.storage.request();
+  //     if (status.isDenied || status.isPermanentlyDenied) {
+  //       // If the user denies the permission, you can show a dialog or a snackbar
+  //       // to inform them that the app needs this permission to function properly.
+  //       $logger.w('Storage permission denied. App may not work as expected.');
+  //       if (mounted) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(
+  //             content: Text('Storage permission is required for backup and restore functionality.'),
+  //             backgroundColor: Colors.deepOrangeAccent,
+  //           ),
+  //         );
+  //       }
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +89,8 @@ class SettingsScreen extends StatelessWidget {
                                 users.isEmpty
                                     ? null
                                     : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
-                            final otherUsers = users.whereNot((u) => u.id == userId).toList();
+                            final otherUsers =
+                                users.isEmpty ? [] : users.whereNot((u) => u.id == currentUser?.id).toList();
 
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -79,11 +114,11 @@ class SettingsScreen extends StatelessWidget {
                                                 children: <Widget>[
                                                   Text(currentUser.name.toSentenceCase()),
                                                   Text(
-                                                    'PAN: ${currentUser.panNumber ?? "..."}',
+                                                    'PAN: ${currentUser.panNumber ?? "NA"}',
                                                     style: TextStyle(fontSize: 12.0, color: Colors.grey[600]),
                                                   ),
                                                   Text(
-                                                    'AADHAAR: ${currentUser.aadhaarNumber ?? "..."}',
+                                                    'AADHAAR: ${currentUser.aadhaarNumber ?? "NA"}',
                                                     style: TextStyle(fontSize: 12.0, color: Colors.grey[600]),
                                                   ),
                                                 ],
@@ -282,15 +317,12 @@ class SettingsScreen extends StatelessWidget {
                         onTap: () async {
                           late final SnackBar snackBar;
                           try {
-                            // String? path = await FilePicker.platform.getDirectoryPath();
-                            // if (path == null || path.isEmpty || !context.mounted) {
-                            //   return;
-                            // }
                             final csvData = await context.read<TransactionRepository>().tableDataToCsv();
                             final file = await BackupDatabaseService.exportCsv(csvData);
                             if (file != null) {
+                              final fileName = basename(file.path);
                               snackBar = SnackBar(
-                                content: Text('File saved successfully, ${file.path}'),
+                                content: Text('$fileName saved successfully to ${file.parent.path}'),
                                 backgroundColor: Colors.teal,
                               );
                             } else {
