@@ -71,7 +71,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     final columns = Map.of(st.columns);
     if (value != null) {
       // find out keys (i.e. column names) that has this new value and set those column values to null
-      final keysAlreadyHasThisValue = columns.keysWhere((v) => v == value);
+      final keysAlreadyHasThisValue = columns.where((_, v) => v == value).keys;
       if (keysAlreadyHasThisValue.isNotEmpty) {
         for (final key in keysAlreadyHasThisValue) {
           columns[key] = null;

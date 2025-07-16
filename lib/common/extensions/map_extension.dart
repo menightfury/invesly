@@ -28,7 +28,7 @@ extension MapX on Map<String, dynamic> {
 }
 
 extension MapX2<K, V> on Map<K, V> {
-  Iterable<K> keysWhere(bool Function(V value) test) {
-    return entries.where((e) => test(e.value)).map<K>((e) => e.key);
+  Map<K, V> where(bool Function(K key, V value) test) {
+    return Map.fromEntries(entries.where((e) => test(e.key, e.value)));
   }
 }
