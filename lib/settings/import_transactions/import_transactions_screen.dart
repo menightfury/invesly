@@ -124,13 +124,9 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
           content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
             builder: (context, state) {
               if (state is ImportTransactionsLoadedState) {
-                return _ColumnSelector(
+                return _ColumnSelector<int?>(
                   value: state.columns[CsvColumn.amount],
-                  // columns:
-                  //     state.csvHeaders
-                  //         .whereNotIndexed((index, _) => state.otherColumnValues(CsvColumn.amount).contains(index))
-                  //         .toList(),
-                  allColumns: state.csvHeaders,
+                  allColumns: state.csvHeaders.asMap(),
                   onChanged: (value) {
                     context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.amount, value);
                   },
@@ -150,13 +146,9 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
               if (state is ImportTransactionsLoadedState) {
                 return Column(
                   children: <Widget>[
-                    _ColumnSelector(
+                    _ColumnSelector<int?>(
                       value: state.columns[CsvColumn.account],
-                      // columns:
-                      //   state.csvHeaders
-                      //     .whereNotIndexed((index, _) => state.otherColumnValues(CsvColumn.account).contains(index))
-                      //     .toList(),
-                      allColumns: state.csvHeaders,
+                      allColumns: state.csvHeaders.asMap(),
                       columnsToExclude: [state.columns[CsvColumn.amount]],
                       onChanged: (value) {
                         context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.account, value);
@@ -202,14 +194,9 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
               if (state is ImportTransactionsLoadedState) {
                 return Column(
                   children: <Widget>[
-                    _ColumnSelector(
+                    _ColumnSelector<int?>(
                       value: state.columns[CsvColumn.category],
-                      // columns:
-                      //   state.csvHeaders
-                      //     .whereNotIndexed(
-                      //       (index, _) => state.otherColumnValues(CsvColumn.category).contains(index),
-                      //     ).toList(),
-                      allColumns: state.csvHeaders,
+                      allColumns: state.csvHeaders.asMap(),
                       columnsToExclude: [state.columns[CsvColumn.amount], state.columns[CsvColumn.account]],
                       onChanged: (value) {
                         context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.category, value);
@@ -252,13 +239,9 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
               if (state is ImportTransactionsLoadedState) {
                 return Column(
                   children: <Widget>[
-                    _ColumnSelector(
+                    _ColumnSelector<int?>(
                       value: state.columns[CsvColumn.date],
-                      // allColumns:
-                      //   state.csvHeaders
-                      //     .whereNotIndexed((index, _) => state.otherColumnValues(CsvColumn.date).contains(index))
-                      //     .toList(),
-                      allColumns: state.csvHeaders,
+                      allColumns: state.csvHeaders.asMap(),
                       columnsToExclude: [
                         state.columns[CsvColumn.amount],
                         state.columns[CsvColumn.account],
@@ -292,14 +275,10 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
               if (state is ImportTransactionsLoadedState) {
                 return Column(
                   children: <Widget>[
-                    _ColumnSelector(
+                    _ColumnSelector<int?>(
                       value: state.columns[CsvColumn.notes],
                       labelText: 'Note column',
-                      // allColumns:
-                      //   state.csvHeaders
-                      //     .whereNotIndexed((index, _) => state.otherColumnValues(CsvColumn.notes).contains(index))
-                      //     .toList(),
-                      allColumns: state.csvHeaders,
+                      allColumns: state.csvHeaders.asMap(),
                       columnsToExclude: [
                         state.columns[CsvColumn.amount],
                         state.columns[CsvColumn.account],
@@ -312,14 +291,10 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    _ColumnSelector(
+                    _ColumnSelector<int?>(
                       value: state.columns[CsvColumn.title],
                       labelText: 'Title column',
-                      // allColumns:
-                      //   state.csvHeaders
-                      //     .whereNotIndexed((index, _) => state.otherColumnValues(CsvColumn.title).contains(index))
-                      //     .toList(),
-                      allColumns: state.csvHeaders,
+                      allColumns: state.csvHeaders.asMap(),
                       columnsToExclude: [
                         state.columns[CsvColumn.amount],
                         state.columns[CsvColumn.account],
@@ -343,57 +318,76 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
   }
 }
 
-class _ColumnSelector extends StatelessWidget {
+class _ColumnSelector<T> extends StatelessWidget {
   const _ColumnSelector({
     required this.value,
     required this.allColumns,
     this.columnsToExclude = const [],
     this.labelText,
-    this.isNullable = true,
     required this.onChanged,
   });
 
-  final int? value;
-  final List<String> allColumns;
-  final List<int?> columnsToExclude;
+  final T? value;
+  final Map<T, String> allColumns;
+  final List<T> columnsToExclude;
   final String? labelText;
-  final bool isNullable;
-  final void Function(int? value) onChanged;
+  final ValueChanged<T?> onChanged;
+
+  List<DropdownMenuEntry<T?>> get _entries => [
+    DropdownMenuEntry(value: null, label: 'Unspecified'),
+    ...allColumns.entries
+        .whereNot((entry) => columnsToExclude.contains(entry.key))
+        .map((entry) => DropdownMenuEntry(value: entry.key, label: entry.value)),
+  ];
+
+  Future<DropdownMenuEntry<T?>?> _showModal(BuildContext context) async {
+    return await showModalBottomSheet<DropdownMenuEntry<T?>?>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SingleChildScrollView(
+          child: ColumnBuilder(
+            itemBuilder: (context, index) {
+              final entry = _entries[index];
+              return ListTile(
+                title: Text(entry.label),
+                leading: entry.leadingIcon,
+                trailing: entry.trailingIcon,
+                onTap: () => context.pop(entry),
+              );
+            },
+            itemCount: _entries.length,
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final columns = allColumns.asMap().entries.whereNot((entry) => columnsToExclude.contains(entry.key));
-
-    return DropdownMenu<int?>(
-      initialSelection: value,
-      label: labelText != null ? Text(labelText!) : null,
-      enableSearch: false,
-      dropdownMenuEntries: [
-        if (isNullable) DropdownMenuEntry(value: null, label: 'Unspecified'),
-        ...columns.map((entry) => DropdownMenuEntry(value: entry.key, label: entry.value)),
-      ],
-      menuStyle: MenuStyle(
-        shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0))),
-        padding: WidgetStatePropertyAll(const EdgeInsets.all(8.0)),
-      ),
-
-      onSelected: onChanged,
-    );
-    // return TextFormField(
-    //   controller: TextEditingController(text: value?.toString() ?? 'Unspecified'),
-    //   readOnly: true,
-    //   // validator: (_) => fieldValidator(inputValue, isRequired: isRequired),
-    //   onTap: () => _showModal(context),
-    //   autovalidateMode: AutovalidateMode.onUserInteraction,
-    //   decoration: InputDecoration(
-    //     labelText: labelText,
-    //     suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded),
-    //     prefixIcon: Container(
-    //       margin: const EdgeInsets.fromLTRB(14, 8, 8, 8),
-    //       // child: IconDisplayer(mainColor: iconColor, supportedIcon: icon),
-    //     ),
+    // return DropdownMenu<T?>(
+    //   initialSelection: value,
+    //   label: labelText != null ? Text(labelText!) : null,
+    //   enableSearch: false,
+    //   dropdownMenuEntries: [
+    //     DropdownMenuEntry(label: 'Unspecified', value: null),
+    //     ...columns.entries.map((entry) => DropdownMenuEntry(label: entry.value, value: entry.key)),
+    //   ],
+    //   menuStyle: MenuStyle(
+    //     shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0))),
+    //     padding: WidgetStatePropertyAll(const EdgeInsets.all(8.0)),
     //   ),
+    //   onSelected: onChanged,
     // );
+
+    return Tappable(
+      trailing: const Icon(Icons.arrow_drop_down_rounded),
+      onTap: () async {
+        final value = await _showModal(context);
+        onChanged(value?.value);
+      },
+      child: Text(allColumns[value] ?? 'Unspecified'),
+    );
   }
 }
 

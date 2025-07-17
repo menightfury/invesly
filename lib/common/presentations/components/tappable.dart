@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:invesly/common/extensions/buildcontext_extension.dart';
+import 'package:invesly/common/presentations/styles/constants.dart';
 
 class Tappable extends StatelessWidget {
   const Tappable({
@@ -11,8 +13,9 @@ class Tappable extends StatelessWidget {
     this.size,
     this.onTap,
     this.onLongPress,
-    this.onDoubleTap,
     required this.child,
+    this.leading,
+    this.trailing,
   });
 
   final Color? bgColor;
@@ -24,12 +27,14 @@ class Tappable extends StatelessWidget {
 
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
-  final VoidCallback? onDoubleTap;
 
-  final Widget? child;
+  final Widget child;
+  final Widget? leading;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
+    final defaultShape = ContinuousRectangleBorder(borderRadius: borderRadius ?? AppConstants.buttonBorderRadius);
     Widget content = SizedBox.fromSize(size: size, child: child);
 
     if (padding != null) {
@@ -37,17 +42,21 @@ class Tappable extends StatelessWidget {
     }
 
     content = Material(
-      color: bgColor,
+      color: bgColor ?? context.color.primaryContainer,
       type: MaterialType.canvas,
-      borderRadius: shape != null ? null : (borderRadius ?? const BorderRadius.all(Radius.circular(8.0))),
-      shape: shape,
-      child: InkWell(
+      shape: shape ?? defaultShape,
+      child: ListTile(
         onTap: onTap,
         onLongPress: onLongPress,
-        onDoubleTap: onDoubleTap,
-        customBorder: shape,
-        borderRadius: borderRadius ?? const BorderRadius.all(Radius.circular(16.0)),
-        child: content,
+        shape: shape ?? defaultShape,
+        title: content,
+        leading: leading,
+        trailing: trailing,
+        dense: false,
+        contentPadding: EdgeInsets.symmetric(horizontal: 12.0),
+        minVerticalPadding: 8.0,
+        minTileHeight: 48.0,
+        isThreeLine: false,
       ),
     );
 

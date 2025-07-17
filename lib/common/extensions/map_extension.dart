@@ -31,4 +31,8 @@ extension MapX2<K, V> on Map<K, V> {
   Map<K, V> where(bool Function(K key, V value) test) {
     return Map.fromEntries(entries.where((e) => test(e.key, e.value)));
   }
+
+  Map<K, V> whereNot(bool Function(K key, V value) test) {
+    return where((key, value) => !test(key, value));
+  }
 }

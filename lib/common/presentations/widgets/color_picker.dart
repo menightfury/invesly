@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:invesly/common/presentations/components/tappable.dart';
 
 class InveslyColorPickerWidget extends StatelessWidget {
   const InveslyColorPickerWidget({super.key, this.colors, this.selectedColor, this.onPickup, this.scrollController});
 
-  final List<int>? colors;
-  final int? selectedColor;
-  final ValueChanged<int>? onPickup;
+  final List<Color>? colors;
+  final Color? selectedColor;
+  final ValueChanged<Color>? onPickup;
   final ScrollController? scrollController;
 
   final _defaultColors = const <int>[
@@ -49,8 +48,8 @@ class InveslyColorPickerWidget extends StatelessWidget {
   ];
   final _circleSize = 48.0;
 
-  static Future<int?> showModal(BuildContext context) async {
-    return await showModalBottomSheet<int>(
+  static Future<Color?> showModal(BuildContext context, {List<Color>? colors, Color? selectedColor}) async {
+    return await showModalBottomSheet<Color?>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
@@ -60,7 +59,12 @@ class InveslyColorPickerWidget extends StatelessWidget {
           minChildSize: 0.45,
           initialChildSize: 0.65,
           builder: (context, scrollController) {
-            return InveslyColorPickerWidget(onPickup: (color) => Navigator.maybePop(context, color));
+            return InveslyColorPickerWidget(
+              colors: colors,
+              selectedColor: selectedColor,
+              scrollController: scrollController,
+              onPickup: (color) => Navigator.maybePop(context, color),
+            );
           },
         );
       },
@@ -69,7 +73,7 @@ class InveslyColorPickerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColors = (colors?.isNotEmpty ?? false) ? colors! : _defaultColors;
+    final effectiveColors = (colors?.isNotEmpty ?? false) ? colors! : _defaultColors.map((c) => Color(c)).toList();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -86,7 +90,7 @@ class InveslyColorPickerWidget extends StatelessWidget {
                 heightFactor: 1.0,
                 child: Wrap(
                   runAlignment: WrapAlignment.center,
-                  spacing: 6.0,
+                  spacing: 12.0,
                   runSpacing: 12.0,
                   children: effectiveColors.map((color) => _buildSelectableColorCircle(context, color)).toList(),
                 ),
@@ -98,13 +102,11 @@ class InveslyColorPickerWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildSelectableColorCircle(BuildContext context, int color) {
-    return Tappable(
-      size: Size(_circleSize, _circleSize),
-      bgColor: Color(color),
-      shape: CircleBorder(),
-      onTap: () => onPickup?.call(color),
-      child: selectedColor == color ? Center(child: Icon(Icons.check, color: Colors.white)) : null,
+  Widget _buildSelectableColorCircle(BuildContext context, Color color) {
+    return IconButton(
+      style: IconButton.styleFrom(backgroundColor: color, minimumSize: Size.square(_circleSize)),
+      onPressed: () => onPickup?.call(color),
+      icon: selectedColor == color ? const Icon(Icons.check, color: Colors.white) : const SizedBox.shrink(),
     );
   }
 }

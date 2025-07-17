@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, avoid_print
 
 // import 'package:googleapis/admin/directory_v1.dart';
-import 'package:flutter/foundation.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/database/backup/backup_service.dart';
@@ -262,9 +261,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               backgroundColor: isDynamic ? accentColor.withAlpha(120) : accentColor,
                             ),
                             onTap: () async {
-                              final colorInt = await InveslyColorPickerWidget.showModal(context);
-                              if (context.mounted && colorInt != null) {
-                                context.read<SettingsCubit>().setAccentColor(colorInt);
+                              final color = await InveslyColorPickerWidget.showModal(
+                                context,
+                                selectedColor: accentColor,
+                              );
+                              if (context.mounted && color != null) {
+                                context.read<SettingsCubit>().setAccentColor(color.toARGB32());
                               }
                             },
                             enabled: !isDynamic,
