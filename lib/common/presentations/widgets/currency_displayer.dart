@@ -1,6 +1,9 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:invesly/common/model/currency.dart';
 import 'package:invesly/common/presentations/components/ui_number_formatter.dart';
 
 class CurrencyDisplayer extends StatelessWidget {
@@ -26,7 +29,7 @@ class CurrencyDisplayer extends StatelessWidget {
 
   /// The currency of the amount, used to display the symbol.
   /// If not specified, will be the user preferred currency
-  final CurrencyInDB? currency;
+  final Currency? currency;
 
   /// Style of the text that corresponds to the integer part of the number to be displayed
   final TextStyle integerStyle;
@@ -43,26 +46,104 @@ class CurrencyDisplayer extends StatelessWidget {
   final bool showDecimals;
   final bool compactView;
 
-  Widget _amountDisplayer(BuildContext context, {required CurrencyInDB currency}) {
-    return UINumberFormatter.currency(
-      amount: amount,
-      currency: currency,
-      showDecimals: showDecimals,
-      integerStyle: integerStyle,
-      decimalsStyle: decimalsStyle,
-      currencyStyle: currencyStyle,
-      compactView: compactView,
-    ).getTextWidget(context);
+  int get _compactLimit => 1000;
+  int get _fractionsDigits =>
+      amount >= 10000000
+          ? 3
+          : amount >= 100000
+          ? 2
+          : 1;
+
+  bool get _shouldCompact => compactView && amount.abs() >= _compactLimit;
+
+  String _getFormattedCurrencyAmount(String decimalSep) {
+    if (_shouldCompact) {
+      final formatter = NumberFormat.compactCurrency(decimalDigits: 2, symbol: currency?.symbol);
+      formatter.minimumFractionDigits = _fractionsDigits;
+      formatter.maximumFractionDigits = _fractionsDigits;
+
+      return formatter.format(amount);
+    } else {
+      return NumberFormat.currency(decimalDigits: showDecimals ? 2 : 0, symbol: currency?.symbol).format(amount);
+    }
+  }
+
+  List<String> _splitAndKeepDelimiter(String input, String delimiter) {
+    if (delimiter.isEmpty) {
+      throw ArgumentError('Delimiter cannot be an empty string.');
+    }
+
+    final regex = RegExp('(${RegExp.escape(delimiter)})');
+
+    // Use a set of chars that do not collide with the formatted amount (and its currency)
+    const splitSep = '**';
+
+    return input
+        .splitMapJoin(
+          regex,
+          onMatch: (match) => '$splitSep${match.group(0)}$splitSep',
+          onNonMatch: (nonMatch) => nonMatch,
+        )
+        .split(splitSep)
+        .where((element) => element.isNotEmpty)
+        .toList();
+  }
+
+  List<TextSpan> _getTextSpanListForAFormattedNumber(String number, {required double fontSize}) {
+    final decimalSep = currentDecimalSep;
+
+    List<String> parts = number.split(decimalSep);
+
+    final computedDecimalStyles =
+        decimalsStyle ??
+        integerStyle.copyWith(
+          fontWeight: FontWeight.w300,
+          fontSize: fontSize > 12.25 ? max(fontSize * 0.75, 12.25) : fontSize,
+        );
+
+    return [
+      // Integer part
+      TextSpan(text: parts[0], style: integerStyle),
+
+      // Decimal separator:
+      if (parts.length > 1) TextSpan(text: decimalSep, style: integerStyle),
+
+      // Decimal part
+      if (parts.length > 1) TextSpan(text: parts[1], style: _shouldCompact ? integerStyle : computedDecimalStyles),
+    ];
+  }
+
+  List<TextSpan> getTextSpanList(BuildContext context) {
+    final valueFontSize = (integerStyle.fontSize ?? DefaultTextStyle.of(context).style.fontSize) ?? 16;
+
+    final String formattedAmount = _getFormattedCurrencyAmount('.');
+
+    final List<TextSpan> toReturn = [];
+
+    for (final elementToDisplay in _splitAndKeepDelimiter(formattedAmount, _currencySymbolWithoutDecimalSep)) {
+      if (elementToDisplay == currency?.symbol) {
+        toReturn.add(TextSpan(text: currency!.symbol, style: currencyStyle ?? integerStyle));
+      } else {
+        toReturn.addAll(_getTextSpanListForAFormattedNumber(elementToDisplay, fontSize: valueFontSize));
+      }
+    }
+
+    return toReturn;
   }
 
   @override
   Widget build(BuildContext context) {
     final valueFontSize = (integerStyle.fontSize ?? DefaultTextStyle.of(context).style.fontSize) ?? 16;
-    Widget child = _amountDisplayer(context, currency: currency!);
+    Widget child = Text.rich(
+      TextSpan(style: integerStyle, children: getTextSpanList(context)),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
 
     if (privateMode) {
       child = ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 0.75, sigmaY: 0.75), child: child);
     }
+
     return child;
   }
 }
