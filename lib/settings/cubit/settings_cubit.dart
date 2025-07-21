@@ -29,6 +29,10 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
     emit(state.copyWith(accentColor: color));
   }
 
+  void setPrivateMode(bool value) {
+    emit(state.copyWith(isPrivateMode: value));
+  }
+
   @override
   SettingsState fromJson(Map<String, dynamic> json) {
     return SettingsState.fromMap(json);

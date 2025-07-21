@@ -107,7 +107,7 @@ class AppStyle {
           }),
           foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimary),
           shape: const WidgetStatePropertyAll<OutlinedBorder>(
-            ContinuousRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
+            RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
           ),
         ),
       ),
@@ -122,7 +122,7 @@ class AppStyle {
           }),
           foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimary),
           shape: const WidgetStatePropertyAll<OutlinedBorder>(
-            ContinuousRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
+            RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
           ),
         ),
       ),
@@ -137,15 +137,15 @@ class AppStyle {
           }),
           foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimaryContainer),
           shape: WidgetStateProperty.resolveWith<OutlinedBorder>((state) {
-            Color borderColor = colorScheme.primary;
-            if (state.contains(WidgetState.disabled)) {
-              borderColor = colorScheme.primaryContainer;
-            } else if (state.contains(WidgetState.error)) {
-              borderColor = colorScheme.error;
-            }
+            // Color borderColor = colorScheme.primary;
+            // if (state.contains(WidgetState.disabled)) {
+            //   borderColor = colorScheme.primaryContainer;
+            // } else if (state.contains(WidgetState.error)) {
+            //   borderColor = colorScheme.error;
+            // }
 
-            return ContinuousRectangleBorder(
-              side: BorderSide(width: 1.0, color: borderColor),
+            return RoundedRectangleBorder(
+              // side: BorderSide(width: 1.0, color: borderColor),
               borderRadius: AppConstants.buttonBorderRadius,
             );
           }),
@@ -156,7 +156,7 @@ class AppStyle {
           padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
           minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
           shape: WidgetStatePropertyAll<OutlinedBorder>(
-            ContinuousRectangleBorder(
+            RoundedRectangleBorder(
               side: BorderSide(color: colorScheme.primary),
               borderRadius: AppConstants.buttonBorderRadius,
             ),
@@ -167,7 +167,7 @@ class AppStyle {
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
         elevation: 2.0,
-        shape: const ContinuousRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
+        shape: const RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         elevation: 10.0,

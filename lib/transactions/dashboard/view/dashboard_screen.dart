@@ -175,19 +175,48 @@ class _DashboardContentsState extends State<_DashboardContents> {
                   builder: (context, state) {
                     if (state is DashboardLoadedState) {
                       final totalAmount = state.summaries.fold<double>(0, (v, el) => v + el.totalAmount);
-                      return Text(totalAmount.toCompact(), style: textTheme.headlineLarge?.copyWith(fontSize: 48.0));
+                      // return Text(totalAmount.toCompact(), style: textTheme.headlineLarge?.copyWith(fontSize: 48.0));
+                      return BlocSelector<SettingsCubit, SettingsState, bool>(
+                        selector: (state) => state.isPrivateMode,
+                        builder: (context, isPrivateMode) {
+                          return CurrencyView(
+                            amount: totalAmount,
+                            integerStyle: textTheme.headlineLarge?.copyWith(fontSize: 48.0),
+                            decimalsStyle: textTheme.headlineSmall?.copyWith(fontSize: 24.0),
+                            currencyStyle: textTheme.bodyMedium,
+                            privateMode: isPrivateMode,
+                          );
+                        },
+                      );
                     }
                     return Text('Loading...');
                   },
                 ),
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(text: 'Rs. 0.0', style: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0)),
-                      TextSpan(text: ' invested this month'),
-                    ],
-                    style: context.textTheme.bodySmall,
-                  ),
+                // Text.rich(
+                //   TextSpan(
+                //     children: [
+                //       TextSpan(text: 'Rs. 0.0', style: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0)),
+                //       TextSpan(text: ' invested this month'),
+                //     ],
+                //     style: context.textTheme.bodySmall,
+                //   ),
+                // ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    BlocSelector<SettingsCubit, SettingsState, bool>(
+                      selector: (state) => state.isPrivateMode,
+                      builder: (context, isPrivateMode) {
+                        return CurrencyView(
+                          // amount: totalAmount,
+                          amount: 510.0, // TODO:
+                          integerStyle: context.textTheme.labelSmall,
+                          privateMode: isPrivateMode,
+                        );
+                      },
+                    ),
+                    Text(' invested this month', style: context.textTheme.labelSmall),
+                  ],
                 ),
               ],
             ),
@@ -255,9 +284,17 @@ class _RecentTransactions extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: context.textTheme.labelSmall,
                         ),
-                        trailing: Text(
-                          'Rs. ${rt.totalAmount}',
-                          style: context.textTheme.headlineSmall?.copyWith(color: rt.transactionType.color(context)),
+                        trailing: BlocSelector<SettingsCubit, SettingsState, bool>(
+                          selector: (state) => state.isPrivateMode,
+                          builder: (context, isPrivateMode) {
+                            return CurrencyView(
+                              amount: rt.totalAmount,
+                              integerStyle: context.textTheme.headlineSmall?.copyWith(
+                                color: rt.transactionType.color(context),
+                              ),
+                              privateMode: isPrivateMode,
+                            );
+                          },
                         ),
                         onTap: () {},
                       );
@@ -329,11 +366,23 @@ class _TransactionStatsWidgetState extends State<_TransactionStatsWidget> {
 
                                   Align(
                                     alignment: Alignment.bottomRight,
-                                    child: Text(
-                                      stats?.totalAmount.toCompact() ?? '0.0',
-                                      style: context.textTheme.headlineMedium,
-                                      overflow: TextOverflow.ellipsis,
+                                    child: BlocSelector<SettingsCubit, SettingsState, bool>(
+                                      selector: (state) => state.isPrivateMode,
+                                      builder: (context, isPrivateMode) {
+                                        return CurrencyView(
+                                          amount: stats?.totalAmount ?? 0.0,
+                                          integerStyle: context.textTheme.headlineMedium,
+                                          decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0),
+                                          currencyStyle: context.textTheme.bodySmall,
+                                          privateMode: isPrivateMode,
+                                        );
+                                      },
                                     ),
+                                    // child: Text(
+                                    //   stats?.totalAmount.toCompact() ?? '0.0',
+                                    //   style: context.textTheme.,
+                                    //   overflow: TextOverflow.ellipsis,
+                                    // ),
                                   ),
                                 ],
                               );

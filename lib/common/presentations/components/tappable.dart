@@ -5,6 +5,10 @@ import 'package:invesly/common/presentations/styles/constants.dart';
 class Tappable extends StatelessWidget {
   const Tappable({
     super.key,
+    required this.child,
+    this.childAlignment = Alignment.center,
+    this.leading,
+    this.trailing,
     this.bgColor,
     this.borderRadius,
     this.shape,
@@ -13,9 +17,6 @@ class Tappable extends StatelessWidget {
     this.size,
     this.onTap,
     this.onLongPress,
-    required this.child,
-    this.leading,
-    this.trailing,
   });
 
   final Color? bgColor;
@@ -29,12 +30,13 @@ class Tappable extends StatelessWidget {
   final VoidCallback? onLongPress;
 
   final Widget child;
+  final AlignmentGeometry childAlignment;
   final Widget? leading;
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
-    final defaultShape = ContinuousRectangleBorder(borderRadius: borderRadius ?? AppConstants.buttonBorderRadius);
+    final defaultShape = RoundedRectangleBorder(borderRadius: borderRadius ?? AppConstants.buttonBorderRadius);
     Widget content = SizedBox.fromSize(size: size, child: child);
 
     if (padding != null) {
@@ -49,12 +51,13 @@ class Tappable extends StatelessWidget {
         onTap: onTap,
         onLongPress: onLongPress,
         shape: shape ?? defaultShape,
-        title: content,
+        title: Align(alignment: childAlignment, child: content),
+        titleAlignment: ListTileTitleAlignment.titleHeight,
         leading: leading,
         trailing: trailing,
         dense: false,
         contentPadding: EdgeInsets.symmetric(horizontal: 12.0),
-        minVerticalPadding: 8.0,
+        minVerticalPadding: 12.0,
         minTileHeight: 48.0,
         isThreeLine: false,
       ),

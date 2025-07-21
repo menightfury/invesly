@@ -1,12 +1,19 @@
 import 'package:invesly/common_libs.dart';
 
 class InveslyDatePicker extends StatefulWidget {
-  const InveslyDatePicker({super.key, this.date, this.onPickup, this.prefixIcon, this.style});
+  const InveslyDatePicker({
+    super.key,
+    this.date,
+    this.onPickup,
+    this.leadingIcon = const Icon(Icons.edit_calendar_rounded),
+    this.color,
+  });
 
   final DateTime? date;
   final ValueChanged<DateTime>? onPickup;
-  final Widget? prefixIcon;
-  final ButtonStyle? style;
+  final Widget? leadingIcon;
+  final Color? color;
+  // final ButtonStyle? style;
 
   @override
   State<InveslyDatePicker> createState() => _InveslyDatePickerState();
@@ -44,28 +51,34 @@ class _InveslyDatePickerState extends State<InveslyDatePicker> {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton.icon(
-      icon: widget.prefixIcon,
-      label: ValueListenableBuilder<DateTime>(
+    return Tappable(
+      leading: widget.leadingIcon,
+      bgColor: widget.color,
+      onTap: () => _selectDate(context),
+      child: ValueListenableBuilder<DateTime>(
         valueListenable: _dateNotifier,
         builder: (context, date, _) {
-          int days = _dateNow.difference(date).inDays;
-          String label;
-          switch (days) {
-            case 0:
-              label = 'Today';
-              break;
-            case 1:
-              label = 'Yesterday';
-              break;
-            default:
-              label = date.toReadable();
-          }
+          final days = _dateNow.difference(date).inDays;
+          // String label;
+          // switch (days) {
+          //   case 0:
+          //     label = 'Today';
+          //     break;
+          //   case 1:
+          //     label = 'Yesterday';
+          //     break;
+          //   default:
+          //     label = date.toReadable();
+          // }
+          final label = switch (days) {
+            0 => 'Today',
+            1 => 'Yesterday',
+            _ => date.toReadable(),
+          };
+
           return Text(label);
         },
       ),
-      style: widget.style,
-      onPressed: () async => await _selectDate(context),
     );
   }
 }

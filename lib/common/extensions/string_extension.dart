@@ -28,4 +28,7 @@ extension StringX on String {
   bool get isValidText => trim().isEmpty ? false : true;
 
   bool get isValidNumber => double.tryParse(this) == null ? false : true;
+
+  int? get parseInt => int.tryParse(this);
+  double? get parseDouble => double.tryParse(this);
 }

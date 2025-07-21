@@ -199,7 +199,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SettingsSection(
                     title: 'General',
                     subTitle: 'Currency, language, etc.',
-                    icon: const Icon(Icons.settings_outlined),
+                    // icon: const Icon(Icons.settings_outlined),
                     tiles: <Widget>[
                       SettingsTile(
                         title: 'App language',
@@ -213,12 +213,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         icon: const Icon(Icons.attach_money_rounded),
                         description: 'Choose your preferred currency',
                       ),
-                      SettingsTile.switchTile(
-                        icon: const Icon(Icons.privacy_tip_outlined),
-                        title: 'Private mode',
-                        description: 'Hide all monetary values',
-                        value: false,
-                        onChanged: (value) {},
+                      BlocSelector<SettingsCubit, SettingsState, bool>(
+                        selector: (state) => state.isPrivateMode,
+                        builder: (context, isPrivateMode) {
+                          return SettingsTile.switchTile(
+                            icon: const Icon(Icons.privacy_tip_outlined),
+                            title: 'Private mode',
+                            description: 'Hide all monetary values',
+                            value: isPrivateMode,
+                            onChanged: (value) => context.read<SettingsCubit>().setPrivateMode(value),
+                          );
+                        },
                       ),
                       SettingsTile.navigation(
                         icon: const Icon(Icons.account_balance_outlined),
@@ -232,7 +237,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SettingsSection(
                     title: 'Appearance',
                     subTitle: 'App theme, colors',
-                    icon: const Icon(Icons.palette_outlined),
+                    // icon: const Icon(Icons.palette_outlined),
                     tiles: <Widget>[
                       BlocSelector<SettingsCubit, SettingsState, bool>(
                         selector: (state) => state.isDynamicColor,
@@ -290,13 +295,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SettingsSection(
                     title: 'Backup & Restore',
                     subTitle: 'Last backup: 2023-10-01',
-                    icon: const Icon(Icons.import_export_rounded),
+                    // icon: const Icon(Icons.import_export_rounded),
                     tiles: [
                       SettingsTile(
                         icon: const Icon(Icons.login),
                         title: 'Google Sign-in',
                         // title: Text(context.watch<SettingsRepository>().currentLocale.name),
-                        description: 'NA',
+                        description: 'NA', // TODO:
                         onTap: () => context.push(const SignInDemo()),
                       ),
                       SettingsTile(
@@ -348,7 +353,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SettingsTile(
                         title: 'Backup locally',
-                        icon: const Icon(Icons.backup_outlined),
+                        icon: const Icon(Icons.import_export_rounded),
                         description: 'This will create a new backup file locally.',
                         onTap: () async {
                           late final SnackBar snackBar;
@@ -394,7 +399,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SettingsSection(
                     title: 'Terms & Privacy',
                     subTitle: 'Privacy policy, terms of service, etc.',
-                    icon: const Icon(Icons.gavel_rounded),
+                    // icon: const Icon(Icons.gavel_rounded),
                     tiles: [
                       SettingsTile.navigation(
                         icon: const Icon(Icons.policy_outlined),
@@ -403,7 +408,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onTap: () {},
                       ),
                       SettingsTile.navigation(
-                        icon: const Icon(Icons.generating_tokens_outlined),
+                        icon: const Icon(Icons.gavel_rounded),
                         title: 'Terms of use',
                         description: 'Read our terms of use',
                         onTap: () {},

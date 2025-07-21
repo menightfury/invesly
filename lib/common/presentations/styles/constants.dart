@@ -9,7 +9,7 @@ class AppConstants {
   const AppConstants._();
 
   static const buttonPadding = EdgeInsetsGeometry.symmetric(horizontal: 20.0, vertical: 12.0);
-  static const buttonBorderRadius = BorderRadius.all(Radius.circular(24.0));
+  static const buttonBorderRadius = BorderRadius.all(Radius.circular(8.0));
   static const formFieldLabelSpacing = 6.0;
   static const minButtonSize = Size(112.0, 48.0);
   static const textFieldPadding = EdgeInsetsGeometry.symmetric(horizontal: 12.0, vertical: 12.0);
