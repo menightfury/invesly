@@ -13,7 +13,7 @@ class Tappable extends StatelessWidget {
     this.borderRadius,
     this.shape,
     this.margin,
-    this.padding,
+    this.padding = const EdgeInsets.symmetric(horizontal: 12.0),
     this.size,
     this.onTap,
     this.onLongPress,
@@ -39,10 +39,6 @@ class Tappable extends StatelessWidget {
     final defaultShape = RoundedRectangleBorder(borderRadius: borderRadius ?? AppConstants.buttonBorderRadius);
     Widget content = SizedBox.fromSize(size: size, child: child);
 
-    if (padding != null) {
-      content = Padding(padding: padding!, child: content);
-    }
-
     content = Material(
       color: bgColor ?? context.color.primaryContainer,
       type: MaterialType.canvas,
@@ -56,7 +52,7 @@ class Tappable extends StatelessWidget {
         leading: leading,
         trailing: trailing,
         dense: false,
-        contentPadding: EdgeInsets.symmetric(horizontal: 12.0),
+        contentPadding: padding,
         minVerticalPadding: 12.0,
         minTileHeight: 48.0,
         isThreeLine: false,

@@ -3,7 +3,8 @@
 import 'dart:convert';
 
 import 'package:invesly/common/data/bank.dart';
-import 'package:invesly/common/presentations/animations/shake_widget.dart';
+import 'package:invesly/common/extensions/widget_extension.dart';
+import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 import 'package:invesly/users/edit_user/cubit/edit_user_cubit.dart';
@@ -37,7 +38,8 @@ class __EditUserScreenState extends State<_EditUserScreen> {
   // final _sliverAnimatedListKey = GlobalKey<SliverAnimatedListState>();
   late final ValueNotifier<AutovalidateMode> _validateMode;
 
-  final _shakeKey = GlobalKey<ShakeWidgetState>();
+  final _nameKey = GlobalKey<FormFieldState>();
+  final _nameShakeKey = GlobalKey<ShakeState>();
 
   @override
   void initState() {
@@ -62,14 +64,14 @@ class __EditUserScreenState extends State<_EditUserScreen> {
       listener: (context, state) {
         late final SnackBar message;
 
-        if (state.status == EditUserStatus.success) {
+        if (state.status == EditUserFormStatus.success) {
           if (context.canPop) {
             context.pop();
           } else {
             context.go(const DashboardScreen());
           }
           message = const SnackBar(content: Text('User saved successfully'), backgroundColor: Colors.teal);
-        } else if (state.status == EditUserStatus.failure) {
+        } else if (state.status == EditUserFormStatus.failure) {
           message = const SnackBar(content: Text('Sorry! some error occurred'), backgroundColor: Colors.redAccent);
         }
         ScaffoldMessenger.of(context)
@@ -118,7 +120,7 @@ class __EditUserScreenState extends State<_EditUserScreen> {
                     // --- Avatar picker
                     _AvatarPickerWidget(
                       avatars: InveslyUserAvatar.values.map((e) => e.imgSrc).toList(),
-                      onChanged: (value) => cubit.updateAvatar(value),
+                      onChanged: cubit.updateAvatar,
                       initialValue: cubit.state.avatarIndex,
                     ),
                     const SizedBox(height: 32.0),
@@ -136,69 +138,41 @@ class __EditUserScreenState extends State<_EditUserScreen> {
                           spacing: 16.0,
                           children: <Widget>[
                             // ~ Name
-                            Column(
-                              spacing: AppConstants.formFieldLabelSpacing,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                  child: const Text('Nickname', overflow: TextOverflow.ellipsis),
+                            Shake(
+                              key: _nameShakeKey,
+                              child: TextFormField(
+                                key: _nameKey,
+                                decoration: InputDecoration(
+                                  hintText: 'e.g. John Doe',
+                                  helperText: cubit.state.isNewUser ? 'Nickname can\'t be changed later' : null,
                                 ),
-                                ShakeWidget(
-                                  key: _shakeKey,
-                                  child: TextFormField(
-                                    decoration: InputDecoration(
-                                      hintText: 'e.g. John Doe',
-                                      helperText: cubit.state.isNewUser ? 'Nickname can\'t be changed later' : null,
-                                    ),
-                                    initialValue: cubit.state.name,
-                                    validator: (value) {
-                                      if (value == null || !value.isValidText) return 'Please enter your name';
-
-                                      return null;
-                                    },
-                                    onChanged: (value) => cubit.updateName(value),
-                                    enabled: cubit.state.isNewUser,
-                                  ),
-                                ),
-                              ],
+                                initialValue: cubit.state.name,
+                                validator: (value) {
+                                  if (value == null || !value.isValidText) {
+                                    return 'Please enter your name';
+                                  }
+                                  return null;
+                                },
+                                onChanged: cubit.updateName,
+                                enabled: cubit.state.isNewUser,
+                              ).withLabel('Nickname'),
                             ),
 
                             // ~ PAN number
-                            Column(
-                              spacing: AppConstants.formFieldLabelSpacing,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                  child: const Text('Pan Number', overflow: TextOverflow.ellipsis),
-                                ),
-                                TextFormField(
-                                  decoration: const InputDecoration(hintText: 'e.g. ABCDE1245F'),
-                                  initialValue: cubit.state.panNumber,
-                                  textCapitalization: TextCapitalization.characters,
-                                  onChanged: (value) => cubit.updatePanNumber(value),
-                                ),
-                              ],
-                            ),
+                            TextFormField(
+                              decoration: const InputDecoration(hintText: 'e.g. ABCDE1245F'),
+                              initialValue: cubit.state.panNumber,
+                              textCapitalization: TextCapitalization.characters,
+                              onChanged: cubit.updatePanNumber,
+                            ).withLabel('PAN number'),
 
                             // ~ Aadhaar number
-                            Column(
-                              spacing: AppConstants.formFieldLabelSpacing,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                  child: const Text('Aadhaar Number', overflow: TextOverflow.ellipsis),
-                                ),
-                                TextFormField(
-                                  decoration: const InputDecoration(hintText: 'e.g. 1234-5678-9101'),
-                                  initialValue: cubit.state.aadhaarNumber,
-                                  keyboardType: TextInputType.number,
-                                  onChanged: (value) => cubit.updateAadhaarNumber(value),
-                                ),
-                              ],
-                            ),
+                            TextFormField(
+                              decoration: const InputDecoration(hintText: 'e.g. 1234-5678-9101'),
+                              initialValue: cubit.state.aadhaarNumber,
+                              keyboardType: TextInputType.number,
+                              onChanged: cubit.updateAadhaarNumber,
+                            ).withLabel('Aadhaar Number'),
                             // const SizedBox(height: 160.0),
 
                             // ~ Accounts
@@ -325,7 +299,9 @@ class __EditUserScreenState extends State<_EditUserScreen> {
       // if (!context.mounted) return;
       // context.read<SettingsCubit>().saveCurrentUser(user);
     } else {
-      _shakeKey.currentState?.shake();
+      if (!(_nameKey.currentState?.isValid ?? false)) {
+        _nameShakeKey.currentState?.shake();
+      }
       if (_validateMode.value != AutovalidateMode.always) {
         _validateMode.value = AutovalidateMode.always;
       }

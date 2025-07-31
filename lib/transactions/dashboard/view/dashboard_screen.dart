@@ -1,5 +1,6 @@
 // ignore_for_file: unused_element
 
+import 'package:animate_do/animate_do.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
@@ -134,6 +135,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Padding(padding: const EdgeInsets.only(left: 8.0), child: Text('New transaction')),
         ),
       ),
+    );
+  }
+}
+
+class ShakeTestWidget extends StatefulWidget {
+  const ShakeTestWidget({super.key});
+
+  @override
+  State<ShakeTestWidget> createState() => _ShakeTestWidgetState();
+}
+
+class _ShakeTestWidgetState extends State<ShakeTestWidget> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: 1.seconds);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        await _controller.forward();
+        if (_controller.status == AnimationStatus.completed) {
+          _controller.reset();
+        }
+      },
+      child: ShakeX(child: Text('This is shaking...')),
     );
   }
 }

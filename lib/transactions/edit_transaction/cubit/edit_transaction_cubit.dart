@@ -5,8 +5,8 @@ import 'package:invesly/common_libs.dart';
 
 part 'edit_transaction_state.dart';
 
-class EditInvestmentCubit extends Cubit<EditTransactionState> {
-  EditInvestmentCubit({required TransactionRepository repository, InveslyTransaction? initialInvestment})
+class EditTransactionCubit extends Cubit<EditTransactionState> {
+  EditTransactionCubit({required TransactionRepository repository, InveslyTransaction? initialInvestment})
     : _repository = repository,
       super(
         EditTransactionState(

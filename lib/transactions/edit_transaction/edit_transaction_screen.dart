@@ -3,11 +3,12 @@
 import 'dart:async';
 
 import 'package:intl/intl.dart';
+import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
-import 'package:invesly/common/presentations/animations/shake_widget.dart';
+import 'package:invesly/common/presentations/animations/shake.dart';
+import 'package:invesly/common/presentations/components/tappable_form_field.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 import 'package:invesly/transactions/edit_transaction/widgets/calculator/calculator.dart';
-import 'package:pattern_formatter/numeric_formatter.dart';
 
 import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
 import 'package:invesly/common_libs.dart';
@@ -27,30 +28,38 @@ class EditTransactionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create:
-          (context) => EditInvestmentCubit(
+          (context) => EditTransactionCubit(
             repository: context.read<TransactionRepository>(),
             initialInvestment: initialTransaction,
           ),
-      child: const _EditInvestmentScreen(),
+      child: const _EditTransactionScreen(),
     );
   }
 }
 
-class _EditInvestmentScreen extends StatefulWidget {
-  const _EditInvestmentScreen({super.key});
+class _EditTransactionScreen extends StatefulWidget {
+  const _EditTransactionScreen({super.key});
 
   @override
-  State<_EditInvestmentScreen> createState() => __EditInvestmentScreenState();
+  State<_EditTransactionScreen> createState() => __EditTransactionScreenState();
 }
 
-class __EditInvestmentScreenState extends State<_EditInvestmentScreen> {
+class __EditTransactionScreenState extends State<_EditTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _shakeKey = GlobalKey<ShakeWidgetState>();
+  final _quantityShakeKey = GlobalKey<ShakeState>();
+  final _quantityTextField = GlobalKey<FormFieldState>();
+  final _amountShakeKey = GlobalKey<ShakeState>();
+  final _amountTextField = GlobalKey<FormFieldState>();
+
+  late final TextEditingController _quantityTextController;
+  late final TextEditingController _amountTextController;
   late final ValueNotifier<AutovalidateMode> _validateMode;
 
   @override
   void initState() {
     super.initState();
+    _quantityTextController = TextEditingController();
+    _amountTextController = TextEditingController();
     _validateMode = ValueNotifier(AutovalidateMode.disabled);
   }
 
@@ -58,12 +67,14 @@ class __EditInvestmentScreenState extends State<_EditInvestmentScreen> {
   void dispose() {
     _formKey.currentState?.reset();
     _validateMode.dispose();
+    _quantityTextController.dispose();
+    _amountTextController.dispose();
     super.dispose();
   }
 
   Future<void> _handleSavePressed(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      await context.read<EditInvestmentCubit>().save();
+      await context.read<EditTransactionCubit>().save();
       if (!context.mounted) return;
 
       const message = SnackBar(content: Text('Investment saved successfully.'), backgroundColor: Colors.teal);
@@ -71,18 +82,24 @@ class __EditInvestmentScreenState extends State<_EditInvestmentScreen> {
 
       Navigator.maybePop<bool>(context);
     } else {
-      _shakeKey.currentState?.shake();
-      if (_validateMode.value != AutovalidateMode.always) {
-        _validateMode.value = AutovalidateMode.always;
+      if (!(_quantityTextField.currentState?.isValid ?? false)) {
+        _quantityShakeKey.currentState?.shake();
       }
+
+      if (!(_amountTextField.currentState?.isValid ?? false)) {
+        _amountShakeKey.currentState?.shake();
+      }
+      // if (_validateMode.value != AutovalidateMode.always) {
+      //   _validateMode.value = AutovalidateMode.always;
+      // }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<EditInvestmentCubit>();
+    final cubit = context.read<EditTransactionCubit>();
 
-    return BlocListener<EditInvestmentCubit, EditTransactionState>(
+    return BlocListener<EditTransactionCubit, EditTransactionState>(
       listenWhen: (prevState, state) => prevState.status != state.status && state.status.isFailureOrSuccess,
       listener: (context, state) {
         late final SnackBar message;
@@ -138,91 +155,138 @@ class __EditInvestmentScreenState extends State<_EditInvestmentScreen> {
                           spacing: 12.0,
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            // ~~~ Units and Amount ~~~
                             Row(
                               spacing: 12.0,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 // ~ Units
                                 Expanded(
-                                  child: ShakeWidget(
-                                    key: _shakeKey,
-                                    // child: TextFormField(
-                                    //   decoration: const InputDecoration(hintText: 'e.g. 5'),
-                                    //   textAlign: TextAlign.end,
-                                    //   keyboardType: const TextInputType.numberWithOptions(),
-                                    //   inputFormatters: [
-                                    //     ThousandsFormatter(
-                                    //       allowFraction: true,
-                                    //       formatter: NumberFormat.decimalPattern('en_IN'),
-                                    //     ),
-                                    //   ],
-                                    //   validator: (value) {
-                                    //     if (value == null || !value.isValidText) return 'This field can\'t be empty';
-
-                                    //     return null;
-                                    //   },
-                                    //   onChanged: (value) {
-                                    //     cubit.updateQuantity(double.tryParse(value.trim().replaceAll(',', '')) ?? 0.0);
-                                    //   },
-                                    // ).withLabel('No. of units'),
-                                    child: Tappable(
+                                  child: Shake(
+                                    key: _quantityShakeKey,
+                                    child: TextFormField(
+                                      key: _quantityTextField,
+                                      // controller: TextEditingController(text: quantity?.toString()),
+                                      controller: _quantityTextController,
+                                      decoration: const InputDecoration(hintText: 'e.g. 5'),
+                                      textAlign: TextAlign.right,
+                                      readOnly: true,
+                                      // keyboardType: const TextInputType.numberWithOptions(),
+                                      // inputFormatters: [
+                                      //   ThousandsFormatter(
+                                      //     allowFraction: true,
+                                      //     formatter: NumberFormat.decimalPattern('en_IN'),
+                                      //   ),
+                                      // ],
+                                      validator: (value) {
+                                        if (value == null || !value.isValidText) {
+                                          return 'Can\'t be empty';
+                                        }
+                                        return null;
+                                      },
+                                      // onChanged: (value) {
+                                      //   cubit.updateQuantity(value.trim().replaceAll(',', '').parseDouble ?? 0.0);
+                                      // },
                                       onTap: () async {
                                         final value = await InveslyCalculatorWidget.showModal(context);
-                                        $logger.d(value);
                                         if (value == null) return;
+                                        _quantityTextController.text = NumberFormat.decimalPattern(
+                                          'en_IN',
+                                        ).format(value);
                                         cubit.updateQuantity(value);
                                       },
-                                      childAlignment: Alignment.centerRight,
-                                      child:
-                                          cubit.state.quantity != null
-                                              ? Text(NumberFormat.decimalPattern('en_IN').format(cubit.state.quantity))
-                                              : Text('e.g. 5', style: TextStyle(color: Colors.grey)),
                                     ).withLabel('No. of units'),
                                   ),
                                 ),
 
-                                // ~ Price
+                                // ~ Amount
                                 Expanded(
-                                  child: TextFormField(
-                                    decoration: const InputDecoration(
-                                      hintText: 'e.g. 500',
-                                      prefixText: '₹ ',
-                                      prefixStyle: TextStyle(color: Colors.black),
-                                    ),
-                                    textAlign: TextAlign.end,
-                                    keyboardType: const TextInputType.numberWithOptions(),
-                                    inputFormatters: [
-                                      ThousandsFormatter(
-                                        allowFraction: true,
-                                        formatter: NumberFormat.decimalPattern('en_IN'),
+                                  child: Shake(
+                                    key: _amountShakeKey,
+                                    child: TextFormField(
+                                      key: _amountTextField,
+                                      decoration: const InputDecoration(
+                                        hintText: 'e.g. 500',
+                                        prefixText: '₹ ',
+                                        prefixStyle: TextStyle(color: Colors.black),
                                       ),
-                                    ],
-                                    onChanged: (value) {
-                                      cubit.updateAmount(value.trim().replaceAll(',', '').parseDouble ?? 0.0);
-                                    },
-                                  ).withLabel('Total amount'),
+                                      textAlign: TextAlign.end,
+                                      readOnly: true,
+                                      // keyboardType: const TextInputType.numberWithOptions(),
+                                      // inputFormatters: [
+                                      //   ThousandsFormatter(
+                                      //     allowFraction: true,
+                                      //     formatter: NumberFormat.decimalPattern('en_IN'),
+                                      //   ),
+                                      // ],
+                                      validator: (value) {
+                                        if (value == null || !value.isValidText) {
+                                          return 'Can\'t be empty';
+                                        }
+                                        return null;
+                                      },
+                                      // onChanged: (value) {
+                                      //   cubit.updateAmount(value.trim().replaceAll(',', '').parseDouble ?? 0.0);
+                                      // },
+                                      onTap: () async {
+                                        final value = await InveslyCalculatorWidget.showModal(context);
+                                        if (value == null) return;
+                                        _amountTextController.text = NumberFormat.decimalPattern('en_IN').format(value);
+                                        cubit.updateAmount(value);
+                                      },
+                                    ).withLabel('Total amount'),
+                                  ),
                                 ),
                               ],
                             ),
 
                             // ~~~ AMC picker ~~~
-                            Tappable(
-                              onTap: () async {
-                                final amc = await InveslyAmcPickerWidget.showModal(context);
-                                if (amc != null) {
-                                  cubit.updateAmc(amc);
-                                }
+                            BlocSelector<EditTransactionCubit, EditTransactionState, InveslyAmc?>(
+                              selector: (state) => state.amc,
+                              builder: (context, amc) {
+                                return TappableFormField<InveslyAmc>(
+                                  value: amc,
+                                  onTap: () async {
+                                    final amc = await InveslyAmcPickerWidget.showModal(context);
+                                    if (amc == null) return;
+                                    cubit.updateAmc(amc);
+                                  },
+                                  validator: (value) {
+                                    $logger.d(value);
+                                    if (value == null) {
+                                      return 'AMC can\'t be empty';
+                                    }
+                                    return null;
+                                  },
+                                  childBuilder: (newAmc) {
+                                    if (newAmc == null) {
+                                      return const Text('Select AMC', style: TextStyle(color: Colors.grey));
+                                    }
+                                    return Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Text(newAmc.name, overflow: TextOverflow.ellipsis),
+                                        Text(
+                                          (newAmc.genre ?? AmcGenre.misc).title,
+                                          style: context.textTheme.labelSmall,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ).withLabel('Asset management company (AMC)');
                               },
-                              child: const Text('Asset Management Company', overflow: TextOverflow.ellipsis),
-                            ).withLabel('Asset management company (AMC)'),
+                            ),
 
+                            // ~~~ Type and Date ~~~
                             Row(
                               spacing: 12.0,
                               children: <Widget>[
-                                // ~ Type selection
+                                // ~ Type ~
                                 Expanded(child: InveslyTogglerExample().withLabel('Transaction type')),
 
-                                // ~~~ Date picker ~~~
+                                // ~ Date ~
                                 Expanded(
                                   child: InveslyDatePicker(
                                     date: cubit.state.date,
@@ -273,7 +337,7 @@ class _UserPickerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<EditInvestmentCubit>();
+    final cubit = context.read<EditTransactionCubit>();
 
     return IconButton(
       onPressed: () async {

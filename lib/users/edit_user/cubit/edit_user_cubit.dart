@@ -27,6 +27,10 @@ class EditUserCubit extends Cubit<EditUserState> {
     emit(state.copyWith(name: value));
   }
 
+  // void updateNameValidStatus(bool value) {
+  //   emit(state.copyWith(isNameValid: value));
+  // }
+
   void updatePanNumber(String value) {
     emit(state.copyWith(panNumber: value));
   }
@@ -36,10 +40,10 @@ class EditUserCubit extends Cubit<EditUserState> {
   }
 
   void save() async {
-    emit(state.copyWith(status: EditUserStatus.loading));
+    emit(state.copyWith(status: EditUserFormStatus.loading));
     final name = state.name.trim();
     if (name.isEmpty) {
-      emit(state.copyWith(status: EditUserStatus.failure));
+      emit(state.copyWith(status: EditUserFormStatus.failure));
       return;
     }
 
@@ -52,10 +56,10 @@ class EditUserCubit extends Cubit<EditUserState> {
     );
     try {
       await _repository.saveUser(user, state.isNewUser);
-      emit(state.copyWith(status: EditUserStatus.success));
+      emit(state.copyWith(status: EditUserFormStatus.success));
     } on Exception catch (err) {
       $logger.e(err);
-      emit(state.copyWith(status: EditUserStatus.failure));
+      emit(state.copyWith(status: EditUserFormStatus.failure));
     }
   }
 }

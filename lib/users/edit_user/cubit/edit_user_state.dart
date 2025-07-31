@@ -1,29 +1,31 @@
 part of 'edit_user_cubit.dart';
 
-enum EditUserStatus {
+enum EditUserFormStatus {
   initial,
   loading,
   success,
   failure;
 
-  bool get isLoadingOrSuccess => [EditUserStatus.loading, EditUserStatus.success].contains(this);
+  bool get isLoadingOrSuccess => [EditUserFormStatus.loading, EditUserFormStatus.success].contains(this);
 
-  bool get isFailureOrSuccess => [EditUserStatus.failure, EditUserStatus.success].contains(this);
+  bool get isFailureOrSuccess => [EditUserFormStatus.failure, EditUserFormStatus.success].contains(this);
 }
 
 class EditUserState extends Equatable {
   const EditUserState({
-    this.status = EditUserStatus.initial,
+    this.status = EditUserFormStatus.initial,
     this.initialUser,
     required this.name,
+    // this.isNameValid = false,
     required this.avatarIndex,
     this.panNumber,
     this.aadhaarNumber,
   });
 
-  final EditUserStatus status;
+  final EditUserFormStatus status;
   final InveslyUser? initialUser;
   final String name;
+  // final bool isNameValid;
   final int avatarIndex;
   final String? panNumber;
   final String? aadhaarNumber;
@@ -31,9 +33,10 @@ class EditUserState extends Equatable {
   bool get isNewUser => initialUser == null;
 
   EditUserState copyWith({
-    EditUserStatus? status,
+    EditUserFormStatus? status,
     InveslyUser? initialUser,
     String? name,
+    // bool? isNameValid,
     int? avatarIndex,
     String? panNumber,
     String? aadhaarNumber,
@@ -42,6 +45,7 @@ class EditUserState extends Equatable {
       status: status ?? this.status,
       initialUser: initialUser ?? this.initialUser,
       name: name ?? this.name,
+      // isNameValid: isNameValid ?? this.isNameValid,
       avatarIndex: avatarIndex ?? this.avatarIndex,
       panNumber: panNumber ?? this.panNumber,
       aadhaarNumber: aadhaarNumber ?? this.aadhaarNumber,

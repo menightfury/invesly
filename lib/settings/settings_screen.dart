@@ -12,6 +12,7 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/google_drive/google_drive.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/users/edit_user/view/edit_user_screen.dart';
+import 'package:invesly/users/model/user_model.dart';
 import 'package:path/path.dart';
 
 import 'widgets/settings_section.dart';
@@ -89,7 +90,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ? null
                                     : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
                             final otherUsers =
-                                users.isEmpty ? [] : users.whereNot((u) => u.id == currentUser?.id).toList();
+                                users.isEmpty
+                                    ? <InveslyUser>[]
+                                    : users.whereNot((u) => u.id == currentUser?.id).toList();
 
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16.0),

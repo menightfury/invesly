@@ -101,7 +101,7 @@ class _InveslyAmcPickerWidgetState extends State<InveslyAmcPickerWidget> {
                                 onTap: () => widget.onPickup?.call(amc),
                                 dense: true,
                                 title: Text(amc.name),
-                                subtitle: Text(amc.genre?.title ?? 'NULL'),
+                                subtitle: Text((amc.genre ?? AmcGenre.misc).title),
                               );
                             },
                             separatorBuilder: (_, _) => const InveslyDivider(),
