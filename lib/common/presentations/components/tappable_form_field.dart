@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -13,7 +14,8 @@ class TappableFormField<T> extends FormField<T> {
   TappableFormField({
     super.key,
     T? value,
-    VoidCallback? onTap,
+    // VoidCallback? onTap,
+    FutureOr<T?> Function()? onTap,
     // this.onChanged,
     super.forceErrorText,
     super.onSaved,
@@ -60,7 +62,16 @@ class TappableFormField<T> extends FormField<T> {
                spacing: 4.0,
                children: <Widget>[
                  Tappable(
-                   onTap: onTap,
+                   onTap: () {
+                     if (onTap == null) return;
+
+                     final result = onTap.call();
+                     if (result is Future<T>) {
+                       result.then((value) => field.didChange(value));
+                     } else {
+                       field.didChange(result as T?);
+                     }
+                   },
                    childAlignment: contentAlignment,
                    padding: padding,
                    bgColor: errorText != null ? colors.errorContainer : colors.primaryContainer,
@@ -79,13 +90,13 @@ class TappableFormField<T> extends FormField<T> {
 
   // final ValueChanged<String>? onChanged;
 
-  // @override
-  // FormFieldState<String> createState() => _TappableFieldState();
+  @override
+  FormFieldState<T> createState() => _TappableFieldState();
 }
 
-// class _TappableFieldState extends FormFieldState<String> {
-//   //
-// }
+class _TappableFieldState<T> extends FormFieldState<T> {
+  //
+}
 
 class _ErrorViewer extends StatefulWidget {
   const _ErrorViewer({this.textAlign, this.error, this.errorText, this.errorStyle, this.errorMaxLines});
