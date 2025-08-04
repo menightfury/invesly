@@ -79,7 +79,7 @@ class __EditUserScreenState extends State<_EditUserScreen> {
           ..showSnackBar(message);
       },
       child: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
+        // onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
           body: SafeArea(
             child: CustomScrollView(
@@ -117,150 +117,155 @@ class __EditUserScreenState extends State<_EditUserScreen> {
                       ),
                     ),
 
-                    // --- Avatar picker
-                    _AvatarPickerWidget(
-                      avatars: InveslyUserAvatar.values.map((e) => e.imgSrc).toList(),
-                      onChanged: cubit.updateAvatar,
-                      initialValue: cubit.state.avatarIndex,
-                    ),
-                    const SizedBox(height: 32.0),
-
                     // ~ Form
                     ValueListenableBuilder<AutovalidateMode>(
                       valueListenable: _validateMode,
                       builder: (context, vMode, child) {
                         return Form(key: _formKey, autovalidateMode: vMode, child: child!);
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 16.0,
-                          children: <Widget>[
-                            // ~ Name
-                            Shake(
-                              key: _nameShakeKey,
-                              child: TextFormField(
-                                key: _nameKey,
-                                decoration: InputDecoration(
-                                  hintText: 'e.g. John Doe',
-                                  helperText: cubit.state.isNewUser ? 'Nickname can\'t be changed later' : null,
+                      child: Column(
+                        spacing: 32.0,
+                        children: <Widget>[
+                          // ~~~ Avatar picker ~~~
+                          _AvatarPickerWidget(
+                            avatars: InveslyUserAvatar.values.map((e) => e.imgSrc).toList(),
+                            onChanged: cubit.updateAvatar,
+                            initialValue: cubit.state.avatarIndex,
+                          ),
+
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              spacing: 16.0,
+                              children: <Widget>[
+                                // ~ Name
+                                Shake(
+                                  key: _nameShakeKey,
+                                  child: TextFormField(
+                                    key: _nameKey,
+                                    decoration: InputDecoration(
+                                      hintText: 'e.g. John Doe',
+                                      helperText: cubit.state.isNewUser ? 'Nickname can\'t be changed later' : null,
+                                    ),
+                                    initialValue: cubit.state.name,
+                                    validator: (value) {
+                                      if (value == null || !value.isValidText) {
+                                        return 'Please enter your name';
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: cubit.updateName,
+                                    enabled: cubit.state.isNewUser,
+                                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                                  ).withLabel('Nickname'),
                                 ),
-                                initialValue: cubit.state.name,
-                                validator: (value) {
-                                  if (value == null || !value.isValidText) {
-                                    return 'Please enter your name';
-                                  }
-                                  return null;
-                                },
-                                onChanged: cubit.updateName,
-                                enabled: cubit.state.isNewUser,
-                              ).withLabel('Nickname'),
+
+                                // ~ PAN number
+                                TextFormField(
+                                  decoration: const InputDecoration(hintText: 'e.g. ABCDE1245F'),
+                                  initialValue: cubit.state.panNumber,
+                                  textCapitalization: TextCapitalization.characters,
+                                  onChanged: cubit.updatePanNumber,
+                                ).withLabel('PAN number'),
+
+                                // ~ Aadhaar number
+                                TextFormField(
+                                  decoration: const InputDecoration(hintText: 'e.g. 1234-5678-9101'),
+                                  initialValue: cubit.state.aadhaarNumber,
+                                  keyboardType: TextInputType.number,
+                                  onChanged: cubit.updateAadhaarNumber,
+                                ).withLabel('Aadhaar Number'),
+                                // const SizedBox(height: 160.0),
+
+                                // ~ Accounts
+                                // ListTile(
+                                //   title: const Text('Account details'),
+                                //   trailing: TextButton.icon(
+                                //     onPressed: () {
+                                //       _accounts.value.add(_AccountModel(bankName: $PMBanks.entries.first.key));
+                                //       _accounts.insert(0, _AccountModel(bankName: $PMBanks.entries.first.key));
+                                //       _sliverAnimatedListKey.currentState?.insertItem(0);
+                                //     },
+                                //     icon: const Icon(Icons.add_rounded),
+                                //     label: const Text('Add'),
+                                //   ),
+                                //   contentPadding: const EdgeInsets.only(left: 16.0),
+                                // ),
+
+                                // ColumnBuilder(
+                                //   itemBuilder: (context, index) {
+                                //     final account = _accounts[index];
+
+                                //     return _AccountWidget(
+                                //       account: account,
+                                //       onChanged: (val) {
+                                //         $logger.d(val);
+                                //         _accounts[index] = val;
+                                //       },
+                                //     );
+                                //   },
+                                //   separatorBuilder: (_, __) => const SizedBox(height: 16.0),
+                                //   itemCount: _accounts.length,
+                                // ),
+                                // ColumnBuilder(
+                                //   itemBuilder: (context, index) {
+                                //     final account = _accounts[index];
+
+                                //     return _AccountWidget2(
+                                //       initialValue: account,
+                                //       onChanged: (val) {
+                                //         $logger.d(val);
+                                //         _accounts[index] = val;
+                                //       },
+                                //       validator: (value) {
+                                //         if (value?.bankName == null || value?.accountNumber == null) {
+                                //           return 'Please enter account details';
+                                //         }
+
+                                //         return null;
+                                //       },
+                                //     );
+                                //   },
+                                //   separatorBuilder: (_, __) => const SizedBox(height: 16.0),
+                                //   itemCount: _accounts.length,
+                                // ),
+                              ],
                             ),
-
-                            // ~ PAN number
-                            TextFormField(
-                              decoration: const InputDecoration(hintText: 'e.g. ABCDE1245F'),
-                              initialValue: cubit.state.panNumber,
-                              textCapitalization: TextCapitalization.characters,
-                              onChanged: cubit.updatePanNumber,
-                            ).withLabel('PAN number'),
-
-                            // ~ Aadhaar number
-                            TextFormField(
-                              decoration: const InputDecoration(hintText: 'e.g. 1234-5678-9101'),
-                              initialValue: cubit.state.aadhaarNumber,
-                              keyboardType: TextInputType.number,
-                              onChanged: cubit.updateAadhaarNumber,
-                            ).withLabel('Aadhaar Number'),
-                            // const SizedBox(height: 160.0),
-
-                            // ~ Accounts
-                            // ListTile(
-                            //   title: const Text('Account details'),
-                            //   trailing: TextButton.icon(
-                            //     onPressed: () {
-                            //       _accounts.value.add(_AccountModel(bankName: $PMBanks.entries.first.key));
-                            //       _accounts.insert(0, _AccountModel(bankName: $PMBanks.entries.first.key));
-                            //       _sliverAnimatedListKey.currentState?.insertItem(0);
-                            //     },
-                            //     icon: const Icon(Icons.add_rounded),
-                            //     label: const Text('Add'),
-                            //   ),
-                            //   contentPadding: const EdgeInsets.only(left: 16.0),
-                            // ),
-
-                            // ColumnBuilder(
-                            //   itemBuilder: (context, index) {
-                            //     final account = _accounts[index];
-
-                            //     return _AccountWidget(
-                            //       account: account,
-                            //       onChanged: (val) {
-                            //         $logger.d(val);
-                            //         _accounts[index] = val;
-                            //       },
-                            //     );
-                            //   },
-                            //   separatorBuilder: (_, __) => const SizedBox(height: 16.0),
-                            //   itemCount: _accounts.length,
-                            // ),
-                            // ColumnBuilder(
-                            //   itemBuilder: (context, index) {
-                            //     final account = _accounts[index];
-
-                            //     return _AccountWidget2(
-                            //       initialValue: account,
-                            //       onChanged: (val) {
-                            //         $logger.d(val);
-                            //         _accounts[index] = val;
-                            //       },
-                            //       validator: (value) {
-                            //         if (value?.bankName == null || value?.accountNumber == null) {
-                            //           return 'Please enter account details';
-                            //         }
-
-                            //         return null;
-                            //       },
-                            //     );
-                            //   },
-                            //   separatorBuilder: (_, __) => const SizedBox(height: 16.0),
-                            //   itemCount: _accounts.length,
-                            // ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ]),
                 ),
 
-                // ~ Save button
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: BlocSelector<EditUserCubit, EditUserState, bool>(
-                        selector: (state) => state.status.isLoadingOrSuccess,
-                        builder: (context, isLoadingOrSuccess) {
-                          return ElevatedButton.icon(
-                            onPressed: isLoadingOrSuccess ? null : () => _handleSavePressed(context),
-                            label: isLoadingOrSuccess ? const Text('Saving user...') : const Text('Save user'),
-                            icon:
-                                isLoadingOrSuccess
-                                    ? CircularProgressIndicator(
-                                      strokeWidth: 2.0,
-                                      // color: Colors.white,
-                                      constraints: BoxConstraints.tightForFinite(width: 16.0, height: 16.0),
-                                    )
-                                    : Icon(Icons.save_alt_rounded),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
+                // // ~ Save button
+                // SliverFillRemaining(
+                //   hasScrollBody: false,
+                //   child: Align(
+                //     alignment: Alignment.bottomCenter,
+                //     child: Padding(
+                //       padding: const EdgeInsets.symmetric(vertical: 8.0),
+                //       child: BlocSelector<EditUserCubit, EditUserState, bool>(
+                //         selector: (state) => state.status.isLoadingOrSuccess,
+                //         builder: (context, isLoadingOrSuccess) {
+                //           return ElevatedButton.icon(
+                //             onPressed: isLoadingOrSuccess ? null : () => _handleSavePressed(context),
+                //             label: isLoadingOrSuccess ? const Text('Saving user...') : const Text('Save user'),
+                //             icon:
+                //                 isLoadingOrSuccess
+                //                     ? CircularProgressIndicator(
+                //                       strokeWidth: 2.0,
+                //                       // color: Colors.white,
+                //                       constraints: BoxConstraints.tightForFinite(width: 16.0, height: 16.0),
+                //                     )
+                //                     : Icon(Icons.save_alt_rounded),
+                //           );
+                //         },
+                //       ),
+                //     ),
+                //   ),
+                // ),
 
                 // ~ Accounts
                 // SliverAnimatedList(
@@ -287,6 +292,33 @@ class __EditUserScreenState extends State<_EditUserScreen> {
               ],
             ),
           ),
+
+          persistentFooterButtons: <Widget>[
+            BlocSelector<EditUserCubit, EditUserState, bool>(
+              selector: (state) => state.status.isLoadingOrSuccess,
+              builder: (context, isLoadingOrSuccess) {
+                return SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: ElevatedButton.icon(
+                      onPressed: isLoadingOrSuccess ? null : () => _handleSavePressed(context),
+                      label: isLoadingOrSuccess ? const Text('Saving user...') : const Text('Save user'),
+                      icon:
+                          isLoadingOrSuccess
+                              ? CircularProgressIndicator(
+                                strokeWidth: 2.0,
+                                // color: Colors.white,
+                                constraints: BoxConstraints.tightForFinite(width: 16.0, height: 16.0),
+                              )
+                              : Icon(Icons.save_alt_rounded),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+          persistentFooterAlignment: AlignmentDirectional.center,
         ),
       ),
     );
@@ -302,8 +334,8 @@ class __EditUserScreenState extends State<_EditUserScreen> {
       if (!(_nameKey.currentState?.isValid ?? false)) {
         _nameShakeKey.currentState?.shake();
       }
-      if (_validateMode.value != AutovalidateMode.always) {
-        _validateMode.value = AutovalidateMode.always;
+      if (_validateMode.value != AutovalidateMode.onUserInteraction) {
+        _validateMode.value = AutovalidateMode.onUserInteraction;
       }
     }
   }
