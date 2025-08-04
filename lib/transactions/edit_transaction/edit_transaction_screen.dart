@@ -119,214 +119,223 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
           ..hideCurrentSnackBar()
           ..showSnackBar(message);
       },
-      child: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Scaffold(
-          // ~ Form
-          body: SafeArea(
-            child: ValueListenableBuilder<AutovalidateMode>(
-              valueListenable: _validateMode,
-              builder: (context, validateMode, child) {
-                return Form(key: _formKey, autovalidateMode: validateMode, child: child!);
-              },
-              child: CustomScrollView(
-                slivers: <Widget>[
-                  SliverAppBar(pinned: true, floating: true, actions: [_UserPickerWidget()]),
+      child: Scaffold(
+        // ~ Form
+        body: SafeArea(
+          child: ValueListenableBuilder<AutovalidateMode>(
+            valueListenable: _validateMode,
+            builder: (context, validateMode, child) {
+              return Form(key: _formKey, autovalidateMode: validateMode, child: child!);
+            },
+            child: CustomScrollView(
+              slivers: <Widget>[
+                SliverAppBar(pinned: true, floating: true, actions: [_UserPickerWidget()]),
 
-                  SliverList(
-                    delegate: SliverChildListDelegate.fixed(<Widget>[
-                      // ~ Title
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(cubit.state.isNewTransaction ? 'Add' : 'Edit', style: context.textTheme.headlineSmall),
-                            Text('Transaction', style: context.textTheme.headlineMedium),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12.0),
-
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          spacing: 12.0,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // ~~~ Units and Amount ~~~
-                            Row(
-                              spacing: 12.0,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                // ~ Units
-                                Expanded(
-                                  child: Shake(
-                                    key: _quantityShakeKey,
-                                    child: TextFormField(
-                                      key: _quantityTextField,
-                                      // controller: TextEditingController(text: quantity?.toString()),
-                                      controller: _quantityTextController,
-                                      decoration: const InputDecoration(hintText: 'e.g. 5'),
-                                      textAlign: TextAlign.right,
-                                      readOnly: true,
-                                      // keyboardType: const TextInputType.numberWithOptions(),
-                                      // inputFormatters: [
-                                      //   ThousandsFormatter(
-                                      //     allowFraction: true,
-                                      //     formatter: NumberFormat.decimalPattern('en_IN'),
-                                      //   ),
-                                      // ],
-                                      validator: (value) {
-                                        if (value == null || !value.isValidText) {
-                                          return 'Can\'t be empty';
-                                        }
-                                        return null;
-                                      },
-                                      // onChanged: (value) {
-                                      //   cubit.updateQuantity(value.trim().replaceAll(',', '').parseDouble ?? 0.0);
-                                      // },
-                                      onTap: () async {
-                                        final value = await InveslyCalculatorWidget.showModal(context);
-                                        if (value == null) return;
-                                        _quantityTextController.text = NumberFormat.decimalPattern(
-                                          'en_IN',
-                                        ).format(value);
-                                        cubit.updateQuantity(value);
-                                      },
-                                    ).withLabel('No. of units'),
-                                  ),
-                                ),
-
-                                // ~ Amount
-                                Expanded(
-                                  child: Shake(
-                                    key: _amountShakeKey,
-                                    child: TextFormField(
-                                      key: _amountTextField,
-                                      decoration: const InputDecoration(
-                                        hintText: 'e.g. 500',
-                                        prefixText: '₹ ',
-                                        prefixStyle: TextStyle(color: Colors.black),
-                                      ),
-                                      textAlign: TextAlign.end,
-                                      readOnly: true,
-                                      // keyboardType: const TextInputType.numberWithOptions(),
-                                      // inputFormatters: [
-                                      //   ThousandsFormatter(
-                                      //     allowFraction: true,
-                                      //     formatter: NumberFormat.decimalPattern('en_IN'),
-                                      //   ),
-                                      // ],
-                                      validator: (value) {
-                                        if (value == null || !value.isValidText) {
-                                          return 'Can\'t be empty';
-                                        }
-                                        return null;
-                                      },
-                                      // onChanged: (value) {
-                                      //   cubit.updateAmount(value.trim().replaceAll(',', '').parseDouble ?? 0.0);
-                                      // },
-                                      onTap: () async {
-                                        final value = await InveslyCalculatorWidget.showModal(context);
-                                        if (value == null) return;
-                                        _amountTextController.text = NumberFormat.decimalPattern('en_IN').format(value);
-                                        cubit.updateAmount(value);
-                                      },
-                                    ).withLabel('Total amount'),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            // ~~~ AMC picker ~~~
-                            BlocSelector<EditTransactionCubit, EditTransactionState, InveslyAmc?>(
-                              selector: (state) => state.amc,
-                              builder: (context, amc) {
-                                return TappableFormField<InveslyAmc>(
-                                  value: amc,
-                                  onTap: () async {
-                                    final amc = await InveslyAmcPickerWidget.showModal(context);
-                                    if (amc == null) return;
-                                    cubit.updateAmc(amc);
-                                  },
-                                  validator: (value) {
-                                    $logger.d(value);
-                                    if (value == null) {
-                                      return 'AMC can\'t be empty';
-                                    }
-                                    return null;
-                                  },
-                                  childBuilder: (newAmc) {
-                                    if (newAmc == null) {
-                                      return const Text('Select AMC', style: TextStyle(color: Colors.grey));
-                                    }
-                                    return Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: <Widget>[
-                                        Text(newAmc.name, overflow: TextOverflow.ellipsis),
-                                        Text(
-                                          (newAmc.genre ?? AmcGenre.misc).title,
-                                          style: context.textTheme.labelSmall,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ).withLabel('Asset management company (AMC)');
-                              },
-                            ),
-
-                            // ~~~ Type and Date ~~~
-                            Row(
-                              spacing: 12.0,
-                              children: <Widget>[
-                                // ~ Type ~
-                                Expanded(child: InveslyTogglerExample().withLabel('Transaction type')),
-
-                                // ~ Date ~
-                                Expanded(
-                                  child: InveslyDatePicker(
-                                    date: cubit.state.date,
-                                    onPickup: (value) => cubit.updateDate(value),
-                                  ).withLabel('Transaction date'),
-                                ),
-                              ],
-                            ),
-
-                            // ~~~ Note ~~~
-                            TextFormField(
-                              decoration: const InputDecoration(hintText: 'Notes'),
-                              onChanged: (value) => cubit.updateNotes(value),
-                            ).withLabel('Note'),
-                          ],
-                        ),
-                      ),
-                    ]),
-                  ),
-
-                  // ~~~ Save button ~~~
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.save_alt_rounded),
-                          onPressed: () => _handleSavePressed(context),
-                          label: const Text('Save transaction'),
-                        ),
+                SliverList(
+                  delegate: SliverChildListDelegate.fixed(<Widget>[
+                    // ~ Title
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(cubit.state.isNewTransaction ? 'Add' : 'Edit', style: context.textTheme.headlineSmall),
+                          Text('Transaction', style: context.textTheme.headlineMedium),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(height: 12.0),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Column(
+                        spacing: 12.0,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // ~~~ Units and Amount ~~~
+                          Row(
+                            spacing: 12.0,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              // ~ Units
+                              Expanded(
+                                child: Shake(
+                                  key: _quantityShakeKey,
+                                  child: TextFormField(
+                                    key: _quantityTextField,
+                                    // controller: TextEditingController(text: quantity?.toString()),
+                                    controller: _quantityTextController,
+                                    decoration: const InputDecoration(hintText: 'e.g. 5'),
+                                    textAlign: TextAlign.right,
+                                    readOnly: true,
+                                    // keyboardType: const TextInputType.numberWithOptions(),
+                                    // inputFormatters: [
+                                    //   ThousandsFormatter(
+                                    //     allowFraction: true,
+                                    //     formatter: NumberFormat.decimalPattern('en_IN'),
+                                    //   ),
+                                    // ],
+                                    validator: (value) {
+                                      if (value == null || !value.isValidText) {
+                                        return 'Can\'t be empty';
+                                      }
+                                      return null;
+                                    },
+                                    // onChanged: (value) {
+                                    //   cubit.updateQuantity(value.trim().replaceAll(',', '').parseDouble ?? 0.0);
+                                    // },
+                                    onTap: () async {
+                                      final value = await InveslyCalculatorWidget.showModal(context);
+                                      if (value == null) return;
+                                      _quantityTextController.text = NumberFormat.decimalPattern('en_IN').format(value);
+                                      cubit.updateQuantity(value);
+                                    },
+                                  ).withLabel('No. of units'),
+                                ),
+                              ),
+
+                              // ~ Amount
+                              Expanded(
+                                child: Shake(
+                                  key: _amountShakeKey,
+                                  child: TextFormField(
+                                    key: _amountTextField,
+                                    decoration: const InputDecoration(
+                                      hintText: 'e.g. 500',
+                                      prefixText: '₹ ',
+                                      prefixStyle: TextStyle(color: Colors.black),
+                                    ),
+                                    textAlign: TextAlign.end,
+                                    readOnly: true,
+                                    // keyboardType: const TextInputType.numberWithOptions(),
+                                    // inputFormatters: [
+                                    //   ThousandsFormatter(
+                                    //     allowFraction: true,
+                                    //     formatter: NumberFormat.decimalPattern('en_IN'),
+                                    //   ),
+                                    // ],
+                                    validator: (value) {
+                                      if (value == null || !value.isValidText) {
+                                        return 'Can\'t be empty';
+                                      }
+                                      return null;
+                                    },
+                                    // onChanged: (value) {
+                                    //   cubit.updateAmount(value.trim().replaceAll(',', '').parseDouble ?? 0.0);
+                                    // },
+                                    onTap: () async {
+                                      final value = await InveslyCalculatorWidget.showModal(context);
+                                      if (value == null) return;
+                                      _amountTextController.text = NumberFormat.decimalPattern('en_IN').format(value);
+                                      cubit.updateAmount(value);
+                                    },
+                                  ).withLabel('Total amount'),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // ~~~ AMC picker ~~~
+                          BlocSelector<EditTransactionCubit, EditTransactionState, InveslyAmc?>(
+                            selector: (state) => state.amc,
+                            builder: (context, amc) {
+                              return TappableFormField<InveslyAmc>(
+                                value: amc,
+                                onTap: () async {
+                                  final amc = await InveslyAmcPickerWidget.showModal(context);
+                                  if (amc == null) return;
+                                  cubit.updateAmc(amc);
+                                },
+                                validator: (value) {
+                                  $logger.d(value);
+                                  if (value == null) {
+                                    return 'AMC can\'t be empty';
+                                  }
+                                  return null;
+                                },
+                                childBuilder: (newAmc) {
+                                  if (newAmc == null) {
+                                    return const Text('Select AMC', style: TextStyle(color: Colors.grey));
+                                  }
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(newAmc.name, overflow: TextOverflow.ellipsis),
+                                      Text(
+                                        (newAmc.genre ?? AmcGenre.misc).title,
+                                        style: context.textTheme.labelSmall,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ).withLabel('Asset management company (AMC)');
+                            },
+                          ),
+
+                          // ~~~ Type and Date ~~~
+                          Row(
+                            spacing: 12.0,
+                            children: <Widget>[
+                              // ~ Type ~
+                              Expanded(child: InveslyTogglerExample().withLabel('Transaction type')),
+
+                              // ~ Date ~
+                              Expanded(
+                                child: InveslyDatePicker(
+                                  date: cubit.state.date,
+                                  onPickup: (value) => cubit.updateDate(value),
+                                ).withLabel('Transaction date'),
+                              ),
+                            ],
+                          ),
+
+                          // ~~~ Note ~~~
+                          TextFormField(
+                            decoration: const InputDecoration(hintText: 'Notes'),
+                            onChanged: (value) => cubit.updateNotes(value),
+                          ).withLabel('Note'),
+                        ],
+                      ),
+                    ),
+                  ]),
+                ),
+
+                // // ~~~ Save button ~~~
+                // SliverFillRemaining(
+                //   hasScrollBody: false,
+                //   child: Align(
+                //     alignment: Alignment.bottomCenter,
+                //     child: Padding(
+                //       padding: const EdgeInsets.symmetric(vertical: 8.0),
+                //       child: ElevatedButton.icon(
+                //         icon: const Icon(Icons.save_alt_rounded),
+                //         onPressed: () => _handleSavePressed(context),
+                //         label: const Text('Save transaction'),
+                //       ),
+                //     ),
+                //   ),
+                // ),
+              ],
             ),
           ),
         ),
+        persistentFooterButtons: <Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.save_alt_rounded),
+                onPressed: () => _handleSavePressed(context),
+                label: const Text('Save transaction'),
+              ),
+            ),
+          ),
+        ],
+        persistentFooterAlignment: AlignmentDirectional.center,
       ),
     );
   }

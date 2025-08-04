@@ -5,9 +5,9 @@ class SettingsState extends Equatable {
     this.isOnboarded = false,
     this.isDarkMode = false,
     this.currentUserId,
-    this.isDynamicColor = false,
+    this.isDynamicColor = true,
     this.accentColor,
-    this.isPrivateMode = true,
+    this.isPrivateMode = false,
   });
 
   final bool isOnboarded;

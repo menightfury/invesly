@@ -80,7 +80,10 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                           state is ImportTransactionsLoadedState
                               ? const Icon(Icons.restore_rounded)
                               : const Icon(Icons.upload_file_rounded),
-                      label: Text('Select file'),
+                      label:
+                          state is ImportTransactionsLoadedState
+                              ? const Text('Select again')
+                              : const Text('Select file'),
                     ),
                   ),
               ],
