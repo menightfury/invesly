@@ -15,7 +15,7 @@ class TappableFormField<T> extends FormField<T> {
     super.key,
     T? value,
     // VoidCallback? onTap,
-    FutureOr<T?> Function()? onTap,
+    FutureOr<T> Function()? onTap,
     // this.onChanged,
     super.forceErrorText,
     super.onSaved,
@@ -24,7 +24,7 @@ class TappableFormField<T> extends FormField<T> {
     super.errorBuilder,
     required Widget Function(T? value) childBuilder,
     // InputDecoration? decoration,
-    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 12.0),
+    EdgeInsetsGeometry padding = AppConstants.formFieldContentPadding,
     AlignmentGeometry contentAlignment = Alignment.centerLeft,
     super.restorationId,
   }) : super(

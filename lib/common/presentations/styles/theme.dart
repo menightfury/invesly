@@ -70,7 +70,7 @@ class AppStyle {
           }
           return colorScheme.primaryContainer;
         }),
-        contentPadding: AppConstants.textFieldPadding,
+        contentPadding: AppConstants.formFieldContentPadding,
         isCollapsed: true,
         // isDense: true,
         hintStyle: const TextStyle(color: Colors.black38),

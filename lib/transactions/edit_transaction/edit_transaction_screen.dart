@@ -89,9 +89,9 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
       if (!(_amountTextField.currentState?.isValid ?? false)) {
         _amountShakeKey.currentState?.shake();
       }
-      // if (_validateMode.value != AutovalidateMode.always) {
-      //   _validateMode.value = AutovalidateMode.always;
-      // }
+      if (_validateMode.value != AutovalidateMode.onUserInteraction) {
+        _validateMode.value = AutovalidateMode.onUserInteraction;
+      }
     }
   }
 
@@ -191,6 +191,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                       _quantityTextController.text = NumberFormat.decimalPattern('en_IN').format(value);
                                       cubit.updateQuantity(value);
                                     },
+                                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                                   ).withLabel('No. of units'),
                                 ),
                               ),
@@ -201,6 +202,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                   key: _amountShakeKey,
                                   child: TextFormField(
                                     key: _amountTextField,
+                                    controller: _amountTextController,
                                     decoration: const InputDecoration(
                                       hintText: 'e.g. 500',
                                       prefixText: '₹ ',
@@ -230,6 +232,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                       _amountTextController.text = NumberFormat.decimalPattern('en_IN').format(value);
                                       cubit.updateAmount(value);
                                     },
+                                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                                   ).withLabel('Total amount'),
                                 ),
                               ),
@@ -237,43 +240,52 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                           ),
 
                           // ~~~ AMC picker ~~~
-                          BlocSelector<EditTransactionCubit, EditTransactionState, InveslyAmc?>(
-                            selector: (state) => state.amc,
-                            builder: (context, amc) {
-                              return TappableFormField<InveslyAmc>(
-                                value: amc,
-                                onTap: () async {
-                                  final amc = await InveslyAmcPickerWidget.showModal(context);
-                                  if (amc == null) return;
-                                  cubit.updateAmc(amc);
-                                },
-                                validator: (value) {
-                                  $logger.d(value);
-                                  if (value == null) {
-                                    return 'AMC can\'t be empty';
-                                  }
-                                  return null;
-                                },
-                                childBuilder: (newAmc) {
-                                  if (newAmc == null) {
-                                    return const Text('Select AMC', style: TextStyle(color: Colors.grey));
-                                  }
-                                  return Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text(newAmc.name, overflow: TextOverflow.ellipsis),
-                                      Text(
-                                        (newAmc.genre ?? AmcGenre.misc).title,
-                                        style: context.textTheme.labelSmall,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ).withLabel('Asset management company (AMC)');
+                          _AmcFormField(
+                            validator: (value) {
+                              $logger.d(value);
+                              if (value == null) {
+                                return 'AMC can\'t be empty';
+                              }
+                              return null;
                             },
                           ),
+                          // BlocSelector<EditTransactionCubit, EditTransactionState, InveslyAmc?>(
+                          //   selector: (state) => state.amc,
+                          //   builder: (context, amc) {
+                          //     return TappableFormField<InveslyAmc>(
+                          //       value: amc,
+                          //       onTap: () async {
+                          //         final amc = await InveslyAmcPickerWidget.showModal(context);
+                          //         if (amc == null) return;
+                          //         cubit.updateAmc(amc);
+                          //       },
+                          //       validator: (value) {
+                          //         $logger.d(value);
+                          //         if (value == null) {
+                          //           return 'AMC can\'t be empty';
+                          //         }
+                          //         return null;
+                          //       },
+                          //       childBuilder: (newAmc) {
+                          //         if (newAmc == null) {
+                          //           return const Text('Select AMC', style: TextStyle(color: Colors.grey));
+                          //         }
+                          //         return Column(
+                          //           mainAxisSize: MainAxisSize.min,
+                          //           crossAxisAlignment: CrossAxisAlignment.start,
+                          //           children: <Widget>[
+                          //             Text(newAmc.name, overflow: TextOverflow.ellipsis),
+                          //             Text(
+                          //               (newAmc.genre ?? AmcGenre.misc).title,
+                          //               style: context.textTheme.labelSmall,
+                          //               overflow: TextOverflow.ellipsis,
+                          //             ),
+                          //           ],
+                          //         );
+                          //       },
+                          //     ).withLabel('Asset management company (AMC)');
+                          //   },
+                          // ),
 
                           // ~~~ Type and Date ~~~
                           Row(
@@ -296,6 +308,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                           TextFormField(
                             decoration: const InputDecoration(hintText: 'Notes'),
                             onChanged: (value) => cubit.updateNotes(value),
+                            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                           ).withLabel('Note'),
                         ],
                       ),
@@ -384,6 +397,260 @@ class InveslyTogglerExample extends StatefulWidget {
 
   @override
   State<InveslyTogglerExample> createState() => _InveslyTogglerExampleState();
+}
+
+class _AmcFormField extends FormField<InveslyAmc> {
+  _AmcFormField({
+    super.key,
+    InveslyAmc? value,
+    super.forceErrorText,
+    super.onSaved,
+    super.validator,
+    AutovalidateMode? autovalidateMode,
+    super.errorBuilder,
+    EdgeInsetsGeometry padding = const EdgeInsetsGeometry.symmetric(horizontal: 12.0),
+    AlignmentGeometry contentAlignment = Alignment.centerLeft,
+    super.restorationId,
+  }) : super(
+         autovalidateMode: autovalidateMode ?? AutovalidateMode.disabled,
+         initialValue: value,
+         builder: (FormFieldState<InveslyAmc> field) {
+           final state = field as __AmcFormFieldState;
+           final theme = Theme.of(state.context);
+           final colors = theme.colorScheme;
+
+           final errorText = state.errorText;
+           Widget? error;
+           if (errorText != null && errorBuilder != null) {
+             error = errorBuilder(state.context, errorText);
+           }
+
+           TextStyle errorStyle = theme.textTheme.bodySmall ?? const TextStyle();
+           errorStyle = errorStyle.copyWith(color: colors.error).merge(theme.inputDecorationTheme.errorStyle);
+
+           if (error != null) {
+             state._controller.forward();
+           } else {
+             state._controller.reverse();
+           }
+
+           final amc = state.value;
+           late final Widget content;
+           if (amc == null) {
+             content = Text('Select AMC', style: TextStyle(color: Colors.grey));
+           } else {
+             content = Column(
+               mainAxisSize: MainAxisSize.min,
+               crossAxisAlignment: CrossAxisAlignment.start,
+               children: <Widget>[
+                 Text(amc.name, overflow: TextOverflow.ellipsis),
+                 Text(
+                   (amc.genre ?? AmcGenre.misc).title,
+                   style: theme.textTheme.labelSmall,
+                   overflow: TextOverflow.ellipsis,
+                 ),
+               ],
+             );
+           }
+
+           return Shake(
+             //  shake: field.hasError,
+             shake: false,
+             child: Column(
+               mainAxisSize: MainAxisSize.min,
+               crossAxisAlignment: CrossAxisAlignment.start,
+               spacing: 4.0,
+               children: <Widget>[
+                 Tappable(
+                   onTap: () async {
+                     final amc = await InveslyAmcPickerWidget.showModal(state.context);
+                     if (amc == null) return;
+                     //  cubit.updateAmc(amc);
+                   },
+                   childAlignment: contentAlignment,
+                   padding: padding,
+                   bgColor: errorText != null ? colors.errorContainer : colors.primaryContainer,
+                   child: content,
+                 ),
+                 //  if (state.hasError)
+                 //  Padding(
+                 //    padding: padding,
+                 //    child: _ErrorViewer(error: error, errorText: errorText, errorStyle: errorStyle),
+                 //  ),
+                 if (state.hasError)
+                   FadeTransition(
+                     opacity: state._controller,
+                     child: FractionalTranslation(
+                       translation: Tween<Offset>(
+                         begin: const Offset(0.0, -0.25),
+                         end: Offset.zero,
+                       ).evaluate(state._controller.view),
+                       child:
+                           error ??
+                           Text(
+                             errorText!,
+                             style: errorStyle,
+                             //  textAlign: textAlign,
+                             overflow: TextOverflow.ellipsis,
+                             //  maxLines: widget.errorMaxLines,
+                           ),
+                     ),
+                   ),
+               ],
+             ),
+           );
+         },
+       );
+
+  // final ValueChanged<String>? onChanged;
+
+  @override
+  FormFieldState<InveslyAmc> createState() => __AmcFormFieldState();
+}
+
+class __AmcFormFieldState extends FormFieldState<InveslyAmc> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  _AmcFormField get _field => super.widget as _AmcFormField;
+  bool get _hasError => errorText != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(duration: 167.ms, vsync: this);
+    if (_hasError) {
+      _controller.value = 1.0;
+    }
+    // _controller.addListener(_handleChange);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // @override
+  // void didUpdateWidget(_AmcFormField old) {
+  //   super.didUpdateWidget(old);
+
+  //   final String? newErrorText = errorText;
+  //   final String? oldErrorText = old.errorText;
+
+  //   final bool errorStateChanged = (newError != null) != (oldError != null);
+  //   final bool errorTextStateChanged = (newErrorText != null) != (oldErrorText != null);
+
+  //   if (errorStateChanged || errorTextStateChanged) {
+  //     if (newError != null || newErrorText != null) {
+  //       _controller.forward();
+  //     } else {
+  //       _controller.reverse();
+  //     }
+  //   }
+  // }
+}
+
+class _ErrorViewer extends StatefulWidget {
+  const _ErrorViewer({this.textAlign, this.error, this.errorText, this.errorStyle, this.errorMaxLines});
+
+  final TextAlign? textAlign;
+  final Widget? error;
+  final String? errorText;
+  final TextStyle? errorStyle;
+  final int? errorMaxLines;
+
+  @override
+  _ErrorViewerState createState() => _ErrorViewerState();
+}
+
+class _ErrorViewerState extends State<_ErrorViewer> with SingleTickerProviderStateMixin {
+  // If the height of this widget and the counter are zero ("empty") at
+  // layout time, no space is allocated for the subtext.
+  static const Widget empty = SizedBox.shrink();
+
+  late AnimationController _controller;
+  bool get _hasError => widget.errorText != null || widget.error != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(duration: Duration(milliseconds: 167), vsync: this);
+    if (_hasError) {
+      _controller.value = 1.0;
+    }
+    _controller.addListener(_handleChange);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleChange() {
+    setState(() {
+      // The _controller's value has changed.
+    });
+  }
+
+  @override
+  void didUpdateWidget(_ErrorViewer old) {
+    super.didUpdateWidget(old);
+
+    final Widget? newError = widget.error;
+    final String? newErrorText = widget.errorText;
+    final Widget? oldError = old.error;
+    final String? oldErrorText = old.errorText;
+
+    final bool errorStateChanged = (newError != null) != (oldError != null);
+    final bool errorTextStateChanged = (newErrorText != null) != (oldErrorText != null);
+
+    if (errorStateChanged || errorTextStateChanged) {
+      if (newError != null || newErrorText != null) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    }
+  }
+
+  Widget _buildError() {
+    assert(widget.error != null || widget.errorText != null);
+    return FadeTransition(
+      opacity: _controller,
+      child: FractionalTranslation(
+        translation: Tween<Offset>(begin: const Offset(0.0, -0.25), end: Offset.zero).evaluate(_controller.view),
+        child:
+            widget.error ??
+            Text(
+              widget.errorText!,
+              style: widget.errorStyle,
+              textAlign: widget.textAlign,
+              overflow: TextOverflow.ellipsis,
+              maxLines: widget.errorMaxLines,
+            ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_controller.isDismissed) {
+      return empty;
+    }
+
+    if (_controller.isCompleted) {
+      if (_hasError) {
+        return _buildError();
+      }
+      return empty;
+    }
+
+    if (_hasError) {
+      return _buildError();
+    }
+
+    return empty;
+  }
 }
 
 class _InveslyTogglerExampleState extends State<InveslyTogglerExample> {
