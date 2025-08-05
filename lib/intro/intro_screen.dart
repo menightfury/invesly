@@ -98,10 +98,10 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
     } else if (usersState is UsersErrorState) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: context.color.errorContainer,
+          backgroundColor: context.colors.errorContainer,
           content: Text(
             'Error loading users: ${usersState.errorMsg}',
-            style: TextStyle(color: context.color.onErrorContainer),
+            style: TextStyle(color: context.colors.onErrorContainer),
           ),
         ),
       );
@@ -163,7 +163,7 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
                         dotWidth: 8.0,
                         dotHeight: 8.0,
                         expansionFactor: 2.0,
-                        activeDotColor: context.color.secondary,
+                        activeDotColor: context.colors.secondary,
                       ),
                       onDotClicked: (index) => _animateToPage(index),
                     ),
@@ -193,7 +193,7 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
       child: IconButton(
         icon: const Icon(Icons.arrow_forward_rounded),
         onPressed: () => _handleCompletePressed(context),
-        style: IconButton.styleFrom(foregroundColor: context.color.onPrimary, backgroundColor: context.color.primary),
+        style: IconButton.styleFrom(foregroundColor: context.colors.onPrimary, backgroundColor: context.colors.primary),
         padding: const EdgeInsets.all(16.0),
       ),
     );

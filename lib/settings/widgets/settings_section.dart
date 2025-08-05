@@ -22,7 +22,7 @@ class SettingsSection extends StatelessWidget {
               ListTile(
                 title: Text(title!),
                 leading: icon,
-                subtitle: subTitle != null ? Text(subTitle!, style: TextStyle(color: context.color.secondary)) : null,
+                subtitle: subTitle != null ? Text(subTitle!, style: TextStyle(color: context.colors.secondary)) : null,
               ),
               InveslyDivider.dashed(dashGap: 2.0, dashWidth: 2.0, colors: [Colors.grey]),
             ],

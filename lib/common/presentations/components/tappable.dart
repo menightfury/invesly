@@ -40,7 +40,7 @@ class Tappable extends StatelessWidget {
     Widget content = SizedBox.fromSize(size: size, child: child);
 
     content = Material(
-      color: bgColor ?? context.color.primaryContainer,
+      color: bgColor ?? context.colors.primaryContainer,
       type: MaterialType.canvas,
       shape: shape ?? defaultShape,
       child: ListTile(

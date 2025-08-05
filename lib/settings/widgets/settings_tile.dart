@@ -53,7 +53,7 @@ class SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final subtitleStyle = context.textTheme.labelSmall?.copyWith(
-      color: enabled ? context.color.secondary : context.theme.disabledColor,
+      color: enabled ? context.colors.secondary : context.theme.disabledColor,
     );
     if (type == SettingsTileType.toggle) {
       return SwitchListTile(

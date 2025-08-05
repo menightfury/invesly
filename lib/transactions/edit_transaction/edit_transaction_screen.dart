@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
-import 'package:invesly/common/presentations/components/tappable_form_field.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 import 'package:invesly/transactions/edit_transaction/widgets/calculator/calculator.dart';
 
@@ -240,7 +239,10 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                           ),
 
                           // ~~~ AMC picker ~~~
-                          _AmcFormField(
+                          FormField<InveslyAmc?>(
+                            builder: (state) {
+                              return _AmcField(errorText: state.errorText);
+                            },
                             validator: (value) {
                               $logger.d(value);
                               if (value == null) {
@@ -399,119 +401,28 @@ class InveslyTogglerExample extends StatefulWidget {
   State<InveslyTogglerExample> createState() => _InveslyTogglerExampleState();
 }
 
-class _AmcFormField extends FormField<InveslyAmc> {
-  _AmcFormField({
+class _AmcField extends StatefulWidget {
+  const _AmcField({
     super.key,
-    InveslyAmc? value,
-    super.forceErrorText,
-    super.onSaved,
-    super.validator,
-    AutovalidateMode? autovalidateMode,
-    super.errorBuilder,
-    EdgeInsetsGeometry padding = const EdgeInsetsGeometry.symmetric(horizontal: 12.0),
-    AlignmentGeometry contentAlignment = Alignment.centerLeft,
-    super.restorationId,
-  }) : super(
-         autovalidateMode: autovalidateMode ?? AutovalidateMode.disabled,
-         initialValue: value,
-         builder: (FormFieldState<InveslyAmc> field) {
-           final state = field as __AmcFormFieldState;
-           final theme = Theme.of(state.context);
-           final colors = theme.colorScheme;
-
-           final errorText = state.errorText;
-           Widget? error;
-           if (errorText != null && errorBuilder != null) {
-             error = errorBuilder(state.context, errorText);
-           }
-
-           TextStyle errorStyle = theme.textTheme.bodySmall ?? const TextStyle();
-           errorStyle = errorStyle.copyWith(color: colors.error).merge(theme.inputDecorationTheme.errorStyle);
-
-           if (error != null) {
-             state._controller.forward();
-           } else {
-             state._controller.reverse();
-           }
-
-           final amc = state.value;
-           late final Widget content;
-           if (amc == null) {
-             content = Text('Select AMC', style: TextStyle(color: Colors.grey));
-           } else {
-             content = Column(
-               mainAxisSize: MainAxisSize.min,
-               crossAxisAlignment: CrossAxisAlignment.start,
-               children: <Widget>[
-                 Text(amc.name, overflow: TextOverflow.ellipsis),
-                 Text(
-                   (amc.genre ?? AmcGenre.misc).title,
-                   style: theme.textTheme.labelSmall,
-                   overflow: TextOverflow.ellipsis,
-                 ),
-               ],
-             );
-           }
-
-           return Shake(
-             //  shake: field.hasError,
-             shake: false,
-             child: Column(
-               mainAxisSize: MainAxisSize.min,
-               crossAxisAlignment: CrossAxisAlignment.start,
-               spacing: 4.0,
-               children: <Widget>[
-                 Tappable(
-                   onTap: () async {
-                     final amc = await InveslyAmcPickerWidget.showModal(state.context);
-                     if (amc == null) return;
-                     //  cubit.updateAmc(amc);
-                   },
-                   childAlignment: contentAlignment,
-                   padding: padding,
-                   bgColor: errorText != null ? colors.errorContainer : colors.primaryContainer,
-                   child: content,
-                 ),
-                 //  if (state.hasError)
-                 //  Padding(
-                 //    padding: padding,
-                 //    child: _ErrorViewer(error: error, errorText: errorText, errorStyle: errorStyle),
-                 //  ),
-                 if (state.hasError)
-                   FadeTransition(
-                     opacity: state._controller,
-                     child: FractionalTranslation(
-                       translation: Tween<Offset>(
-                         begin: const Offset(0.0, -0.25),
-                         end: Offset.zero,
-                       ).evaluate(state._controller.view),
-                       child:
-                           error ??
-                           Text(
-                             errorText!,
-                             style: errorStyle,
-                             //  textAlign: textAlign,
-                             overflow: TextOverflow.ellipsis,
-                             //  maxLines: widget.errorMaxLines,
-                           ),
-                     ),
-                   ),
-               ],
-             ),
-           );
-         },
-       );
+    this.value,
+    this.padding = const EdgeInsetsGeometry.symmetric(horizontal: 12.0),
+    this.contentAlignment = Alignment.centerLeft,
+    this.errorText,
+  });
 
   // final ValueChanged<String>? onChanged;
+  final InveslyAmc? value;
+  final AlignmentGeometry contentAlignment;
+  final EdgeInsetsGeometry padding;
+  final String? errorText;
 
   @override
-  FormFieldState<InveslyAmc> createState() => __AmcFormFieldState();
+  State<_AmcField> createState() => __AmcFieldState();
 }
 
-class __AmcFormFieldState extends FormFieldState<InveslyAmc> with SingleTickerProviderStateMixin {
+class __AmcFieldState extends State<_AmcField> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  _AmcFormField get _field => super.widget as _AmcFormField;
-  bool get _hasError => errorText != null;
+  bool get _hasError => widget.errorText != null;
 
   @override
   void initState() {
@@ -529,24 +440,88 @@ class __AmcFormFieldState extends FormFieldState<InveslyAmc> with SingleTickerPr
     super.dispose();
   }
 
-  // @override
-  // void didUpdateWidget(_AmcFormField old) {
-  //   super.didUpdateWidget(old);
+  @override
+  void didUpdateWidget(_AmcField oldWidget) {
+    super.didUpdateWidget(oldWidget);
 
-  //   final String? newErrorText = errorText;
-  //   final String? oldErrorText = old.errorText;
+    final String? newErrorText = widget.errorText;
+    final String? oldErrorText = oldWidget.errorText;
 
-  //   final bool errorStateChanged = (newError != null) != (oldError != null);
-  //   final bool errorTextStateChanged = (newErrorText != null) != (oldErrorText != null);
+    final bool errorTextChanged = (newErrorText != null) != (oldErrorText != null);
 
-  //   if (errorStateChanged || errorTextStateChanged) {
-  //     if (newError != null || newErrorText != null) {
-  //       _controller.forward();
-  //     } else {
-  //       _controller.reverse();
-  //     }
-  //   }
-  // }
+    if (errorTextChanged) {
+      if (newErrorText != null) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final amc = widget.value;
+    late final Widget content;
+    if (amc == null) {
+      content = Text('Select AMC', style: TextStyle(color: Colors.grey));
+    } else {
+      content = Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(amc.name, overflow: TextOverflow.ellipsis),
+          Text(
+            (amc.genre ?? AmcGenre.misc).title,
+            style: context.textTheme.labelSmall,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      );
+    }
+
+    final errorText = widget.errorText;
+
+    TextStyle errorStyle = context.textTheme.bodySmall ?? const TextStyle();
+    errorStyle = errorStyle.copyWith(color: context.colors.error).merge(context.theme.inputDecorationTheme.errorStyle);
+
+    return Shake(
+      //  shake: field.hasError,
+      shake: false,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 4.0,
+        children: <Widget>[
+          Tappable(
+            onTap: () async {
+              final amc = await InveslyAmcPickerWidget.showModal(context);
+              if (amc == null) return;
+              //  cubit.updateAmc(amc);
+            },
+            childAlignment: widget.contentAlignment,
+            padding: widget.padding,
+            bgColor: errorText != null ? context.colors.errorContainer : context.colors.primaryContainer,
+            child: content,
+          ),
+
+          // ~ Error text
+          FadeTransition(
+            opacity: _controller,
+            child: FractionalTranslation(
+              translation: Tween<Offset>(begin: const Offset(0.0, -0.25), end: Offset.zero).evaluate(_controller.view),
+              child: Text(
+                errorText ?? '',
+                style: errorStyle,
+                //  textAlign: textAlign,
+                overflow: TextOverflow.ellipsis,
+                //  maxLines: widget.errorMaxLines,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ErrorViewer extends StatefulWidget {
@@ -593,13 +568,13 @@ class _ErrorViewerState extends State<_ErrorViewer> with SingleTickerProviderSta
   }
 
   @override
-  void didUpdateWidget(_ErrorViewer old) {
-    super.didUpdateWidget(old);
+  void didUpdateWidget(_ErrorViewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
 
     final Widget? newError = widget.error;
     final String? newErrorText = widget.errorText;
-    final Widget? oldError = old.error;
-    final String? oldErrorText = old.errorText;
+    final Widget? oldError = oldWidget.error;
+    final String? oldErrorText = oldWidget.errorText;
 
     final bool errorStateChanged = (newError != null) != (oldError != null);
     final bool errorTextStateChanged = (newErrorText != null) != (oldErrorText != null);

@@ -259,7 +259,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         selector: (state) => (state.isDynamicColor, state.accentColor),
                         builder: (context, state) {
                           final (isDynamic, accentColorInt) = state;
-                          final accentColor = accentColorInt != null ? Color(accentColorInt) : context.color.primary;
+                          final accentColor = accentColorInt != null ? Color(accentColorInt) : context.colors.primary;
                           return SettingsTile(
                             title: 'Accent color',
                             // title: Text(context.watch<SettingsRepository>().currentLocale.name),

@@ -100,7 +100,7 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
           content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
             builder: (context, state) {
               if (state is ImportTransactionsLoadingState) {
-                return LoadingAnimationWidget.staggeredDotsWave(color: context.color.primary, size: 48.0);
+                return LoadingAnimationWidget.staggeredDotsWave(color: context.colors.primary, size: 48.0);
               }
 
               if (state is ImportTransactionsErrorState) {
@@ -412,11 +412,11 @@ class _CsvPreviewTable extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 1.0),
           child: DataTable(
             headingTextStyle: context.textTheme.labelLarge,
-            headingRowColor: WidgetStateProperty.all<Color?>(context.color.primary.withAlpha(50)),
+            headingRowColor: WidgetStateProperty.all<Color?>(context.colors.primary.withAlpha(50)),
             columnSpacing: 24.0,
             horizontalMargin: 12.0,
             border: TableBorder.all(
-              color: context.color.primary.withAlpha(100),
+              color: context.colors.primary.withAlpha(100),
               width: 1.0,
               borderRadius: BorderRadius.circular(12.0),
             ),

@@ -61,27 +61,24 @@ class _EMSelectionIndicatorState extends State<EMSelectionIndicator> with Single
         // The scale should be 0 when the animation is unselected, as soon as
         // the animation starts, the scale jumps to 40%, and then animates to
         // 100% along a curve.
-        final double scale = _controller.isDismissed
-            ? 0.0
-            : Tween<double>(begin: 0.4, end: 1.0)
-                .transform(CurveTween(curve: Curves.easeInOutCubicEmphasized).transform(_controller.value));
+        final double scale =
+            _controller.isDismissed
+                ? 0.0
+                : Tween<double>(
+                  begin: 0.4,
+                  end: 1.0,
+                ).transform(CurveTween(curve: Curves.easeInOutCubicEmphasized).transform(_controller.value));
 
         return Transform.scale(
           alignment: Alignment.center,
           scaleX: scale,
-          child: Opacity(
-            opacity: _controller.value,
-            child: child,
-          ),
+          child: Opacity(opacity: _controller.value, child: child),
         );
       },
       child: Material(
         color: widget.color ?? Theme.of(context).colorScheme.secondary,
         shape: widget.shape,
-        child: SizedBox(
-          width: widget.width,
-          height: widget.height,
-        ),
+        child: SizedBox(width: widget.width, height: widget.height),
       ),
     );
   }

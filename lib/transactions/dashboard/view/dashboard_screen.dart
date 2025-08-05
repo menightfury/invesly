@@ -377,7 +377,7 @@ class _TransactionStatsWidgetState extends State<_TransactionStatsWidget> {
                 children: <Widget>[
                   Align(
                     alignment: Alignment(1.25, -1.5),
-                    child: Icon(genre.icon, size: 64.0, color: context.color.secondary.withAlpha(50)),
+                    child: Icon(genre.icon, size: 64.0, color: context.colors.secondary.withAlpha(50)),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),

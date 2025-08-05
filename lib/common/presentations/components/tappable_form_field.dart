@@ -142,13 +142,13 @@ class _ErrorViewerState extends State<_ErrorViewer> with SingleTickerProviderSta
   }
 
   @override
-  void didUpdateWidget(_ErrorViewer old) {
-    super.didUpdateWidget(old);
+  void didUpdateWidget(_ErrorViewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
 
     final Widget? newError = widget.error;
     final String? newErrorText = widget.errorText;
-    final Widget? oldError = old.error;
-    final String? oldErrorText = old.errorText;
+    final Widget? oldError = oldWidget.error;
+    final String? oldErrorText = oldWidget.errorText;
 
     final bool errorStateChanged = (newError != null) != (oldError != null);
     final bool errorTextStateChanged = (newErrorText != null) != (oldErrorText != null);

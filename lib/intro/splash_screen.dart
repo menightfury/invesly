@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = context.textTheme;
-    final colorScheme = context.color;
+    final colorScheme = context.colors;
     final settingsState = context.read<SettingsCubit>().state;
 
     return BlocListener<UsersCubit, UsersState>(
@@ -61,10 +61,10 @@ class _SplashScreenState extends State<SplashScreen> {
         } else if (usersState is UsersErrorState) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              backgroundColor: context.color.errorContainer,
+              backgroundColor: context.colors.errorContainer,
               content: Text(
                 'Error loading users: ${usersState.errorMsg}',
-                style: TextStyle(color: context.color.onErrorContainer),
+                style: TextStyle(color: context.colors.onErrorContainer),
               ),
             ),
           );
