@@ -405,7 +405,7 @@ class _AmcField extends StatefulWidget {
   const _AmcField({
     super.key,
     this.value,
-    this.padding = const EdgeInsetsGeometry.symmetric(horizontal: 12.0),
+    this.padding = const EdgeInsets.symmetric(horizontal: 12.0),
     this.contentAlignment = Alignment.centerLeft,
     this.errorText,
   });
@@ -413,7 +413,7 @@ class _AmcField extends StatefulWidget {
   // final ValueChanged<String>? onChanged;
   final InveslyAmc? value;
   final AlignmentGeometry contentAlignment;
-  final EdgeInsetsGeometry padding;
+  final EdgeInsets padding;
   final String? errorText;
 
   @override
@@ -421,13 +421,17 @@ class _AmcField extends StatefulWidget {
 }
 
 class __AmcFieldState extends State<_AmcField> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+  late final AnimationController _controller;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<Offset> _positionAnimation;
   bool get _hasError => widget.errorText != null;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(duration: 167.ms, vsync: this);
+    _controller = AnimationController(duration: 500.ms, vsync: this);
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
+    _positionAnimation = Tween<Offset>(begin: const Offset(0.0, -0.25), end: Offset.zero).animate(_controller);
     if (_hasError) {
       _controller.value = 1.0;
     }
@@ -505,16 +509,19 @@ class __AmcFieldState extends State<_AmcField> with SingleTickerProviderStateMix
           ),
 
           // ~ Error text
-          FadeTransition(
-            opacity: _controller,
-            child: FractionalTranslation(
-              translation: Tween<Offset>(begin: const Offset(0.0, -0.25), end: Offset.zero).evaluate(_controller.view),
-              child: Text(
-                errorText ?? '',
-                style: errorStyle,
-                //  textAlign: textAlign,
-                overflow: TextOverflow.ellipsis,
-                //  maxLines: widget.errorMaxLines,
+          Padding(
+            padding: widget.padding.copyWith(top: 0.0, bottom: 0.0),
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _positionAnimation,
+                child: Text(
+                  errorText ?? '',
+                  style: errorStyle,
+                  //  textAlign: textAlign,
+                  overflow: TextOverflow.ellipsis,
+                  //  maxLines: widget.errorMaxLines,
+                ),
               ),
             ),
           ),
