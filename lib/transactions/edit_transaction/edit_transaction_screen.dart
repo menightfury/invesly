@@ -2,10 +2,12 @@
 
 import 'dart:async';
 
+import 'package:animate_do/animate_do.dart';
 import 'package:intl/intl.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
+import 'package:invesly/common/presentations/widgets/async_form_field.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 import 'package:invesly/transactions/edit_transaction/widgets/calculator/calculator.dart';
 
@@ -81,13 +83,13 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
 
       Navigator.maybePop<bool>(context);
     } else {
-      if (!(_quantityTextField.currentState?.isValid ?? false)) {
-        _quantityShakeKey.currentState?.shake();
-      }
+      // if (!(_quantityTextField.currentState?.isValid ?? false)) {
+      //   _quantityShakeKey.currentState?.shake();
+      // }
 
-      if (!(_amountTextField.currentState?.isValid ?? false)) {
-        _amountShakeKey.currentState?.shake();
-      }
+      // if (!(_amountTextField.currentState?.isValid ?? false)) {
+      //   _amountShakeKey.currentState?.shake();
+      // }
       if (_validateMode.value != AutovalidateMode.onUserInteraction) {
         _validateMode.value = AutovalidateMode.onUserInteraction;
       }
@@ -159,41 +161,67 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                             children: <Widget>[
                               // ~ Units
                               Expanded(
-                                child: Shake(
-                                  key: _quantityShakeKey,
-                                  child: TextFormField(
-                                    key: _quantityTextField,
-                                    // controller: TextEditingController(text: quantity?.toString()),
-                                    controller: _quantityTextController,
-                                    decoration: const InputDecoration(hintText: 'e.g. 5'),
-                                    textAlign: TextAlign.right,
-                                    readOnly: true,
-                                    // keyboardType: const TextInputType.numberWithOptions(),
-                                    // inputFormatters: [
-                                    //   ThousandsFormatter(
-                                    //     allowFraction: true,
-                                    //     formatter: NumberFormat.decimalPattern('en_IN'),
-                                    //   ),
-                                    // ],
-                                    validator: (value) {
-                                      if (value == null || !value.isValidText) {
-                                        return 'Can\'t be empty';
-                                      }
-                                      return null;
-                                    },
-                                    // onChanged: (value) {
-                                    //   cubit.updateQuantity(value.trim().replaceAll(',', '').parseDouble ?? 0.0);
-                                    // },
-                                    onTap: () async {
-                                      final value = await InveslyCalculatorWidget.showModal(context);
-                                      if (value == null) return;
-                                      _quantityTextController.text = NumberFormat.decimalPattern('en_IN').format(value);
-                                      cubit.updateQuantity(value);
-                                    },
-                                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                                  ).withLabel('No. of units'),
-                                ),
+                                child: AsyncFormField<double>(
+                                  initialValue: cubit.state.quantity,
+                                  validator: (value) {
+                                    if (value == null || value.isNegative) {
+                                      return 'Can\'t be empty or negative';
+                                    }
+                                    return null;
+                                  },
+                                  onTap: () async {
+                                    final value = await InveslyCalculatorWidget.showModal(context);
+                                    if (value == null) return null;
+
+                                    cubit.updateQuantity(value);
+                                  },
+                                  childBuilder: (value) {
+                                    if (value == null) {
+                                      return const Text('Select units', style: TextStyle(color: Colors.grey));
+                                    }
+                                    return Text(
+                                      NumberFormat.decimalPattern('en_IN').format(value),
+                                      textAlign: TextAlign.right,
+                                    );
+                                  },
+                                ).withLabel('No. of units'),
                               ),
+                              // Expanded(
+                              //   child: Shake(
+                              //     key: _quantityShakeKey,
+                              //     child: TextFormField(
+                              //       key: _quantityTextField,
+                              //       // controller: TextEditingController(text: quantity?.toString()),
+                              //       controller: _quantityTextController,
+                              //       decoration: const InputDecoration(hintText: 'e.g. 5'),
+                              //       textAlign: TextAlign.right,
+                              //       readOnly: true,
+                              //       // keyboardType: const TextInputType.numberWithOptions(),
+                              //       // inputFormatters: [
+                              //       //   ThousandsFormatter(
+                              //       //     allowFraction: true,
+                              //       //     formatter: NumberFormat.decimalPattern('en_IN'),
+                              //       //   ),
+                              //       // ],
+                              //       validator: (value) {
+                              //         if (value == null || !value.isValidText) {
+                              //           return 'Can\'t be empty';
+                              //         }
+                              //         return null;
+                              //       },
+                              //       // onChanged: (value) {
+                              //       //   cubit.updateQuantity(value.trim().replaceAll(',', '').parseDouble ?? 0.0);
+                              //       // },
+                              //       onTap: () async {
+                              //         final value = await InveslyCalculatorWidget.showModal(context);
+                              //         if (value == null) return;
+                              //         _quantityTextController.text = NumberFormat.decimalPattern('en_IN').format(value);
+                              //         cubit.updateQuantity(value);
+                              //       },
+                              //       onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                              //     ).withLabel('No. of units'),
+                              //   ),
+                              // ),
 
                               // ~ Amount
                               Expanded(
@@ -401,7 +429,7 @@ class InveslyTogglerExample extends StatefulWidget {
   State<InveslyTogglerExample> createState() => _InveslyTogglerExampleState();
 }
 
-class _AmcField extends StatefulWidget {
+class _AmcField extends StatelessWidget {
   const _AmcField({
     super.key,
     this.value,
@@ -410,65 +438,20 @@ class _AmcField extends StatefulWidget {
     this.errorText,
   });
 
-  // final ValueChanged<String>? onChanged;
   final InveslyAmc? value;
   final AlignmentGeometry contentAlignment;
   final EdgeInsets padding;
   final String? errorText;
 
-  @override
-  State<_AmcField> createState() => __AmcFieldState();
-}
-
-class __AmcFieldState extends State<_AmcField> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fadeAnimation;
-  late final Animation<Offset> _positionAnimation;
-  bool get _hasError => widget.errorText != null;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(duration: 500.ms, vsync: this);
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
-    _positionAnimation = Tween<Offset>(begin: const Offset(0.0, -0.25), end: Offset.zero).animate(_controller);
-    if (_hasError) {
-      _controller.value = 1.0;
-    }
-    // _controller.addListener(_handleChange);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(_AmcField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    final String? newErrorText = widget.errorText;
-    final String? oldErrorText = oldWidget.errorText;
-
-    final bool errorTextChanged = (newErrorText != null) != (oldErrorText != null);
-
-    if (errorTextChanged) {
-      if (newErrorText != null) {
-        _controller.forward();
-      } else {
-        _controller.reverse();
-      }
-    }
-  }
+  bool get _hasError => errorText != null;
 
   @override
   Widget build(BuildContext context) {
-    final amc = widget.value;
     late final Widget content;
-    if (amc == null) {
+    if (value == null) {
       content = Text('Select AMC', style: TextStyle(color: Colors.grey));
     } else {
+      final amc = value!;
       content = Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,8 +465,6 @@ class __AmcFieldState extends State<_AmcField> with SingleTickerProviderStateMix
         ],
       );
     }
-
-    final errorText = widget.errorText;
 
     TextStyle errorStyle = context.textTheme.bodySmall ?? const TextStyle();
     errorStyle = errorStyle.copyWith(color: context.colors.error).merge(context.theme.inputDecorationTheme.errorStyle);
@@ -502,19 +483,21 @@ class __AmcFieldState extends State<_AmcField> with SingleTickerProviderStateMix
               if (amc == null) return;
               //  cubit.updateAmc(amc);
             },
-            childAlignment: widget.contentAlignment,
-            padding: widget.padding,
-            bgColor: errorText != null ? context.colors.errorContainer : context.colors.primaryContainer,
+            childAlignment: contentAlignment,
+            padding: padding,
+            bgColor: _hasError ? context.colors.errorContainer : context.colors.primaryContainer,
             child: content,
           ),
 
           // ~ Error text
-          Padding(
-            padding: widget.padding.copyWith(top: 0.0, bottom: 0.0),
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _positionAnimation,
+          if (_hasError)
+            Padding(
+              padding: padding.copyWith(top: 0.0, bottom: 0.0),
+
+              child: FadeInDown(
+                animate: _hasError,
+                from: 5,
+                duration: 167.ms,
                 child: Text(
                   errorText ?? '',
                   style: errorStyle,
@@ -524,7 +507,6 @@ class __AmcFieldState extends State<_AmcField> with SingleTickerProviderStateMix
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

@@ -1,6 +1,7 @@
 // import 'package:flutter/scheduler.dart' show timeDilation;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:invesly/intro/splash_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:invesly/database/invesly_api.dart';
@@ -22,7 +23,7 @@ void main() async {
 
   await Bootstrap.initialize();
   runApp(const InveslyApp());
-  // timeDilation = 4.0;
+  timeDilation = 4.0;
 }
 
 class InveslyApp extends StatelessWidget {

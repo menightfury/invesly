@@ -1,21 +1,23 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:animate_do/animate_do.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:invesly/common/extensions/num_extension.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common_libs.dart';
 
-import 'tappable.dart';
+import '../components/tappable.dart';
 
-class TappableFormField<T> extends FormField<T> {
-  /// Creates a [FormField] that contains a [Tappable].
-  TappableFormField({
+class AsyncFormField<T> extends FormField<T> {
+  AsyncFormField({
     super.key,
-    T? value,
+    super.initialValue,
     // VoidCallback? onTap,
-    FutureOr<T> Function()? onTap,
+    AsyncValueGetter<T?>? onTap,
+    Future<T>? future,
     // this.onChanged,
     super.forceErrorText,
     super.onSaved,
@@ -29,9 +31,8 @@ class TappableFormField<T> extends FormField<T> {
     super.restorationId,
   }) : super(
          autovalidateMode: autovalidateMode ?? AutovalidateMode.disabled,
-         initialValue: value,
          builder: (FormFieldState<T> field) {
-           //  final state = field as _TappableFieldState;
+           final state = field as _AsyncFormFieldState;
            final theme = Theme.of(field.context);
            final colors = theme.colorScheme;
            final textTheme = theme.textTheme;
@@ -41,6 +42,8 @@ class TappableFormField<T> extends FormField<T> {
            //  );
 
            final errorText = field.errorText;
+           final hasError = errorText != null;
+
            Widget? error;
            if (errorText != null && errorBuilder != null) {
              error = errorBuilder(field.context, errorText);
@@ -54,8 +57,9 @@ class TappableFormField<T> extends FormField<T> {
            TextStyle errorStyle = textTheme.bodySmall ?? const TextStyle();
            errorStyle = errorStyle.copyWith(color: colors.error).merge(theme.inputDecorationTheme.errorStyle);
 
-           return Shake(
-             shake: errorText != null,
+           return ShakeX(
+             animate: hasError,
+             duration: const Duration(milliseconds: 500),
              child: Column(
                mainAxisSize: MainAxisSize.min,
                crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,10 +78,10 @@ class TappableFormField<T> extends FormField<T> {
                    },
                    childAlignment: contentAlignment,
                    padding: padding,
-                   bgColor: errorText != null ? colors.errorContainer : colors.primaryContainer,
+                   bgColor: hasError ? colors.errorContainer : colors.primaryContainer,
                    child: childBuilder(value),
                  ),
-                 if (errorText != null)
+                 if (hasError)
                    Padding(
                      padding: padding,
                      child: _ErrorViewer(error: error, errorText: errorText, errorStyle: errorStyle),
@@ -91,10 +95,10 @@ class TappableFormField<T> extends FormField<T> {
   // final ValueChanged<String>? onChanged;
 
   @override
-  FormFieldState<T> createState() => _TappableFieldState();
+  FormFieldState<T> createState() => _AsyncFormFieldState();
 }
 
-class _TappableFieldState<T> extends FormFieldState<T> {
+class _AsyncFormFieldState<T> extends FormFieldState<T> {
   //
 }
 
