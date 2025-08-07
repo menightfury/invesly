@@ -15,10 +15,12 @@ class AsyncFormField<T> extends FormField<T> {
   AsyncFormField({
     super.key,
     super.initialValue,
-    FutureOr<T?> Function()? onTapCallback,
+    Future<T?> Function()? onTapCallback,
     // this.onChanged,
     super.forceErrorText,
     super.onSaved,
+    this.onChanged,
+    super.enabled = true,
     super.validator,
     AutovalidateMode? autovalidateMode,
     super.errorBuilder,
@@ -29,8 +31,9 @@ class AsyncFormField<T> extends FormField<T> {
   }) : super(
          autovalidateMode: autovalidateMode ?? AutovalidateMode.disabled,
          builder: (FormFieldState<T> field) {
-           //  final state = field as _AsyncFormFieldState;
+           final state = field as _AsyncFormFieldState;
            final theme = Theme.of(field.context);
+
            final colors = theme.colorScheme;
            final textTheme = theme.textTheme;
 
@@ -39,23 +42,19 @@ class AsyncFormField<T> extends FormField<T> {
            //  );
 
            final errorText = field.errorText;
-           final hasError = errorText != null;
+           final hasError = errorText != null && errorText.isNotEmpty;
 
            Widget? error;
-           if (errorText != null && errorBuilder != null) {
+           if (hasError && errorBuilder != null) {
              error = errorBuilder(field.context, errorText);
            }
-
-           // void onChangedHandler(String value) {
-           //   field.didChange(value);
-           //   onChanged?.call(value);
-           // }
 
            TextStyle errorStyle = textTheme.bodySmall ?? const TextStyle();
            errorStyle = errorStyle.copyWith(color: colors.error).merge(theme.inputDecorationTheme.errorStyle);
 
            return ShakeX(
-             animate: hasError,
+             animate: hasError || state.isShaked,
+             onFinish: (_) => state.isShaked = true,
              duration: const Duration(milliseconds: 500),
              child: Column(
                mainAxisSize: MainAxisSize.min,
@@ -67,19 +66,19 @@ class AsyncFormField<T> extends FormField<T> {
                      if (onTapCallback == null) return;
 
                      final result = onTapCallback.call();
-                     if (result is Future<T?>) {
-                       result.then((value) {
-                         $logger.w(value);
-                         field.didChange(value);
-                       });
-                     } else {
-                       field.didChange(result);
-                     }
+                     //  if (result is Future<T?>) {
+                     result.then((value) {
+                       $logger.w(value);
+                       field.didChange(value);
+                     });
+                     //  } else {
+                     //    field.didChange(result);
+                     //  }
                    },
                    childAlignment: contentAlignment,
                    padding: padding,
                    bgColor: hasError ? colors.errorContainer : colors.primaryContainer,
-                   child: childBuilder(initialValue),
+                   child: childBuilder(field.value),
                  ),
                  if (hasError)
                    Padding(
@@ -92,14 +91,23 @@ class AsyncFormField<T> extends FormField<T> {
          },
        );
 
-  // final ValueChanged<String>? onChanged;
+  final ValueChanged<T?>? onChanged;
 
   @override
   FormFieldState<T> createState() => _AsyncFormFieldState();
 }
 
 class _AsyncFormFieldState<T> extends FormFieldState<T> {
-  //
+  AsyncFormField<T> get _formField => widget as AsyncFormField<T>;
+
+  bool isShaked = false;
+
+  @override
+  void didChange(T? value) {
+    super.didChange(value);
+    // Call the onChanged callback if provided
+    _formField.onChanged?.call(value);
+  }
 }
 
 class _ErrorViewer extends StatefulWidget {
@@ -169,6 +177,7 @@ class _ErrorViewerState extends State<_ErrorViewer> with SingleTickerProviderSta
   Widget _buildError() {
     assert(widget.error != null || widget.errorText != null);
     return FadeInDown(
+      from: 5.0,
       // manualTrigger: true,
       // controller: (controller) => _controller = controller,
       animate: _hasError,
