@@ -169,11 +169,11 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                     }
                                     return null;
                                   },
-                                  onTap: () async {
+                                  onTapCallback: () async {
                                     final value = await InveslyCalculatorWidget.showModal(context);
                                     if (value == null) return null;
-
                                     cubit.updateQuantity(value);
+                                    return value;
                                   },
                                   childBuilder: (value) {
                                     if (value == null) {

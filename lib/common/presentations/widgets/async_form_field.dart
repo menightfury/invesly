@@ -15,9 +15,7 @@ class AsyncFormField<T> extends FormField<T> {
   AsyncFormField({
     super.key,
     super.initialValue,
-    // VoidCallback? onTap,
-    AsyncValueGetter<T?>? onTap,
-    Future<T>? future,
+    FutureOr<T?> Function()? onTapCallback,
     // this.onChanged,
     super.forceErrorText,
     super.onSaved,
@@ -25,14 +23,13 @@ class AsyncFormField<T> extends FormField<T> {
     AutovalidateMode? autovalidateMode,
     super.errorBuilder,
     required Widget Function(T? value) childBuilder,
-    // InputDecoration? decoration,
     EdgeInsetsGeometry padding = AppConstants.formFieldContentPadding,
     AlignmentGeometry contentAlignment = Alignment.centerLeft,
     super.restorationId,
   }) : super(
          autovalidateMode: autovalidateMode ?? AutovalidateMode.disabled,
          builder: (FormFieldState<T> field) {
-           final state = field as _AsyncFormFieldState;
+           //  final state = field as _AsyncFormFieldState;
            final theme = Theme.of(field.context);
            final colors = theme.colorScheme;
            final textTheme = theme.textTheme;
@@ -67,19 +64,22 @@ class AsyncFormField<T> extends FormField<T> {
                children: <Widget>[
                  Tappable(
                    onTap: () {
-                     if (onTap == null) return;
+                     if (onTapCallback == null) return;
 
-                     final result = onTap.call();
-                     if (result is Future<T>) {
-                       result.then((value) => field.didChange(value));
+                     final result = onTapCallback.call();
+                     if (result is Future<T?>) {
+                       result.then((value) {
+                         $logger.w(value);
+                         field.didChange(value);
+                       });
                      } else {
-                       field.didChange(result as T?);
+                       field.didChange(result);
                      }
                    },
                    childAlignment: contentAlignment,
                    padding: padding,
                    bgColor: hasError ? colors.errorContainer : colors.primaryContainer,
-                   child: childBuilder(value),
+                   child: childBuilder(initialValue),
                  ),
                  if (hasError)
                    Padding(
@@ -130,7 +130,7 @@ class _ErrorViewerState extends State<_ErrorViewer> with SingleTickerProviderSta
     if (_hasError) {
       _controller.value = 1.0;
     }
-    _controller.addListener(_handleChange);
+    // _controller.addListener(_handleChange);
   }
 
   @override
@@ -139,11 +139,11 @@ class _ErrorViewerState extends State<_ErrorViewer> with SingleTickerProviderSta
     super.dispose();
   }
 
-  void _handleChange() {
-    setState(() {
-      // The _controller's value has changed.
-    });
-  }
+  // void _handleChange() {
+  //   setState(() {
+  //     // The _controller's value has changed.
+  //   });
+  // }
 
   @override
   void didUpdateWidget(_ErrorViewer oldWidget) {
@@ -168,35 +168,34 @@ class _ErrorViewerState extends State<_ErrorViewer> with SingleTickerProviderSta
 
   Widget _buildError() {
     assert(widget.error != null || widget.errorText != null);
-    return FadeTransition(
-      opacity: _controller,
-      child: FractionalTranslation(
-        translation: Tween<Offset>(begin: const Offset(0.0, -0.25), end: Offset.zero).evaluate(_controller.view),
-        child:
-            widget.error ??
-            Text(
-              widget.errorText!,
-              style: widget.errorStyle,
-              textAlign: widget.textAlign,
-              overflow: TextOverflow.ellipsis,
-              maxLines: widget.errorMaxLines,
-            ),
-      ),
+    return FadeInDown(
+      // manualTrigger: true,
+      // controller: (controller) => _controller = controller,
+      animate: _hasError,
+      child:
+          widget.error ??
+          Text(
+            widget.errorText!,
+            style: widget.errorStyle,
+            textAlign: widget.textAlign,
+            overflow: TextOverflow.ellipsis,
+            maxLines: widget.errorMaxLines,
+          ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_controller.isDismissed) {
-      return empty;
-    }
+    // if (_controller.isDismissed) {
+    //   return empty;
+    // }
 
-    if (_controller.isCompleted) {
-      if (_hasError) {
-        return _buildError();
-      }
-      return empty;
-    }
+    // if (_controller.isCompleted) {
+    //   if (_hasError) {
+    //     return _buildError();
+    //   }
+    //   return empty;
+    // }
 
     if (_hasError) {
       return _buildError();
