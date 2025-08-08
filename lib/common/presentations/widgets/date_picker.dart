@@ -13,7 +13,6 @@ class InveslyDatePicker extends StatefulWidget {
   final ValueChanged<DateTime>? onPickup;
   final Widget? leadingIcon;
   final Color? color;
-  // final ButtonStyle? style;
 
   @override
   State<InveslyDatePicker> createState() => _InveslyDatePickerState();
@@ -59,17 +58,6 @@ class _InveslyDatePickerState extends State<InveslyDatePicker> {
         valueListenable: _dateNotifier,
         builder: (context, date, _) {
           final days = _dateNow.difference(date).inDays;
-          // String label;
-          // switch (days) {
-          //   case 0:
-          //     label = 'Today';
-          //     break;
-          //   case 1:
-          //     label = 'Yesterday';
-          //     break;
-          //   default:
-          //     label = date.toReadable();
-          // }
           final label = switch (days) {
             0 => 'Today',
             1 => 'Yesterday',

@@ -177,145 +177,89 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                   },
                                   childBuilder: (value) {
                                     if (value == null) {
-                                      return const Text('Select units', style: TextStyle(color: Colors.grey));
+                                      return const Text(
+                                        'Select units',
+                                        style: TextStyle(color: Colors.grey),
+                                        overflow: TextOverflow.ellipsis,
+                                      );
                                     }
                                     return Text(
                                       NumberFormat.decimalPattern('en_IN').format(value),
                                       textAlign: TextAlign.right,
+                                      overflow: TextOverflow.ellipsis,
                                     );
                                   },
                                 ).withLabel('No. of units'),
                               ),
-                              // Expanded(
-                              //   child: Shake(
-                              //     key: _quantityShakeKey,
-                              //     child: TextFormField(
-                              //       key: _quantityTextField,
-                              //       // controller: TextEditingController(text: quantity?.toString()),
-                              //       controller: _quantityTextController,
-                              //       decoration: const InputDecoration(hintText: 'e.g. 5'),
-                              //       textAlign: TextAlign.right,
-                              //       readOnly: true,
-                              //       // keyboardType: const TextInputType.numberWithOptions(),
-                              //       // inputFormatters: [
-                              //       //   ThousandsFormatter(
-                              //       //     allowFraction: true,
-                              //       //     formatter: NumberFormat.decimalPattern('en_IN'),
-                              //       //   ),
-                              //       // ],
-                              //       validator: (value) {
-                              //         if (value == null || !value.isValidText) {
-                              //           return 'Can\'t be empty';
-                              //         }
-                              //         return null;
-                              //       },
-                              //       // onChanged: (value) {
-                              //       //   cubit.updateQuantity(value.trim().replaceAll(',', '').parseDouble ?? 0.0);
-                              //       // },
-                              //       onTap: () async {
-                              //         final value = await InveslyCalculatorWidget.showModal(context);
-                              //         if (value == null) return;
-                              //         _quantityTextController.text = NumberFormat.decimalPattern('en_IN').format(value);
-                              //         cubit.updateQuantity(value);
-                              //       },
-                              //       onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                              //     ).withLabel('No. of units'),
-                              //   ),
-                              // ),
 
                               // ~ Amount
                               Expanded(
-                                child: Shake(
-                                  key: _amountShakeKey,
-                                  child: TextFormField(
-                                    key: _amountTextField,
-                                    controller: _amountTextController,
-                                    decoration: const InputDecoration(
-                                      hintText: 'e.g. 500',
-                                      prefixText: '₹ ',
-                                      prefixStyle: TextStyle(color: Colors.black),
-                                    ),
-                                    textAlign: TextAlign.end,
-                                    readOnly: true,
-                                    // keyboardType: const TextInputType.numberWithOptions(),
-                                    // inputFormatters: [
-                                    //   ThousandsFormatter(
-                                    //     allowFraction: true,
-                                    //     formatter: NumberFormat.decimalPattern('en_IN'),
-                                    //   ),
-                                    // ],
-                                    validator: (value) {
-                                      if (value == null || !value.isValidText) {
-                                        return 'Can\'t be empty';
-                                      }
-                                      return null;
-                                    },
-                                    // onChanged: (value) {
-                                    //   cubit.updateAmount(value.trim().replaceAll(',', '').parseDouble ?? 0.0);
-                                    // },
-                                    onTap: () async {
-                                      final value = await InveslyCalculatorWidget.showModal(context);
-                                      if (value == null) return;
-                                      _amountTextController.text = NumberFormat.decimalPattern('en_IN').format(value);
-                                      cubit.updateAmount(value);
-                                    },
-                                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                                  ).withLabel('Total amount'),
-                                ),
+                                child: AsyncFormField<double>(
+                                  initialValue: cubit.state.amount,
+                                  validator: (value) {
+                                    if (value == null || value.isNegative) {
+                                      return 'Can\'t be empty or negative';
+                                    }
+                                    return null;
+                                  },
+                                  onTapCallback: () async {
+                                    final value = await InveslyCalculatorWidget.showModal(context);
+                                    if (value == null) return null;
+                                    cubit.updateAmount(value);
+                                    return value;
+                                  },
+                                  childBuilder: (value) {
+                                    if (value == null) {
+                                      return const Text(
+                                        'Select units',
+                                        style: TextStyle(color: Colors.grey),
+                                        overflow: TextOverflow.ellipsis,
+                                      );
+                                    }
+                                    return Text(
+                                      NumberFormat.decimalPattern('en_IN').format(value),
+                                      textAlign: TextAlign.right,
+                                      overflow: TextOverflow.ellipsis,
+                                    );
+                                  },
+                                ).withLabel('Total amount'),
                               ),
                             ],
                           ),
 
-                          // ~~~ AMC picker ~~~
-                          FormField<InveslyAmc?>(
-                            builder: (state) {
-                              return _AmcField(errorText: state.errorText);
-                            },
+                          // ~~~ AMC ~~~
+                          AsyncFormField<InveslyAmc>(
+                            initialValue: cubit.state.amc,
                             validator: (value) {
-                              $logger.d(value);
                               if (value == null) {
-                                return 'AMC can\'t be empty';
+                                return 'Can\'t be empty';
                               }
                               return null;
                             },
-                          ),
-                          // BlocSelector<EditTransactionCubit, EditTransactionState, InveslyAmc?>(
-                          //   selector: (state) => state.amc,
-                          //   builder: (context, amc) {
-                          //     return TappableFormField<InveslyAmc>(
-                          //       value: amc,
-                          //       onTap: () async {
-                          //         final amc = await InveslyAmcPickerWidget.showModal(context);
-                          //         if (amc == null) return;
-                          //         cubit.updateAmc(amc);
-                          //       },
-                          //       validator: (value) {
-                          //         $logger.d(value);
-                          //         if (value == null) {
-                          //           return 'AMC can\'t be empty';
-                          //         }
-                          //         return null;
-                          //       },
-                          //       childBuilder: (newAmc) {
-                          //         if (newAmc == null) {
-                          //           return const Text('Select AMC', style: TextStyle(color: Colors.grey));
-                          //         }
-                          //         return Column(
-                          //           mainAxisSize: MainAxisSize.min,
-                          //           crossAxisAlignment: CrossAxisAlignment.start,
-                          //           children: <Widget>[
-                          //             Text(newAmc.name, overflow: TextOverflow.ellipsis),
-                          //             Text(
-                          //               (newAmc.genre ?? AmcGenre.misc).title,
-                          //               style: context.textTheme.labelSmall,
-                          //               overflow: TextOverflow.ellipsis,
-                          //             ),
-                          //           ],
-                          //         );
-                          //       },
-                          //     ).withLabel('Asset management company (AMC)');
-                          //   },
-                          // ),
+                            onTapCallback: () async {
+                              final value = await InveslyAmcPickerWidget.showModal(context);
+                              if (value == null) return null;
+                              cubit.updateAmc(value);
+                              return value;
+                            },
+                            childBuilder: (value) {
+                              if (value == null) {
+                                return const Text('Select AMC', style: TextStyle(color: Colors.grey));
+                              }
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(value.name, overflow: TextOverflow.ellipsis),
+                                  Text(
+                                    (value.genre ?? AmcGenre.misc).title,
+                                    style: context.textTheme.labelSmall,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              );
+                            },
+                          ).withLabel('Asset management company (AMC)'),
 
                           // ~~~ Type and Date ~~~
                           Row(
@@ -345,22 +289,6 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                     ),
                   ]),
                 ),
-
-                // // ~~~ Save button ~~~
-                // SliverFillRemaining(
-                //   hasScrollBody: false,
-                //   child: Align(
-                //     alignment: Alignment.bottomCenter,
-                //     child: Padding(
-                //       padding: const EdgeInsets.symmetric(vertical: 8.0),
-                //       child: ElevatedButton.icon(
-                //         icon: const Icon(Icons.save_alt_rounded),
-                //         onPressed: () => _handleSavePressed(context),
-                //         label: const Text('Save transaction'),
-                //       ),
-                //     ),
-                //   ),
-                // ),
               ],
             ),
           ),
@@ -429,194 +357,6 @@ class InveslyTogglerExample extends StatefulWidget {
   State<InveslyTogglerExample> createState() => _InveslyTogglerExampleState();
 }
 
-class _AmcField extends StatelessWidget {
-  const _AmcField({
-    super.key,
-    this.value,
-    this.padding = const EdgeInsets.symmetric(horizontal: 12.0),
-    this.contentAlignment = Alignment.centerLeft,
-    this.errorText,
-  });
-
-  final InveslyAmc? value;
-  final AlignmentGeometry contentAlignment;
-  final EdgeInsets padding;
-  final String? errorText;
-
-  bool get _hasError => errorText != null;
-
-  @override
-  Widget build(BuildContext context) {
-    late final Widget content;
-    if (value == null) {
-      content = Text('Select AMC', style: TextStyle(color: Colors.grey));
-    } else {
-      final amc = value!;
-      content = Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(amc.name, overflow: TextOverflow.ellipsis),
-          Text(
-            (amc.genre ?? AmcGenre.misc).title,
-            style: context.textTheme.labelSmall,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      );
-    }
-
-    TextStyle errorStyle = context.textTheme.bodySmall ?? const TextStyle();
-    errorStyle = errorStyle.copyWith(color: context.colors.error).merge(context.theme.inputDecorationTheme.errorStyle);
-
-    return Shake(
-      //  shake: field.hasError,
-      shake: false,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 4.0,
-        children: <Widget>[
-          Tappable(
-            onTap: () async {
-              final amc = await InveslyAmcPickerWidget.showModal(context);
-              if (amc == null) return;
-              //  cubit.updateAmc(amc);
-            },
-            childAlignment: contentAlignment,
-            padding: padding,
-            bgColor: _hasError ? context.colors.errorContainer : context.colors.primaryContainer,
-            child: content,
-          ),
-
-          // ~ Error text
-          if (_hasError)
-            Padding(
-              padding: padding.copyWith(top: 0.0, bottom: 0.0),
-
-              child: FadeInDown(
-                animate: _hasError,
-                from: 5,
-                duration: 167.ms,
-                child: Text(
-                  errorText ?? '',
-                  style: errorStyle,
-                  //  textAlign: textAlign,
-                  overflow: TextOverflow.ellipsis,
-                  //  maxLines: widget.errorMaxLines,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ErrorViewer extends StatefulWidget {
-  const _ErrorViewer({this.textAlign, this.error, this.errorText, this.errorStyle, this.errorMaxLines});
-
-  final TextAlign? textAlign;
-  final Widget? error;
-  final String? errorText;
-  final TextStyle? errorStyle;
-  final int? errorMaxLines;
-
-  @override
-  _ErrorViewerState createState() => _ErrorViewerState();
-}
-
-class _ErrorViewerState extends State<_ErrorViewer> with SingleTickerProviderStateMixin {
-  // If the height of this widget and the counter are zero ("empty") at
-  // layout time, no space is allocated for the subtext.
-  static const Widget empty = SizedBox.shrink();
-
-  late AnimationController _controller;
-  bool get _hasError => widget.errorText != null || widget.error != null;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(duration: Duration(milliseconds: 167), vsync: this);
-    if (_hasError) {
-      _controller.value = 1.0;
-    }
-    _controller.addListener(_handleChange);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _handleChange() {
-    setState(() {
-      // The _controller's value has changed.
-    });
-  }
-
-  @override
-  void didUpdateWidget(_ErrorViewer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    final Widget? newError = widget.error;
-    final String? newErrorText = widget.errorText;
-    final Widget? oldError = oldWidget.error;
-    final String? oldErrorText = oldWidget.errorText;
-
-    final bool errorStateChanged = (newError != null) != (oldError != null);
-    final bool errorTextStateChanged = (newErrorText != null) != (oldErrorText != null);
-
-    if (errorStateChanged || errorTextStateChanged) {
-      if (newError != null || newErrorText != null) {
-        _controller.forward();
-      } else {
-        _controller.reverse();
-      }
-    }
-  }
-
-  Widget _buildError() {
-    assert(widget.error != null || widget.errorText != null);
-    return FadeTransition(
-      opacity: _controller,
-      child: FractionalTranslation(
-        translation: Tween<Offset>(begin: const Offset(0.0, -0.25), end: Offset.zero).evaluate(_controller.view),
-        child:
-            widget.error ??
-            Text(
-              widget.errorText!,
-              style: widget.errorStyle,
-              textAlign: widget.textAlign,
-              overflow: TextOverflow.ellipsis,
-              maxLines: widget.errorMaxLines,
-            ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_controller.isDismissed) {
-      return empty;
-    }
-
-    if (_controller.isCompleted) {
-      if (_hasError) {
-        return _buildError();
-      }
-      return empty;
-    }
-
-    if (_hasError) {
-      return _buildError();
-    }
-
-    return empty;
-  }
-}
-
 class _InveslyTogglerExampleState extends State<InveslyTogglerExample> {
   late TransactionType _value;
 
@@ -674,60 +414,3 @@ class InveslyToggler<T> extends StatelessWidget {
     );
   }
 }
-
-// class _NotesEditor extends StatefulWidget {
-//   final String? initialNote;
-//   final ValueChanged<String>? onSubmit;
-
-//   const _NotesEditor({super.key, this.initialNote, this.onSubmit});
-
-//   @override
-//   State<_NotesEditor> createState() => __NotesEditorState();
-// }
-
-// class __NotesEditorState extends State<_NotesEditor> {
-//   late final TextEditingController _notesController;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _notesController = TextEditingController(text: widget.initialNote);
-//   }
-
-//   @override
-//   void dispose() {
-//     _notesController.dispose();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-
-//     return Padding(
-//       padding: const EdgeInsets.all(16.0).copyWith(bottom: 16.0 + bottomPadding),
-//       child: Column(
-//         mainAxisSize: MainAxisSize.min,
-//         // crossAxisAlignment: CrossAxisAlignment.start,
-//         children: <Widget>[
-//           const Text('Add note', textAlign: TextAlign.center),
-//           const Gap(12.0),
-//           TextFormField(
-//             decoration: const InputDecoration(hintText: 'Add notes'),
-//             controller: _notesController,
-//             autofocus: true,
-//           ),
-//           const Gap(12.0),
-//           Align(
-//             alignment: Alignment.bottomRight,
-//             child: ElevatedButton.icon(
-//               onPressed: () => widget.onSubmit?.call(_notesController.text),
-//               icon: const Icon(Icons.check_rounded),
-//               label: const Text('Confirm'),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }

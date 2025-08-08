@@ -22,8 +22,8 @@ void main() async {
   Bloc.observer = InveslyBlocObserver();
 
   await Bootstrap.initialize();
+  timeDilation = 2.0;
   runApp(const InveslyApp());
-  // timeDilation = 4.0;
 }
 
 class InveslyApp extends StatelessWidget {
