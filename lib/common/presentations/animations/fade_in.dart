@@ -3,10 +3,20 @@
 import 'package:flutter/material.dart';
 
 class FadeIn extends StatefulWidget {
-  const FadeIn({super.key, required this.child, this.duration = const Duration(milliseconds: 200)});
+  const FadeIn({
+    super.key,
+    required this.child,
+    this.duration = const Duration(milliseconds: 167),
+    this.fade = true,
+    this.from = const Offset(0, -0.1),
+    this.curve = Curves.easeInOut,
+  });
 
   final Widget child;
   final Duration duration;
+  final bool fade;
+  final Offset from;
+  final Curve curve;
 
   @override
   _FadeInState createState() => _FadeInState();
@@ -14,22 +24,54 @@ class FadeIn extends StatefulWidget {
 
 class _FadeInState extends State<FadeIn> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _opacityAnimation;
+  late final Animation<double> _opacity;
+  late final Animation<Offset> _position;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this, duration: widget.duration);
-    _opacityAnimation = Tween<double>(begin: 0, end: 1).animate(_controller);
-    _controller.forward();
+    _opacity = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: const Interval(0, 0.65)));
+    _position = Tween<Offset>(
+      begin: widget.from,
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    if (widget.fade) {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant FadeIn oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.fade != oldWidget.fade) {
+      if (widget.fade) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _opacityAnimation,
+      animation: _controller,
       builder: (context, child) {
-        return Opacity(opacity: _opacityAnimation.value, child: child);
+        return FractionalTranslation(
+          translation: _position.value,
+          child: Opacity(opacity: _opacity.value, child: child),
+        );
       },
       child: widget.child,
     );

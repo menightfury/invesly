@@ -6,14 +6,16 @@ class Shake extends StatefulWidget {
   const Shake({
     super.key,
     required this.child,
-    this.duration = const Duration(milliseconds: 200),
+    this.duration = const Duration(milliseconds: 167),
     this.shakeCount = 3,
     this.shakeOffset = 10.0,
+    this.direction = Axis.horizontal,
     this.shake = true,
   });
 
   final Widget child;
   final double shakeOffset;
+  final Axis direction;
   final int shakeCount;
   final Duration duration;
   final bool shake;
@@ -32,6 +34,9 @@ class ShakeState extends State<Shake> with SingleTickerProviderStateMixin {
     _controller = AnimationController(vsync: this, duration: widget.duration);
     _animation = CurvedAnimation(parent: _controller, curve: SineCurve(count: widget.shakeCount));
     _controller.addStatusListener(_updateStatus);
+    if (widget.shake) {
+      shake();
+    }
   }
 
   @override
@@ -49,7 +54,9 @@ class ShakeState extends State<Shake> with SingleTickerProviderStateMixin {
   }
 
   void shake() {
-    _controller.forward();
+    _controller
+      ..reset()
+      ..forward();
   }
 
   @override
@@ -63,10 +70,15 @@ class ShakeState extends State<Shake> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _animation,
+      animation: _controller,
       child: widget.child,
       builder: (context, child) {
-        return Transform.translate(offset: Offset(_animation.value * widget.shakeOffset, 0), child: child);
+        final offset =
+            widget.direction == Axis.horizontal
+                ? Offset(_animation.value * widget.shakeOffset, 0)
+                : Offset(0, _animation.value * widget.shakeOffset);
+
+        return Transform.translate(offset: offset, child: child);
       },
     );
   }

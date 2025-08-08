@@ -53,8 +53,8 @@ class Tappable extends StatelessWidget {
         trailing: trailing,
         dense: false,
         contentPadding: padding,
-        minVerticalPadding: 12.0,
-        minTileHeight: 48.0,
+        minVerticalPadding: 0.0,
+        minTileHeight: 0.0,
         isThreeLine: false,
       ),
     );

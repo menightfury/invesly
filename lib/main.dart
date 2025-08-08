@@ -23,7 +23,7 @@ void main() async {
 
   await Bootstrap.initialize();
   runApp(const InveslyApp());
-  timeDilation = 4.0;
+  // timeDilation = 4.0;
 }
 
 class InveslyApp extends StatelessWidget {

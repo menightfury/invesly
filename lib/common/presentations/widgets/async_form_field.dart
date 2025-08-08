@@ -1,21 +1,16 @@
 import 'dart:async';
-import 'dart:math';
 
-import 'package:animate_do/animate_do.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:invesly/common/extensions/num_extension.dart';
+// import 'package:animate_do/animate_do.dart';
+
+import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common_libs.dart';
-
-import '../components/tappable.dart';
 
 class AsyncFormField<T> extends FormField<T> {
   AsyncFormField({
     super.key,
     super.initialValue,
-    Future<T?> Function()? onTapCallback,
+    FutureOr<T?> Function()? onTapCallback,
     // this.onChanged,
     super.forceErrorText,
     super.onSaved,
@@ -31,15 +26,11 @@ class AsyncFormField<T> extends FormField<T> {
   }) : super(
          autovalidateMode: autovalidateMode ?? AutovalidateMode.disabled,
          builder: (FormFieldState<T> field) {
-           final state = field as _AsyncFormFieldState;
+           //  final state = field as _AsyncFormFieldState;
            final theme = Theme.of(field.context);
 
            final colors = theme.colorScheme;
            final textTheme = theme.textTheme;
-
-           //  InputDecoration effectiveDecoration = (decoration ?? const InputDecoration()).applyDefaults(
-           //    Theme.of(field.context).inputDecorationTheme,
-           //  );
 
            final errorText = field.errorText;
            final hasError = errorText != null && errorText.isNotEmpty;
@@ -52,10 +43,9 @@ class AsyncFormField<T> extends FormField<T> {
            TextStyle errorStyle = textTheme.bodySmall ?? const TextStyle();
            errorStyle = errorStyle.copyWith(color: colors.error).merge(theme.inputDecorationTheme.errorStyle);
 
-           return ShakeX(
-             animate: hasError || state.isShaked,
-             onFinish: (_) => state.isShaked = true,
-             duration: const Duration(milliseconds: 500),
+           return Shake(
+             shake: hasError,
+             //  duration: const Duration(milliseconds: 500),
              child: Column(
                mainAxisSize: MainAxisSize.min,
                crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,14 +56,11 @@ class AsyncFormField<T> extends FormField<T> {
                      if (onTapCallback == null) return;
 
                      final result = onTapCallback.call();
-                     //  if (result is Future<T?>) {
-                     result.then((value) {
-                       $logger.w(value);
-                       field.didChange(value);
-                     });
-                     //  } else {
-                     //    field.didChange(result);
-                     //  }
+                     if (result is Future<T?>) {
+                       result.then((value) => field.didChange(value));
+                     } else {
+                       field.didChange(result);
+                     }
                    },
                    childAlignment: contentAlignment,
                    padding: padding,
@@ -82,7 +69,7 @@ class AsyncFormField<T> extends FormField<T> {
                  ),
                  if (hasError)
                    Padding(
-                     padding: padding,
+                     padding: EdgeInsets.only(horizontal: padding.),
                      child: _ErrorViewer(error: error, errorText: errorText, errorStyle: errorStyle),
                    ),
                ],
@@ -147,12 +134,6 @@ class _ErrorViewerState extends State<_ErrorViewer> with SingleTickerProviderSta
     super.dispose();
   }
 
-  // void _handleChange() {
-  //   setState(() {
-  //     // The _controller's value has changed.
-  //   });
-  // }
-
   @override
   void didUpdateWidget(_ErrorViewer oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -176,11 +157,9 @@ class _ErrorViewerState extends State<_ErrorViewer> with SingleTickerProviderSta
 
   Widget _buildError() {
     assert(widget.error != null || widget.errorText != null);
-    return FadeInDown(
-      from: 5.0,
-      // manualTrigger: true,
-      // controller: (controller) => _controller = controller,
-      animate: _hasError,
+    return FadeIn(
+      from: Offset(0.0, -0.25),
+      fade: _hasError,
       child:
           widget.error ??
           Text(
@@ -195,17 +174,6 @@ class _ErrorViewerState extends State<_ErrorViewer> with SingleTickerProviderSta
 
   @override
   Widget build(BuildContext context) {
-    // if (_controller.isDismissed) {
-    //   return empty;
-    // }
-
-    // if (_controller.isCompleted) {
-    //   if (_hasError) {
-    //     return _buildError();
-    //   }
-    //   return empty;
-    // }
-
     if (_hasError) {
       return _buildError();
     }
