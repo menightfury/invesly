@@ -4,6 +4,7 @@ class SettingsState extends Equatable {
   const SettingsState({
     this.isOnboarded = false,
     this.isDarkMode = false,
+    this.currentUser,
     this.currentUserId,
     this.isDynamicColor = true,
     this.accentColor,
@@ -12,6 +13,7 @@ class SettingsState extends Equatable {
 
   final bool isOnboarded;
   final bool isDarkMode;
+  final InveslyUser? currentUser;
   final String? currentUserId;
   final int? accentColor;
   final bool isDynamicColor;
@@ -22,6 +24,7 @@ class SettingsState extends Equatable {
   SettingsState copyWith({
     bool? isOnboarded,
     bool? isDarkMode,
+    InveslyUser? currentUser,
     String? currentUserId,
     bool? isDynamicColor,
     int? accentColor,
@@ -30,6 +33,7 @@ class SettingsState extends Equatable {
     return SettingsState(
       isOnboarded: isOnboarded ?? this.isOnboarded,
       isDarkMode: isDarkMode ?? this.isDarkMode,
+      currentUser: currentUser ?? this.currentUser,
       currentUserId: currentUserId ?? this.currentUserId,
       isDynamicColor: isDynamicColor ?? this.isDynamicColor,
       accentColor: accentColor ?? this.accentColor,
@@ -38,12 +42,21 @@ class SettingsState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [isOnboarded, isDarkMode, currentUserId, isDynamicColor, accentColor, isPrivateMode];
+  List<Object?> get props => [
+    isOnboarded,
+    isDarkMode,
+    currentUser,
+    currentUserId,
+    isDynamicColor,
+    accentColor,
+    isPrivateMode,
+  ];
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'isOnboarded': isOnboarded,
       'isDarkMode': isDarkMode,
+      'currentUser': currentUser?.toJson(),
       'currentUserId': currentUserId,
       'isDynamicColor': isDynamicColor,
       'accentColor': accentColor,
@@ -55,6 +68,7 @@ class SettingsState extends Equatable {
     return SettingsState(
       isOnboarded: map['isOnboarded'] as bool,
       isDarkMode: map['isDarkMode'] as bool,
+      currentUser: map['currentUser'] != null ? InveslyUser.fromJson(map['currentUser'] as String) : null,
       currentUserId: map['currentUserId'] as String?,
       isDynamicColor: map['isDynamicColor'] as bool,
       accentColor: map['accentColor'] as int?,

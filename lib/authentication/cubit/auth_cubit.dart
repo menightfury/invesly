@@ -1,53 +1,30 @@
-import 'package:equatable/equatable.dart';
 import 'dart:async';
-
-import 'package:authentication_repository/authentication_repository.dart';
-import 'package:equatable/equatable.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:user_repository/user_repository.dart';
 part 'auth_state.dart';
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
-  AuthenticationCubit({
-    required AuthenticationRepository authenticationRepository,
-    required UserRepository userRepository,
-  }) : _authenticationRepository = authenticationRepository,
-       _userRepository = userRepository,
-       super(AuthenticationInitial());
+  AuthenticationCubit({required AuthenticationRepository repository})
+    : _repository = repository,
 
-  final AuthenticationRepository _authenticationRepository;
-  final UserRepository _userRepository;
+      super(AuthenticationState.unknown());
 
-  Future<void> _onSubscriptionRequested(AuthenticationSubscriptionRequested event, Emitter<AuthenticationState> emit) {
-    return emit.onEach(
-      _authenticationRepository.status,
-      onData: (status) async {
-        switch (status) {
-          case AuthenticationStatus.unauthenticated:
-            return emit(const AuthenticationState.unauthenticated());
-          case AuthenticationStatus.authenticated:
-            final user = await _tryGetUser();
-            return emit(
-              user != null ? AuthenticationState.authenticated(user) : const AuthenticationState.unauthenticated(),
-            );
-          case AuthenticationStatus.unknown:
-            return emit(const AuthenticationState.unknown());
-        }
-      },
-      onError: addError,
-    );
-  }
+  final AuthenticationRepository _repository;
 
-  void _onLogoutPressed(AuthenticationLogoutPressed event, Emitter<AuthenticationState> emit) {
-    _authenticationRepository.logOut();
-  }
+  Future<void> _onLoginPressed() async {
+    emit(AuthenticationState.unknown());
 
-  Future<User?> _tryGetUser() async {
-    try {
-      final user = await _userRepository.getUser();
-      return user;
-    } catch (_) {
-      return null;
+    final user = await _repository.signInGoogle();
+    if (user != null) {
+      emit(AuthenticationState.authenticated(user));
+    } else {
+      emit(const AuthenticationState.unauthenticated());
     }
+  }
+
+  Future<void> _onLogoutPressed() async {
+    await _repository.signOutGoogle();
+    emit(AuthenticationState.unknown());
   }
 }

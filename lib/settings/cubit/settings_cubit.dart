@@ -1,3 +1,4 @@
+import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common_libs.dart';
 
 part 'settings_state.dart';

@@ -1,9 +1,10 @@
 // ignore_for_file: avoid_print
 
+import 'package:invesly/authentication/login_screen.dart';
 import 'package:invesly/common_libs.dart';
 
 import 'package:invesly/settings/cubit/settings_cubit.dart';
-// import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
+import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 // import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 // import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 
@@ -76,9 +77,10 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
   void _handleCompletePressed(BuildContext context) {
     if (_currentPage.value != _pageData.length - 1) return;
 
-    context.read<SettingsCubit>().completeOnboarding();
+    // context.read<SettingsCubit>().completeOnboarding();
+    // context.go(const LoginScreen());
     // final accountsState = context.read<AccountsCubit>().state;
-    // final settingsState = context.read<SettingsCubit>().state;
+    final settingsState = context.read<SettingsCubit>().state;
 
     // if (accountsState is AccountsLoadedState) {
     //   if (!context.mounted) return;
@@ -90,11 +92,13 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
     //   }
 
     //   // If there are accounts but currentAccountId is null, set the first account as current account
-    //   if (settingsState.currentAccountId == null) {
-    //     context.read<SettingsCubit>().saveCurrentAccount(accountsState.accounts.first.id);
-    //   }
+    if (settingsState.currentUser == null) {
+      // context.read<SettingsCubit>().saveCurrentAccount(accountsState.accounts.first.id);
+      context.go(LoginScreen());
+      return;
+    }
     //   // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
-    //   context.go(const DashboardScreen());
+    context.go(const DashboardScreen());
     // } else if (accountsState is AccountsErrorState) {
     //   ScaffoldMessenger.of(context).showSnackBar(
     //     SnackBar(

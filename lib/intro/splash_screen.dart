@@ -1,11 +1,11 @@
 import 'dart:async';
 
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/authentication/login_screen.dart';
+import 'package:invesly/common_libs.dart';
 import 'package:invesly/intro/intro_screen.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
-import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/common_libs.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,59 +16,74 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   late final Timer _timer;
-  late final Completer _completer;
+  // late final Completer _completer;
 
   @override
   void initState() {
     super.initState();
-    context.read<AccountsCubit>().fetchAccounts();
-    _completer = Completer();
+    final settingsState = context.read<SettingsCubit>().state;
+
+    // context.read<AccountsCubit>().fetchAccounts();
+    // _completer = Completer();
     // show splash screen for few seconds
-    _timer = Timer(3.seconds, () => _completer.complete());
+    // _timer = Timer(2.seconds, () => _completer.complete());
+    _timer = Timer(2.seconds, () {
+      if (!settingsState.isOnboarded) {
+        context.go(const IntroScreen());
+        return;
+      }
+
+      if (settingsState.currentUser == null) {
+        context.go(LoginScreen());
+        return;
+      }
+      //   // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
+      context.go(const DashboardScreen());
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = context.textTheme;
     final colorScheme = context.colors;
-    final settingsState = context.read<SettingsCubit>().state;
+    // final settingsState = context.read<SettingsCubit>().state;
 
     return BlocListener<AccountsCubit, AccountsState>(
       listener: (context, usersState) async {
-        if (usersState is AccountsLoadedState) {
-          await _completer.future; // show tips message in splash screen for few seconds
-          if (!context.mounted) return;
+        // if (usersState is AccountsLoadedState) {
+        //   await _completer.future; // show tips message in splash screen for few seconds
+        //   if (!context.mounted) return;
 
-          // If the user is not onboarded, go to IntroScreen
-          if (!settingsState.isOnboarded) {
-            context.go(const IntroScreen());
-            return;
-          }
+        //   // If the user is not onboarded, go to IntroScreen
+        //   if (!settingsState.isOnboarded) {
+        //     context.go(const IntroScreen());
+        //     return;
+        //   }
 
-          // If there are no users, go to EditUserScreen
-          if (usersState.hasNoAccount) {
-            context.go(const EditAccountScreen());
-            return;
-          }
+        //   // If there are no users, go to EditUserScreen
+        //   if (usersState.hasNoAccount) {
+        //     context.go(const EditAccountScreen());
+        //     return;
+        //   }
 
-          // If there are users but currentUserId is null, set the first user as current user
-          if (settingsState.currentUserId == null) {
-            context.read<SettingsCubit>().saveCurrentUser(usersState.accounts.first.id);
-            // go to initial requested screen or dashboard
-            // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
-          }
-          context.go(const DashboardScreen());
-        } else if (usersState is AccountsErrorState) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: context.colors.errorContainer,
-              content: Text(
-                'Error loading users: ${usersState.errorMsg}',
-                style: TextStyle(color: context.colors.onErrorContainer),
-              ),
-            ),
-          );
-        }
+        //   // If there are users but currentUserId is null, set the first user as current user
+        //   if (settingsState.currentUserId == null) {
+        //     context.read<SettingsCubit>().saveCurrentUser(usersState.accounts.first.id);
+        //     // go to initial requested screen or dashboard
+        //     // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
+        //   }
+        //   context.go(const DashboardScreen());
+        // } else if (usersState is AccountsErrorState) {
+        //   ScaffoldMessenger.of(context).showSnackBar(
+        //     SnackBar(
+        //       backgroundColor: context.colors.errorContainer,
+        //       content: Text(
+        //         'Error loading users: ${usersState.errorMsg}',
+        //         style: TextStyle(color: context.colors.onErrorContainer),
+        //       ),
+        //     ),
+        //   );
+        // }
       },
       child: Scaffold(
         body: SafeArea(
