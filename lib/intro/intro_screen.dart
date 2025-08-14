@@ -3,9 +3,9 @@
 import 'package:invesly/common_libs.dart';
 
 import 'package:invesly/settings/cubit/settings_cubit.dart';
-import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
-import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
+// import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
+// import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+// import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
@@ -77,35 +77,35 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
     if (_currentPage.value != _pageData.length - 1) return;
 
     context.read<SettingsCubit>().completeOnboarding();
-    final usersState = context.read<AccountsCubit>().state;
-    final settingsState = context.read<SettingsCubit>().state;
+    // final accountsState = context.read<AccountsCubit>().state;
+    // final settingsState = context.read<SettingsCubit>().state;
 
-    if (usersState is AccountsLoadedState) {
-      if (!context.mounted) return;
+    // if (accountsState is AccountsLoadedState) {
+    //   if (!context.mounted) return;
 
-      // If there are no users, go to EditUserScreen
-      if (usersState.hasNoAccount) {
-        context.go(const EditAccountScreen());
-        return;
-      }
+    //   // If there are no accounts, go to EditAccountScreen
+    //   if (accountsState.hasNoAccount) {
+    //     context.go(const EditAccountScreen());
+    //     return;
+    //   }
 
-      // If there are users but currentUserId is null, set the first user as current user
-      if (settingsState.currentUserId == null) {
-        context.read<SettingsCubit>().saveCurrentUser(usersState.accounts.first.id);
-      }
-      // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
-      context.go(const DashboardScreen());
-    } else if (usersState is AccountsErrorState) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: context.colors.errorContainer,
-          content: Text(
-            'Error loading users: ${usersState.errorMsg}',
-            style: TextStyle(color: context.colors.onErrorContainer),
-          ),
-        ),
-      );
-    }
+    //   // If there are accounts but currentAccountId is null, set the first account as current account
+    //   if (settingsState.currentAccountId == null) {
+    //     context.read<SettingsCubit>().saveCurrentAccount(accountsState.accounts.first.id);
+    //   }
+    //   // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
+    //   context.go(const DashboardScreen());
+    // } else if (accountsState is AccountsErrorState) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       backgroundColor: context.colors.errorContainer,
+    //       content: Text(
+    //         'Error loading users: ${accountsState.errorMsg}',
+    //         style: TextStyle(color: context.colors.onErrorContainer),
+    //       ),
+    //     ),
+    //   );
+    // }
   }
 
   void _animateToPage(int index) {
@@ -142,7 +142,7 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
 
             PageView.builder(
               controller: _pageController,
-              itemBuilder: (context, index) => _Page(_pageData[index]),
+              itemBuilder: (_, index) => _Page(_pageData[index]),
               itemCount: _pageData.length,
               onPageChanged: (value) => _currentPage.value = value,
             ),
@@ -237,195 +237,3 @@ class _Page extends StatelessWidget {
     );
   }
 }
-
-// class OnboardingPage extends StatefulWidget {
-//   const OnboardingPage({super.key});
-
-//   @override
-//   State<OnboardingPage> createState() => _OnboardingPageState();
-// }
-
-// class _OnboardingPageState extends State<OnboardingPage> {
-//   int currentPage = 0;
-
-//   introFinished() {
-//     AppDataService.instance
-//         .setItem(AppDataKey.introSeen, '1', updateGlobalState: true)
-//         .then(
-//       (value) {
-//         RouteUtils.pushRoute(
-//           context,
-//           TabsPage(key: tabsPageKey),
-//           withReplacement: true,
-//         );
-//       },
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final t = Translations.of(context);
-
-//     List items = [
-//       {
-//         'header': t.intro.sl1_title,
-//         'description': t.intro.sl1_descr,
-//         'image': 'assets/icons/app_onboarding/first.svg'
-//       },
-//       {
-//         'header': t.intro.sl2_title,
-//         'description': t.intro.sl2_descr,
-//         'description2': t.intro.sl2_descr2,
-//         'image': 'assets/icons/app_onboarding/security.svg'
-//       },
-//       {
-//         'header': t.intro.last_slide_title,
-//         'description': t.intro.last_slide_descr,
-//         'description2': t.intro.last_slide_descr2,
-//         'image': 'assets/icons/app_onboarding/wallet.svg'
-//       },
-//     ];
-
-//     List<PageViewModel> slides = items
-//         .mapIndexed((index, item) => PageViewModel(
-//             titleWidget: Padding(
-//               padding:
-//                   const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
-//               child: Text(
-//                 item['header'],
-//                 style: Theme.of(context).textTheme.headlineLarge,
-//                 textAlign: TextAlign.center,
-//               ),
-//             ),
-//             useRowInLandscape: true,
-//             bodyWidget: Padding(
-//               padding:
-//                   const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
-//               child: Column(children: [
-//                 Text(
-//                   item['description'],
-//                   style: const TextStyle(
-//                       fontSize: 14.0, fontWeight: FontWeight.w300),
-//                   textAlign: TextAlign.justify,
-//                 ),
-//                 if (item['description2'] != null) ...[
-//                   const SizedBox(height: 10),
-//                   Text(
-//                     item['description2'],
-//                     style: const TextStyle(
-//                         fontSize: 14.0, fontWeight: FontWeight.w300),
-//                     textAlign: TextAlign.justify,
-//                   ),
-//                 ],
-//                 if (index == 0) ...[
-//                   const SizedBox(height: 40),
-//                   StreamBuilder(
-//                       stream:
-//                           CurrencyService.instance.getUserPreferredCurrency(),
-//                       builder: (context, snapshot) {
-//                         final userCurrency = snapshot.data;
-
-//                         return ListTile(
-//                           tileColor: Theme.of(context)
-//                               .colorScheme
-//                               .onBackground
-//                               .withOpacity(0.04),
-//                           shape: RoundedRectangleBorder(
-//                               borderRadius: BorderRadius.circular(10)),
-//                           trailing: Icon(
-//                             Icons.arrow_forward_ios_rounded,
-//                             size: 14,
-//                             color: Theme.of(context)
-//                                 .colorScheme
-//                                 .onBackground
-//                                 .withOpacity(0.45),
-//                           ),
-//                           leading: Container(
-//                             clipBehavior: Clip.hardEdge,
-//                             decoration: BoxDecoration(
-//                               borderRadius: BorderRadius.circular(100),
-//                             ),
-//                             child: userCurrency != null
-//                                 ? userCurrency.displayFlagIcon(size: 42)
-//                                 : const Skeleton(height: 42, width: 42),
-//                           ),
-//                           title: Text(t.intro.select_your_currency),
-//                           subtitle: userCurrency != null
-//                               ? Text(userCurrency.name)
-//                               : const Skeleton(height: 12, width: 50),
-//                           onTap: () {
-//                             if (userCurrency == null) return;
-
-//                             showCurrencySelectorModal(
-//                                 context,
-//                                 CurrencySelectorModal(
-//                                     preselectedCurrency: userCurrency,
-//                                     onCurrencySelected: (newCurrency) {
-//                                       UserSettingService.instance
-//                                           .setItem(SettingKey.preferredCurrency,
-//                                               newCurrency.code)
-//                                           .then((value) => setState(() => {}));
-//                                     }));
-//                           },
-//                         );
-//                       }),
-//                 ],
-//               ]),
-//             ),
-//             image: SvgPicture.asset(
-//               item['image'],
-//               fit: BoxFit.fitWidth,
-//               width: 240.0,
-//               alignment: Alignment.bottomCenter,
-//             )))
-//         .toList();
-
-//     return Scaffold(
-//         appBar: AppBar(
-//           backgroundColor: Colors.transparent,
-//           elevation: 0,
-//           toolbarHeight: 0,
-//         ),
-//         body: IntroductionScreen(
-//           pages: slides,
-//           showSkipButton: true,
-//           initialPage: currentPage,
-//           onChange: (value) {
-//             setState(() {
-//               currentPage = value;
-//             });
-//           },
-//           skip: Text(
-//             t.intro.skip,
-//             style: const TextStyle(fontWeight: FontWeight.w300),
-//           ),
-//           next: Row(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//             children: [
-//               Text(t.intro.next),
-//               const SizedBox(width: 4),
-//               const Icon(Icons.arrow_forward)
-//             ],
-//           ),
-//           done: Row(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//             children: [
-//               Text(t.ui_actions.continue_text),
-//               const SizedBox(width: 4),
-//               const Icon(Icons.check)
-//             ],
-//           ),
-//           onDone: () => introFinished(),
-//           onSkip: () => introFinished(),
-//           dotsDecorator: DotsDecorator(
-//             size: const Size.square(10.0),
-//             activeSize: const Size(20.0, 10.0),
-//             activeColor: Theme.of(context).colorScheme.primary,
-//             color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-//             spacing: const EdgeInsets.symmetric(horizontal: 3.0),
-//             activeShape: RoundedRectangleBorder(
-//                 borderRadius: BorderRadius.circular(25.0)),
-//           ),
-//         ));
-//   }
-// }
