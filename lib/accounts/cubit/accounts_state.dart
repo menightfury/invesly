@@ -1,0 +1,42 @@
+part of 'accounts_cubit.dart';
+
+sealed class AccountsState extends Equatable {
+  const AccountsState();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class AccountsInitialState extends AccountsState {
+  const AccountsInitialState();
+}
+
+class AccountsLoadingState extends AccountsState {
+  const AccountsLoadingState();
+}
+
+class AccountsErrorState extends AccountsState {
+  const AccountsErrorState(this.errorMsg);
+
+  final String errorMsg;
+
+  @override
+  List<Object> get props => [errorMsg];
+}
+
+class AccountsLoadedState extends AccountsState {
+  const AccountsLoadedState(this.accounts);
+
+  final List<InveslyAccount> accounts;
+
+  bool get hasNoAccount => accounts.isEmpty;
+
+  InveslyAccount? getAccount(String accountId) {
+    return accounts.firstWhereOrNull((account) => account.id == accountId);
+  }
+
+  bool hasAccount(String accountId) => getAccount(accountId) != null;
+
+  @override
+  List<Object> get props => [accounts];
+}

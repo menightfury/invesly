@@ -7,12 +7,12 @@ import 'package:invesly/database/backup/backup_service.dart';
 import 'package:invesly/settings/import_transactions/import_transactions_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
-import 'package:invesly/users/cubit/users_cubit.dart';
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/google_drive/google_drive.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
-import 'package:invesly/users/edit_user/view/edit_user_screen.dart';
-import 'package:invesly/users/model/user_model.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 import 'package:path/path.dart';
 
 import 'widgets/settings_section.dart';
@@ -56,7 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return BlocListener<UsersCubit, UsersState>(
+    return BlocListener<AccountsCubit, AccountsState>(
       listener: (context, state) {
         // if (state is! UsersLoadedState) {
         //   context.go(AppRouter.splash);
@@ -74,14 +74,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SliverList(
                 delegate: SliverChildListDelegate.fixed([
                   // ~~~ User Profile Section ~~~
-                  BlocBuilder<UsersCubit, UsersState>(
+                  BlocBuilder<AccountsCubit, AccountsState>(
                     builder: (context, state) {
-                      if (state is UsersErrorState) {
+                      if (state is AccountsErrorState) {
                         return Text('Failed to load users');
                       }
 
-                      if (state is UsersLoadedState) {
-                        final users = state.users;
+                      if (state is AccountsLoadedState) {
+                        final users = state.accounts;
                         return BlocSelector<SettingsCubit, SettingsState, String?>(
                           selector: (state) => state.currentUserId,
                           builder: (context, userId) {
@@ -91,7 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
                             final otherUsers =
                                 users.isEmpty
-                                    ? <InveslyUser>[]
+                                    ? <InveslyAccount>[]
                                     : users.whereNot((u) => u.id == currentUser?.id).toList();
 
                             return Padding(
@@ -127,7 +127,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                               ),
                                               Spacer(),
                                               IconButton(
-                                                onPressed: () => context.push(EditUserScreen(initialUser: currentUser)),
+                                                onPressed:
+                                                    () => context.push(EditAccountScreen(initialAccount: currentUser)),
                                                 icon: Icon(Icons.edit_note_rounded),
                                               ),
                                             ],
@@ -142,7 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                             children: <Widget>[
                                               Text('More profiles (${otherUsers.length})'),
                                               GestureDetector(
-                                                onTap: () => context.push(const EditUserScreen()),
+                                                onTap: () => context.push(const EditAccountScreen()),
                                                 child: Text(
                                                   'Add',
                                                   style: textTheme.labelMedium?.copyWith(

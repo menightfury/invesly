@@ -11,8 +11,8 @@ import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/users/cubit/users_cubit.dart';
-import 'package:invesly/users/model/user_model.dart';
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -42,8 +42,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 BlocSelector<SettingsCubit, SettingsState, String?>(
                   selector: (state) => state.currentUserId,
                   builder: (context, userId) {
-                    final usersState = context.read<UsersCubit>().state;
-                    final users = usersState is UsersLoadedState ? usersState.users : <InveslyUser>[];
+                    final usersState = context.read<AccountsCubit>().state;
+                    final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
                     final currentUser =
                         users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
 
@@ -79,8 +79,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           BlocSelector<SettingsCubit, SettingsState, String?>(
                             selector: (state) => state.currentUserId,
                             builder: (context, userId) {
-                              final usersState = context.read<UsersCubit>().state;
-                              final users = usersState is UsersLoadedState ? usersState.users : <InveslyUser>[];
+                              final usersState = context.read<AccountsCubit>().state;
+                              final users =
+                                  usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
                               final currentUser =
                                   users.isEmpty
                                       ? null
@@ -101,8 +102,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 BlocSelector<SettingsCubit, SettingsState, String?>(
                   selector: (state) => state.currentUserId,
                   builder: (context, userId) {
-                    final usersState = context.read<UsersCubit>().state;
-                    final users = usersState is UsersLoadedState ? usersState.users : <InveslyUser>[];
+                    final usersState = context.read<AccountsCubit>().state;
+                    final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
                     final currentUser =
                         users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
                     return BlocProvider(
@@ -178,7 +179,7 @@ class _ShakeTestWidgetState extends State<ShakeTestWidget> with SingleTickerProv
 class _DashboardContents extends StatefulWidget {
   const _DashboardContents(this.user, {super.key});
 
-  final InveslyUser? user;
+  final InveslyAccount? user;
 
   @override
   State<_DashboardContents> createState() => _DashboardContentsState();

@@ -8,33 +8,34 @@ import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
-import 'package:invesly/users/edit_user/cubit/edit_user_cubit.dart';
-import 'package:invesly/users/model/user_model.dart';
-import 'package:invesly/users/model/user_repository.dart';
+import 'package:invesly/accounts/edit_account/cubit/edit_account_cubit.dart';
+import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/accounts/model/account_repository.dart';
 import 'package:invesly/common_libs.dart';
 
-class EditUserScreen extends StatelessWidget {
-  const EditUserScreen({super.key, this.initialUser});
+class EditAccountScreen extends StatelessWidget {
+  const EditAccountScreen({super.key, this.initialAccount});
 
-  final InveslyUser? initialUser;
+  final InveslyAccount? initialAccount;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => EditUserCubit(repository: context.read<UserRepository>(), initialUser: initialUser),
-      child: const _EditUserScreen(),
+      create:
+          (context) => EditAccountCubit(repository: context.read<AccountRepository>(), initialAccount: initialAccount),
+      child: const _EditAccountScreen(),
     );
   }
 }
 
-class _EditUserScreen extends StatefulWidget {
-  const _EditUserScreen({super.key});
+class _EditAccountScreen extends StatefulWidget {
+  const _EditAccountScreen({super.key});
 
   @override
-  State<_EditUserScreen> createState() => __EditUserScreenState();
+  State<_EditAccountScreen> createState() => _EditAccountScreenState();
 }
 
-class __EditUserScreenState extends State<_EditUserScreen> {
+class _EditAccountScreenState extends State<_EditAccountScreen> {
   final _formKey = GlobalKey<FormState>();
   // final _sliverAnimatedListKey = GlobalKey<SliverAnimatedListState>();
   late final ValueNotifier<AutovalidateMode> _validateMode;
@@ -58,21 +59,21 @@ class __EditUserScreenState extends State<_EditUserScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final cubit = context.read<EditUserCubit>();
+    final cubit = context.read<EditAccountCubit>();
 
-    return BlocListener<EditUserCubit, EditUserState>(
+    return BlocListener<EditAccountCubit, EditAccountState>(
       listenWhen: (prevState, state) => prevState.status != state.status && state.status.isFailureOrSuccess,
       listener: (context, state) {
         late final SnackBar message;
 
-        if (state.status == EditUserFormStatus.success) {
+        if (state.status == EditAccountFormStatus.success) {
           if (context.canPop) {
             context.pop();
           } else {
             context.go(const DashboardScreen());
           }
           message = const SnackBar(content: Text('User saved successfully'), backgroundColor: Colors.teal);
-        } else if (state.status == EditUserFormStatus.failure) {
+        } else if (state.status == EditAccountFormStatus.failure) {
           message = const SnackBar(content: Text('Sorry! some error occurred'), backgroundColor: Colors.redAccent);
         }
         ScaffoldMessenger.of(context)
@@ -108,7 +109,7 @@ class __EditUserScreenState extends State<_EditUserScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text('Welcome,', style: textTheme.headlineSmall),
-                          BlocSelector<EditUserCubit, EditUserState, String>(
+                          BlocSelector<EditAccountCubit, EditAccountState, String>(
                             selector: (state) => state.name,
                             builder: (context, name) {
                               return Text(name.trim().isEmpty ? 'Investor' : name, style: textTheme.headlineMedium);
@@ -129,7 +130,7 @@ class __EditUserScreenState extends State<_EditUserScreen> {
                         children: <Widget>[
                           // ~~~ Avatar picker ~~~
                           _AvatarPickerWidget(
-                            avatars: InveslyUserAvatar.values.map((e) => e.imgSrc).toList(),
+                            avatars: InveslyAccountAvatar.values.map((e) => e.imgSrc).toList(),
                             onChanged: cubit.updateAvatar,
                             initialValue: cubit.state.avatarIndex,
                           ),
@@ -147,7 +148,7 @@ class __EditUserScreenState extends State<_EditUserScreen> {
                                     key: _nameKey,
                                     decoration: InputDecoration(
                                       hintText: 'e.g. John Doe',
-                                      helperText: cubit.state.isNewUser ? 'Nickname can\'t be changed later' : null,
+                                      helperText: cubit.state.isNewAccount ? 'Nickname can\'t be changed later' : null,
                                     ),
                                     initialValue: cubit.state.name,
                                     validator: (value) {
@@ -157,7 +158,7 @@ class __EditUserScreenState extends State<_EditUserScreen> {
                                       return null;
                                     },
                                     onChanged: cubit.updateName,
-                                    enabled: cubit.state.isNewUser,
+                                    enabled: cubit.state.isNewAccount,
                                     onTapOutside: (_) => minimizeKeyboard(),
                                   ).withLabel('Nickname'),
                                 ),
@@ -295,7 +296,7 @@ class __EditUserScreenState extends State<_EditUserScreen> {
           ),
 
           persistentFooterButtons: <Widget>[
-            BlocSelector<EditUserCubit, EditUserState, bool>(
+            BlocSelector<EditAccountCubit, EditAccountState, bool>(
               selector: (state) => state.status.isLoadingOrSuccess,
               builder: (context, isLoadingOrSuccess) {
                 return SizedBox(
@@ -328,7 +329,7 @@ class __EditUserScreenState extends State<_EditUserScreen> {
   // ~ Save user
   Future<void> _handleSavePressed(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      context.read<EditUserCubit>().save();
+      context.read<EditAccountCubit>().save();
       // if (!context.mounted) return;
       // context.read<SettingsCubit>().saveCurrentUser(user);
     } else {

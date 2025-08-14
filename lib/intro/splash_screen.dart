@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:invesly/intro/intro_screen.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
-import 'package:invesly/users/cubit/users_cubit.dart';
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/users/edit_user/view/edit_user_screen.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<UsersCubit>().fetchUsers();
+    context.read<AccountsCubit>().fetchUsers();
     _completer = Completer();
     // show splash screen for few seconds
     _timer = Timer(3.seconds, () => _completer.complete());
@@ -33,9 +33,9 @@ class _SplashScreenState extends State<SplashScreen> {
     final colorScheme = context.colors;
     final settingsState = context.read<SettingsCubit>().state;
 
-    return BlocListener<UsersCubit, UsersState>(
+    return BlocListener<AccountsCubit, AccountsState>(
       listener: (context, usersState) async {
-        if (usersState is UsersLoadedState) {
+        if (usersState is AccountsLoadedState) {
           await _completer.future; // show tips message in splash screen for few seconds
           if (!context.mounted) return;
 
@@ -46,19 +46,19 @@ class _SplashScreenState extends State<SplashScreen> {
           }
 
           // If there are no users, go to EditUserScreen
-          if (usersState.hasNoUser) {
-            context.go(const EditUserScreen());
+          if (usersState.hasNoAccount) {
+            context.go(const EditAccountScreen());
             return;
           }
 
           // If there are users but currentUserId is null, set the first user as current user
           if (settingsState.currentUserId == null) {
-            context.read<SettingsCubit>().saveCurrentUser(usersState.users.first.id);
+            context.read<SettingsCubit>().saveCurrentUser(usersState.accounts.first.id);
             // go to initial requested screen or dashboard
             // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
           }
           context.go(const DashboardScreen());
-        } else if (usersState is UsersErrorState) {
+        } else if (usersState is AccountsErrorState) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: context.colors.errorContainer,

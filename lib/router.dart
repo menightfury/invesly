@@ -8,7 +8,7 @@
 //   static const String test = '/test';
 //   static const String splash = '/';
 //   static const String intro = '/intro';
-//   static const String editUser = '/edit_user';
+//   static const String editAccount = '/edit_account';
 //   static const String dashboard = '/dashboard'; // requires at least one user
 //   static String amcDetails(String id) => '/amc/$id'; // requires at least one user
 //   static const String editTransaction = '/edit_transaction'; // requires at least one user
@@ -27,7 +27,7 @@
 //     routes: <RouteBase>[
 //       AppRoute(splash, (_) => const SplashScreen()),
 //       AppRoute(intro, (_) => const IntroScreen()),
-//       AppRoute(editUser, (state) => EditUserScreen(initialUser: state.extra as InveslyUser?)),
+//       AppRoute(editAccount, (state) => EditAccountScreen(initialAccount: state.extra as InveslyAccount?)),
 //       AppRoute(dashboard, (_) => const DashboardScreen()),
 //       AppRoute(amcDetails(':id'), (state) => AmcOverviewScreen(state.pathParameters['id']!)),
 //       AppRoute(editAmc, (state) => EditAmcScreen(initialAmc: state.extra as InveslyAmc?)),

@@ -21,7 +21,7 @@ Best practice for uri design is that path-params are used to identify a specific
 
 1. 
 2
-3. `/add_user` => Add user screen. If any user does not exist, redirect to this page.
+3. `/edit_account` => Edit account screen. If no accounts exist, redirect to this page.
 4. `/transactions` => Home screen 🏠 consists of four bottom navigation items. These pages (or screens) are arranged in `IndexedStack`, so that their states can be preserved. While accessing `/transactions?tab=null`, first navigation 🧭 item will be displayed by default.
    1. `/transactions?type=mutualfund` => Dashboard screen, also redirects from `/dashboard`
    2. `/transactions?type=stock` => Insight screen, also redirects from `/insight`

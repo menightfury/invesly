@@ -132,9 +132,9 @@ class _TransactionListState extends State<_TransactionList> {
   @override
   void initState() {
     super.initState();
-    // final currentUser = context.read<SettingsCubit>().state.currentUser;
-    // if (currentUser != null) {
-    //   invsFuture = context.read<TransactionRepository>().getTransactions(currentUser.id, amcId: widget.amcId);
+    // final currentAccount = context.read<SettingsCubit>().state.currentAccount;
+    // if (currentAccount != null) {
+    //   invsFuture = context.read<TransactionRepository>().getTransactions(currentAccount.id, amcId: widget.amcId);
     // } else {
     //   invsFuture = Future.value([]);
     // }

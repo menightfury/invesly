@@ -1,13 +1,11 @@
 // ignore_for_file: avoid_print
 
-import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
 
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
-import 'package:invesly/users/accounts.dart';
-import 'package:invesly/users/cubit/users_cubit.dart';
-import 'package:invesly/users/edit_user/view/edit_user_screen.dart';
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
@@ -75,92 +73,29 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
-  void _handleSignIn(BuildContext context) {
-    // loadingIndeterminateKey.currentState?.setVisibility(true); // Loading progress bar at bottom
-    openLoadingPopupTryCatch(
-      () async {
-        // Can maybe use this function, but on web first login does not sync...
-        // Let's just use the functionality below this
-        // await signInAndSync(context, next: () {});
-
-        await signInGoogle(context: context);
-        if (appStateSettings["username"] == "" && googleUser != null) {
-          updateSettings("username", googleUser?.displayName ?? "", pagesNeedingRefresh: [0], updateGlobalState: false);
-        }
-        // If user has sync backups, but no real backups it will show up here
-        // For now disable restoring of a backup popup, the sync backups will be restored automatically using the function call below
-        // var result;
-        // List<drive.File>? files = (await getDriveFiles()).$2;
-        // if ((files?.length ?? 0) > 0) {
-        //   result = await openPopup(
-        //     context,
-        //     icon: appStateSettings["outlinedIcons"] ? Icons.cloud_sync_outlined : Icons.cloud_sync_rounded,
-        //     title: "backup-found".tr(),
-        //     description: "backup-found-description".tr(),
-        //     onSubmit: () {
-        //       popRoute(context, true);
-        //     },
-        //     onCancel: () {
-        //       popRoute(context, false);
-        //     },
-        //     onSubmitLabel: "restore".tr(),
-        //     onCancelLabel: "cancel".tr(),
-        //   );
-        // }
-        // if (result == true) {
-        //   chooseBackup(context, hideDownloadButton: true);
-        // } else if (result == false && googleUser != null) {
-        //   openLoadingPopup(context);
-        //   // set this to true so cloud functions run
-        //   entireAppLoaded = true;
-        //   await runAllCloudFunctions(
-        //     context,
-        //     forceSignIn: true,
-        //   );
-        //   popRoute(context);
-        //   nextNavigation();
-        // }
-        // else {
-        //   nextNavigation();
-        // }
-
-        // set this to true so cloud functions run
-        entireAppLoaded = true;
-        await runAllCloudFunctions(context, forceSignIn: true);
-
-        nextNavigation();
-        // loadingIndeterminateKey.currentState?.setVisibility(false);
-      },
-      onError: (e) {
-        print("Error signing in: " + e.toString());
-        // loadingIndeterminateKey.currentState?.setVisibility(false);
-      },
-    );
-  }
-
   void _handleCompletePressed(BuildContext context) {
     if (_currentPage.value != _pageData.length - 1) return;
 
     context.read<SettingsCubit>().completeOnboarding();
-    final usersState = context.read<UsersCubit>().state;
+    final usersState = context.read<AccountsCubit>().state;
     final settingsState = context.read<SettingsCubit>().state;
 
-    if (usersState is UsersLoadedState) {
+    if (usersState is AccountsLoadedState) {
       if (!context.mounted) return;
 
       // If there are no users, go to EditUserScreen
-      if (usersState.hasNoUser) {
-        context.go(const EditUserScreen());
+      if (usersState.hasNoAccount) {
+        context.go(const EditAccountScreen());
         return;
       }
 
       // If there are users but currentUserId is null, set the first user as current user
       if (settingsState.currentUserId == null) {
-        context.read<SettingsCubit>().saveCurrentUser(usersState.users.first.id);
+        context.read<SettingsCubit>().saveCurrentUser(usersState.accounts.first.id);
       }
       // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
       context.go(const DashboardScreen());
-    } else if (usersState is UsersErrorState) {
+    } else if (usersState is AccountsErrorState) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: context.colors.errorContainer,

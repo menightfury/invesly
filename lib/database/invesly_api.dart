@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
-import 'package:invesly/users/model/user_model.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 
 import 'table_schema.dart';
 
@@ -45,17 +45,17 @@ class InveslyApi {
     final db = await openDatabase(dbPath, version: 1);
 
     // initialize all necessary tables
-    final userTable = UserTable();
+    final accountTable = AccountTable();
     final amcTable = AmcTable();
     final trnTable = TransactionTable();
-    return _instance = InveslyApi._(db: db, tables: [userTable, amcTable, trnTable]);
+    return _instance = InveslyApi._(db: db, tables: [accountTable, amcTable, trnTable]);
   }
 
   // helper function to get a table out of initialized tables
   T? getTable<T extends TableSchema>() => tables.firstWhereOrNull((table) => table is T) as T?;
 
   // Table getters
-  UserTable get userTable => getTable<UserTable>()!;
+  AccountTable get accountTable => getTable<AccountTable>()!;
   AmcTable get amcTable => getTable<AmcTable>()!;
   TransactionTable get trnTable => getTable<TransactionTable>()!;
 }
