@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:invesly/common/presentations/styles/constants.dart';
+import 'package:invesly/constants.dart';
 
 extension LabelOfWidget on Widget {
   Widget withLabel(String label, {EdgeInsetsGeometry? labelPadding}) {

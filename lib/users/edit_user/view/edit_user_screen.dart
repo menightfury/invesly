@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:invesly/common/data/bank.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
+import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 import 'package:invesly/users/edit_user/cubit/edit_user_cubit.dart';
@@ -157,7 +158,7 @@ class __EditUserScreenState extends State<_EditUserScreen> {
                                     },
                                     onChanged: cubit.updateName,
                                     enabled: cubit.state.isNewUser,
-                                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                                    onTapOutside: (_) => minimizeKeyboard(),
                                   ).withLabel('Nickname'),
                                 ),
 

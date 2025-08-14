@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:invesly/common/extensions/buildcontext_extension.dart';
-import 'package:invesly/common/presentations/styles/constants.dart';
+import 'package:invesly/constants.dart';
 
 class Tappable extends StatelessWidget {
   const Tappable({

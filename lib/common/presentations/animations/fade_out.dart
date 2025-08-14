@@ -2,29 +2,29 @@
 
 import 'package:flutter/material.dart';
 
-class FadeIn extends StatefulWidget {
-  const FadeIn({
+class FadeOut extends StatefulWidget {
+  const FadeOut({
     super.key,
     required this.child,
-    this.duration = const Duration(milliseconds: 200),
-    this.fadeIn = true,
-    this.from = const Offset(0, -0.1),
+    this.duration = const Duration(milliseconds: 167),
+    this.fadeOut = true,
+    this.to = const Offset(0, 0.1),
     this.curve = Curves.fastOutSlowIn,
     this.controller,
   });
 
   final Widget child;
   final Duration duration;
-  final bool fadeIn;
-  final Offset from;
+  final bool fadeOut;
+  final Offset to;
   final Curve curve;
   final void Function(AnimationController)? controller;
 
   @override
-  _FadeInState createState() => _FadeInState();
+  _FadeOutState createState() => _FadeOutState();
 }
 
-class _FadeInState extends State<FadeIn> with SingleTickerProviderStateMixin {
+class _FadeOutState extends State<FadeOut> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _opacity;
   late final Animation<Offset> _position;
@@ -32,18 +32,17 @@ class _FadeInState extends State<FadeIn> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(vsync: this, duration: widget.duration);
     _opacity = Tween<double>(
-      begin: 0,
-      end: 1,
+      begin: 1,
+      end: 0,
     ).animate(CurvedAnimation(parent: _controller, curve: const Interval(0, 0.65)));
     _position = Tween<Offset>(
-      begin: widget.from,
-      end: Offset.zero,
+      begin: Offset.zero,
+      end: widget.to,
     ).animate(CurvedAnimation(parent: _controller, curve: widget.curve));
 
-    if (widget.fadeIn) {
+    if (widget.fadeOut) {
       _controller.forward();
     }
 
@@ -59,10 +58,10 @@ class _FadeInState extends State<FadeIn> with SingleTickerProviderStateMixin {
   }
 
   @override
-  void didUpdateWidget(covariant FadeIn oldWidget) {
+  void didUpdateWidget(covariant FadeOut oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.fadeIn != oldWidget.fadeIn) {
-      if (widget.fadeIn) {
+    if (widget.fadeOut != oldWidget.fadeOut) {
+      if (widget.fadeOut) {
         _controller.forward();
       } else {
         _controller.reverse();

@@ -14,6 +14,10 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
           userId: initialInvestment?.userId,
           quantity: initialInvestment?.quantity,
           amount: initialInvestment?.totalAmount,
+          type:
+              (initialInvestment?.totalAmount.isNegative ?? false)
+                  ? TransactionType.redeemed
+                  : TransactionType.invested,
           amc: initialInvestment?.amc,
           notes: initialInvestment?.note,
         ),
@@ -31,6 +35,10 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
 
   void updateAmount(double result) {
     emit(state.copyWith(amount: result));
+  }
+
+  void updateTransactionType(TransactionType type) {
+    emit(state.copyWith(type: type));
   }
 
   void updateAmc(InveslyAmc amc) {

@@ -18,6 +18,7 @@ class EditTransactionState extends Equatable {
     this.userId,
     this.quantity,
     required this.amount, //? required ?
+    this.type = TransactionType.invested,
     this.date,
     this.amc,
     this.notes,
@@ -28,6 +29,7 @@ class EditTransactionState extends Equatable {
   final String? userId;
   final double? quantity;
   final double? amount;
+  final TransactionType type;
   final DateTime? date;
   final InveslyAmc? amc;
   final String? notes;
@@ -50,6 +52,7 @@ class EditTransactionState extends Equatable {
     String? userId,
     double? quantity,
     double? amount,
+    TransactionType? type,
     DateTime? date,
     InveslyAmc? amc,
     String? notes,
@@ -60,6 +63,7 @@ class EditTransactionState extends Equatable {
       userId: userId ?? this.userId,
       quantity: quantity ?? this.quantity,
       amount: amount ?? this.amount,
+      type: type ?? this.type,
       date: date ?? this.date,
       amc: amc ?? this.amc,
       notes: notes ?? this.notes,
@@ -67,5 +71,5 @@ class EditTransactionState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, id, userId, quantity, amount, date, amc, notes];
+  List<Object?> get props => [status, id, userId, quantity, amount, type, date, amc, notes];
 }

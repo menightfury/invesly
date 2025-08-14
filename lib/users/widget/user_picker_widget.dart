@@ -1,18 +1,19 @@
 import 'package:invesly/users/cubit/users_cubit.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/users/edit_user/view/edit_user_screen.dart';
+import 'package:invesly/users/model/user_model.dart';
 
 class InveslyUserPickerWidget extends StatelessWidget {
   const InveslyUserPickerWidget({super.key, this.userId, this.onPickup});
 
   final String? userId;
-  final ValueChanged<String>? onPickup;
+  final ValueChanged<InveslyUser>? onPickup;
 
-  static Future<String?> showModal(BuildContext context, [String? userId]) async {
-    return await showModalBottomSheet<String>(
+  static Future<InveslyUser?> showModal(BuildContext context, [String? userId]) async {
+    return await showModalBottomSheet<InveslyUser>(
       context: context,
       builder: (context) {
-        return InveslyUserPickerWidget(userId: userId, onPickup: (userId) => Navigator.maybePop(context, userId));
+        return InveslyUserPickerWidget(userId: userId, onPickup: (user) => Navigator.maybePop(context, user));
       },
     );
   }
@@ -44,7 +45,7 @@ class InveslyUserPickerWidget extends StatelessWidget {
                       leading: CircleAvatar(foregroundImage: AssetImage(user.avatar)),
                       title: Text(user.name),
                       trailing: user.id == userId ? const Icon(Icons.check_rounded) : null,
-                      onTap: () => onPickup?.call(user.id),
+                      onTap: () => onPickup?.call(user),
                     );
                   },
                   itemCount: users.length,

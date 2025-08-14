@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 // *** New Constants ***
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 @immutable
 class AppConstants {

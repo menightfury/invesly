@@ -49,14 +49,14 @@ class AsyncFormField<T> extends FormField<T> {
 
            final hasError = errorText != null && error != null;
 
-           return Shake(
-             shake: hasError,
-             child: Column(
-               mainAxisSize: MainAxisSize.min,
-               crossAxisAlignment: CrossAxisAlignment.start,
-               spacing: 4.0,
-               children: <Widget>[
-                 Tappable(
+           return Column(
+             mainAxisSize: MainAxisSize.min,
+             crossAxisAlignment: CrossAxisAlignment.start,
+             spacing: 4.0,
+             children: <Widget>[
+               Shake(
+                 shake: hasError,
+                 child: Tappable(
                    onTap: () {
                      if (onTapCallback == null) return;
 
@@ -72,13 +72,14 @@ class AsyncFormField<T> extends FormField<T> {
                    bgColor: hasError ? colors.errorContainer : colors.primaryContainer,
                    child: childBuilder(field.value),
                  ),
-                 if (hasError)
-                   Padding(
-                     padding: padding.resolve(TextDirection.ltr).copyWith(top: 0.0, bottom: 8.0),
-                     child: FadeIn(from: Offset(0.0, -0.25), fade: hasError, child: error),
-                   ),
-               ],
-             ),
+               ),
+
+               //  if (hasError)
+               Padding(
+                 padding: padding.resolve(TextDirection.ltr).copyWith(top: 0.0, bottom: 0.0),
+                 child: FadeIn(from: Offset(0.0, -0.25), fadeIn: hasError, child: error ?? SizedBox.shrink()),
+               ),
+             ],
            );
          },
        );

@@ -1,13 +1,13 @@
-// import 'package:invesly/common/components/numeric_keyboard.dart';
-
 import 'dart:async';
 
-import 'package:animate_do/animate_do.dart';
 import 'package:intl/intl.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
+import 'package:invesly/common/presentations/animations/fade_in.dart';
+import 'package:invesly/common/presentations/animations/fade_out.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/presentations/widgets/async_form_field.dart';
+import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 import 'package:invesly/transactions/edit_transaction/widgets/calculator/calculator.dart';
 
@@ -16,6 +16,7 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/users/cubit/users_cubit.dart';
+import 'package:invesly/users/model/user_model.dart';
 import 'package:invesly/users/widget/user_picker_widget.dart';
 
 import 'cubit/edit_transaction_cubit.dart';
@@ -47,29 +48,22 @@ class _EditTransactionScreen extends StatefulWidget {
 
 class __EditTransactionScreenState extends State<_EditTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _quantityShakeKey = GlobalKey<ShakeState>();
-  final _quantityTextField = GlobalKey<FormFieldState>();
-  final _amountShakeKey = GlobalKey<ShakeState>();
-  final _amountTextField = GlobalKey<FormFieldState>();
-
-  late final TextEditingController _quantityTextController;
-  late final TextEditingController _amountTextController;
   late final ValueNotifier<AutovalidateMode> _validateMode;
+  late final DateTime _dateNow;
+
+  final _types = TransactionType.values;
 
   @override
   void initState() {
     super.initState();
-    _quantityTextController = TextEditingController();
-    _amountTextController = TextEditingController();
     _validateMode = ValueNotifier(AutovalidateMode.disabled);
+    _dateNow = DateTime.now();
   }
 
   @override
   void dispose() {
     _formKey.currentState?.reset();
     _validateMode.dispose();
-    _quantityTextController.dispose();
-    _amountTextController.dispose();
     super.dispose();
   }
 
@@ -164,16 +158,22 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                 child: AsyncFormField<double>(
                                   initialValue: cubit.state.quantity,
                                   validator: (value) {
-                                    if (value == null || value.isNegative) {
-                                      return 'Can\'t be empty or negative';
+                                    if (value == null) {
+                                      return 'Can\'t be empty';
+                                    }
+                                    if (value.isNegative) {
+                                      return 'Can\'t be negative';
                                     }
                                     return null;
                                   },
                                   onTapCallback: () async {
                                     final value = await InveslyCalculatorWidget.showModal(context);
                                     if (value == null) return null;
-                                    cubit.updateQuantity(value);
                                     return value;
+                                  },
+                                  onChanged: (value) {
+                                    if (value == null) return;
+                                    cubit.updateQuantity(value);
                                   },
                                   childBuilder: (value) {
                                     if (value == null) {
@@ -205,8 +205,12 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                   onTapCallback: () async {
                                     final value = await InveslyCalculatorWidget.showModal(context);
                                     if (value == null) return null;
-                                    cubit.updateAmount(value);
                                     return value;
+                                  },
+
+                                  onChanged: (value) {
+                                    if (value == null) return;
+                                    cubit.updateAmount(value);
                                   },
                                   childBuilder: (value) {
                                     if (value == null) {
@@ -239,8 +243,11 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                             onTapCallback: () async {
                               final value = await InveslyAmcPickerWidget.showModal(context);
                               if (value == null) return null;
-                              cubit.updateAmc(value);
                               return value;
+                            },
+                            onChanged: (value) {
+                              if (value == null) return;
+                              cubit.updateAmc(value);
                             },
                             childBuilder: (value) {
                               if (value == null) {
@@ -264,16 +271,79 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                           // ~~~ Type and Date ~~~
                           Row(
                             spacing: 12.0,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               // ~ Type ~
-                              Expanded(child: InveslyTogglerExample().withLabel('Transaction type')),
+                              Expanded(
+                                child: AsyncFormField<TransactionType>(
+                                  contentAlignment: Alignment.center,
+                                  initialValue: cubit.state.type,
+                                  validator: (value) {
+                                    if (value == null) {
+                                      return 'Can\'t be empty';
+                                    }
+                                    return null;
+                                  },
+                                  onTapCallback: () {
+                                    int index = _types.indexOf(cubit.state.type);
+                                    if (index < 0) {
+                                      index = 0;
+                                    }
+                                    final nextIndex = index < (_types.length - 1) ? index + 1 : 0;
+                                    return _types.elementAt(nextIndex);
+                                  },
+                                  onChanged: (value) {
+                                    if (value == null) return;
+                                    cubit.updateTransactionType(value);
+                                  },
+                                  childBuilder: (value) {
+                                    if (value == null) {
+                                      return const Text(
+                                        'Select type',
+                                        style: TextStyle(color: Colors.grey),
+                                        overflow: TextOverflow.ellipsis,
+                                      );
+                                    }
+
+                                    return _TransactionTypeViewer(type: value);
+                                  },
+                                ).withLabel('Type'),
+                              ),
 
                               // ~ Date ~
                               Expanded(
-                                child: InveslyDatePicker(
-                                  date: cubit.state.date,
-                                  onPickup: (value) => cubit.updateDate(value),
-                                ).withLabel('Transaction date'),
+                                child: AsyncFormField<DateTime>(
+                                  initialValue: cubit.state.date,
+                                  validator: (value) {
+                                    if (value == null) {
+                                      return 'Can\'t be empty';
+                                    }
+                                    return null;
+                                  },
+                                  onTapCallback: () async {
+                                    final value = await showDatePicker(
+                                      context: context,
+                                      initialDate: cubit.state.date ?? _dateNow,
+                                      firstDate: DateTime(1990),
+                                      lastDate: _dateNow,
+                                    );
+                                    if (value == null) return null;
+                                    cubit.updateDate(value);
+                                    return value;
+                                  },
+                                  childBuilder: (date) {
+                                    if (date == null) {
+                                      return const Text('Select date', style: TextStyle(color: Colors.grey));
+                                    }
+                                    final days = _dateNow.difference(date).inDays;
+                                    final label = switch (days) {
+                                      0 => 'Today',
+                                      1 => 'Yesterday',
+                                      _ => date.toReadable(),
+                                    };
+                                    return Text(label, overflow: TextOverflow.ellipsis);
+                                  },
+                                ).withLabel('Date'),
                               ),
                             ],
                           ),
@@ -282,7 +352,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                           TextFormField(
                             decoration: const InputDecoration(hintText: 'Notes'),
                             onChanged: (value) => cubit.updateNotes(value),
-                            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                            onTapOutside: (_) => minimizeKeyboard(),
                           ).withLabel('Note'),
                         ],
                       ),
@@ -319,98 +389,118 @@ class _UserPickerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
 
-    return IconButton(
-      onPressed: () async {
-        final newUser = await InveslyUserPickerWidget.showModal(context, cubit.state.userId);
-        if (newUser == null) return;
+    return FormField<InveslyUser>(
+      builder: (state) {
+        late final Widget icon;
 
-        cubit.updateUser(newUser);
+        if (state.hasError) {
+          icon = Icon(Icons.person_2_rounded, color: context.colors.error);
+        } else if (state.value != null) {
+          icon = CircleAvatar(foregroundImage: AssetImage(state.value!.avatar), radius: 20.0);
+        } else {
+          icon = const Icon(Icons.person_2_rounded);
+        }
+        return Shake(
+          shake: state.hasError,
+          child: IconButton(
+            onPressed: () async {
+              final newUser = await InveslyUserPickerWidget.showModal(context, cubit.state.userId);
+              if (newUser == null) return;
+
+              cubit.updateUser(newUser.id);
+              state.didChange(newUser);
+            },
+            style: IconButton.styleFrom(
+              backgroundColor: state.hasError ? context.colors.errorContainer : context.colors.primaryContainer,
+            ),
+            icon: icon,
+            // icon: BlocBuilder<UsersCubit, UsersState>(
+            //   builder: (context, state) {
+            //     if (state is UsersErrorState) {
+            //       return const Icon(Icons.error_outline_rounded, color: Colors.redAccent);
+            //     }
+
+            //     if (state is UsersLoadedState) {
+            //       final users = state.users;
+            //       final currentUser = users.isEmpty ? null : users.firstWhereOrNull((u) => u.id == cubit.state.userId);
+
+            //       return CircleAvatar(
+            //         foregroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
+            //         radius: 20.0,
+            //         child: Text(currentUser?.name.substring(0, 1).toUpperCase() ?? '?'),
+            //       );
+            //     }
+
+            //     return const CircularProgressIndicator();
+            //   },
+            // ),
+          ),
+        );
       },
-      icon: BlocBuilder<UsersCubit, UsersState>(
-        builder: (context, state) {
-          if (state is UsersErrorState) {
-            return const Icon(Icons.error_outline_rounded, color: Colors.redAccent);
-          }
-
-          if (state is UsersLoadedState) {
-            final users = state.users;
-            final currentUser = users.isEmpty ? null : users.firstWhereOrNull((u) => u.id == cubit.state.userId);
-
-            return CircleAvatar(
-              foregroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
-              radius: 20.0,
-              child: Text(currentUser?.name.substring(0, 1).toUpperCase() ?? '?'),
-            );
-          }
-
-          return const CircularProgressIndicator();
-        },
-      ),
+      validator: (value) {
+        if (value == null) {
+          return 'Please select a user';
+        }
+        return null;
+      },
     );
   }
 }
 
-class InveslyTogglerExample extends StatefulWidget {
-  const InveslyTogglerExample({super.key});
+class _TransactionTypeViewer extends StatefulWidget {
+  const _TransactionTypeViewer({super.key, required this.type});
+
+  final TransactionType type;
 
   @override
-  State<InveslyTogglerExample> createState() => _InveslyTogglerExampleState();
+  State<_TransactionTypeViewer> createState() => __TransactionTypeViewerState();
 }
 
-class _InveslyTogglerExampleState extends State<InveslyTogglerExample> {
-  late TransactionType _value;
+class __TransactionTypeViewerState extends State<_TransactionTypeViewer> {
+  late TransactionType _prevType;
+  // AnimationController? _fadeOutController;
+  AnimationController? _fadeInController;
 
   @override
   void initState() {
     super.initState();
-    _value = TransactionType.values.first;
+    _prevType = widget.type;
+    // _fadeOutController?.value = 1.0;
+    // _fadeInController?.value = 1.0;
   }
 
   @override
-  Widget build(BuildContext context) {
-    return InveslyToggler<TransactionType>(
-      value: _value,
-      displayStringForOption: (option) => option.name.toSentenceCase(),
-      options: TransactionType.values.toSet(),
-      onChanged: (value) => setState(() => _value = value),
-    );
-  }
-}
-
-class InveslyToggler<T> extends StatelessWidget {
-  InveslyToggler({
-    super.key,
-    required this.options,
-    this.value,
-    this.displayStringForOption = _defaultStringForOption,
-    this.onChanged,
-  }) : assert(options.isNotEmpty);
-
-  final Set<T> options;
-  final T? value;
-  final ValueChanged<T>? onChanged;
-  final String Function(T option) displayStringForOption;
-
-  static String _defaultStringForOption(Object? option) => option.toString();
-
-  @override
-  Widget build(BuildContext context) {
-    // final colorScheme = Theme.of(context).colorScheme;
-    int index = value == null ? 0 : options.toList(growable: false).indexOf(value as T);
-
-    if (index == -1) {
-      index = 0;
+  void didUpdateWidget(_TransactionTypeViewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _prevType = oldWidget.type;
+    if (_prevType != widget.type) {
+      // _fadeOutController
+      //   ?..reset()
+      //   ..forward();
+      _fadeInController
+        ?..reset()
+        ..forward();
     }
-    final option = options.elementAt(index);
+  }
 
-    return Tappable(
-      onTap: () {
-        final nextIndex = index < (options.length - 1) ? index + 1 : 0;
-        onChanged?.call(options.elementAt(nextIndex));
-      },
-      leading: const Icon(Icons.chevron_left_rounded),
-      trailing: const Icon(Icons.chevron_right_rounded),
-      child: Text(displayStringForOption(option), overflow: TextOverflow.clip, maxLines: 1, softWrap: false),
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: <Widget>[
+        // FadeOut(
+        //   fadeOut: false,
+        //   to: Offset(0.0, -0.4),
+        //   controller: (ctrl) => _fadeOutController = ctrl,
+        //   child: Text(_prevType.name.toSentenceCase()),
+        // ),
+        FadeIn(
+          // fadeIn: false,
+          from: Offset(0.0, 0.4),
+          controller: (ctrl) => _fadeInController = ctrl,
+          child: Text(widget.type.name.toUpperCase()),
+        ),
+      ],
     );
   }
 }
