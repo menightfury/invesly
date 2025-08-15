@@ -1,11 +1,26 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'package:googleapis/drive/v3.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/cubit/auth_cubit.dart';
-import 'package:invesly/accounts/edit_account/cubit/edit_account_cubit.dart';
-import 'package:invesly/accounts/model/account_repository.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:shimmer/shimmer.dart';
+import 'dart:async';
+
+// import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+// import 'package:googleapis/people/v1.dart';
+// import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
+
+final scopes = <String>[
+  // See https://github.com/flutter/flutter/issues/155490 and https://github.com/flutter/flutter/issues/155429
+  // Once an account is logged in with these scopes, they are not needed
+  // So we will keep these to apply for all users to prevent errors, especially on silent sign in
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'https://www.googleapis.com/auth/userinfo.email',
+  DriveApi.driveAppdataScope,
+  DriveApi.driveFileScope,
+];
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -27,60 +42,187 @@ class _LoginScreen extends StatefulWidget {
 }
 
 class __LoginScreenState extends State<_LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
+  late Future<void> _signInInitialized;
+  GoogleSignInAccount? _currentUser;
+  // GoogleSignInClientAuthorization? _authorization;
+  String _contactText = '';
 
+  void refreshState() {
+    setState(() {});
+  }
+
+  // void openPage({VoidCallback? onNext}) {
+  //   if (widget.navigationSidebarButton) {
+  //     pageNavigationFrameworkKey.currentState!.changePage(8, switchNavbar: true);
+  //     appStateKey.currentState?.refreshAppState();
+  //   } else {
+  //     if (onNext != null) onNext();
+  //   }
+  // }
+
+  // void loginWithSync({VoidCallback? onNext}) {
+  //   signInAndSync(
+  //     widget.navigationSidebarButton ? navigatorKey.currentContext ?? context : context,
+  //     next: () {
+  //       setState(() {});
+  //       openPage(onNext: onNext);
+  //     },
+  //   );
+  // }
   @override
   void initState() {
     super.initState();
+
+    final GoogleSignIn signIn = GoogleSignIn.instance;
+    _signInInitialized = signIn.initialize(
+      // clientId: '791480731407-4j2dmhvu2l061j7g5odqelvg74bagu28.apps.googleusercontent.com',
+      serverClientId: '791480731407-4j2dmhvu2l061j7g5odqelvg74bagu28.apps.googleusercontent.com',
+    );
+    signIn.authenticationEvents
+        .listen((GoogleSignInAuthenticationEvent event) {
+          if (!mounted) {
+            return;
+          }
+          setState(() {
+            switch (event) {
+              case GoogleSignInAuthenticationEventSignIn():
+                _currentUser = event.user;
+              case GoogleSignInAuthenticationEventSignOut():
+                _currentUser = null;
+              // _authorization = null;
+            }
+          });
+
+          // if (_currentUser != null) {
+          //   _checkAuthorization();
+          // }
+        })
+        .onError((Object error) {
+          debugPrint(error.toString());
+        });
+
+    _signInInitialized.then((void value) {
+      signIn.attemptLightweightAuthentication();
+    });
   }
 
-  @override
-  void dispose() {
-    _formKey.currentState?.reset();
-    super.dispose();
+  // void _updateAuthorization(GoogleSignInClientAuthorization? authorization) {
+  //   if (!mounted) {
+  //     return;
+  //   }
+  //   setState(() {
+  //     _authorization = authorization;
+  //   });
+
+  //   // if (authorization != null) {
+  //   //   unawaited(_handleGetContact(authorization));
+  //   // }
+  // }
+
+  // Future<void> _checkAuthorization() async {
+  //   _updateAuthorization(await _currentUser?.authorizationClient.authorizationForScopes(scopes));
+  // }
+
+  // Future<void> _requestAuthorization() async {
+  //   _updateAuthorization(
+  //     await _currentUser?.authorizationClient.authorizeScopes(<String>[PeopleServiceApi.contactsReadonlyScope]),
+  //   );
+  // }
+
+  // Future<void> _handleGetContact(GoogleSignInClientAuthorization authorization) async {
+  //   if (!mounted) {
+  //     return;
+  //   }
+  //   setState(() {
+  //     _contactText = 'Loading contact info...';
+  //   });
+
+  //   // Retrieve an [auth.AuthClient] from a GoogleSignInClientAuthorization.
+  //   // final auth.AuthClient client = authorization.authClient(scopes: scopes);
+
+  //   // // Prepare a People Service authenticated client.
+  //   // final PeopleServiceApi peopleApi = PeopleServiceApi(client);
+  //   // // Retrieve a list of connected contacts' names.
+  //   // final ListConnectionsResponse response = await peopleApi.people.connections.list(
+  //   //   'people/me',
+  //   //   personFields: 'names',
+  //   // );
+
+  //   // final String? firstNamedContactName = _pickFirstNamedContact(response.connections);
+
+  //   // if (mounted) {
+  //   //   setState(() {
+  //   //     if (firstNamedContactName != null) {
+  //   //       _contactText = 'I see you know $firstNamedContactName!';
+  //   //     } else {
+  //   //       _contactText = 'No contacts to display.';
+  //   //     }
+  //   //   });
+  //   // }
+  // }
+
+  // String? _pickFirstNamedContact(List<Person>? connections) {
+  //   return connections
+  //       ?.firstWhere((Person person) => person.names != null)
+  //       .names
+  //       ?.firstWhere((Name name) => name.displayName != null)
+  //       .displayName;
+  // }
+
+  Future<void> _handleSignIn() async {
+    try {
+      await GoogleSignIn.instance.authenticate();
+    } catch (error) {
+      debugPrint(error.toString());
+    }
   }
+
+  // Call disconnect rather than signOut to more fully reset the example app.
+  Future<void> _handleSignOut() => GoogleSignIn.instance.disconnect();
 
   @override
   Widget build(BuildContext context) {
-    // final textTheme = Theme.of(context).textTheme;
-    // final cubit = context.read<EditAccountCubit>();
+    return Scaffold(
+      appBar: AppBar(title: Text('Login with google')),
+      body: SafeArea(
+        child: FutureBuilder<void>(
+          future: _signInInitialized,
+          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+            final GoogleSignInAccount? user = _currentUser;
+            // final GoogleSignInClientAuthorization? authorization = _authorization;
+            final List<Widget> children;
+            if (snapshot.hasError) {
+              children = <Widget>[const Text('Error initializing sign in.')];
+            } else if (snapshot.connectionState == ConnectionState.done) {
+              children = <Widget>[
+                if (user != null) ...<Widget>[
+                  ListTile(
+                    leading: GoogleUserCircleAvatar(identity: user),
+                    title: Text(user.displayName ?? ''),
+                    subtitle: Text(user.email),
+                  ),
+                  const Text('Signed in successfully.'),
+                  // if (authorization != null) ...<Widget>[
+                  //   Text(_contactText),
+                  //   ElevatedButton(onPressed: () => _handleGetContact(authorization), child: const Text('REFRESH')),
+                  // ] else ...<Widget>[
+                  //   ElevatedButton(onPressed: _requestAuthorization, child: const Text('LOAD CONTACTS')),
+                  // ],
+                  ElevatedButton(onPressed: _handleSignOut, child: const Text('SIGN OUT')),
+                ] else ...<Widget>[
+                  const Text('You are not currently signed in.'),
+                  ElevatedButton(onPressed: _handleSignIn, child: const Text('SIGN IN')),
+                ],
+              ];
+            } else {
+              children = <Widget>[const CircularProgressIndicator()];
+            }
 
-    return
-    // BlocListener<EditAccountCubit, EditAccountState>(
-    //   listenWhen: (prevState, state) => prevState.status != state.status && state.status.isFailureOrSuccess,
-    //   listener: (context, state) {
-    //     // late final SnackBar message;
-    //     //   if (state.status == EditAccountFormStatus.success) {
-    //     //     if (context.canPop) {
-    //     //       context.pop();
-    //     //     } else {
-    //     //       context.go(const DashboardScreen());
-    //     //     }
-    //     //     message = const SnackBar(content: Text('User saved successfully'), backgroundColor: Colors.teal);
-    //     //   } else if (state.status == EditAccountFormStatus.failure) {
-    //     //     message = const SnackBar(content: Text('Sorry! some error occurred'), backgroundColor: Colors.redAccent);
-    //     //   }
-    //     //   ScaffoldMessenger.of(context)
-    //     //     ..hideCurrentSnackBar()
-    //     //     ..showSnackBar(message);
-    //   },
-    //   child:
-    GestureDetector(
-      // onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(body: SafeArea(child: Center(child: GoogleAccountLoginButton()))),
-      // ),
+            return Column(mainAxisAlignment: MainAxisAlignment.spaceAround, children: children);
+          },
+        ),
+      ),
     );
-  }
-
-  // ~ Save user
-  Future<void> _handleSavePressed(BuildContext context) async {
-    if (_formKey.currentState!.validate()) {
-      context.read<EditAccountCubit>().save();
-      // if (!context.mounted) return;
-      // context.read<SettingsCubit>().saveCurrentUser(user);
-    } else {
-      // Handle form validation failure
-    }
   }
 }
 
@@ -621,84 +763,3 @@ class LoadingShimmerDriveFiles extends StatelessWidget {
 //     );
 //   }
 // }
-
-class GoogleAccountLoginButton extends StatefulWidget {
-  const GoogleAccountLoginButton({super.key, this.isButtonSelected = false, this.forceButtonName});
-  final bool isButtonSelected;
-  final String? forceButtonName;
-
-  @override
-  State<GoogleAccountLoginButton> createState() => GoogleAccountLoginButtonState();
-}
-
-class GoogleAccountLoginButtonState extends State<GoogleAccountLoginButton> {
-  void refreshState() {
-    setState(() {});
-  }
-
-  // void openPage({VoidCallback? onNext}) {
-  //   if (widget.navigationSidebarButton) {
-  //     pageNavigationFrameworkKey.currentState!.changePage(8, switchNavbar: true);
-  //     appStateKey.currentState?.refreshAppState();
-  //   } else {
-  //     if (onNext != null) onNext();
-  //   }
-  // }
-
-  // void loginWithSync({VoidCallback? onNext}) {
-  //   signInAndSync(
-  //     widget.navigationSidebarButton ? navigatorKey.currentContext ?? context : context,
-  //     next: () {
-  //       setState(() {});
-  //       openPage(onNext: onNext);
-  //     },
-  //   );
-  // }
-
-  @override
-  Widget build(BuildContext context) {
-    // if (widget.navigationSidebarButton == true) {
-    //   return AnimatedSwitcher(
-    //     duration: Duration(milliseconds: 600),
-    //     child:
-    //         googleUser == null
-    //             ? NavigationSidebarButton(
-    //               key: ValueKey("login"),
-    //               label: '"login".tr()',
-    //               icon: MoreIcons.google,
-    //               onTap: loginWithSync,
-    //               isSelected: false,
-    //             )
-    //             : NavigationSidebarButton(
-    //               key: ValueKey("user"),
-    //               label: googleUser!.displayName ?? '',
-    //               icon: widget.forceButtonName == null ? Icons.person_rounded : MoreIcons.google_drive,
-    //               iconScale: widget.forceButtonName == null ? 1 : 0.87,
-    //               onTap: openPage,
-    //               isSelected: widget.isButtonSelected,
-    //             ),
-    //   );
-    // }
-    //   return googleUser == null
-    //       ? SettingsContainerOpenPage(
-    //         openPage: AccountsPage(),
-    //         onTap: (openContainer) {
-    //           loginWithSync(onNext: openContainer);
-    //         },
-    //         title: widget.forceButtonName ?? 'Login',
-    //         // icon: widget.forceButtonName == null ? MoreIcons.google : MoreIcons.google_drive,
-    //         icon: Icons.abc,
-    //         // icon: widget.forceButtonName == null ? MoreIcons.google : MoreIcons.google_drive,
-    //         iconScale: widget.forceButtonName == null ? 1 : 0.87,
-    //       )
-    //       : SettingsContainerOpenPage(
-    //         openPage: AccountsPage(),
-    //         title: widget.forceButtonName ?? googleUser!.displayName ?? "",
-    //         // icon: widget.forceButtonName == null ? Icons.person_rounded : MoreIcons.google_drive,
-    //         icon: Icons.person_rounded,
-    //         iconScale: widget.forceButtonName == null ? 1 : 0.87,
-    //       );
-    // }
-    return Text('Sign in with google');
-  }
-}
