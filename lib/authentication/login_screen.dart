@@ -75,8 +75,10 @@ class __LoginScreenState extends State<_LoginScreen> {
 
     final GoogleSignIn signIn = GoogleSignIn.instance;
     _signInInitialized = signIn.initialize(
+      serverClientId: '791480731407-hc266q1klj0br5c9312gkjbsko05qjoq.apps.googleusercontent.com',
       // clientId: '791480731407-4j2dmhvu2l061j7g5odqelvg74bagu28.apps.googleusercontent.com',
-      serverClientId: '791480731407-4j2dmhvu2l061j7g5odqelvg74bagu28.apps.googleusercontent.com',
+      // serverClientId: '791480731407-4j2dmhvu2l061j7g5odqelvg74bagu28.apps.googleusercontent.com', // Home
+      // serverClientId: '791480731407-5k0kglrd6k78s11v4bkhnv473tva5862.apps.googleusercontent.com', // Office
     );
     signIn.authenticationEvents
         .listen((GoogleSignInAuthenticationEvent event) {
