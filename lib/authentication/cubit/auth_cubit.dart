@@ -7,24 +7,27 @@ part 'auth_state.dart';
 class AuthenticationCubit extends Cubit<AuthenticationState> {
   AuthenticationCubit({required AuthenticationRepository repository})
     : _repository = repository,
-
-      super(AuthenticationState.unknown());
+      super(AuthenticationState.initial());
 
   final AuthenticationRepository _repository;
 
   Future<void> onLoginPressed() async {
-    emit(AuthenticationState.unknown());
+    emit(AuthenticationState.loading());
 
-    final user = await _repository.signInGoogle();
-    if (user != null) {
-      emit(AuthenticationState.authenticated(user));
-    } else {
-      emit(const AuthenticationState.unauthenticated());
+    try {
+      final user = await _repository.signInGoogle();
+      if (user != null) {
+        emit(AuthenticationState.authenticated(user));
+      } else {
+        emit(const AuthenticationState.unauthenticated());
+      }
+    } catch (err) {
+      emit(AuthenticationState.error(err.toString()));
     }
   }
 
   Future<void> onLogoutPressed() async {
     await _repository.signOutGoogle();
-    emit(AuthenticationState.unknown());
+    emit(AuthenticationState.unauthenticated());
   }
 }

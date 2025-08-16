@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:googleapis/abusiveexperiencereport/v1.dart';
+import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
@@ -10,6 +11,7 @@ import 'package:path/path.dart' as p;
 import 'package:googleapis/drive/v3.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 
 // Future<bool> checkConnection() async {
 //   late bool isConnected;
@@ -38,7 +40,7 @@ import 'package:http/http.dart' as http;
 //   }
 // }
 
-enum AuthenticationStatus { unknown, authenticated, unauthenticated, error }
+enum AuthenticationStatus { initial, loading, authenticated, unauthenticated, error }
 
 class AuthenticationRepository {
   GoogleSignIn? googleSignIn;
@@ -66,13 +68,11 @@ class AuthenticationRepository {
     try {
       // if (googleUser != null) {
       //   await signOutGoogle();
-      //   googleSignIn = null;
-      //   settingsPageStateKey.currentState?.refreshState();
-      // } else if (googleUser == null) {
-      //   googleSignIn = null;
-      //   settingsPageStateKey.currentState?.refreshState();
       // }
-      //Check connection
+      // googleSignIn = null;
+      // settingsPageStateKey.currentState?.refreshState();
+
+      // // Check connection
       // isConnected = await checkConnection().timeout(Duration(milliseconds: 2500),
       //     onTimeout: () {
       //   throw ("There was an error checking your connection");
@@ -135,7 +135,6 @@ class AuthenticationRepository {
       // } else {
       //   // await updateSettings("hasSignedIn", false, updateGlobalState: false);
       // }
-      // refreshUIAfterLoginChange();
       throw ('Error signing in');
     }
   }
@@ -152,12 +151,120 @@ class AuthenticationRepository {
     googleUser = null;
     // await updateSettings("currentUserEmail", "", updateGlobalState: false);
     // await updateSettings("hasSignedIn", false, updateGlobalState: false);
-    // refreshUIAfterLoginChange();
   }
 
-  // Future<void> refreshGoogleSignIn() async {
-  //   await signOutGoogle();
-  //   await signInGoogle();
+  // Future<void> _requestAuthorization() async {
+  //   _updateAuthorization(
+  //     await _currentUser?.authorizationClient.authorizeScopes(<String>[PeopleServiceApi.contactsReadonlyScope]),
+  //   );
+  // }
+
+  // void _updateAuthorization(GoogleSignInClientAuthorization? authorization) {
+  //   if (!mounted) {
+  //     return;
+  //   }
+  //   setState(() {
+  //     _authorization = authorization;
+  //   });
+
+  //   if (authorization != null) {
+  //     unawaited(_handleGetContact(authorization));
+  //   }
+  // }
+
+  Future<List<File>?> getDriveFiles() async {
+    try {
+      final authorization = await googleUser?.authorizationClient.authorizationForScopes(scopes);
+      if (authorization == null) {
+        return null;
+      }
+
+      final client = authorization.authClient(scopes: scopes);
+      final driveApi = DriveApi(client);
+
+      final fileList = await driveApi.files.list(
+        spaces: 'appDataFolder',
+        $fields: 'files(id, name, modifiedTime, size)',
+      );
+      return fileList.files;
+    } catch (err) {
+      $logger.e(err);
+      // if (err is DetailedApiRequestError && err.status == 401) {
+      //   // await refreshGoogleSignIn();
+      //   return await getDriveFiles();
+      // } else if (err is PlatformException) {
+      //   // await refreshGoogleSignIn();
+      //   return await getDriveFiles();
+      // } else {
+      //   // openSnackbar(SnackbarMessage(title: e.toString(), icon: Icons.error_rounded));
+      // }
+    }
+    return null;
+  }
+
+  // Future<void> loadBackup(BuildContext context, DriveApi driveApi, File file) async {
+  //   try {
+  //     openLoadingPopup(context);
+
+  //     await cancelAndPreventSyncOperation();
+
+  //     List<int> dataStore = [];
+  //     dynamic response = await driveApi.files.get(file.id ?? "", downloadOptions: drive.DownloadOptions.fullMedia);
+  //     response.stream.listen(
+  //       (data) {
+  //         // print("Data: ${data.length}");
+  //         dataStore.insertAll(dataStore.length, data);
+  //       },
+  //       onDone: () async {
+  //         await overwriteDefaultDB(Uint8List.fromList(dataStore));
+
+  //         // if this is added, it doesn't restore the database properly on web
+  //         // await database.close();
+  //         popRoute(context);
+  //         await resetLanguageToSystem(context);
+  //         await updateSettings("databaseJustImported", true, pagesNeedingRefresh: [], updateGlobalState: false);
+  //         // openSnackbar(
+  //         //   SnackbarMessage(
+  //         //     title: '"backup-restored".tr()',
+  //         //     icon:
+  //         //         appStateSettings["outlinedIcons"]
+  //         //             ? Icons.settings_backup_restore_outlined
+  //         //             : Icons.settings_backup_restore_rounded,
+  //         //   ),
+  //         // );
+  //         popRoute(context);
+  //         // restartAppPopup(
+  //         //   context,
+  //         //   description: kIsWeb ? "refresh-required-to-load-backup".tr() : "restart-required-to-load-backup".tr(),
+  //         //   // codeBlock: file.name.toString() +
+  //         //   //     (file.modifiedTime == null
+  //         //   //         ? ""
+  //         //   //         : ("\n" +
+  //         //   //             getWordedDateShort(
+  //         //   //               file.modifiedTime!,
+  //         //   //               showTodayTomorrow: false,
+  //         //   //               includeYear: true,
+  //         //   //             ))),
+  //         // );
+  //       },
+  //       onError: (error) {
+  //         // openSnackbar(
+  //         //   SnackbarMessage(
+  //         //     title: error.toString(),
+  //         //     icon: appStateSettings["outlinedIcons"] ? Icons.error_outlined : Icons.error_rounded,
+  //         //   ),
+  //         // );
+  //       },
+  //     );
+  //   } catch (e) {
+  //     popRoute(context);
+  //     // openSnackbar(
+  //     //   SnackbarMessage(
+  //     //     title: e.toString(),
+  //     //     icon: Icons.error_rounded,
+  //     //   ),
+  //     // );
+  //   }
   // }
 
   // Future<bool> signInAndSync(BuildContext context, {required dynamic Function() next}) async {
@@ -282,81 +389,64 @@ class AuthenticationRepository {
   //   return false;
   // }
 
-  // Future<void> createBackup(
-  //   context, {
-  //   bool? silentBackup,
-  //   bool deleteOldBackups = false,
-  //   String? clientIDForSync,
-  // }) async {
-  //   try {
-  //     if (silentBackup == false || silentBackup == null) {
-  //       loadingIndeterminateKey.currentState?.setVisibility(true);
-  //     }
-  //     await backupSettings();
-  //   } catch (e) {
-  //     if (silentBackup == false || silentBackup == null) {
-  //       maybePopRoute(context);
-  //     }
-  //     openSnackbar(
-  //       SnackbarMessage(
-  //         title: e.toString(),
-  //         icon: appStateSettings["outlinedIcons"] ? Icons.error_outlined : Icons.error_rounded,
-  //       ),
-  //     );
-  //   }
+  Future<void> createBackup({bool? silentBackup, bool deleteOldBackups = false, String? clientIDForSync}) async {
+    // try {
+    //   if (silentBackup == false || silentBackup == null) {
+    //     loadingIndeterminateKey.currentState?.setVisibility(true);
+    //   }
+    //   await backupSettings();
+    // } catch (e) {
+    //   if (silentBackup == false || silentBackup == null) {
+    //     maybePopRoute(context);
+    //   }
+    //   openSnackbar(SnackbarMessage(title: e.toString(), icon: Icons.error_rounded));
+    // }
 
-  //   try {
-  //     if (deleteOldBackups) await deleteRecentBackups(context, appStateSettings["backupLimit"], silentDelete: true);
+    try {
+      // if (deleteOldBackups) await deleteRecentBackups(context, appStateSettings["backupLimit"], silentDelete: true);
 
-  //     DBFileInfo currentDBFileInfo = await getCurrentDBFileInfo();
+      final currentDBFileInfo = await getCurrentDBFileInfo();
 
-  //     final authHeaders = await googleUser!.authHeaders;
-  //     final authenticateClient = GoogleAuthClient(authHeaders);
-  //     final driveApi = DriveApi(authenticateClient);
+      final authHeaders = await googleUser!.authHeaders;
+      final authenticateClient = GoogleAuthClient(authHeaders);
+      final driveApi = DriveApi(authenticateClient);
 
-  //     var media = Media(currentDBFileInfo.mediaStream, currentDBFileInfo.dbFileBytes.length);
+      var media = Media(currentDBFileInfo.mediaStream, currentDBFileInfo.dbFileBytes.length);
 
-  //     var driveFile = new File();
-  //     final timestamp = DateFormat("yyyy-MM-dd-hhmmss").format(DateTime.now().toUtc());
-  //     // -$timestamp
-  //     driveFile.name = "db-v$schemaVersionGlobal-${getCurrentDeviceName()}.sqlite";
-  //     if (clientIDForSync != null)
-  //       driveFile.name = getCurrentDeviceSyncBackupFileName(clientIDForSync: clientIDForSync);
-  //     driveFile.modifiedTime = DateTime.now().toUtc();
-  //     driveFile.parents = ["appDataFolder"];
+      var driveFile = File();
+      final timestamp = DateFormat("yyyy-MM-dd-hhmmss").format(DateTime.now().toUtc());
+      // -$timestamp
+      driveFile.name = "db-v$schemaVersionGlobal-${getCurrentDeviceName()}.sqlite";
+      if (clientIDForSync != null)
+        driveFile.name = getCurrentDeviceSyncBackupFileName(clientIDForSync: clientIDForSync);
+      driveFile.modifiedTime = DateTime.now().toUtc();
+      driveFile.parents = ["appDataFolder"];
 
-  //     await driveApi.files.create(driveFile, uploadMedia: media);
+      await driveApi.files.create(driveFile, uploadMedia: media);
 
-  //     if (clientIDForSync == null)
-  //       // openSnackbar(
-  //       //   SnackbarMessage(
-  //       //     title: '"backup-created".tr()',
-  //       //     description: driveFile.name,
-  //       //     icon: appStateSettings["outlinedIcons"] ? Icons.backup_outlined : Icons.backup_rounded,
-  //       //   ),
-  //       // );
-  //       if (clientIDForSync == null)
-  //         await updateSettings(
-  //           "lastBackup",
-  //           DateTime.now().toString(),
-  //           pagesNeedingRefresh: [],
-  //           updateGlobalState: false,
-  //         );
-  //   } catch (e) {
-  //     if (e is DetailedApiRequestError && e.status == 401) {
-  //       await refreshGoogleSignIn();
-  //     } else if (e is PlatformException) {
-  //       await refreshGoogleSignIn();
-  //     } else {
-  //       // openSnackbar(
-  //       //   SnackbarMessage(
-  //       //     title: e.toString(),
-  //       //     icon: appStateSettings["outlinedIcons"] ? Icons.error_outlined : Icons.error_rounded,
-  //       //   ),
-  //       // );
-  //     }
-  //   }
-  // }
+      if (clientIDForSync == null)
+        // openSnackbar(
+        //   SnackbarMessage(title: '"backup-created".tr()', description: driveFile.name, icon: Icons.backup_rounded),
+        // );
+        if (clientIDForSync == null)
+          await updateSettings(
+            "lastBackup",
+            DateTime.now().toString(),
+            pagesNeedingRefresh: [],
+            updateGlobalState: false,
+          );
+    } catch (e) {
+      if (e is DetailedApiRequestError && e.status == 401) {
+        await refreshGoogleSignIn();
+      } else if (e is PlatformException) {
+        await refreshGoogleSignIn();
+      } else {
+        // openSnackbar(
+        //   SnackbarMessage(title: e.toString(), icon: Icons.error_rounded),
+        // );
+      }
+    }
+  }
 
   // Future<void> deleteRecentBackups(context, amountToKeep, {bool? silentDelete}) async {
   //   try {
@@ -416,105 +506,10 @@ class AuthenticationRepository {
   //     openSnackbar(
   //       SnackbarMessage(
   //         title: e.toString(),
-  //         icon: appStateSettings["outlinedIcons"] ? Icons.error_outlined : Icons.error_rounded,
+  //         icon: Icons.error_rounded,
   //       ),
   //     );
   //   }
-  // }
-
-  // Future<void> loadBackup(BuildContext context, DriveApi driveApi, File file) async {
-  //   try {
-  //     openLoadingPopup(context);
-
-  //     await cancelAndPreventSyncOperation();
-
-  //     List<int> dataStore = [];
-  //     dynamic response = await driveApi.files.get(file.id ?? "", downloadOptions: drive.DownloadOptions.fullMedia);
-  //     response.stream.listen(
-  //       (data) {
-  //         // print("Data: ${data.length}");
-  //         dataStore.insertAll(dataStore.length, data);
-  //       },
-  //       onDone: () async {
-  //         await overwriteDefaultDB(Uint8List.fromList(dataStore));
-
-  //         // if this is added, it doesn't restore the database properly on web
-  //         // await database.close();
-  //         popRoute(context);
-  //         await resetLanguageToSystem(context);
-  //         await updateSettings("databaseJustImported", true, pagesNeedingRefresh: [], updateGlobalState: false);
-  //         // openSnackbar(
-  //         //   SnackbarMessage(
-  //         //     title: '"backup-restored".tr()',
-  //         //     icon:
-  //         //         appStateSettings["outlinedIcons"]
-  //         //             ? Icons.settings_backup_restore_outlined
-  //         //             : Icons.settings_backup_restore_rounded,
-  //         //   ),
-  //         // );
-  //         popRoute(context);
-  //         // restartAppPopup(
-  //         //   context,
-  //         //   description: kIsWeb ? "refresh-required-to-load-backup".tr() : "restart-required-to-load-backup".tr(),
-  //         //   // codeBlock: file.name.toString() +
-  //         //   //     (file.modifiedTime == null
-  //         //   //         ? ""
-  //         //   //         : ("\n" +
-  //         //   //             getWordedDateShort(
-  //         //   //               file.modifiedTime!,
-  //         //   //               showTodayTomorrow: false,
-  //         //   //               includeYear: true,
-  //         //   //             ))),
-  //         // );
-  //       },
-  //       onError: (error) {
-  //         // openSnackbar(
-  //         //   SnackbarMessage(
-  //         //     title: error.toString(),
-  //         //     icon: appStateSettings["outlinedIcons"] ? Icons.error_outlined : Icons.error_rounded,
-  //         //   ),
-  //         // );
-  //       },
-  //     );
-  //   } catch (e) {
-  //     popRoute(context);
-  //     // openSnackbar(
-  //     //   SnackbarMessage(
-  //     //     title: e.toString(),
-  //     //     icon: Icons.error_rounded,
-  //     //   ),
-  //     // );
-  //   }
-  // }
-
-  // Future<(DriveApi? driveApi, List<File>?)> getDriveFiles() async {
-  //   try {
-  //     final authHeaders = await googleUser!.authHeaders;
-  //     final authenticateClient = GoogleAuthClient(authHeaders);
-  //     drive.DriveApi driveApi = drive.DriveApi(authenticateClient);
-
-  //     drive.FileList fileList = await driveApi.files.list(
-  //       spaces: 'appDataFolder',
-  //       $fields: 'files(id, name, modifiedTime, size)',
-  //     );
-  //     return (driveApi, fileList.files);
-  //   } catch (e) {
-  //     if (e is DetailedApiRequestError && e.status == 401) {
-  //       await refreshGoogleSignIn();
-  //       return await getDriveFiles();
-  //     } else if (e is PlatformException) {
-  //       await refreshGoogleSignIn();
-  //       return await getDriveFiles();
-  //     } else {
-  //       openSnackbar(
-  //         SnackbarMessage(
-  //           title: e.toString(),
-  //           icon: appStateSettings["outlinedIcons"] ? Icons.error_outlined : Icons.error_rounded,
-  //         ),
-  //       );
-  //     }
-  //   }
-  //   return (null, null);
   // }
 
   // double convertBytesToMB(String bytesString) {
@@ -530,8 +525,8 @@ class AuthenticationRepository {
 
   // Future<bool> saveDriveFileToDevice({
   //   required BuildContext boxContext,
-  //   required drive.DriveApi driveApi,
-  //   required drive.File fileToSave,
+  //   required DriveApi driveApi,
+  //   required File fileToSave,
   // }) async {
   //   List<int> dataStore = [];
   //   dynamic response = await driveApi.files.get(fileToSave.id!, downloadOptions: drive.DownloadOptions.fullMedia);

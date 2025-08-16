@@ -27,9 +27,14 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => AuthenticationCubit(repository: AuthenticationRepository()),
-      child: const _LoginScreen(),
+    final authRepository = AuthenticationRepository(); // TODO: Remove authRepository
+
+    return RepositoryProvider.value(
+      value: authRepository,
+      child: BlocProvider(
+        create: (context) => AuthenticationCubit(repository: authRepository),
+        child: const _LoginScreen(),
+      ),
     );
   }
 }
@@ -141,57 +146,76 @@ class __LoginScreenState extends State<_LoginScreen> {
         .displayName;
   }
 
-  // Call disconnect rather than signOut to more fully reset the example app.
-  Future<void> _handleSignOut() => GoogleSignIn.instance.disconnect();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Login with google')),
       body: SafeArea(
-        child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
-          builder: (context, state) {
-            final GoogleSignInAccount? user = _currentUser;
-            final GoogleSignInClientAuthorization? authorization = _authorization;
-            final List<Widget> children;
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            BlocBuilder<AuthenticationCubit, AuthenticationState>(
+              builder: (context, state) {
+                final GoogleSignInClientAuthorization? authorization = _authorization;
+                if (state.status == AuthenticationStatus.loading) {
+                  return const CircularProgressIndicator();
+                }
 
-            if (state.status == AuthenticationStatus.error) {
-              children = <Widget>[const Text('Error initializing sign in.')];
-            } else if (state.status == AuthenticationStatus.authenticated) {
-              children = <Widget>[
-                if (user != null) ...<Widget>[
-                  ListTile(
-                    leading: GoogleUserCircleAvatar(identity: user),
-                    title: Text(user.displayName ?? ''),
-                    subtitle: Text(user.email),
-                  ),
-                  const Text('Signed in successfully.'),
+                if (state.status == AuthenticationStatus.error) {
+                  return Text('Error initializing sign in: ${state.errorMessage}');
+                }
 
-                  if (authorization != null) ...<Widget>[
-                    Text(_contactText),
-                    ElevatedButton(onPressed: () => _handleGetContact(authorization), child: const Text('REFRESH')),
-                  ] else ...<Widget>[
-                    ElevatedButton(onPressed: _requestAuthorization, child: const Text('LOAD CONTACTS')),
+                if (state.status == AuthenticationStatus.authenticated) {
+                  final user = state.user!;
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      ListTile(
+                        leading: GoogleUserCircleAvatar(identity: user),
+                        title: Text(user.displayName ?? ''),
+                        subtitle: Text(user.email),
+                      ),
+                      const Text('Signed in successfully.'),
+
+                      if (authorization != null) ...<Widget>[
+                        Text(_contactText),
+                        ElevatedButton(onPressed: () => _handleGetContact(authorization), child: const Text('REFRESH')),
+                      ] else ...<Widget>[
+                        ElevatedButton(
+                          onPressed: () async {
+                            final files = await context.read<AuthenticationRepository>().getDriveFiles();
+                            $logger.i(files);
+                          },
+                          child: const Text('Load Files'),
+                        ),
+                      ],
+
+                      ElevatedButton(
+                        onPressed: context.read<AuthenticationCubit>().onLogoutPressed,
+                        child: const Text('SIGN OUT'),
+                      ),
+                    ],
+                  );
+                }
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    const Text('You are not currently signed in.'),
+                    ElevatedButton(
+                      onPressed: context.read<AuthenticationCubit>().onLoginPressed,
+                      child: const Text('SIGN IN'),
+                    ),
                   ],
-
-                  ElevatedButton(
-                    onPressed: context.read<AuthenticationCubit>().onLogoutPressed,
-                    child: const Text('SIGN OUT'),
-                  ),
-                ] else ...<Widget>[
-                  const Text('You are not currently signed in.'),
-                  ElevatedButton(
-                    onPressed: context.read<AuthenticationCubit>().onLoginPressed,
-                    child: const Text('SIGN IN'),
-                  ),
-                ],
-              ];
-            } else {
-              children = <Widget>[const CircularProgressIndicator()];
-            }
-
-            return Column(mainAxisAlignment: MainAxisAlignment.spaceAround, children: children);
-          },
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

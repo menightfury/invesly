@@ -1,51 +1,23 @@
 part of 'auth_cubit.dart';
 
 class AuthenticationState extends Equatable {
-  const AuthenticationState._({this.status = AuthenticationStatus.unknown, this.user});
+  const AuthenticationState._({this.status = AuthenticationStatus.initial, this.user, this.errorMessage});
 
-  const AuthenticationState.unknown() : this._();
+  const AuthenticationState.initial() : this._();
+
+  const AuthenticationState.loading() : this._(status: AuthenticationStatus.loading);
 
   const AuthenticationState.authenticated(GoogleSignInAccount user)
-    : this._(status: AuthenticationStatus.authenticated, user: user);
+    : this._(status: AuthenticationStatus.authenticated, user: user); // TODO: `user` should be InveslyUser
 
   const AuthenticationState.unauthenticated() : this._(status: AuthenticationStatus.unauthenticated);
 
+  const AuthenticationState.error(String message) : this._(status: AuthenticationStatus.error, errorMessage: message);
+
   final AuthenticationStatus status;
   final GoogleSignInAccount? user;
+  final String? errorMessage;
 
   @override
-  List<Object?> get props => [status, user];
+  List<Object?> get props => [status, user, errorMessage];
 }
-
-// final class AuthenticationInitialState extends AuthenticationState {
-//   const AuthenticationInitialState() : super._(status: AuthenticationStatus.unknown);
-// }
-
-// final class AuthenticationStateUnauthenticated extends AuthenticationState {
-//   const AuthenticationStateUnauthenticated() : super._(status: AuthenticationStatus.unauthenticated);
-
-//   @override
-//   List<Object?> get props => [status];
-// }
-
-// final class AuthenticationStateUnknown extends AuthenticationState {
-//   const AuthenticationStateUnknown() : super._(status: AuthenticationStatus.unknown);
-
-//   @override
-//   List<Object?> get props => [status];
-// }
-
-// final class AuthenticationStateAuthenticated extends AuthenticationState {
-//   const AuthenticationStateAuthenticated(GoogleSignInAccount user)
-//     : super._(status: AuthenticationStatus.authenticated, user: user);
-
-//   @override
-//   List<Object?> get props => [status, user];
-// }
-
-// final class AuthenticationStateError extends AuthenticationState {
-//   const AuthenticationStateError() : super._(status: AuthenticationStatus.error);
-
-//   @override
-//   List<Object?> get props => [status];
-// }
