@@ -16,3 +16,36 @@ class AuthenticationState extends Equatable {
   @override
   List<Object?> get props => [status, user];
 }
+
+// final class AuthenticationInitialState extends AuthenticationState {
+//   const AuthenticationInitialState() : super._(status: AuthenticationStatus.unknown);
+// }
+
+// final class AuthenticationStateUnauthenticated extends AuthenticationState {
+//   const AuthenticationStateUnauthenticated() : super._(status: AuthenticationStatus.unauthenticated);
+
+//   @override
+//   List<Object?> get props => [status];
+// }
+
+// final class AuthenticationStateUnknown extends AuthenticationState {
+//   const AuthenticationStateUnknown() : super._(status: AuthenticationStatus.unknown);
+
+//   @override
+//   List<Object?> get props => [status];
+// }
+
+// final class AuthenticationStateAuthenticated extends AuthenticationState {
+//   const AuthenticationStateAuthenticated(GoogleSignInAccount user)
+//     : super._(status: AuthenticationStatus.authenticated, user: user);
+
+//   @override
+//   List<Object?> get props => [status, user];
+// }
+
+// final class AuthenticationStateError extends AuthenticationState {
+//   const AuthenticationStateError() : super._(status: AuthenticationStatus.error);
+
+//   @override
+//   List<Object?> get props => [status];
+// }

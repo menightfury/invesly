@@ -7,10 +7,10 @@ import 'package:invesly/common_libs.dart';
 import 'package:shimmer/shimmer.dart';
 import 'dart:async';
 
-// import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-// import 'package:googleapis/people/v1.dart';
-// import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
+import 'package:googleapis/people/v1.dart';
+import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
 
 final scopes = <String>[
   // See https://github.com/flutter/flutter/issues/155490 and https://github.com/flutter/flutter/issues/155429
@@ -42,141 +42,103 @@ class _LoginScreen extends StatefulWidget {
 }
 
 class __LoginScreenState extends State<_LoginScreen> {
-  late Future<void> _signInInitialized;
   GoogleSignInAccount? _currentUser;
-  // GoogleSignInClientAuthorization? _authorization;
+  GoogleSignInClientAuthorization? _authorization;
   String _contactText = '';
 
-  void refreshState() {
-    setState(() {});
-  }
-
-  // void openPage({VoidCallback? onNext}) {
-  //   if (widget.navigationSidebarButton) {
-  //     pageNavigationFrameworkKey.currentState!.changePage(8, switchNavbar: true);
-  //     appStateKey.currentState?.refreshAppState();
-  //   } else {
-  //     if (onNext != null) onNext();
-  //   }
-  // }
-
-  // void loginWithSync({VoidCallback? onNext}) {
-  //   signInAndSync(
-  //     widget.navigationSidebarButton ? navigatorKey.currentContext ?? context : context,
-  //     next: () {
-  //       setState(() {});
-  //       openPage(onNext: onNext);
-  //     },
-  //   );
-  // }
   @override
   void initState() {
     super.initState();
 
-    final GoogleSignIn signIn = GoogleSignIn.instance;
-    _signInInitialized = signIn.initialize(
-      serverClientId: '791480731407-hc266q1klj0br5c9312gkjbsko05qjoq.apps.googleusercontent.com',
-      // clientId: '791480731407-4j2dmhvu2l061j7g5odqelvg74bagu28.apps.googleusercontent.com',
-      // serverClientId: '791480731407-4j2dmhvu2l061j7g5odqelvg74bagu28.apps.googleusercontent.com', // Home
-      // serverClientId: '791480731407-5k0kglrd6k78s11v4bkhnv473tva5862.apps.googleusercontent.com', // Office
-    );
-    signIn.authenticationEvents
-        .listen((GoogleSignInAuthenticationEvent event) {
-          if (!mounted) {
-            return;
-          }
-          setState(() {
-            switch (event) {
-              case GoogleSignInAuthenticationEventSignIn():
-                _currentUser = event.user;
-              case GoogleSignInAuthenticationEventSignOut():
-                _currentUser = null;
-              // _authorization = null;
-            }
-          });
+    // signIn.authenticationEvents
+    //     .listen((GoogleSignInAuthenticationEvent event) {
+    //       if (!mounted) {
+    //         return;
+    //       }
+    //       setState(() {
+    //         switch (event) {
+    //           case GoogleSignInAuthenticationEventSignIn():
+    //             _currentUser = event.user;
+    //           case GoogleSignInAuthenticationEventSignOut():
+    //             _currentUser = null;
+    //             _authorization = null;
+    //         }
+    //       });
 
-          // if (_currentUser != null) {
-          //   _checkAuthorization();
-          // }
-        })
-        .onError((Object error) {
-          debugPrint(error.toString());
-        });
+    //       if (_currentUser != null) {
+    //         _checkAuthorization();
+    //       }
+    //     })
+    //     .onError((Object error) {
+    //       debugPrint(error.toString());
+    //     });
 
-    _signInInitialized.then((void value) {
-      signIn.attemptLightweightAuthentication();
-    });
+    // _signInInitialized.then((void value) {
+    //   signIn.attemptLightweightAuthentication();
+    // });
   }
 
-  // void _updateAuthorization(GoogleSignInClientAuthorization? authorization) {
-  //   if (!mounted) {
-  //     return;
-  //   }
-  //   setState(() {
-  //     _authorization = authorization;
-  //   });
-
-  //   // if (authorization != null) {
-  //   //   unawaited(_handleGetContact(authorization));
-  //   // }
-  // }
-
-  // Future<void> _checkAuthorization() async {
-  //   _updateAuthorization(await _currentUser?.authorizationClient.authorizationForScopes(scopes));
-  // }
-
-  // Future<void> _requestAuthorization() async {
-  //   _updateAuthorization(
-  //     await _currentUser?.authorizationClient.authorizeScopes(<String>[PeopleServiceApi.contactsReadonlyScope]),
-  //   );
-  // }
-
-  // Future<void> _handleGetContact(GoogleSignInClientAuthorization authorization) async {
-  //   if (!mounted) {
-  //     return;
-  //   }
-  //   setState(() {
-  //     _contactText = 'Loading contact info...';
-  //   });
-
-  //   // Retrieve an [auth.AuthClient] from a GoogleSignInClientAuthorization.
-  //   // final auth.AuthClient client = authorization.authClient(scopes: scopes);
-
-  //   // // Prepare a People Service authenticated client.
-  //   // final PeopleServiceApi peopleApi = PeopleServiceApi(client);
-  //   // // Retrieve a list of connected contacts' names.
-  //   // final ListConnectionsResponse response = await peopleApi.people.connections.list(
-  //   //   'people/me',
-  //   //   personFields: 'names',
-  //   // );
-
-  //   // final String? firstNamedContactName = _pickFirstNamedContact(response.connections);
-
-  //   // if (mounted) {
-  //   //   setState(() {
-  //   //     if (firstNamedContactName != null) {
-  //   //       _contactText = 'I see you know $firstNamedContactName!';
-  //   //     } else {
-  //   //       _contactText = 'No contacts to display.';
-  //   //     }
-  //   //   });
-  //   // }
-  // }
-
-  // String? _pickFirstNamedContact(List<Person>? connections) {
-  //   return connections
-  //       ?.firstWhere((Person person) => person.names != null)
-  //       .names
-  //       ?.firstWhere((Name name) => name.displayName != null)
-  //       .displayName;
-  // }
-
-  Future<void> _handleSignIn() async {
-    try {
-      await GoogleSignIn.instance.authenticate();
-    } catch (error) {
-      debugPrint(error.toString());
+  void _updateAuthorization(GoogleSignInClientAuthorization? authorization) {
+    if (!mounted) {
+      return;
     }
+    setState(() {
+      _authorization = authorization;
+    });
+
+    if (authorization != null) {
+      unawaited(_handleGetContact(authorization));
+    }
+  }
+
+  Future<void> _checkAuthorization() async {
+    _updateAuthorization(await _currentUser?.authorizationClient.authorizationForScopes(scopes));
+  }
+
+  Future<void> _requestAuthorization() async {
+    _updateAuthorization(
+      await _currentUser?.authorizationClient.authorizeScopes(<String>[PeopleServiceApi.contactsReadonlyScope]),
+    );
+  }
+
+  Future<void> _handleGetContact(GoogleSignInClientAuthorization authorization) async {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _contactText = 'Loading contact info...';
+    });
+
+    // Retrieve an [auth.AuthClient] from a GoogleSignInClientAuthorization.
+    final auth.AuthClient client = authorization.authClient(scopes: scopes);
+
+    // Prepare a People Service authenticated client.
+    final PeopleServiceApi peopleApi = PeopleServiceApi(client);
+    // Retrieve a list of connected contacts' names.
+    final ListConnectionsResponse response = await peopleApi.people.connections.list(
+      'people/me',
+      personFields: 'names',
+    );
+
+    final String? firstNamedContactName = _pickFirstNamedContact(response.connections);
+
+    if (mounted) {
+      setState(() {
+        if (firstNamedContactName != null) {
+          _contactText = 'I see you know $firstNamedContactName!';
+        } else {
+          _contactText = 'No contacts to display.';
+        }
+      });
+    }
+  }
+
+  String? _pickFirstNamedContact(List<Person>? connections) {
+    return connections
+        ?.firstWhere((Person person) => person.names != null)
+        .names
+        ?.firstWhere((Name name) => name.displayName != null)
+        .displayName;
   }
 
   // Call disconnect rather than signOut to more fully reset the example app.
@@ -187,15 +149,15 @@ class __LoginScreenState extends State<_LoginScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Login with google')),
       body: SafeArea(
-        child: FutureBuilder<void>(
-          future: _signInInitialized,
-          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+        child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
+          builder: (context, state) {
             final GoogleSignInAccount? user = _currentUser;
-            // final GoogleSignInClientAuthorization? authorization = _authorization;
+            final GoogleSignInClientAuthorization? authorization = _authorization;
             final List<Widget> children;
-            if (snapshot.hasError) {
+
+            if (state.status == AuthenticationStatus.error) {
               children = <Widget>[const Text('Error initializing sign in.')];
-            } else if (snapshot.connectionState == ConnectionState.done) {
+            } else if (state.status == AuthenticationStatus.authenticated) {
               children = <Widget>[
                 if (user != null) ...<Widget>[
                   ListTile(
@@ -204,16 +166,24 @@ class __LoginScreenState extends State<_LoginScreen> {
                     subtitle: Text(user.email),
                   ),
                   const Text('Signed in successfully.'),
-                  // if (authorization != null) ...<Widget>[
-                  //   Text(_contactText),
-                  //   ElevatedButton(onPressed: () => _handleGetContact(authorization), child: const Text('REFRESH')),
-                  // ] else ...<Widget>[
-                  //   ElevatedButton(onPressed: _requestAuthorization, child: const Text('LOAD CONTACTS')),
-                  // ],
-                  ElevatedButton(onPressed: _handleSignOut, child: const Text('SIGN OUT')),
+
+                  if (authorization != null) ...<Widget>[
+                    Text(_contactText),
+                    ElevatedButton(onPressed: () => _handleGetContact(authorization), child: const Text('REFRESH')),
+                  ] else ...<Widget>[
+                    ElevatedButton(onPressed: _requestAuthorization, child: const Text('LOAD CONTACTS')),
+                  ],
+
+                  ElevatedButton(
+                    onPressed: context.read<AuthenticationCubit>().onLogoutPressed,
+                    child: const Text('SIGN OUT'),
+                  ),
                 ] else ...<Widget>[
                   const Text('You are not currently signed in.'),
-                  ElevatedButton(onPressed: _handleSignIn, child: const Text('SIGN IN')),
+                  ElevatedButton(
+                    onPressed: context.read<AuthenticationCubit>().onLoginPressed,
+                    child: const Text('SIGN IN'),
+                  ),
                 ],
               ];
             } else {
@@ -229,7 +199,7 @@ class __LoginScreenState extends State<_LoginScreen> {
 }
 
 class LoadingShimmerDriveFiles extends StatelessWidget {
-  const LoadingShimmerDriveFiles({Key? key, required this.isManaging, required this.i}) : super(key: key);
+  const LoadingShimmerDriveFiles({super.key, required this.isManaging, required this.i});
 
   final bool isManaging;
   final int i;

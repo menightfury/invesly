@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:googleapis/abusiveexperiencereport/v1.dart';
 import 'package:intl/intl.dart';
@@ -39,7 +38,7 @@ import 'package:http/http.dart' as http;
 //   }
 // }
 
-enum AuthenticationStatus { unknown, authenticated, unauthenticated }
+enum AuthenticationStatus { unknown, authenticated, unauthenticated, error }
 
 class AuthenticationRepository {
   GoogleSignIn? googleSignIn;
@@ -88,12 +87,16 @@ class AuthenticationRepository {
 
       // if (waitForCompletion == true && context != null) openLoadingPopup(context);
       // if (googleUser == null) {
-      googleUser = await GoogleSignIn.instance.authenticate();
+
+      final signIn = GoogleSignIn.instance;
+      await signIn.initialize(
+        serverClientId: '791480731407-hc266q1klj0br5c9312gkjbsko05qjoq.apps.googleusercontent.com',
+        // serverClientId: '791480731407-4j2dmhvu2l061j7g5odqelvg74bagu28.apps.googleusercontent.com', // Home
+        // serverClientId: '791480731407-5k0kglrd6k78s11v4bkhnv473tva5862.apps.googleusercontent.com', // Office
+      ); // TODO: Hide client Id
+      googleUser = await signIn.authenticate();
       return googleUser;
 
-      // googleSignIn?.initialize(
-      //   clientId: '791480731407-5k0kglrd6k78s11v4bkhnv473tva5862.apps.googleusercontent.com',
-      // ); // TODO: Hide client Id
       // googleSignIn?.currentUser?.clearAuthCache();
 
       // if (googleUser != null) {
