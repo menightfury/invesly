@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:googleapis/abusiveexperiencereport/v1.dart';
@@ -8,7 +9,7 @@ import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:googleapis/drive/v3.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
@@ -52,8 +53,8 @@ class AuthenticationRepository {
     // So we will keep these to apply for all users to prevent errors, especially on silent sign in
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/userinfo.email',
-    DriveApi.driveAppdataScope,
-    DriveApi.driveFileScope,
+    drive.DriveApi.driveAppdataScope,
+    drive.DriveApi.driveFileScope,
   ];
 
   Future<GoogleSignInAccount?> signInGoogle({
@@ -172,7 +173,7 @@ class AuthenticationRepository {
   //   }
   // }
 
-  Future<List<File>?> getDriveFiles() async {
+  Future<List<drive.File>?> getDriveFiles() async {
     try {
       final authorization = await googleUser?.authorizationClient.authorizationForScopes(scopes);
       if (authorization == null) {
@@ -180,7 +181,7 @@ class AuthenticationRepository {
       }
 
       final client = authorization.authClient(scopes: scopes);
-      final driveApi = DriveApi(client);
+      final driveApi = drive.DriveApi(client);
 
       final fileList = await driveApi.files.list(
         spaces: 'appDataFolder',
@@ -226,10 +227,7 @@ class AuthenticationRepository {
   //         // openSnackbar(
   //         //   SnackbarMessage(
   //         //     title: '"backup-restored".tr()',
-  //         //     icon:
-  //         //         appStateSettings["outlinedIcons"]
-  //         //             ? Icons.settings_backup_restore_outlined
-  //         //             : Icons.settings_backup_restore_rounded,
+  //         //     icon: Icons.settings_backup_restore_rounded,
   //         //   ),
   //         // );
   //         popRoute(context);
@@ -405,42 +403,56 @@ class AuthenticationRepository {
     try {
       // if (deleteOldBackups) await deleteRecentBackups(context, appStateSettings["backupLimit"], silentDelete: true);
 
-      final currentDBFileInfo = await getCurrentDBFileInfo();
+      // final currentDBFileInfo = await getCurrentDBFileInfo();
 
-      final authHeaders = await googleUser!.authHeaders;
-      final authenticateClient = GoogleAuthClient(authHeaders);
-      final driveApi = DriveApi(authenticateClient);
+      final authorization = await googleUser?.authorizationClient.authorizationForScopes(scopes);
+      if (authorization == null) {
+        return;
+      }
 
-      var media = Media(currentDBFileInfo.mediaStream, currentDBFileInfo.dbFileBytes.length);
+      // final authHeaders = await googleUser!.authHeaders;
+      // final authenticateClient = GoogleAuthClient(authHeaders);
+      final client = authorization.authClient(scopes: scopes);
+      final driveApi = drive.DriveApi(client);
 
-      var driveFile = File();
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final dbFile = File(p.join(dbFolder.path, 'db.sqlite'));
+      // print("FILE SIZE:" + (dbFile.lengthSync() / 1e+6).toString());
+      final dbFileBytes = await dbFile.readAsBytes();
+
+      var media = drive.Media(dbFile.openRead(), dbFileBytes.length);
+
+      var driveFile = drive.File();
       final timestamp = DateFormat("yyyy-MM-dd-hhmmss").format(DateTime.now().toUtc());
       // -$timestamp
-      driveFile.name = "db-v$schemaVersionGlobal-${getCurrentDeviceName()}.sqlite";
-      if (clientIDForSync != null)
-        driveFile.name = getCurrentDeviceSyncBackupFileName(clientIDForSync: clientIDForSync);
+      driveFile.name = "db-$timestamp.sqlite";
+      // if (clientIDForSync != null)
+      // driveFile.name = getCurrentDeviceSyncBackupFileName(clientIDForSync: clientIDForSync);
       driveFile.modifiedTime = DateTime.now().toUtc();
-      driveFile.parents = ["appDataFolder"];
+      driveFile.parents = ['appDataFolder'];
 
       await driveApi.files.create(driveFile, uploadMedia: media);
 
-      if (clientIDForSync == null)
-        // openSnackbar(
-        //   SnackbarMessage(title: '"backup-created".tr()', description: driveFile.name, icon: Icons.backup_rounded),
-        // );
-        if (clientIDForSync == null)
-          await updateSettings(
-            "lastBackup",
-            DateTime.now().toString(),
-            pagesNeedingRefresh: [],
-            updateGlobalState: false,
-          );
+      // if (clientIDForSync == null)
+      //   // openSnackbar(
+      //   //   SnackbarMessage(title: '"backup-created".tr()', description: driveFile.name, icon: Icons.backup_rounded),
+      //   // );
+      //   if (clientIDForSync == null)
+      //     await updateSettings(
+      //       "lastBackup",
+      //       DateTime.now().toString(),
+      //       pagesNeedingRefresh: [],
+      //       updateGlobalState: false,
+      //     );
     } catch (e) {
       if (e is DetailedApiRequestError && e.status == 401) {
-        await refreshGoogleSignIn();
+        $logger.e('Unauthorized error while creating backup: $e');
+        // await refreshGoogleSignIn();
       } else if (e is PlatformException) {
-        await refreshGoogleSignIn();
+        $logger.e('Platform error while creating backup: $e');
+        // await refreshGoogleSignIn();
       } else {
+        $logger.e(e);
         // openSnackbar(
         //   SnackbarMessage(title: e.toString(), icon: Icons.error_rounded),
         // );
