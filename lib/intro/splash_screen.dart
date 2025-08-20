@@ -28,15 +28,15 @@ class _SplashScreenState extends State<SplashScreen> {
     // show splash screen for few seconds
     // _timer = Timer(2.seconds, () => _completer.complete());
     _timer = Timer(2.seconds, () {
-      if (!settingsState.isOnboarded) {
-        context.go(const IntroScreen());
-        return;
-      }
+      // if (!settingsState.isOnboarded) {
+      //   context.go(const IntroScreen());
+      //   return;
+      // }
 
-      if (settingsState.currentUser == null) {
-        context.go(LoginScreen());
-        return;
-      }
+      // if (settingsState.currentUser == null) {
+      //   context.go(LoginScreen());
+      //   return;
+      // }
       //   // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
       context.go(const DashboardScreen());
     });

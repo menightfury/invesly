@@ -123,8 +123,8 @@ class ForeignReference extends Equatable {
 }
 
 class TableChangeEvent {
-  final TableSchema schema;
+  final TableSchema table;
   final TableChangeEventType type;
 
-  const TableChangeEvent(this.schema, this.type);
+  const TableChangeEvent(this.table, this.type);
 }

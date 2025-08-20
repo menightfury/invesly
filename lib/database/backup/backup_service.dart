@@ -87,26 +87,26 @@ class BackupDatabaseService {
   }
 
   static Future<File?> exportDatabaseFile() async {
-    final source = File(InveslyApi.instance.db.path);
-    final fileName = 'invesly-${DateTime.now().millisecondsSinceEpoch}.db';
+    // final source = File(InveslyApi.instance.db.path);
+    // final fileName = 'invesly-${DateTime.now().millisecondsSinceEpoch}.db';
 
-    final dir = await getApplicationDocumentsDirectory();
-    final destination = Directory(p.join(dir.path, fileName));
-    // if ((await destination.exists())) {
-    //   final status = await Permission.storage.status;
-    //   if (!status.isGranted) {
-    //     await Permission.storage.request();
-    //   }
-    // } else {
-    //   if (await Permission.storage.request().isGranted) {
-    //     // Either the permission was already granted before or the user just granted it.
-    //     await destination.create();
-    //   } else {
-    //     print('Please give permission');
-    //   }
-    // }
+    // final dir = await getApplicationDocumentsDirectory();
+    // final destination = Directory(p.join(dir.path, fileName));
+    // // if ((await destination.exists())) {
+    // //   final status = await Permission.storage.status;
+    // //   if (!status.isGranted) {
+    // //     await Permission.storage.request();
+    // //   }
+    // // } else {
+    // //   if (await Permission.storage.request().isGranted) {
+    // //     // Either the permission was already granted before or the user just granted it.
+    // //     await destination.create();
+    // //   } else {
+    // //     print('Please give permission');
+    // //   }
+    // // }
 
-    return await source.copy(destination.path);
+    // return await source.copy(destination.path);
   }
 
   static Future<File?> exportCsv(String csvData) async {

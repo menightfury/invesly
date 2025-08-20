@@ -35,7 +35,7 @@ class DashboardCubit extends Cubit<DashboardState> {
     }
 
     // Get transactions on table change
-    _subscription ??= _repository.onTableChange.listen(
+    _subscription ??= _repository.onDataChanged.listen(
       null,
       onError: (err) => emit(DashboardErrorState(err.toString())),
     );

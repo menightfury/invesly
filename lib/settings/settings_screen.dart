@@ -328,7 +328,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onTap: () async {
                           late final SnackBar snackBar;
                           try {
-                            final csvData = await context.read<TransactionRepository>().tableDataToCsv();
+                            final csvData = await context.read<TransactionRepository>().transactionsToCsv();
                             final file = await BackupDatabaseService.exportCsv(csvData);
                             if (file != null) {
                               final fileName = basename(file.path);

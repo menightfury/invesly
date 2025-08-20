@@ -2,6 +2,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:invesly/database/cubit/database_cubit.dart';
 import 'package:invesly/intro/splash_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:invesly/database/invesly_api.dart';
@@ -43,6 +44,7 @@ class InveslyApp extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           // BlocProvider<InternetCubit>(create: (_) => InternetCubit()),
+          BlocProvider<DatabaseCubit>(create: (_) => DatabaseCubit()),
           BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)),
           BlocProvider<SettingsCubit>(create: (_) => SettingsCubit()),
         ],
@@ -154,7 +156,7 @@ class Bootstrap {
     );
 
     // Initialize local storage i.e. sqlite
-    final api = await InveslyApi.initialize(directory.path);
+    final api = InveslyApi(directory);
     return _instance = Bootstrap._(api);
   }
 }

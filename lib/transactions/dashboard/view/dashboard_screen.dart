@@ -5,6 +5,7 @@ import 'package:invesly/amcs/model/amc_model.dart';
 
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/database/cubit/database_cubit.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
@@ -25,97 +26,125 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final ScrollController _scrollController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+
+    context.read<DatabaseCubit>().loadDatabase();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final textTheme = context.textTheme;
 
     return Scaffold(
       // appBar: AppBar(),
       body: SafeArea(
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            SliverAppBar(
-              leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 32.0)),
-              // title:
-              titleSpacing: 0.0,
-              actions: <Widget>[
-                BlocSelector<SettingsCubit, SettingsState, String?>(
-                  selector: (state) => state.currentUserId,
-                  builder: (context, userId) {
-                    final usersState = context.read<AccountsCubit>().state;
-                    final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
-                    final currentUser =
-                        users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+        child: BlocBuilder<DatabaseCubit, DatabaseState>(
+          builder: (context, state) {
+            if (state is DatabaseError) {
+              return Center(child: Text('Error: ${state.message}', style: textTheme.bodyLarge));
+            }
 
-                    return IconButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () => context.push(const SettingsScreen()),
-                      icon: CircleAvatar(
-                        backgroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
-                        child: currentUser == null ? Icon(Icons.person_pin) : null,
-                      ),
-                    );
-                  },
-                ),
-              ],
-              actionsPadding: EdgeInsets.only(right: 16.0),
-            ),
-            SliverList(
-              delegate: SliverChildListDelegate.fixed([
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Text(
-                            DateTime.now().greetingsMsg,
-                            overflow: TextOverflow.ellipsis,
-                            style: textTheme.headlineSmall,
-                          ),
-                          BlocSelector<SettingsCubit, SettingsState, String?>(
-                            selector: (state) => state.currentUserId,
-                            builder: (context, userId) {
-                              final usersState = context.read<AccountsCubit>().state;
-                              final users =
-                                  usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
-                              final currentUser =
-                                  users.isEmpty
-                                      ? null
-                                      : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+            if (state is DatabaseLoaded) {
+              return CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  SliverAppBar(
+                    leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 32.0)),
+                    // title:
+                    titleSpacing: 0.0,
+                    actions: <Widget>[
+                      BlocSelector<SettingsCubit, SettingsState, String?>(
+                        selector: (state) => state.currentUserId,
+                        builder: (context, userId) {
+                          final usersState = context.read<AccountsCubit>().state;
+                          final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
+                          final currentUser =
+                              users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
 
-                              return Text(
-                                currentUser?.name ?? 'Investor',
-                                overflow: TextOverflow.ellipsis,
-                                style: textTheme.headlineMedium,
-                              );
-                            },
-                          ),
-                        ],
+                          return IconButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () => context.push(const SettingsScreen()),
+                            icon: CircleAvatar(
+                              backgroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
+                              child: currentUser == null ? Icon(Icons.person_pin) : null,
+                            ),
+                          );
+                        },
                       ),
                     ],
+                    actionsPadding: EdgeInsets.only(right: 16.0),
                   ),
-                ),
-                BlocSelector<SettingsCubit, SettingsState, String?>(
-                  selector: (state) => state.currentUserId,
-                  builder: (context, userId) {
-                    final usersState = context.read<AccountsCubit>().state;
-                    final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
-                    final currentUser =
-                        users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
-                    return BlocProvider(
-                      create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
-                      child: _DashboardContents(currentUser, key: ValueKey<String?>(currentUser?.id)),
-                    );
-                  },
-                ),
-                SizedBox(height: 400.0), // ! for testing
-              ]),
-            ),
-          ],
+                  SliverList(
+                    delegate: SliverChildListDelegate.fixed([
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Text(
+                                  DateTime.now().greetingsMsg,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.headlineSmall,
+                                ),
+                                BlocSelector<SettingsCubit, SettingsState, String?>(
+                                  selector: (state) => state.currentUserId,
+                                  builder: (context, userId) {
+                                    final usersState = context.read<AccountsCubit>().state;
+                                    final users =
+                                        usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
+                                    final currentUser =
+                                        users.isEmpty
+                                            ? null
+                                            : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+
+                                    return Text(
+                                      currentUser?.name ?? 'Investor',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: textTheme.headlineMedium,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      BlocSelector<SettingsCubit, SettingsState, String?>(
+                        selector: (state) => state.currentUserId,
+                        builder: (context, userId) {
+                          final usersState = context.read<AccountsCubit>().state;
+                          final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
+                          final currentUser =
+                              users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+                          return BlocProvider(
+                            create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
+                            child: _DashboardContents(currentUser, key: ValueKey<String?>(currentUser?.id)),
+                          );
+                        },
+                      ),
+                      SizedBox(height: 400.0), // ! for testing
+                    ]),
+                  ),
+                ],
+              );
+            }
+
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 16.0,
+                children: <Widget>[
+                  const CircularProgressIndicator(),
+                  Text('Database loading...', style: textTheme.bodyLarge),
+                ],
+              ),
+            );
+          },
         ),
       ),
       // floatingActionButton: ValueListenableBuilder(
