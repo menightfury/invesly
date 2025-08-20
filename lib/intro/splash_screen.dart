@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:invesly/profile/cubit/profiles_cubit.dart';
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/authentication/login_screen.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/intro/intro_screen.dart';
@@ -47,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final colorScheme = context.colors;
     // final settingsState = context.read<SettingsCubit>().state;
 
-    return BlocListener<ProfilesCubit, ProfilesState>(
+    return BlocListener<AccountsCubit, AccountsState>(
       listener: (context, usersState) async {
         // if (usersState is AccountsLoadedState) {
         //   await _completer.future; // show tips message in splash screen for few seconds

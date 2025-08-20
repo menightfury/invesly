@@ -1,19 +1,19 @@
-import 'package:invesly/profile/cubit/profiles_cubit.dart';
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/profile/edit_profile/view/edit_profile_screen.dart';
-import 'package:invesly/profile/model/profile_model.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 
-class InveslyProfilePickerWidget extends StatelessWidget {
-  const InveslyProfilePickerWidget({super.key, this.accountId, this.onPickup});
+class InveslyAccountPickerWidget extends StatelessWidget {
+  const InveslyAccountPickerWidget({super.key, this.accountId, this.onPickup});
 
   final String? accountId;
-  final ValueChanged<InveslyProfile>? onPickup;
+  final ValueChanged<InveslyAccount>? onPickup;
 
-  static Future<InveslyProfile?> showModal(BuildContext context, [String? accountId]) async {
-    return await showModalBottomSheet<InveslyProfile>(
+  static Future<InveslyAccount?> showModal(BuildContext context, [String? accountId]) async {
+    return await showModalBottomSheet<InveslyAccount>(
       context: context,
       builder: (context) {
-        return InveslyProfilePickerWidget(
+        return InveslyAccountPickerWidget(
           accountId: accountId,
           onPickup: (account) => Navigator.maybePop(context, account),
         );
@@ -23,14 +23,14 @@ class InveslyProfilePickerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProfilesCubit, ProfilesState>(
+    return BlocBuilder<AccountsCubit, AccountsState>(
       builder: (context, state) {
-        if (state is ProfilesErrorState) {
+        if (state is AccountsErrorState) {
           return const PMErrorWidget();
         }
 
-        if (state is ProfilesLoadedState) {
-          final accounts = state.profiles;
+        if (state is AccountsLoadedState) {
+          final accounts = state.accounts;
 
           if (accounts.isEmpty) {
             return const EmptyWidget(label: 'No accounts exists');
@@ -59,7 +59,7 @@ class InveslyProfilePickerWidget extends StatelessWidget {
                   onTap: () {
                     // Navigator.maybePop(context);
                     // context.push(AppRouter.editAccount);
-                    context.push(const EditProfileScreen());
+                    context.push(const EditAccountScreen());
                   },
                 ),
               ],

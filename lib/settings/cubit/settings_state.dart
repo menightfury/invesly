@@ -5,7 +5,7 @@ class SettingsState extends Equatable {
     this.isOnboarded = false,
     this.isDarkMode = false,
     this.currentUser,
-    this.currentProfileId,
+    this.currentAccountId,
     this.isDynamicColor = true,
     this.accentColor,
     this.isPrivateMode = false,
@@ -14,7 +14,7 @@ class SettingsState extends Equatable {
   final bool isOnboarded;
   final bool isDarkMode;
   final InveslyUser? currentUser;
-  final String? currentProfileId;
+  final String? currentAccountId;
   final int? accentColor;
   final bool isDynamicColor;
 
@@ -25,7 +25,7 @@ class SettingsState extends Equatable {
     bool? isOnboarded,
     bool? isDarkMode,
     InveslyUser? currentUser,
-    String? currentProfileId,
+    String? currentAccountId,
     bool? isDynamicColor,
     int? accentColor,
     bool? isPrivateMode,
@@ -34,7 +34,7 @@ class SettingsState extends Equatable {
       isOnboarded: isOnboarded ?? this.isOnboarded,
       isDarkMode: isDarkMode ?? this.isDarkMode,
       currentUser: currentUser ?? this.currentUser,
-      currentProfileId: currentProfileId ?? this.currentProfileId,
+      currentAccountId: currentAccountId ?? this.currentAccountId,
       isDynamicColor: isDynamicColor ?? this.isDynamicColor,
       accentColor: accentColor ?? this.accentColor,
       isPrivateMode: isPrivateMode ?? this.isPrivateMode,
@@ -46,7 +46,7 @@ class SettingsState extends Equatable {
     isOnboarded,
     isDarkMode,
     currentUser,
-    currentProfileId,
+    currentAccountId,
     isDynamicColor,
     accentColor,
     isPrivateMode,
@@ -57,7 +57,7 @@ class SettingsState extends Equatable {
       'isOnboarded': isOnboarded,
       'isDarkMode': isDarkMode,
       'currentUser': currentUser?.toJson(),
-      'currentProfileId': currentProfileId,
+      'currentAccountId': currentAccountId,
       'isDynamicColor': isDynamicColor,
       'accentColor': accentColor,
       'isPrivateMode': isPrivateMode,
@@ -69,7 +69,7 @@ class SettingsState extends Equatable {
       isOnboarded: map['isOnboarded'] as bool,
       isDarkMode: map['isDarkMode'] as bool,
       currentUser: map['currentUser'] != null ? InveslyUser.fromJson(map['currentUser'] as String) : null,
-      currentProfileId: map['currentProfileId'] as String?,
+      currentAccountId: map['currentAccountId'] as String?,
       isDynamicColor: map['isDynamicColor'] as bool,
       accentColor: map['accentColor'] as int?,
       isPrivateMode: map['isPrivateMode'] as bool,

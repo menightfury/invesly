@@ -9,15 +9,15 @@ import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/cubit/database_cubit.dart';
-import 'package:invesly/profile/edit_profile/view/edit_profile_screen.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/profile/cubit/profiles_cubit.dart';
-import 'package:invesly/profile/model/profile_model.dart';
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -34,7 +34,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
 
     context.read<DatabaseCubit>().loadDatabase().then((_) {
-      context.read<ProfilesCubit>().fetchAccounts();
+      context.read<AccountsCubit>().fetchAccounts();
     });
   }
 
@@ -70,22 +70,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     titleSpacing: 0.0,
                     actions: <Widget>[
                       BlocSelector<SettingsCubit, SettingsState, String?>(
-                        selector: (state) => state.currentProfileId,
-                        builder: (context, currentProfileId) {
-                          final profilesState = context.read<ProfilesCubit>().state;
-                          final profiles =
-                              profilesState is ProfilesLoadedState ? profilesState.profiles : <InveslyProfile>[];
-                          final currentProfile =
-                              profiles.isEmpty
+                        selector: (state) => state.currentAccountId,
+                        builder: (context, currentAccountId) {
+                          final accountsState = context.read<AccountsCubit>().state;
+                          final accounts =
+                              accountsState is AccountsLoadedState ? accountsState.accounts : <InveslyAccount>[];
+                          final currentAccount =
+                              accounts.isEmpty
                                   ? null
-                                  : profiles.firstWhere((p) => p.id == currentProfileId, orElse: () => profiles.first);
+                                  : accounts.firstWhere((a) => a.id == currentAccountId, orElse: () => accounts.first);
 
                           return IconButton(
                             padding: EdgeInsets.zero,
                             onPressed: () => context.push(const SettingsScreen()),
                             icon: CircleAvatar(
-                              backgroundImage: currentProfile != null ? AssetImage(currentProfile.avatar) : null,
-                              child: currentProfile == null ? Icon(Icons.person_pin) : null,
+                              backgroundImage: currentAccount != null ? AssetImage(currentAccount.avatar) : null,
+                              child: currentAccount == null ? Icon(Icons.person_pin) : null,
                             ),
                           );
                         },
@@ -120,23 +120,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   },
                                 ),
                                 BlocSelector<SettingsCubit, SettingsState, String?>(
-                                  selector: (state) => state.currentProfileId,
-                                  builder: (context, currentProfileId) {
-                                    final profilesState = context.read<ProfilesCubit>().state;
-                                    final profiles =
-                                        profilesState is ProfilesLoadedState
-                                            ? profilesState.profiles
-                                            : <InveslyProfile>[];
-                                    final currentProfile =
-                                        profiles.isEmpty
+                                  selector: (state) => state.currentAccountId,
+                                  builder: (context, currentAccountId) {
+                                    final accountsState = context.read<AccountsCubit>().state;
+                                    final accounts =
+                                        accountsState is AccountsLoadedState
+                                            ? accountsState.accounts
+                                            : <InveslyAccount>[];
+                                    final currentAccount =
+                                        accounts.isEmpty
                                             ? null
-                                            : profiles.firstWhere(
-                                              (p) => p.id == currentProfileId,
-                                              orElse: () => profiles.first,
+                                            : accounts.firstWhere(
+                                              (a) => a.id == currentAccountId,
+                                              orElse: () => accounts.first,
                                             );
 
                                     return Text(
-                                      'Showing investments for ${currentProfile?.name ?? "Profile 1"}',
+                                      'Showing investments for ${currentAccount?.name ?? "Account 1"}',
                                       overflow: TextOverflow.ellipsis,
                                       // style: textTheme.headlineSmall,
                                     );
@@ -148,10 +148,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       BlocSelector<SettingsCubit, SettingsState, String?>(
-                        selector: (state) => state.currentProfileId,
+                        selector: (state) => state.currentAccountId,
                         builder: (context, userId) {
-                          final usersState = context.read<ProfilesCubit>().state;
-                          final users = usersState is ProfilesLoadedState ? usersState.profiles : <InveslyProfile>[];
+                          final usersState = context.read<AccountsCubit>().state;
+                          final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
                           final currentUser =
                               users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
                           return BlocProvider(
@@ -196,19 +196,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _handlePressed(BuildContext context) async {
-    final profilesState = context.read<ProfilesCubit>().state;
+    final accountsState = context.read<AccountsCubit>().state;
 
-    // Load profiles if not loaded
-    if (profilesState is ProfilesInitialState) {
-      await context.read<ProfilesCubit>().fetchAccounts();
+    // Load accounts if not loaded
+    if (accountsState is AccountsInitialState) {
+      await context.read<AccountsCubit>().fetchAccounts();
     }
     if (!context.mounted) return;
-    if (profilesState is ProfilesErrorState) {
+    if (accountsState is AccountsErrorState) {
       // showErrorDialog(context);
       return;
     }
-    if (profilesState is ProfilesLoadedState) {
-      if (profilesState.profiles.isEmpty) {
+    if (accountsState is AccountsLoadedState) {
+      if (accountsState.accounts.isEmpty) {
         final confirmed = await showConfirmDialog(
           context,
           title: 'Oops!',
@@ -219,7 +219,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         if (!context.mounted) return;
         if (confirmed ?? false) {
-          context.push(const EditProfileScreen());
+          context.push(const EditAccountScreen());
         }
         return;
       }
@@ -268,7 +268,7 @@ class _ShakeTestWidgetState extends State<ShakeTestWidget> with SingleTickerProv
 class _DashboardContents extends StatefulWidget {
   const _DashboardContents(this.user, {super.key});
 
-  final InveslyProfile? user;
+  final InveslyAccount? user;
 
   @override
   State<_DashboardContents> createState() => _DashboardContentsState();

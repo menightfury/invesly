@@ -1,4 +1,4 @@
-part of 'edit_profile_cubit.dart';
+part of 'edit_account_cubit.dart';
 
 enum EditAccountFormStatus {
   initial,
@@ -11,8 +11,8 @@ enum EditAccountFormStatus {
   bool get isFailureOrSuccess => [EditAccountFormStatus.failure, EditAccountFormStatus.success].contains(this);
 }
 
-class EditProfileState extends Equatable {
-  const EditProfileState({
+class EditAccountState extends Equatable {
+  const EditAccountState({
     this.status = EditAccountFormStatus.initial,
     this.initialAccount,
     required this.name,
@@ -23,7 +23,7 @@ class EditProfileState extends Equatable {
   });
 
   final EditAccountFormStatus status;
-  final InveslyProfile? initialAccount;
+  final InveslyAccount? initialAccount;
   final String name;
   // final bool isNameValid;
   final int avatarIndex;
@@ -32,16 +32,16 @@ class EditProfileState extends Equatable {
 
   bool get isNewAccount => initialAccount == null;
 
-  EditProfileState copyWith({
+  EditAccountState copyWith({
     EditAccountFormStatus? status,
-    InveslyProfile? initialAccount,
+    InveslyAccount? initialAccount,
     String? name,
     // bool? isNameValid,
     int? avatarIndex,
     String? panNumber,
     String? aadhaarNumber,
   }) {
-    return EditProfileState(
+    return EditAccountState(
       status: status ?? this.status,
       initialAccount: initialAccount ?? this.initialAccount,
       name: name ?? this.name,

@@ -1,8 +1,8 @@
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/profile/model/profile_model.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 
-// delete profiles in production mode
-final _profile1 = ProfileInDb(id: $uuid.v1(), name: 'Satyajyoti Biswas', avatarIndex: 2);
-final _profile2 = ProfileInDb(id: $uuid.v1(), name: 'Jhuma Mondal', avatarIndex: 1);
+// delete accounts in production mode
+final _account1 = AccountInDb(id: $uuid.v1(), name: 'Satyajyoti Biswas', avatarIndex: 2);
+final _account2 = AccountInDb(id: $uuid.v1(), name: 'Jhuma Mondal', avatarIndex: 1);
 
-final profiles = [_profile1, _profile2];
+final accounts = [_account1, _account2];

@@ -2,46 +2,46 @@ import 'dart:async';
 
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
-import 'package:invesly/profile/model/profile_model.dart';
-import 'package:invesly/profile/model/profile_repository.dart';
+import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/accounts/model/account_repository.dart';
 
-part 'profiles_state.dart';
+part 'accounts_state.dart';
 
-class ProfilesCubit extends Cubit<ProfilesState> {
-  ProfilesCubit({required ProfileRepository repository})
+class AccountsCubit extends Cubit<AccountsState> {
+  AccountsCubit({required AccountRepository repository})
     : _repository = repository,
-      super(const ProfilesInitialState());
+      super(const AccountsInitialState());
 
-  final ProfileRepository _repository;
+  final AccountRepository _repository;
 
   StreamSubscription<TableChangeEvent>? _subscription;
 
   /// Fetch accounts
   Future<void> fetchAccounts() async {
     // getting initial accounts
-    emit(const ProfilesLoadingState());
+    emit(const AccountsLoadingState());
     try {
       final accounts = await _repository.getAccounts();
       $logger.f(accounts);
-      emit(ProfilesLoadedState(accounts));
+      emit(AccountsLoadedState(accounts));
     } on Exception catch (error) {
-      emit(ProfilesErrorState(error.toString()));
+      emit(AccountsErrorState(error.toString()));
     }
 
     // getting accounts when accounts table changes
     _subscription ??= _repository.onDataChanged.listen(
       null,
-      onError: (err) => emit(ProfilesErrorState(err.toString())),
+      onError: (err) => emit(AccountsErrorState(err.toString())),
     );
     _subscription?.onData((_) async {
-      emit(const ProfilesLoadingState());
+      emit(const AccountsLoadingState());
       _subscription?.pause();
       try {
         final accounts = await _repository.getAccounts();
         $logger.f(accounts);
-        emit(ProfilesLoadedState(accounts));
+        emit(AccountsLoadedState(accounts));
       } on Exception catch (error) {
-        emit(ProfilesErrorState(error.toString()));
+        emit(AccountsErrorState(error.toString()));
       } finally {
         _subscription?.resume();
       }
