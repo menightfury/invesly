@@ -29,7 +29,7 @@ class AccountsCubit extends Cubit<AccountsState> {
     }
 
     // getting accounts when accounts table changes
-    _subscription ??= _repository.onTableChange.listen(
+    _subscription ??= _repository.onDataChanged.listen(
       null,
       onError: (err) => emit(AccountsErrorState(err.toString())),
     );

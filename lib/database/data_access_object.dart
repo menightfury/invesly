@@ -140,51 +140,51 @@ abstract class DaoFilterBuilder<T extends InveslyDataModel> {
 }
 
 // ~~~ Data Access Object ~~~
-abstract class DataAccessObject<T extends InveslyDataModel> {
-  DataAccessObject({required Database db, required this.table})
-    : _db = db,
-      _tableChangeEventController = StreamController<TableChangeEvent>.broadcast();
+// abstract class DataAccessObject<T extends InveslyDataModel> {
+//   DataAccessObject({required Database db, required this.table})
+//     : _db = db,
+//       _tableChangeEventController = StreamController<TableChangeEvent>.broadcast();
 
-  final Database _db;
-  final TableSchema<T> table;
-  final StreamController<TableChangeEvent> _tableChangeEventController;
+//   final Database _db;
+//   final TableSchema<T> table;
+//   final StreamController<TableChangeEvent> _tableChangeEventController;
 
-  // Stream of TableChangeEvent
-  Stream<TableChangeEvent> get onTableChange => _tableChangeEventController.stream;
+//   // Stream of TableChangeEvent
+//   Stream<TableChangeEvent> get onTableChange => _tableChangeEventController.stream;
 
-  Future<int> insert(T data) async {
-    final r = await _db.insert(table.name, table.decode(data));
-    _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.insertion));
-    return r;
-  }
+//   Future<int> insert(T data) async {
+//     final r = await _db.insert(table.name, table.decode(data));
+//     _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.insertion));
+//     return r;
+//   }
 
-  Future<int> update(T data) async {
-    final r = await _db.update(
-      table.name,
-      table.decode(data),
-      where: '${table.idColumn.fullTitle} = ?',
-      whereArgs: [data.id],
-    );
-    _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.updation));
-    return r;
-  }
+//   Future<int> update(T data) async {
+//     final r = await _db.update(
+//       table.name,
+//       table.decode(data),
+//       where: '${table.idColumn.fullTitle} = ?',
+//       whereArgs: [data.id],
+//     );
+//     _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.updation));
+//     return r;
+//   }
 
-  Future<int> delete(T data) async {
-    final r = await Future.delayed(2.seconds, () => 1); // TODO: implement
-    _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.deletion));
-    return r;
-  }
+//   Future<int> delete(T data) async {
+//     final r = await Future.delayed(2.seconds, () => 1); // TODO: implement
+//     _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.deletion));
+//     return r;
+//   }
 
-  DaoQueryBuilder select([List<TableColumnBase>? columns]) {
-    return DaoQueryBuilder(db: _db, table: table, columns: columns);
-  }
+//   DaoQueryBuilder select([List<TableColumnBase>? columns]) {
+//     return DaoQueryBuilder(db: _db, table: table, columns: columns);
+//   }
 
-  Future<String> tableDataToCsv([String separator = ',']) async {
-    final csvHeader = table.columns.map((col) => col.title.toCamelCase()).toList();
-    final data = await select().toList();
+//   Future<String> tableDataToCsv([String separator = ',']) async {
+//     final csvHeader = table.columns.map((col) => col.title.toCamelCase()).toList();
+//     final data = await select().toList();
 
-    final csvData = data.map((d) => d.values.toList()).toList();
+//     final csvData = data.map((d) => d.values.toList()).toList();
 
-    return const ListToCsvConverter().convert([csvHeader, ...csvData], fieldDelimiter: separator);
-  }
-}
+//     return const ListToCsvConverter().convert([csvHeader, ...csvData], fieldDelimiter: separator);
+//   }
+// }

@@ -3,7 +3,10 @@
 import 'package:googleapis/drive/v3.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/cubit/auth_cubit.dart';
+import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/settings/cubit/settings_cubit.dart';
+import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 import 'package:shimmer/shimmer.dart';
 import 'dart:async';
 
@@ -157,7 +160,7 @@ class __LoginScreenState extends State<_LoginScreen> {
           children: <Widget>[
             BlocBuilder<AuthenticationCubit, AuthenticationState>(
               builder: (context, state) {
-                final GoogleSignInClientAuthorization? authorization = _authorization;
+                final authorization = _authorization;
                 if (state.status == AuthenticationStatus.loading) {
                   return const CircularProgressIndicator();
                 }
@@ -168,6 +171,9 @@ class __LoginScreenState extends State<_LoginScreen> {
 
                 if (state.status == AuthenticationStatus.authenticated) {
                   final user = state.user!;
+                  // Save current user
+                  context.read<SettingsCubit>().saveCurrentUser(InveslyUser.fromGoogleSignInAccount(user));
+
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -188,6 +194,11 @@ class __LoginScreenState extends State<_LoginScreen> {
                           onPressed: () async {
                             final files = await context.read<AuthenticationRepository>().getDriveFiles();
                             $logger.i(files);
+                            // if files in not null and not empty, copy the latest backup file in the device,
+                            // After copying, navigate to DashboardScreen
+                            if (mounted) {
+                              context.go(DashboardScreen());
+                            }
                           },
                           child: const Text('Load Files'),
                         ),

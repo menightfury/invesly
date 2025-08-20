@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:csv/csv.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/database/data_access_object.dart';
+// import 'package:invesly/database/data_access_object.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
@@ -11,16 +11,15 @@ import 'package:invesly/transactions/model/transaction_model.dart';
 // class TransactionRepository extends DataAccessObject<TransactionInDb> {
 class TransactionRepository {
   // TransactionRepository(InveslyApi api) : _api = api, super(db: api.db, table: api.trnTable);
-  TransactionRepository(this.api);
+  TransactionRepository(InveslyApi api) : _api = api;
 
-  // final InveslyApi _api;
-  final InveslyApi api;
+  final InveslyApi _api;
 
-  AmcTable get _amcTable => api.amcTable;
-  TransactionTable get _trnTable => api.trnTable;
+  AmcTable get _amcTable => _api.amcTable;
+  TransactionTable get _trnTable => _api.trnTable;
 
   Stream<TableChangeEvent> get onDataChanged {
-    return api.onTableChange.where((event) => event.table == _trnTable);
+    return _api.onTableChange.where((event) => event.table == _trnTable);
   }
 
   /// Get transactions
@@ -36,7 +35,7 @@ class TransactionRepository {
 
     late final List<InveslyTransaction> transactions;
     try {
-      final result = await api.select(_trnTable).join([_amcTable]).where(filter).toList();
+      final result = await _api.select(_trnTable).join([_amcTable]).where(filter).toList();
       // orderBy: '${_trnTable.dateColumn.title} DESC',
       // limit: showItems,
 
@@ -65,7 +64,7 @@ class TransactionRepository {
     late final List<TransactionStat> stats;
     try {
       final result =
-          await api
+          await _api
               .select(_trnTable, [
                 _trnTable.userIdColumn.alias('user_id'),
                 _amcTable.genreColumn.alias('genre'),
@@ -95,11 +94,11 @@ class TransactionRepository {
   }
 
   /// Add or update a transaction
-  Future<void> saveTransaction(InveslyTransaction trn, [bool isNew = true]) async {
+  Future<void> saveTransaction(InveslyTransaction transaction, [bool isNew = true]) async {
     if (isNew) {
-      await api.insert(_trnTable, trn);
+      await _api.insert(_trnTable, transaction);
     } else {
-      await api.update(_trnTable, trn);
+      await _api.update(_trnTable, transaction);
     }
   }
 

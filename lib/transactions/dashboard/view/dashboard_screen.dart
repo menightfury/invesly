@@ -1,7 +1,9 @@
 // ignore_for_file: unused_element
 
 import 'package:animate_do/animate_do.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/authentication/user_model.dart';
 
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
 import 'package:invesly/common_libs.dart';
@@ -54,21 +56,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // title:
                     titleSpacing: 0.0,
                     actions: <Widget>[
-                      BlocSelector<SettingsCubit, SettingsState, String?>(
-                        selector: (state) => state.currentUserId,
-                        builder: (context, userId) {
-                          final usersState = context.read<AccountsCubit>().state;
-                          final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
-                          final currentUser =
-                              users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+                      BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
+                        selector: (state) => state.currentUser,
+                        builder: (context, user) {
+                          // final usersState = context.read<AccountsCubit>().state;
+                          // final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
+                          // final currentUser =
+                          //     users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
 
                           return IconButton(
                             padding: EdgeInsets.zero,
                             onPressed: () => context.push(const SettingsScreen()),
-                            icon: CircleAvatar(
-                              backgroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
-                              child: currentUser == null ? Icon(Icons.person_pin) : null,
-                            ),
+                            // icon: CircleAvatar(
+                            //   backgroundImage: user != null ? AssetImage(user.photoUrl) : null,
+                            //   child: user == null ? Icon(Icons.person_pin) : null,
+                            // ),
+                            icon: user != null ? GoogleUserCircleAvatar(identity: user) : const Icon(Icons.person_pin),
                           );
                         },
                       ),
@@ -91,16 +94,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   overflow: TextOverflow.ellipsis,
                                   style: textTheme.headlineSmall,
                                 ),
-                                BlocSelector<SettingsCubit, SettingsState, String?>(
-                                  selector: (state) => state.currentUserId,
-                                  builder: (context, userId) {
-                                    final usersState = context.read<AccountsCubit>().state;
-                                    final users =
-                                        usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
-                                    final currentUser =
-                                        users.isEmpty
-                                            ? null
-                                            : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+                                BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
+                                  selector: (state) => state.currentUser,
+                                  builder: (context, currentUser) {
+                                    // final usersState = context.read<AccountsCubit>().state;
+                                    // final users =
+                                    //     usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
+                                    // final currentUser =
+                                    //     users.isEmpty
+                                    //         ? null
+                                    //         : users.firstWhere((u) => u.id == currentUser, orElse: () => users.first);
 
                                     return Text(
                                       currentUser?.name ?? 'Investor',
