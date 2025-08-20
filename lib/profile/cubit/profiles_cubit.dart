@@ -2,17 +2,17 @@ import 'dart:async';
 
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
-import 'package:invesly/accounts/model/account_model.dart';
-import 'package:invesly/accounts/model/account_repository.dart';
+import 'package:invesly/profile/model/profile_model.dart';
+import 'package:invesly/profile/model/profile_repository.dart';
 
-part 'accounts_state.dart';
+part 'profiles_state.dart';
 
-class AccountsCubit extends Cubit<AccountsState> {
-  AccountsCubit({required AccountRepository repository})
+class ProfilesCubit extends Cubit<ProfilesState> {
+  ProfilesCubit({required ProfileRepository repository})
     : _repository = repository,
       super(const AccountsInitialState());
 
-  final AccountRepository _repository;
+  final ProfileRepository _repository;
 
   StreamSubscription<TableChangeEvent>? _subscription;
 

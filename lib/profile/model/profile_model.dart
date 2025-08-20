@@ -1,6 +1,6 @@
 import 'package:invesly/database/table_schema.dart';
 
-enum InveslyAccountAvatar {
+enum InveslyProfileAvatar {
   // enum values are name of the images in the assets/images/avatar folder
   man,
   woman,
@@ -12,29 +12,29 @@ enum InveslyAccountAvatar {
   String get imgSrc => 'assets/images/avatar/$name.png';
 }
 
-class InveslyAccount extends AccountInDb {
-  InveslyAccount({required super.id, required super.name, required this.avatar, super.panNumber, super.aadhaarNumber})
-    : super(avatarIndex: InveslyAccountAvatar.values.indexWhere((el) => el.imgSrc == avatar));
+class InveslyProfile extends ProfileInDb {
+  InveslyProfile({required super.id, required super.name, required this.avatar, super.panNumber, super.aadhaarNumber})
+    : super(avatarIndex: InveslyProfileAvatar.values.indexWhere((el) => el.imgSrc == avatar));
 
   final String avatar;
 
-  factory InveslyAccount.fromDb(AccountInDb account) {
-    int avatarIndex = account.avatarIndex;
-    if (avatarIndex < 0 || avatarIndex > InveslyAccountAvatar.values.length - 1) {
+  factory InveslyProfile.fromDb(ProfileInDb profile) {
+    int avatarIndex = profile.avatarIndex;
+    if (avatarIndex < 0 || avatarIndex > InveslyProfileAvatar.values.length - 1) {
       avatarIndex = 2;
     }
-    return InveslyAccount(
-      id: account.id,
-      name: account.name,
-      avatar: InveslyAccountAvatar.values[avatarIndex].imgSrc,
-      panNumber: account.panNumber,
-      aadhaarNumber: account.aadhaarNumber,
+    return InveslyProfile(
+      id: profile.id,
+      name: profile.name,
+      avatar: InveslyProfileAvatar.values[avatarIndex].imgSrc,
+      panNumber: profile.panNumber,
+      aadhaarNumber: profile.aadhaarNumber,
     );
   }
 }
 
-class AccountInDb extends InveslyDataModel {
-  const AccountInDb({
+class ProfileInDb extends InveslyDataModel {
+  const ProfileInDb({
     required super.id,
     required this.name,
     required this.avatarIndex,
@@ -51,11 +51,11 @@ class AccountInDb extends InveslyDataModel {
   List<Object?> get props => super.props..addAll([name, avatarIndex, panNumber, aadhaarNumber]);
 }
 
-class AccountTable extends TableSchema<AccountInDb> {
+class ProfileTable extends TableSchema<ProfileInDb> {
   // Singleton pattern to ensure only one instance exists
-  const AccountTable._() : super('accounts');
-  static const i = AccountTable._();
-  factory AccountTable() => i;
+  const ProfileTable._() : super('profiles');
+  static const i = ProfileTable._();
+  factory ProfileTable() => i;
 
   TableColumn<String> get nameColumn => TableColumn('name', name);
   TableColumn<int> get avatarColumn => TableColumn('avatar', name, type: TableColumnType.integer, isNullable: true);
@@ -67,7 +67,7 @@ class AccountTable extends TableSchema<AccountInDb> {
       super.columns..addAll([nameColumn, avatarColumn, panNumberColumn, aadhaarNumberColumn]);
 
   @override
-  Map<String, dynamic> decode(AccountInDb data) {
+  Map<String, dynamic> decode(ProfileInDb data) {
     return {
       idColumn.title: data.id,
       nameColumn.title: data.name,
@@ -78,8 +78,8 @@ class AccountTable extends TableSchema<AccountInDb> {
   }
 
   @override
-  AccountInDb encode(Map<String, dynamic> map) {
-    return AccountInDb(
+  ProfileInDb encode(Map<String, dynamic> map) {
+    return ProfileInDb(
       id: map[idColumn.title] as String,
       name: map[nameColumn.title] as String,
       avatarIndex: map[avatarColumn.title] as int,

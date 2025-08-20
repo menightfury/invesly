@@ -9,10 +9,10 @@ import 'package:invesly/database/invesly_api.dart';
 import 'bloc_observer.dart';
 // import 'connectivity/cubit/internet_cubit.dart';
 
-import 'accounts/cubit/accounts_cubit.dart';
+import 'profile/cubit/profiles_cubit.dart';
 import 'amcs/model/amc_repository.dart';
 import 'transactions/model/transaction_repository.dart';
-import 'accounts/model/account_repository.dart';
+import 'profile/model/profile_repository.dart';
 import 'common/presentations/styles/theme.dart';
 import 'common_libs.dart';
 import 'settings/cubit/settings_cubit.dart';
@@ -33,11 +33,11 @@ class InveslyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final api = Bootstrap.instance.api;
-    final accountRepository = AccountRepository(api);
+    final profileRepository = ProfileRepository(api);
 
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider.value(value: accountRepository),
+        RepositoryProvider.value(value: profileRepository),
         RepositoryProvider(create: (_) => AmcRepository(api)),
         RepositoryProvider(create: (_) => TransactionRepository(api)),
       ],
@@ -45,7 +45,7 @@ class InveslyApp extends StatelessWidget {
         providers: [
           // BlocProvider<InternetCubit>(create: (_) => InternetCubit()),
           BlocProvider<DatabaseCubit>(create: (_) => DatabaseCubit()),
-          BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)),
+          BlocProvider<ProfilesCubit>(create: (_) => ProfilesCubit(repository: profileRepository)),
           BlocProvider<SettingsCubit>(create: (_) => SettingsCubit()),
         ],
         child: const _AppView(),

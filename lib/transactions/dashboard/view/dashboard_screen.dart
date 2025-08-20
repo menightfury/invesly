@@ -14,8 +14,8 @@ import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/profile/cubit/profiles_cubit.dart';
+import 'package:invesly/profile/model/profile_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -118,10 +118,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       BlocSelector<SettingsCubit, SettingsState, String?>(
-                        selector: (state) => state.currentUserId,
+                        selector: (state) => state.currentProfileId,
                         builder: (context, userId) {
-                          final usersState = context.read<AccountsCubit>().state;
-                          final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
+                          final usersState = context.read<ProfilesCubit>().state;
+                          final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyProfile>[];
                           final currentUser =
                               users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
                           return BlocProvider(
@@ -211,7 +211,7 @@ class _ShakeTestWidgetState extends State<ShakeTestWidget> with SingleTickerProv
 class _DashboardContents extends StatefulWidget {
   const _DashboardContents(this.user, {super.key});
 
-  final InveslyAccount? user;
+  final InveslyProfile? user;
 
   @override
   State<_DashboardContents> createState() => _DashboardContentsState();

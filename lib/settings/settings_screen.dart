@@ -9,12 +9,12 @@ import 'package:invesly/database/backup/backup_service.dart';
 import 'package:invesly/settings/import_transactions/import_transactions_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
-import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/profile/cubit/profiles_cubit.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/google_drive/google_drive.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
-import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/profile/edit_profile/view/edit_profile_screen.dart';
+import 'package:invesly/profile/model/profile_model.dart';
 import 'package:path/path.dart';
 
 import 'widgets/settings_section.dart';
@@ -58,7 +58,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     // final textTheme = Theme.of(context).textTheme;
-    return BlocListener<AccountsCubit, AccountsState>(
+    return BlocListener<ProfilesCubit, ProfilesState>(
       listener: (context, state) {
         // if (state is! UsersLoadedState) {
         //   context.go(AppRouter.splash);

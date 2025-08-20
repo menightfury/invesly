@@ -1,19 +1,19 @@
-import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/profile/cubit/profiles_cubit.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
-import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/profile/edit_profile/view/edit_profile_screen.dart';
+import 'package:invesly/profile/model/profile_model.dart';
 
-class InveslyAccountPickerWidget extends StatelessWidget {
-  const InveslyAccountPickerWidget({super.key, this.accountId, this.onPickup});
+class InveslyProfilePickerWidget extends StatelessWidget {
+  const InveslyProfilePickerWidget({super.key, this.accountId, this.onPickup});
 
   final String? accountId;
-  final ValueChanged<InveslyAccount>? onPickup;
+  final ValueChanged<InveslyProfile>? onPickup;
 
-  static Future<InveslyAccount?> showModal(BuildContext context, [String? accountId]) async {
-    return await showModalBottomSheet<InveslyAccount>(
+  static Future<InveslyProfile?> showModal(BuildContext context, [String? accountId]) async {
+    return await showModalBottomSheet<InveslyProfile>(
       context: context,
       builder: (context) {
-        return InveslyAccountPickerWidget(
+        return InveslyProfilePickerWidget(
           accountId: accountId,
           onPickup: (account) => Navigator.maybePop(context, account),
         );
@@ -23,7 +23,7 @@ class InveslyAccountPickerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountsCubit, AccountsState>(
+    return BlocBuilder<ProfilesCubit, ProfilesState>(
       builder: (context, state) {
         if (state is AccountsErrorState) {
           return const PMErrorWidget();
@@ -59,7 +59,7 @@ class InveslyAccountPickerWidget extends StatelessWidget {
                   onTap: () {
                     // Navigator.maybePop(context);
                     // context.push(AppRouter.editAccount);
-                    context.push(const EditAccountScreen());
+                    context.push(const EditProfileScreen());
                   },
                 ),
               ],

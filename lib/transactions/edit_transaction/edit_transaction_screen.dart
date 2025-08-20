@@ -15,9 +15,9 @@ import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/model/account_model.dart';
-import 'package:invesly/accounts/widget/account_picker_widget.dart';
+import 'package:invesly/profile/cubit/profiles_cubit.dart';
+import 'package:invesly/profile/model/profile_model.dart';
+import 'package:invesly/profile/widget/profile_picker_widget.dart';
 
 import 'cubit/edit_transaction_cubit.dart';
 
@@ -389,7 +389,7 @@ class _UserPickerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
 
-    return FormField<InveslyAccount>(
+    return FormField<InveslyProfile>(
       builder: (state) {
         late final Widget icon;
 
@@ -404,7 +404,7 @@ class _UserPickerWidget extends StatelessWidget {
           shake: state.hasError,
           child: IconButton(
             onPressed: () async {
-              final newUser = await InveslyAccountPickerWidget.showModal(context, cubit.state.userId);
+              final newUser = await InveslyProfilePickerWidget.showModal(context, cubit.state.userId);
               if (newUser == null) return;
 
               cubit.updateUser(newUser.id);

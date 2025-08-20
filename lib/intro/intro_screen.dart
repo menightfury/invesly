@@ -5,8 +5,6 @@ import 'package:invesly/common_libs.dart';
 
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
-// import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-// import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});

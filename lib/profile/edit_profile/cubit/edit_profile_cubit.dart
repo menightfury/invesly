@@ -1,14 +1,14 @@
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/accounts/model/account_model.dart';
-import 'package:invesly/accounts/model/account_repository.dart';
+import 'package:invesly/profile/model/profile_model.dart';
+import 'package:invesly/profile/model/profile_repository.dart';
 
-part 'edit_account_state.dart';
+part 'edit_profile_state.dart';
 
-class EditAccountCubit extends Cubit<EditAccountState> {
-  EditAccountCubit({required AccountRepository repository, InveslyAccount? initialAccount})
+class EditProfileCubit extends Cubit<EditProfileState> {
+  EditProfileCubit({required ProfileRepository repository, InveslyProfile? initialAccount})
     : _repository = repository,
       super(
-        EditAccountState(
+        EditProfileState(
           initialAccount: initialAccount,
           name: initialAccount?.name ?? '',
           avatarIndex: initialAccount?.avatarIndex ?? 2,
@@ -17,7 +17,7 @@ class EditAccountCubit extends Cubit<EditAccountState> {
         ),
       );
 
-  final AccountRepository _repository;
+  final ProfileRepository _repository;
 
   void updateAvatar(int value) {
     emit(state.copyWith(avatarIndex: value));
@@ -47,7 +47,7 @@ class EditAccountCubit extends Cubit<EditAccountState> {
       return;
     }
 
-    final user = AccountInDb(
+    final user = ProfileInDb(
       id: state.initialAccount?.id ?? $uuid.v1(),
       name: name,
       avatarIndex: state.avatarIndex,
