@@ -23,7 +23,6 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     final settingsState = context.read<SettingsCubit>().state;
 
-    // context.read<AccountsCubit>().fetchAccounts();
     // _completer = Completer();
     // show splash screen for few seconds
     // _timer = Timer(2.seconds, () => _completer.complete());

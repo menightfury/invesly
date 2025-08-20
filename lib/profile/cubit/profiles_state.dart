@@ -7,16 +7,16 @@ sealed class ProfilesState extends Equatable {
   List<Object?> get props => [];
 }
 
-class AccountsInitialState extends ProfilesState {
-  const AccountsInitialState();
+class ProfilesInitialState extends ProfilesState {
+  const ProfilesInitialState();
 }
 
-class AccountsLoadingState extends ProfilesState {
-  const AccountsLoadingState();
+class ProfilesLoadingState extends ProfilesState {
+  const ProfilesLoadingState();
 }
 
-class AccountsErrorState extends ProfilesState {
-  const AccountsErrorState(this.errorMsg);
+class ProfilesErrorState extends ProfilesState {
+  const ProfilesErrorState(this.errorMsg);
 
   final String errorMsg;
 
@@ -24,19 +24,19 @@ class AccountsErrorState extends ProfilesState {
   List<Object> get props => [errorMsg];
 }
 
-class AccountsLoadedState extends ProfilesState {
-  const AccountsLoadedState(this.accounts);
+class ProfilesLoadedState extends ProfilesState {
+  const ProfilesLoadedState(this.profiles);
 
-  final List<InveslyProfile> accounts;
+  final List<InveslyProfile> profiles;
 
-  bool get hasNoAccount => accounts.isEmpty;
+  bool get hasNoProfiles => profiles.isEmpty;
 
-  InveslyProfile? getAccount(String accountId) {
-    return accounts.firstWhereOrNull((account) => account.id == accountId);
+  InveslyProfile? getProfile(String profileId) {
+    return profiles.firstWhereOrNull((profile) => profile.id == profileId);
   }
 
-  bool hasAccount(String accountId) => getAccount(accountId) != null;
+  bool hasProfile(String profileId) => getProfile(profileId) != null;
 
   @override
-  List<Object> get props => [accounts];
+  List<Object> get props => [profiles];
 }

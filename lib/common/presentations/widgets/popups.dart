@@ -3,6 +3,40 @@ import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/constants.dart';
 
+/// Display a dialog with a title, a description and confirm/cancel buttons.
+///
+/// When the confirm dialogs is closed, it will return `true` or `false` when one of the actions
+/// button is pressed, and null if closed without tapping on any icon
+Future<bool?> showConfirmDialog(
+  BuildContext context, {
+  required String title,
+  Widget? icon,
+  Widget? content,
+  bool showCancelButton = false,
+  String? confirmationText,
+  bool canPop = true,
+}) {
+  return showDialog<bool>(
+    context: context,
+    barrierDismissible: canPop,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(title),
+        icon: icon,
+        content: content,
+        actions: <Widget>[
+          if (showCancelButton)
+            TextButton(child: Text('Cancel'), onPressed: () => Navigator.of(context, rootNavigator: true).pop(false)),
+          TextButton(
+            child: Text(confirmationText ?? 't.general.understood'),
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 Future<T?> openPopup<T extends Object?>(
   BuildContext? contextPassed, {
   IconData? icon,

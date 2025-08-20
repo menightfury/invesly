@@ -6,8 +6,10 @@ import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/authentication/user_model.dart';
 
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
+import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/cubit/database_cubit.dart';
+import 'package:invesly/profile/edit_profile/view/edit_profile_screen.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
@@ -31,7 +33,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
 
-    context.read<DatabaseCubit>().loadDatabase();
+    context.read<DatabaseCubit>().loadDatabase().then((_) {
+      context.read<ProfilesCubit>().fetchAccounts();
+    });
   }
 
   @override
@@ -52,26 +56,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 controller: _scrollController,
                 slivers: [
                   SliverAppBar(
-                    leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 32.0)),
+                    // leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 32.0)),
+                    leading: Align(
+                      child: BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
+                        selector: (state) => state.currentUser,
+                        builder: (context, currentUser) {
+                          final user = currentUser ?? InveslyUser.empty();
+                          return GoogleUserCircleAvatar(identity: user);
+                        },
+                      ),
+                    ),
                     // title:
                     titleSpacing: 0.0,
                     actions: <Widget>[
-                      BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
-                        selector: (state) => state.currentUser,
-                        builder: (context, user) {
-                          // final usersState = context.read<AccountsCubit>().state;
-                          // final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
-                          // final currentUser =
-                          //     users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+                      BlocSelector<SettingsCubit, SettingsState, String?>(
+                        selector: (state) => state.currentProfileId,
+                        builder: (context, currentProfileId) {
+                          final profilesState = context.read<ProfilesCubit>().state;
+                          final profiles =
+                              profilesState is ProfilesLoadedState ? profilesState.profiles : <InveslyProfile>[];
+                          final currentProfile =
+                              profiles.isEmpty
+                                  ? null
+                                  : profiles.firstWhere((p) => p.id == currentProfileId, orElse: () => profiles.first);
 
                           return IconButton(
                             padding: EdgeInsets.zero,
                             onPressed: () => context.push(const SettingsScreen()),
-                            // icon: CircleAvatar(
-                            //   backgroundImage: user != null ? AssetImage(user.photoUrl) : null,
-                            //   child: user == null ? Icon(Icons.person_pin) : null,
-                            // ),
-                            icon: user != null ? GoogleUserCircleAvatar(identity: user) : const Icon(Icons.person_pin),
+                            icon: CircleAvatar(
+                              backgroundImage: currentProfile != null ? AssetImage(currentProfile.avatar) : null,
+                              child: currentProfile == null ? Icon(Icons.person_pin) : null,
+                            ),
                           );
                         },
                       ),
@@ -97,18 +112,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
                                   selector: (state) => state.currentUser,
                                   builder: (context, currentUser) {
-                                    // final usersState = context.read<AccountsCubit>().state;
-                                    // final users =
-                                    //     usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
-                                    // final currentUser =
-                                    //     users.isEmpty
-                                    //         ? null
-                                    //         : users.firstWhere((u) => u.id == currentUser, orElse: () => users.first);
-
                                     return Text(
                                       currentUser?.name ?? 'Investor',
                                       overflow: TextOverflow.ellipsis,
                                       style: textTheme.headlineMedium,
+                                    );
+                                  },
+                                ),
+                                BlocSelector<SettingsCubit, SettingsState, String?>(
+                                  selector: (state) => state.currentProfileId,
+                                  builder: (context, currentProfileId) {
+                                    final profilesState = context.read<ProfilesCubit>().state;
+                                    final profiles =
+                                        profilesState is ProfilesLoadedState
+                                            ? profilesState.profiles
+                                            : <InveslyProfile>[];
+                                    final currentProfile =
+                                        profiles.isEmpty
+                                            ? null
+                                            : profiles.firstWhere(
+                                              (p) => p.id == currentProfileId,
+                                              orElse: () => profiles.first,
+                                            );
+
+                                    return Text(
+                                      'Showing investments for ${currentProfile?.name ?? "Profile 1"}',
+                                      overflow: TextOverflow.ellipsis,
+                                      // style: textTheme.headlineSmall,
                                     );
                                   },
                                 ),
@@ -121,7 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         selector: (state) => state.currentProfileId,
                         builder: (context, userId) {
                           final usersState = context.read<ProfilesCubit>().state;
-                          final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyProfile>[];
+                          final users = usersState is ProfilesLoadedState ? usersState.profiles : <InveslyProfile>[];
                           final currentUser =
                               users.isEmpty ? null : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
                           return BlocProvider(
@@ -150,15 +180,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           },
         ),
       ),
-      // floatingActionButton: ValueListenableBuilder(
-      //   valueListenable: isFloatingButtonExtended,
-      //   builder: (context, isExtended, _) {
-      //     return NewTransactionButton(isExtended: isExtended);
-      //   },
-      // ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
-        onPressed: () => context.push(const EditTransactionScreen()),
+        onPressed: () => _handlePressed(context),
         icon: const Icon(Icons.add_rounded),
         extendedPadding: const EdgeInsetsDirectional.only(start: 16.0, end: 16.0),
         extendedIconLabelSpacing: 0.0,
@@ -169,6 +193,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  void _handlePressed(BuildContext context) async {
+    final profilesState = context.read<ProfilesCubit>().state;
+
+    // Load profiles if not loaded
+    if (profilesState is ProfilesInitialState) {
+      await context.read<ProfilesCubit>().fetchAccounts();
+    }
+    if (!context.mounted) return;
+    if (profilesState is ProfilesErrorState) {
+      // showErrorDialog(context);
+      return;
+    }
+    if (profilesState is ProfilesLoadedState) {
+      if (profilesState.profiles.isEmpty) {
+        final confirmed = await showConfirmDialog(
+          context,
+          title: 'Oops!',
+          icon: Icon(Icons.warning_amber_rounded),
+          content: Text('You must have at least one no-archived account before you can start creating transactions'),
+          confirmationText: 'Continue',
+        );
+
+        if (!context.mounted) return;
+        if (confirmed ?? false) {
+          context.push(const EditProfileScreen());
+        }
+        return;
+      }
+
+      context.push(const EditTransactionScreen());
+    }
   }
 }
 

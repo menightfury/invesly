@@ -25,12 +25,12 @@ class InveslyProfilePickerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfilesCubit, ProfilesState>(
       builder: (context, state) {
-        if (state is AccountsErrorState) {
+        if (state is ProfilesErrorState) {
           return const PMErrorWidget();
         }
 
-        if (state is AccountsLoadedState) {
-          final accounts = state.accounts;
+        if (state is ProfilesLoadedState) {
+          final accounts = state.profiles;
 
           if (accounts.isEmpty) {
             return const EmptyWidget(label: 'No accounts exists');

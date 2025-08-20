@@ -10,7 +10,7 @@ part 'profiles_state.dart';
 class ProfilesCubit extends Cubit<ProfilesState> {
   ProfilesCubit({required ProfileRepository repository})
     : _repository = repository,
-      super(const AccountsInitialState());
+      super(const ProfilesInitialState());
 
   final ProfileRepository _repository;
 
@@ -19,29 +19,29 @@ class ProfilesCubit extends Cubit<ProfilesState> {
   /// Fetch accounts
   Future<void> fetchAccounts() async {
     // getting initial accounts
-    emit(const AccountsLoadingState());
+    emit(const ProfilesLoadingState());
     try {
       final accounts = await _repository.getAccounts();
       $logger.f(accounts);
-      emit(AccountsLoadedState(accounts));
+      emit(ProfilesLoadedState(accounts));
     } on Exception catch (error) {
-      emit(AccountsErrorState(error.toString()));
+      emit(ProfilesErrorState(error.toString()));
     }
 
     // getting accounts when accounts table changes
     _subscription ??= _repository.onDataChanged.listen(
       null,
-      onError: (err) => emit(AccountsErrorState(err.toString())),
+      onError: (err) => emit(ProfilesErrorState(err.toString())),
     );
     _subscription?.onData((_) async {
-      emit(const AccountsLoadingState());
+      emit(const ProfilesLoadingState());
       _subscription?.pause();
       try {
         final accounts = await _repository.getAccounts();
         $logger.f(accounts);
-        emit(AccountsLoadedState(accounts));
+        emit(ProfilesLoadedState(accounts));
       } on Exception catch (error) {
-        emit(AccountsErrorState(error.toString()));
+        emit(ProfilesErrorState(error.toString()));
       } finally {
         _subscription?.resume();
       }
