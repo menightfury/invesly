@@ -16,12 +16,12 @@ class AccountsLoadingState extends AccountsState {
 }
 
 class AccountsErrorState extends AccountsState {
-  const AccountsErrorState(this.errorMsg);
+  const AccountsErrorState(this.message);
 
-  final String errorMsg;
+  final String message;
 
   @override
-  List<Object> get props => [errorMsg];
+  List<Object> get props => [message];
 }
 
 class AccountsLoadedState extends AccountsState {

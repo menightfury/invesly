@@ -43,19 +43,31 @@ class Tappable extends StatelessWidget {
       color: bgColor ?? context.colors.primaryContainer,
       type: MaterialType.canvas,
       shape: shape ?? defaultShape,
-      child: ListTile(
+      child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
-        shape: shape ?? defaultShape,
-        title: Align(alignment: childAlignment, child: content),
-        titleAlignment: ListTileTitleAlignment.titleHeight,
-        leading: leading,
-        trailing: trailing,
-        dense: false,
-        contentPadding: padding,
-        minVerticalPadding: 0.0,
-        minTileHeight: 0.0,
-        isThreeLine: false,
+        child: Padding(
+          padding: padding ?? const EdgeInsets.symmetric(vertical: 8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ?leading,
+              Align(alignment: childAlignment, child: content),
+              ?trailing,
+            ],
+          ),
+        ),
+        // shape: shape ?? defaultShape,
+        // title: Align(alignment: childAlignment, child: content),
+        // titleAlignment: ListTileTitleAlignment.titleHeight,
+        // leading: leading,
+        // trailing: trailing,
+        // dense: false,
+        // contentPadding: padding,
+        // minVerticalPadding: 0.0,
+        // minTileHeight: 0.0,
+        // isThreeLine: false,
       ),
     );
 

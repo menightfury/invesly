@@ -13,7 +13,7 @@ enum InveslyAccountAvatar {
 }
 
 class InveslyAccount extends AccountInDb {
-  InveslyAccount({required super.id, required super.name, required this.avatar, super.panNumber, super.aadhaarNumber})
+  InveslyAccount({required super.id, required super.name, required this.avatar})
     : super(avatarIndex: InveslyAccountAvatar.values.indexWhere((el) => el.imgSrc == avatar));
 
   final String avatar;
@@ -27,8 +27,8 @@ class InveslyAccount extends AccountInDb {
       id: account.id,
       name: account.name,
       avatar: InveslyAccountAvatar.values[avatarIndex].imgSrc,
-      panNumber: account.panNumber,
-      aadhaarNumber: account.aadhaarNumber,
+      // panNumber: account.panNumber,
+      // aadhaarNumber: account.aadhaarNumber,
     );
   }
 }
@@ -38,17 +38,17 @@ class AccountInDb extends InveslyDataModel {
     required super.id,
     required this.name,
     required this.avatarIndex,
-    this.panNumber,
-    this.aadhaarNumber,
+    // this.panNumber,
+    // this.aadhaarNumber,
   });
 
   final String name;
   final int avatarIndex;
-  final String? panNumber;
-  final String? aadhaarNumber;
+  // final String? panNumber;
+  // final String? aadhaarNumber;
 
   @override
-  List<Object?> get props => super.props..addAll([name, avatarIndex, panNumber, aadhaarNumber]);
+  List<Object?> get props => super.props..addAll([name, avatarIndex]);
 }
 
 class AccountTable extends TableSchema<AccountInDb> {
@@ -59,12 +59,11 @@ class AccountTable extends TableSchema<AccountInDb> {
 
   TableColumn<String> get nameColumn => TableColumn('name', name);
   TableColumn<int> get avatarColumn => TableColumn('avatar', name, type: TableColumnType.integer, isNullable: true);
-  TableColumn<String> get panNumberColumn => TableColumn('pan_number', name, isNullable: true);
-  TableColumn<String> get aadhaarNumberColumn => TableColumn('aadhaar_number', name, isNullable: true);
+  // TableColumn<String> get panNumberColumn => TableColumn('pan_number', name, isNullable: true);
+  // TableColumn<String> get aadhaarNumberColumn => TableColumn('aadhaar_number', name, isNullable: true);
 
   @override
-  Set<TableColumn> get columns =>
-      super.columns..addAll([nameColumn, avatarColumn, panNumberColumn, aadhaarNumberColumn]);
+  Set<TableColumn> get columns => super.columns..addAll([nameColumn, avatarColumn]);
 
   @override
   Map<String, dynamic> decode(AccountInDb data) {
@@ -72,8 +71,8 @@ class AccountTable extends TableSchema<AccountInDb> {
       idColumn.title: data.id,
       nameColumn.title: data.name,
       avatarColumn.title: data.avatarIndex,
-      panNumberColumn.title: data.panNumber,
-      aadhaarNumberColumn.title: data.aadhaarNumber,
+      // panNumberColumn.title: data.panNumber,
+      // aadhaarNumberColumn.title: data.aadhaarNumber,
     };
   }
 
@@ -83,8 +82,8 @@ class AccountTable extends TableSchema<AccountInDb> {
       id: map[idColumn.title] as String,
       name: map[nameColumn.title] as String,
       avatarIndex: map[avatarColumn.title] as int,
-      panNumber: map[panNumberColumn.title] as String?,
-      aadhaarNumber: map[aadhaarNumberColumn.title] as String?,
+      // panNumber: map[panNumberColumn.title] as String?,
+      // aadhaarNumber: map[aadhaarNumberColumn.title] as String?,
     );
   }
 }

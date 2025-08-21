@@ -166,7 +166,15 @@ class __LoginScreenState extends State<_LoginScreen> {
                 }
 
                 if (state.status == AuthenticationStatus.error) {
-                  return Text('Error initializing sign in: ${state.errorMessage}');
+                  return Column(
+                    children: <Widget>[
+                      Text(state.errorMessage ?? 'An error occurred while signing in.'),
+                      ElevatedButton(
+                        onPressed: context.read<AuthenticationCubit>().onLoginPressed,
+                        child: const Text('SIGN IN'),
+                      ),
+                    ],
+                  );
                 }
 
                 if (state.status == AuthenticationStatus.authenticated) {

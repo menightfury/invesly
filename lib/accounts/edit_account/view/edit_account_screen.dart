@@ -168,7 +168,7 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
                                   decoration: const InputDecoration(hintText: 'e.g. ABCDE1245F'),
                                   initialValue: cubit.state.panNumber,
                                   textCapitalization: TextCapitalization.characters,
-                                  onChanged: cubit.updatePanNumber,
+                                  // onChanged: cubit.updatePanNumber,
                                 ).withLabel('PAN number'),
 
                                 // ~ Aadhaar number
@@ -176,7 +176,7 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
                                   decoration: const InputDecoration(hintText: 'e.g. 1234-5678-9101'),
                                   initialValue: cubit.state.aadhaarNumber,
                                   keyboardType: TextInputType.number,
-                                  onChanged: cubit.updateAadhaarNumber,
+                                  // onChanged: cubit.updateAadhaarNumber,
                                 ).withLabel('Aadhaar Number'),
                                 // const SizedBox(height: 160.0),
 

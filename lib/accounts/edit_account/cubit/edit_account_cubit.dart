@@ -12,8 +12,8 @@ class EditAccountCubit extends Cubit<EditAccountState> {
           initialAccount: initialAccount,
           name: initialAccount?.name ?? '',
           avatarIndex: initialAccount?.avatarIndex ?? 2,
-          panNumber: initialAccount?.panNumber,
-          aadhaarNumber: initialAccount?.aadhaarNumber,
+          // panNumber: initialAccount?.panNumber,
+          // aadhaarNumber: initialAccount?.aadhaarNumber,
         ),
       );
 
@@ -31,13 +31,13 @@ class EditAccountCubit extends Cubit<EditAccountState> {
   //   emit(state.copyWith(isNameValid: value));
   // }
 
-  void updatePanNumber(String value) {
-    emit(state.copyWith(panNumber: value));
-  }
+  // void updatePanNumber(String value) {
+  //   emit(state.copyWith(panNumber: value));
+  // }
 
-  void updateAadhaarNumber(String value) {
-    emit(state.copyWith(aadhaarNumber: value));
-  }
+  // void updateAadhaarNumber(String value) {
+  //   emit(state.copyWith(aadhaarNumber: value));
+  // }
 
   void save() async {
     emit(state.copyWith(status: EditAccountFormStatus.loading));
@@ -51,8 +51,8 @@ class EditAccountCubit extends Cubit<EditAccountState> {
       id: state.initialAccount?.id ?? $uuid.v1(),
       name: name,
       avatarIndex: state.avatarIndex,
-      panNumber: state.panNumber,
-      aadhaarNumber: state.aadhaarNumber,
+      // panNumber: state.panNumber,
+      // aadhaarNumber: state.aadhaarNumber,
     );
     try {
       await _repository.saveAccount(user, state.isNewAccount);
