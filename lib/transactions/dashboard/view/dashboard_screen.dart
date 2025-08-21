@@ -13,7 +13,7 @@ import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
-import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_classic.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
@@ -96,9 +96,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     actionsPadding: EdgeInsets.only(right: 16.0),
                   ),
 
-                  // ~~~ Greetings ~~~
                   SliverList(
                     delegate: SliverChildListDelegate.fixed([
+                      // ~~~ Greetings ~~~
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Row(
@@ -129,6 +129,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
 
+                      const Gap(16.0),
+
                       // ~~~ Accounts ~~~
                       AccountsList(),
 
@@ -146,7 +148,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           );
                         },
                       ),
-                      SizedBox(height: 400.0), // ! for testing
+                      SizedBox(height: 80.0), // ! for testing
                     ]),
                   ),
                 ],
@@ -237,6 +239,7 @@ class AccountsList extends StatelessWidget {
               return Row(
                 spacing: 8.0,
                 children: <Widget>[
+                  // ~~~ Accounts ~~~
                   ...List.generate(accounts.length, (index) {
                     final account = accounts.elementAt(index);
 
@@ -257,6 +260,7 @@ class AccountsList extends StatelessWidget {
                       // ),
                       width: 120.0,
                       height: 80.0,
+                      border: BorderSide(color: context.colors.primary, width: 1.0),
                       content: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         spacing: 4.0,
@@ -298,15 +302,17 @@ class AccountsList extends StatelessWidget {
                               // ),
                             ],
                           ),
+                          Spacer(),
+                          Text('5 transactions', style: context.textTheme.labelSmall),
                         ],
                       ),
                     );
                   }),
 
-                  // ~~~ Add account card ~~~
+                  // ~~~ Add account ~~~
                   Tappable(
                     onTap: () => context.push(const EditAccountScreen()),
-                    bgColor: Colors.grey.shade100,
+                    color: Colors.grey.shade100,
                     width: 120.0,
                     height: 80.0,
                     border: BorderSide(color: Colors.grey.shade500, width: 1.0),

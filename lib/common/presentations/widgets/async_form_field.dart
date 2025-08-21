@@ -19,6 +19,8 @@ class AsyncFormField<T> extends FormField<T> {
     required Widget Function(T? value) childBuilder,
     EdgeInsetsGeometry padding = AppConstants.formFieldContentPadding,
     AlignmentGeometry contentAlignment = Alignment.centerLeft,
+    Color? color,
+    Color? errorColor, // TODO: Change to material state color
     super.restorationId,
   }) : super(
          autovalidateMode: autovalidateMode ?? AutovalidateMode.disabled,
@@ -38,13 +40,7 @@ class AsyncFormField<T> extends FormField<T> {
            if (errorText != null) {
              error =
                  errorBuilder?.call(field.context, errorText) ??
-                 Text(
-                   errorText,
-                   style: errorStyle,
-                   //  textAlign: textAlign,
-                   overflow: TextOverflow.ellipsis,
-                   maxLines: 1,
-                 );
+                 Text(errorText, style: errorStyle, overflow: TextOverflow.ellipsis, maxLines: 1);
            }
 
            final hasError = errorText != null && error != null;
@@ -69,7 +65,7 @@ class AsyncFormField<T> extends FormField<T> {
                    },
                    childAlignment: contentAlignment,
                    padding: padding,
-                   bgColor: hasError ? colors.errorContainer : colors.primaryContainer,
+                   color: hasError ? errorColor ?? colors.errorContainer : color ?? colors.primaryContainer,
                    content: childBuilder(field.value),
                  ),
                ),

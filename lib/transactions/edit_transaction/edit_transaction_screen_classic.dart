@@ -147,39 +147,6 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                         spacing: 12.0,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // ~ Amount
-                          AsyncFormField<double>(
-                            initialValue: cubit.state.amount,
-                            validator: (value) {
-                              if (value == null || value.isNegative) {
-                                return 'Can\'t be empty or negative';
-                              }
-                              return null;
-                            },
-                            onTapCallback: () async {
-                              final value = await InveslyCalculatorWidget.showModal(context);
-                              if (value == null) return null;
-                              return value;
-                            },
-                            onChanged: (value) {
-                              if (value == null) return;
-                              cubit.updateAmount(value);
-                            },
-                            contentAlignment: Alignment.center,
-                            padding: EdgeInsets.zero,
-                            color: Colors.transparent,
-                            errorColor: Colors.transparent,
-                            childBuilder: (value) {
-                              final textStyle = context.textTheme.headlineLarge?.copyWith(fontSize: 80.0);
-                              return Text(
-                                NumberFormat.decimalPattern('en_IN').format(value ?? 0.0),
-                                style: textStyle?.copyWith(color: value == null ? Colors.grey : null),
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                              );
-                            },
-                          ),
-
                           // ~~~ Units and Amount ~~~
                           Row(
                             spacing: 12.0,
@@ -222,6 +189,43 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                     );
                                   },
                                 ).withLabel('No. of units'),
+                              ),
+
+                              // ~ Amount
+                              Expanded(
+                                child: AsyncFormField<double>(
+                                  initialValue: cubit.state.amount,
+                                  validator: (value) {
+                                    if (value == null || value.isNegative) {
+                                      return 'Can\'t be empty or negative';
+                                    }
+                                    return null;
+                                  },
+                                  onTapCallback: () async {
+                                    final value = await InveslyCalculatorWidget.showModal(context);
+                                    if (value == null) return null;
+                                    return value;
+                                  },
+
+                                  onChanged: (value) {
+                                    if (value == null) return;
+                                    cubit.updateAmount(value);
+                                  },
+                                  childBuilder: (value) {
+                                    if (value == null) {
+                                      return const Text(
+                                        'Select units',
+                                        style: TextStyle(color: Colors.grey),
+                                        overflow: TextOverflow.ellipsis,
+                                      );
+                                    }
+                                    return Text(
+                                      NumberFormat.decimalPattern('en_IN').format(value),
+                                      textAlign: TextAlign.right,
+                                      overflow: TextOverflow.ellipsis,
+                                    );
+                                  },
+                                ).withLabel('Total amount'),
                               ),
                             ],
                           ),

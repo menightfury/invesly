@@ -52,7 +52,7 @@ class _InveslyDatePickerState extends State<InveslyDatePicker> {
   Widget build(BuildContext context) {
     return Tappable(
       leading: widget.leadingIcon,
-      bgColor: widget.color,
+      color: widget.color,
       onTap: () => _selectDate(context),
       content: ValueListenableBuilder<DateTime>(
         valueListenable: _dateNotifier,

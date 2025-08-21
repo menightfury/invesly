@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_classic.dart';
 
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
@@ -180,10 +180,9 @@ class _TransactionListState extends State<_TransactionList> {
                   ],
                 ),
                 child: ListTile(
-                  leading:
-                      transaction.quantity > 0
-                          ? const Icon(Icons.arrow_upward_rounded)
-                          : const Icon(Icons.arrow_downward_rounded),
+                  leading: transaction.quantity > 0
+                      ? const Icon(Icons.arrow_upward_rounded)
+                      : const Icon(Icons.arrow_downward_rounded),
                   title: Text(transaction.investedOn.toReadable()),
                   subtitle: Text('${transaction.quantity} units @ Rs. ${transaction.totalAmount}'),
                   trailing: Text(

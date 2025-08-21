@@ -9,12 +9,12 @@ class Tappable extends StatelessWidget {
     this.childAlignment = Alignment.center,
     this.leading,
     this.trailing,
-    this.bgColor,
+    this.color,
     this.borderRadius,
     this.border,
     this.shape,
     this.margin,
-    this.padding = const EdgeInsets.symmetric(horizontal: 12.0),
+    this.padding,
     // this.size,
     this.height,
     this.width,
@@ -23,7 +23,7 @@ class Tappable extends StatelessWidget {
     this.onLongPress,
   });
 
-  final Color? bgColor;
+  final Color? color;
   final BorderRadius? borderRadius;
   final BorderSide? border;
   final ShapeBorder? shape;
@@ -50,17 +50,17 @@ class Tappable extends StatelessWidget {
     );
 
     Widget content = Material(
-      color: bgColor ?? context.colors.primaryContainer,
+      color: color ?? context.colors.primaryContainer,
       type: MaterialType.canvas,
       shape: shape ?? defaultShape,
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
         child: Padding(
-          padding: padding ?? const EdgeInsets.symmetric(vertical: 8.0),
+          padding: padding ?? const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             spacing: spacing,
             children: <Widget>[
               ?leading,
