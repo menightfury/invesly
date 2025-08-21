@@ -260,7 +260,7 @@ class LoadingShimmerDriveFiles extends StatelessWidget {
           onTap: () {},
           // borderRadius: 15,
           // color: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.5),
-          child: Container(
+          content: Container(
             padding: EdgeInsetsDirectional.symmetric(horizontal: 20, vertical: 15),
             child: Row(
               children: [
@@ -301,12 +301,12 @@ class LoadingShimmerDriveFiles extends StatelessWidget {
                 SizedBox(width: 13),
                 isManaging
                     ? Row(
-                      children: [
-                        IconButton(onPressed: () {}, icon: Icon(Icons.close_rounded)),
-                        SizedBox(width: 5),
-                        IconButton(onPressed: () {}, icon: Icon(Icons.close_rounded)),
-                      ],
-                    )
+                        children: [
+                          IconButton(onPressed: () {}, icon: Icon(Icons.close_rounded)),
+                          SizedBox(width: 5),
+                          IconButton(onPressed: () {}, icon: Icon(Icons.close_rounded)),
+                        ],
+                      )
                     : SizedBox.shrink(),
               ],
             ),

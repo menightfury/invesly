@@ -70,7 +70,7 @@ class AsyncFormField<T> extends FormField<T> {
                    childAlignment: contentAlignment,
                    padding: padding,
                    bgColor: hasError ? colors.errorContainer : colors.primaryContainer,
-                   child: childBuilder(field.value),
+                   content: childBuilder(field.value),
                  ),
                ),
 

@@ -32,19 +32,21 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
     return Step(
       title: Text(title),
       isActive: currentStep >= index,
-      state:
-          currentStep > index
-              ? StepState.complete
-              : currentStep == index
-              ? StepState.editing
-              : StepState.disabled,
+      state: currentStep > index
+          ? StepState.complete
+          : currentStep == index
+          ? StepState.editing
+          : StepState.disabled,
       content: Padding(
         padding: const EdgeInsets.only(bottom: 8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 16.0,
           mainAxisSize: MainAxisSize.min,
-          children: [if (description != null) Text(description, style: context.textTheme.bodySmall), content],
+          children: [
+            if (description != null) Text(description, style: context.textTheme.bodySmall),
+            content,
+          ],
         ),
       ),
     );
@@ -76,14 +78,12 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                   Flexible(
                     child: TextButton.icon(
                       onPressed: () => context.read<ImportTransactionsCubit>().readFile(),
-                      icon:
-                          state is ImportTransactionsLoadedState
-                              ? const Icon(Icons.restore_rounded)
-                              : const Icon(Icons.upload_file_rounded),
-                      label:
-                          state is ImportTransactionsLoadedState
-                              ? const Text('Select again')
-                              : const Text('Select file'),
+                      icon: state is ImportTransactionsLoadedState
+                          ? const Icon(Icons.restore_rounded)
+                          : const Icon(Icons.upload_file_rounded),
+                      label: state is ImportTransactionsLoadedState
+                          ? const Text('Select again')
+                          : const Text('Select file'),
                     ),
                   ),
               ],
@@ -389,7 +389,7 @@ class _ColumnSelector<T> extends StatelessWidget {
         final value = await _showModal(context);
         onChanged(value?.value);
       },
-      child: Text(allColumns[value] ?? 'Unspecified'),
+      content: Text(allColumns[value] ?? 'Unspecified'),
     );
   }
 }
@@ -424,10 +424,9 @@ class _CsvPreviewTable extends StatelessWidget {
             clipBehavior: Clip.hardEdge,
             dataTextStyle: context.textTheme.bodySmall,
             columns: csvHeaders.map((item) => DataColumn(label: Text(item))).toList(),
-            rows:
-                csvData.sublist(0, rowsToPreview > csvData.length ? null : rowsToPreview).map((row) {
-                  return DataRow(cells: row.map((item) => DataCell(Text(item.toString()))).toList());
-                }).toList(),
+            rows: csvData.sublist(0, rowsToPreview > csvData.length ? null : rowsToPreview).map((row) {
+              return DataRow(cells: row.map((item) => DataCell(Text(item.toString()))).toList());
+            }).toList(),
           ),
         ),
         if (csvData.length - rowsToPreview >= 1)

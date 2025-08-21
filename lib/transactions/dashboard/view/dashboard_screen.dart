@@ -248,17 +248,20 @@ class AccountsList extends StatelessWidget {
                       //         accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
                       //       ),
                       //     ),
-                      bgColor: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16.0),
+                      // bgColor: Theme.of(context).cardColor,
+                      // borderRadius: BorderRadius.circular(16.0),
                       // padding: const EdgeInsets.all(16.0),
                       // leading: Hero(
                       //   tag: 'dashboard-page__account-icon-${account.id}',
                       //   child: account.displayIcon(context, size: 28),
                       // ),
-                      child: Column(
+                      width: 120.0,
+                      height: 80.0,
+                      content: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(account.name, style: Theme.of(context).textTheme.labelLarge),
+                        spacing: 4.0,
+                        children: <Widget>[
+                          Text(account.name),
                           Row(
                             children: [
                               // StreamBuilder(
@@ -299,27 +302,22 @@ class AccountsList extends StatelessWidget {
                       ),
                     );
                   }),
-                  // Add account card
+
+                  // ~~~ Add account card ~~~
                   Tappable(
                     onTap: () => context.push(const EditAccountScreen()),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(99999),
-                      side: BorderSide(width: 2, color: Theme.of(context).dividerColor),
-                    ),
-                    child: Card(
-                      elevation: 0,
-                      color: Colors.transparent,
-                      margin: const EdgeInsets.all(0),
-                      child: SizedBox(
-                        width: 200,
-                        height: 80,
-                        child: const Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          spacing: 4.0,
-                          children: [Text('Create account'), Icon(Icons.add)],
-                        ),
-                      ),
+                    bgColor: Colors.grey.shade100,
+                    width: 120.0,
+                    height: 80.0,
+                    border: BorderSide(color: Colors.grey.shade500, width: 1.0),
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 4.0,
+                      children: [
+                        Icon(Icons.format_list_bulleted_add, color: Colors.grey.shade500),
+                        Text('Create account', style: TextStyle(color: Colors.grey.shade500)),
+                      ],
                     ),
                   ),
                 ],
