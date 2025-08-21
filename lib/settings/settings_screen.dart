@@ -2,7 +2,9 @@
 
 // import 'package:googleapis/admin/directory_v1.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/servicecontrol/v2.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
+import 'package:invesly/authentication/cubit/auth_cubit.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/database/backup/backup_service.dart';
@@ -428,7 +430,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'Drive backup',
                         icon: const Icon(Icons.backup_outlined),
                         description: 'Backup your data in a new backup file to Google Drive.',
-                        onTap: () {},
+                        onTap: () => context.read<AuthenticationCubit>().,
                       ),
                     ],
                   ),

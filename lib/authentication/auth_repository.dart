@@ -63,16 +63,9 @@ class AuthenticationRepository {
     Function()? next,
   }) async {
     // bool isConnected = false;
-    // if (await checkLockedFeatureIfInDemoMode(context) == false) return false;
-    // if (appStateSettings["emailScanning"] == false) gMailPermissions = false;
+    // if (await checkLockedFeatureIfInDemoMode(context) == false) return null;
 
     try {
-      // if (googleUser != null) {
-      //   await signOutGoogle();
-      // }
-      // googleSignIn = null;
-      // settingsPageStateKey.currentState?.refreshState();
-
       // // Check connection
       // isConnected = await checkConnection().timeout(Duration(milliseconds: 2500),
       //     onTimeout: () {
@@ -81,9 +74,10 @@ class AuthenticationRepository {
       // if (isConnected == false) {
       //   if (context != null) {
       //     openSnackbar(context, "Could not connect to network",
-      //         backgroundColor: lightenPastel(Theme.of(context).colorScheme.error, amount: 0.6));
+      //       backgroundColor: Theme.of(context).colorScheme.error,
+      //     );
       //   }
-      //   return false;
+      //   return null;
       // }
 
       // if (waitForCompletion == true && context != null) openLoadingPopup(context);
@@ -134,24 +128,16 @@ class AuthenticationRepository {
       // if (runningCloudFunctions) {
       //   errorSigningInDuringCloud = true;
       // } else {
-      //   // await updateSettings("hasSignedIn", false, updateGlobalState: false);
+      // await updateSettings("hasSignedIn", false, updateGlobalState: false);
       // }
       throw ('Error signing in');
     }
   }
 
-  // void refreshUIAfterLoginChange() {
-  //   sidebarStateKey.currentState?.refreshState();
-  //   accountsPageStateKey.currentState?.refreshState();
-  //   settingsGoogleAccountLoginButtonKey.currentState?.refreshState();
-  // }
-
   Future<void> signOutGoogle() async {
     // Call disconnect rather than signOut to more fully reset the example app.
     await googleSignIn?.disconnect();
     googleUser = null;
-    // await updateSettings("currentUserEmail", "", updateGlobalState: false);
-    // await updateSettings("hasSignedIn", false, updateGlobalState: false);
   }
 
   // Future<void> _requestAuthorization() async {
@@ -415,17 +401,18 @@ class AuthenticationRepository {
       final client = authorization.authClient(scopes: scopes);
       final driveApi = drive.DriveApi(client);
 
-      final dbFolder = await getApplicationDocumentsDirectory();
-      final dbFile = File(p.join(dbFolder.path, 'db.sqlite'));
-      // print("FILE SIZE:" + (dbFile.lengthSync() / 1e+6).toString());
+      // TODO: Get database file from InveslyApi
+      final dbFolder = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
+      final dbFile = File(p.join(dbFolder.path, 'invesly.db'));
+      $logger.i('File Size ${(dbFile.lengthSync() / 1e+6).toString()}');
       final dbFileBytes = await dbFile.readAsBytes();
 
-      var media = drive.Media(dbFile.openRead(), dbFileBytes.length);
+      final media = drive.Media(dbFile.openRead(), dbFileBytes.length);
 
       var driveFile = drive.File();
       final timestamp = DateFormat("yyyy-MM-dd-hhmmss").format(DateTime.now().toUtc());
-      // -$timestamp
-      driveFile.name = "db-$timestamp.sqlite";
+
+      driveFile.name = "invesly-$timestamp.db";
       // if (clientIDForSync != null)
       // driveFile.name = getCurrentDeviceSyncBackupFileName(clientIDForSync: clientIDForSync);
       driveFile.modifiedTime = DateTime.now().toUtc();

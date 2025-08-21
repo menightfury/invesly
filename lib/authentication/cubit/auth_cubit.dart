@@ -11,7 +11,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
 
   final AuthenticationRepository _repository;
 
-  Future<void> onLoginPressed() async {
+  Future<void> signin() async {
     emit(AuthenticationState.loading());
 
     try {
@@ -26,7 +26,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     }
   }
 
-  Future<void> onLogoutPressed() async {
+  Future<void> signout() async {
     await _repository.signOutGoogle();
     emit(AuthenticationState.unauthenticated());
   }

@@ -170,7 +170,7 @@ class __LoginScreenState extends State<_LoginScreen> {
                     children: <Widget>[
                       Text(state.errorMessage ?? 'An error occurred while signing in.'),
                       ElevatedButton(
-                        onPressed: context.read<AuthenticationCubit>().onLoginPressed,
+                        onPressed: context.read<AuthenticationCubit>().signin,
                         child: const Text('SIGN IN'),
                       ),
                     ],
@@ -181,7 +181,12 @@ class __LoginScreenState extends State<_LoginScreen> {
                   final user = state.user!;
                   // Save current user
                   context.read<SettingsCubit>().saveCurrentUser(InveslyUser.fromGoogleSignInAccount(user));
-
+                  // _checkAuthorization(); // or
+                  //  _requestAuthorization();
+                  //  _updateAuthorization();
+                  // get access token from authorization
+                  // save access token to device
+                  // next time use access token to get drive files
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -213,7 +218,7 @@ class __LoginScreenState extends State<_LoginScreen> {
                       ],
 
                       ElevatedButton(
-                        onPressed: context.read<AuthenticationCubit>().onLogoutPressed,
+                        onPressed: context.read<AuthenticationCubit>().signout,
                         child: const Text('SIGN OUT'),
                       ),
                     ],
@@ -226,10 +231,7 @@ class __LoginScreenState extends State<_LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     const Text('You are not currently signed in.'),
-                    ElevatedButton(
-                      onPressed: context.read<AuthenticationCubit>().onLoginPressed,
-                      child: const Text('SIGN IN'),
-                    ),
+                    ElevatedButton(onPressed: context.read<AuthenticationCubit>().signin, child: const Text('SIGN IN')),
                   ],
                 );
               },
