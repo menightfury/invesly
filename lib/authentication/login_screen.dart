@@ -1,41 +1,26 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'package:googleapis/drive/v3.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shimmer/shimmer.dart';
+
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/cubit/auth_cubit.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
-import 'package:shimmer/shimmer.dart';
-import 'dart:async';
-
-import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/people/v1.dart';
-import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
-
-final scopes = <String>[
-  // See https://github.com/flutter/flutter/issues/155490 and https://github.com/flutter/flutter/issues/155429
-  // Once an account is logged in with these scopes, they are not needed
-  // So we will keep these to apply for all users to prevent errors, especially on silent sign in
-  'https://www.googleapis.com/auth/userinfo.profile',
-  'https://www.googleapis.com/auth/userinfo.email',
-  DriveApi.driveAppdataScope,
-  DriveApi.driveFileScope,
-];
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authRepository = AuthenticationRepository(); // TODO: Remove authRepository
+    final authRepository = AuthRepository(); // TODO: Remove authRepository
 
     return RepositoryProvider.value(
       value: authRepository,
       child: BlocProvider(
-        create: (context) => AuthenticationCubit(repository: authRepository),
+        create: (context) => AuthCubit(repository: authRepository),
         child: const _LoginScreen(),
       ),
     );
@@ -50,9 +35,8 @@ class _LoginScreen extends StatefulWidget {
 }
 
 class __LoginScreenState extends State<_LoginScreen> {
-  GoogleSignInAccount? _currentUser;
-  GoogleSignInClientAuthorization? _authorization;
-  String _contactText = '';
+  // GoogleSignInAccount? _currentUser;
+  // GoogleSignInClientAuthorization? _authorization;
 
   @override
   void initState() {
@@ -86,68 +70,68 @@ class __LoginScreenState extends State<_LoginScreen> {
     // });
   }
 
-  void _updateAuthorization(GoogleSignInClientAuthorization? authorization) {
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _authorization = authorization;
-    });
+  // void _updateAuthorization(GoogleSignInClientAuthorization? authorization) {
+  //   if (!mounted) {
+  //     return;
+  //   }
+  //   setState(() {
+  //     _authorization = authorization;
+  //   });
 
-    if (authorization != null) {
-      unawaited(_handleGetContact(authorization));
-    }
-  }
+  //   if (authorization != null) {
+  //     unawaited(_handleGetContact(authorization));
+  //   }
+  // }
 
-  Future<void> _checkAuthorization() async {
-    _updateAuthorization(await _currentUser?.authorizationClient.authorizationForScopes(scopes));
-  }
+  // Future<void> _checkAuthorization() async {
+  //   _updateAuthorization(await _currentUser?.authorizationClient.authorizationForScopes(scopes));
+  // }
 
-  Future<void> _requestAuthorization() async {
-    _updateAuthorization(
-      await _currentUser?.authorizationClient.authorizeScopes(<String>[PeopleServiceApi.contactsReadonlyScope]),
-    );
-  }
+  // Future<void> _requestAuthorization() async {
+  //   _updateAuthorization(
+  //     await _currentUser?.authorizationClient.authorizeScopes(<String>[PeopleServiceApi.contactsReadonlyScope]),
+  //   );
+  // }
 
-  Future<void> _handleGetContact(GoogleSignInClientAuthorization authorization) async {
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _contactText = 'Loading contact info...';
-    });
+  // Future<void> _handleGetContact(GoogleSignInClientAuthorization authorization) async {
+  //   if (!mounted) {
+  //     return;
+  //   }
+  //   setState(() {
+  //     _contactText = 'Loading contact info...';
+  //   });
 
-    // Retrieve an [auth.AuthClient] from a GoogleSignInClientAuthorization.
-    final auth.AuthClient client = authorization.authClient(scopes: scopes);
+  //   // Retrieve an [auth.AuthClient] from a GoogleSignInClientAuthorization.
+  //   final auth.AuthClient client = authorization.authClient(scopes: scopes);
 
-    // Prepare a People Service authenticated client.
-    final PeopleServiceApi peopleApi = PeopleServiceApi(client);
-    // Retrieve a list of connected contacts' names.
-    final ListConnectionsResponse response = await peopleApi.people.connections.list(
-      'people/me',
-      personFields: 'names',
-    );
+  //   // Prepare a People Service authenticated client.
+  //   final PeopleServiceApi peopleApi = PeopleServiceApi(client);
+  //   // Retrieve a list of connected contacts' names.
+  //   final ListConnectionsResponse response = await peopleApi.people.connections.list(
+  //     'people/me',
+  //     personFields: 'names',
+  //   );
 
-    final String? firstNamedContactName = _pickFirstNamedContact(response.connections);
+  //   final String? firstNamedContactName = _pickFirstNamedContact(response.connections);
 
-    if (mounted) {
-      setState(() {
-        if (firstNamedContactName != null) {
-          _contactText = 'I see you know $firstNamedContactName!';
-        } else {
-          _contactText = 'No contacts to display.';
-        }
-      });
-    }
-  }
+  //   if (mounted) {
+  //     setState(() {
+  //       if (firstNamedContactName != null) {
+  //         _contactText = 'I see you know $firstNamedContactName!';
+  //       } else {
+  //         _contactText = 'No contacts to display.';
+  //       }
+  //     });
+  //   }
+  // }
 
-  String? _pickFirstNamedContact(List<Person>? connections) {
-    return connections
-        ?.firstWhere((Person person) => person.names != null)
-        .names
-        ?.firstWhere((Name name) => name.displayName != null)
-        .displayName;
-  }
+  // String? _pickFirstNamedContact(List<Person>? connections) {
+  //   return connections
+  //       ?.firstWhere((Person person) => person.names != null)
+  //       .names
+  //       ?.firstWhere((Name name) => name.displayName != null)
+  //       .displayName;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -158,35 +142,30 @@ class __LoginScreenState extends State<_LoginScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            BlocBuilder<AuthenticationCubit, AuthenticationState>(
+            BlocBuilder<AuthCubit, AuthState>(
               builder: (context, state) {
-                final authorization = _authorization;
-                if (state.status == AuthenticationStatus.loading) {
+                // final authorization = _authorization;
+                if (state is AuthLoadingState) {
                   return const CircularProgressIndicator();
                 }
 
-                if (state.status == AuthenticationStatus.error) {
+                if (state is AuthErrorState) {
                   return Column(
                     children: <Widget>[
-                      Text(state.errorMessage ?? 'An error occurred while signing in.'),
+                      Text(state.message),
                       ElevatedButton(
-                        onPressed: context.read<AuthenticationCubit>().signin,
-                        child: const Text('SIGN IN'),
+                        onPressed: context.read<AuthCubit>().signin,
+                        child: const Text('Sign in with Google'),
                       ),
                     ],
                   );
                 }
 
-                if (state.status == AuthenticationStatus.authenticated) {
-                  final user = state.user!;
+                if (state is AuthenticatedState) {
+                  final user = state.user;
                   // Save current user
                   context.read<SettingsCubit>().saveCurrentUser(InveslyUser.fromGoogleSignInAccount(user));
-                  // _checkAuthorization(); // or
-                  //  _requestAuthorization();
-                  //  _updateAuthorization();
-                  // get access token from authorization
-                  // save access token to device
-                  // next time use access token to get drive files
+                  context.read<SettingsCubit>().saveGapiAccessToken(state.accessToken);
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -199,28 +178,20 @@ class __LoginScreenState extends State<_LoginScreen> {
                       ),
                       const Text('Signed in successfully.'),
 
-                      if (authorization != null) ...<Widget>[
-                        Text(_contactText),
-                        ElevatedButton(onPressed: () => _handleGetContact(authorization), child: const Text('REFRESH')),
-                      ] else ...<Widget>[
-                        ElevatedButton(
-                          onPressed: () async {
-                            final files = await context.read<AuthenticationRepository>().getDriveFiles();
-                            $logger.i(files);
-                            // if files in not null and not empty, copy the latest backup file in the device,
-                            // After copying, navigate to DashboardScreen
-                            if (mounted) {
-                              context.go(DashboardScreen());
-                            }
-                          },
-                          child: const Text('Load Files'),
-                        ),
-                      ],
-
                       ElevatedButton(
-                        onPressed: context.read<AuthenticationCubit>().signout,
-                        child: const Text('SIGN OUT'),
+                        onPressed: () async {
+                          final files = await context.read<AuthRepository>().getDriveFiles(state.accessToken);
+                          $logger.i(files);
+                          // if files is not null and not empty, copy the latest backup file in the device,
+                          // After copying, navigate to DashboardScreen
+                          if (mounted) {
+                            context.go(DashboardScreen());
+                          }
+                        },
+                        child: const Text('Load Files'),
                       ),
+
+                      ElevatedButton(onPressed: context.read<AuthCubit>().signout, child: const Text('Sign out')),
                     ],
                   );
                 }
@@ -231,7 +202,7 @@ class __LoginScreenState extends State<_LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     const Text('You are not currently signed in.'),
-                    ElevatedButton(onPressed: context.read<AuthenticationCubit>().signin, child: const Text('SIGN IN')),
+                    ElevatedButton(onPressed: context.read<AuthCubit>().signin, child: const Text('SIGN IN')),
                   ],
                 );
               },

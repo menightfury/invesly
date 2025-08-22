@@ -1,33 +1,35 @@
 import 'dart:async';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/common_libs.dart';
 part 'auth_state.dart';
 
-class AuthenticationCubit extends Cubit<AuthenticationState> {
-  AuthenticationCubit({required AuthenticationRepository repository})
-    : _repository = repository,
-      super(AuthenticationState.initial());
+// Auth means Authentication and Authorization :)
+class AuthCubit extends Cubit<AuthState> {
+  AuthCubit({required AuthRepository repository}) : _repository = repository, super(const AuthInitialState());
 
-  final AuthenticationRepository _repository;
+  final AuthRepository _repository;
 
   Future<void> signin() async {
-    emit(AuthenticationState.loading());
+    emit(const AuthLoadingState());
 
     try {
       final user = await _repository.signInGoogle();
       if (user != null) {
-        emit(AuthenticationState.authenticated(user));
+        final accessToken = await _repository.getAccessToken(user);
+        // final files = await _repository.getDriveFiles(accessToken);
+        emit(AuthenticatedState(user: user, accessToken: accessToken));
       } else {
-        emit(const AuthenticationState.unauthenticated());
+        emit(const UnauthenticatedState());
       }
     } catch (err) {
-      emit(AuthenticationState.error(err.toString()));
+      emit(AuthErrorState(err.toString()));
     }
   }
 
   Future<void> signout() async {
     await _repository.signOutGoogle();
-    emit(AuthenticationState.unauthenticated());
+    emit(const UnauthenticatedState());
   }
 }

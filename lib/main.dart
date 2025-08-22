@@ -2,6 +2,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/database/cubit/database_cubit.dart';
 import 'package:invesly/intro/splash_screen.dart';
 import 'package:path_provider/path_provider.dart';
@@ -37,6 +38,7 @@ class InveslyApp extends StatelessWidget {
 
     return MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<AuthRepository>(create: (_) => AuthRepository()),
         RepositoryProvider.value(value: accountRepository),
         RepositoryProvider(create: (_) => AmcRepository(api)),
         RepositoryProvider(create: (_) => TransactionRepository(api)),
@@ -96,20 +98,12 @@ class _AppViewState extends State<_AppView> {
 
         return DynamicColorBuilder(
           builder: (lightDynamic, darkDynamic) {
-            final lightScheme =
-                state.isDynamicColor && lightDynamic != null
-                    ? lightDynamic.harmonized()
-                    : ColorScheme.fromSeed(
-                      seedColor: Color(state.accentColor ?? 0xFF413D32),
-                      brightness: Brightness.light,
-                    );
-            final darkScheme =
-                state.isDynamicColor && darkDynamic != null
-                    ? darkDynamic.harmonized()
-                    : ColorScheme.fromSeed(
-                      seedColor: Color(state.accentColor ?? 0xFFF1E8D9),
-                      brightness: Brightness.dark,
-                    );
+            final lightScheme = state.isDynamicColor && lightDynamic != null
+                ? lightDynamic.harmonized()
+                : ColorScheme.fromSeed(seedColor: Color(state.accentColor ?? 0xFF413D32), brightness: Brightness.light);
+            final darkScheme = state.isDynamicColor && darkDynamic != null
+                ? darkDynamic.harmonized()
+                : ColorScheme.fromSeed(seedColor: Color(state.accentColor ?? 0xFFF1E8D9), brightness: Brightness.dark);
             return MaterialApp(
               title: 'Invesly',
               debugShowCheckedModeBanner: false,

@@ -2,7 +2,6 @@
 import 'dart:convert';
 
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 
 class InveslyUser extends InveslyDataModel implements GoogleIdentity {

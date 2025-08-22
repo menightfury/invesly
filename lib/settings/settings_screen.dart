@@ -1,23 +1,21 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, avoid_print
 
-// import 'package:googleapis/admin/directory_v1.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/servicecontrol/v2.dart';
+import 'package:googleapis_auth/googleapis_auth.dart';
+import 'package:invesly/authentication/auth_repository.dart';
+import 'package:path/path.dart';
+
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
 import 'package:invesly/authentication/cubit/auth_cubit.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
+import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
+import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/settings/import_transactions/import_transactions_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-
-import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/common_libs.dart';
-import 'package:invesly/google_drive/google_drive.dart';
-import 'package:invesly/settings/cubit/settings_cubit.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
-import 'package:invesly/accounts/model/account_model.dart';
-import 'package:path/path.dart';
 
 import 'widgets/settings_section.dart';
 import 'widgets/settings_tile.dart';
@@ -340,7 +338,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'Google Sign-in',
                         // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                         description: 'NA', // TODO:
-                        onTap: () => context.push(const SignInDemo()),
+                        // onTap: () => context.push(const SignInDemo()),
                       ),
                       SettingsTile(
                         icon: const Icon(Icons.restore_page_outlined),
@@ -430,7 +428,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'Drive backup',
                         icon: const Icon(Icons.backup_outlined),
                         description: 'Backup your data in a new backup file to Google Drive.',
-                        onTap: () => context.read<AuthenticationCubit>().,
+                        onTap: () async {
+                          AccessToken? accessToken = context.read<SettingsCubit>().state.gapiAccessToken;
+
+                          if (accessToken == null) {
+                            final user = await context.read<AuthRepository>().signInGoogle();
+                            if (user == null) {
+                              $logger.w('Google sign-in failed');
+                              return;
+                            }
+
+                            accessToken = await context.read<AuthRepository>().getAccessToken(user);
+                          }
+                          await context.read<AuthRepository>().createBackupInGoogleDrive(accessToken);
+                          $logger.i('Backup created successfully');
+                        },
+                      ),
+                      SettingsTile(
+                        title: 'Load drive files',
+                        icon: const Icon(Icons.backup_outlined),
+                        description: 'Load your data from a backup file in Google Drive.',
+                        onTap: () async {
+                          AccessToken? accessToken = context.read<SettingsCubit>().state.gapiAccessToken;
+
+                          if (accessToken == null) {
+                            final user = await context.read<AuthRepository>().signInGoogle();
+                            if (user == null) {
+                              $logger.w('Google sign-in failed');
+                              return;
+                            }
+
+                            accessToken = await context.read<AuthRepository>().getAccessToken(user);
+                          }
+                          final files = await context.read<AuthRepository>().getDriveFiles(accessToken);
+                          $logger.i(files);
+                        },
                       ),
                     ],
                   ),

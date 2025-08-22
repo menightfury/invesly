@@ -1,3 +1,4 @@
+import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common_libs.dart';
 
@@ -32,6 +33,10 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
 
   void setPrivateMode(bool value) {
     emit(state.copyWith(isPrivateMode: value));
+  }
+
+  void saveGapiAccessToken(AccessToken accessToken) {
+    emit(state.copyWith(gapiAccessToken: accessToken));
   }
 
   @override

@@ -1,23 +1,51 @@
 part of 'auth_cubit.dart';
 
-class AuthenticationState extends Equatable {
-  const AuthenticationState._({this.status = AuthenticationStatus.initial, this.user, this.errorMessage});
+sealed class AuthState extends Equatable {
+  // const AuthState._({this.status = AuthStatus.initial, this.user, this.accessToken, this.errorMessage});
+  const AuthState();
 
-  const AuthenticationState.initial() : this._();
+  // const AuthState.initial() : this._();
 
-  const AuthenticationState.loading() : this._(status: AuthenticationStatus.loading);
+  // const AuthState.loading() : this._(status: AuthStatus.loading);
 
-  const AuthenticationState.authenticated(GoogleSignInAccount user)
-    : this._(status: AuthenticationStatus.authenticated, user: user); // TODO: `user` should be InveslyUser
+  // const AuthState.authenticated(GoogleSignInAccount user, AccessToken accessToken)
+  //   : this._(status: AuthStatus.authenticated, user: user, accessToken: accessToken);
 
-  const AuthenticationState.unauthenticated() : this._(status: AuthenticationStatus.unauthenticated);
+  // const AuthState.unauthenticated() : this._(status: AuthStatus.unauthenticated);
 
-  const AuthenticationState.error(String message) : this._(status: AuthenticationStatus.error, errorMessage: message);
+  // const AuthState.error(String message) : this._(status: AuthStatus.error, errorMessage: message);
 
-  final AuthenticationStatus status;
-  final GoogleSignInAccount? user;
-  final String? errorMessage;
+  // final AuthStatus status;
+  // final GoogleSignInAccount? user;
+  // final AccessToken? accessToken;
+  // final String? errorMessage;
 
   @override
-  List<Object?> get props => [status, user, errorMessage];
+  // List<Object?> get props => [status, user, accessToken, errorMessage];
+  List<Object?> get props => [];
+}
+
+class AuthInitialState extends AuthState {
+  const AuthInitialState();
+}
+
+class AuthLoadingState extends AuthState {
+  const AuthLoadingState();
+}
+
+class AuthenticatedState extends AuthState {
+  const AuthenticatedState({required this.user, required this.accessToken});
+
+  final GoogleSignInAccount user;
+  final AccessToken accessToken;
+}
+
+class UnauthenticatedState extends AuthState {
+  const UnauthenticatedState();
+}
+
+class AuthErrorState extends AuthState {
+  const AuthErrorState(this.message);
+
+  final String message;
 }

@@ -9,6 +9,7 @@ class SettingsState extends Equatable {
     this.isDynamicColor = true,
     this.accentColor,
     this.isPrivateMode = false,
+    this.gapiAccessToken,
   });
 
   final bool isOnboarded;
@@ -17,6 +18,7 @@ class SettingsState extends Equatable {
   final String? currentAccountId;
   final int? accentColor;
   final bool isDynamicColor;
+  final AccessToken? gapiAccessToken;
 
   /// Hide all currency values
   final bool isPrivateMode;
@@ -29,6 +31,7 @@ class SettingsState extends Equatable {
     bool? isDynamicColor,
     int? accentColor,
     bool? isPrivateMode,
+    AccessToken? gapiAccessToken,
   }) {
     return SettingsState(
       isOnboarded: isOnboarded ?? this.isOnboarded,
@@ -38,6 +41,7 @@ class SettingsState extends Equatable {
       isDynamicColor: isDynamicColor ?? this.isDynamicColor,
       accentColor: accentColor ?? this.accentColor,
       isPrivateMode: isPrivateMode ?? this.isPrivateMode,
+      gapiAccessToken: gapiAccessToken ?? this.gapiAccessToken,
     );
   }
 
@@ -50,6 +54,7 @@ class SettingsState extends Equatable {
     isDynamicColor,
     accentColor,
     isPrivateMode,
+    gapiAccessToken,
   ];
 
   Map<String, dynamic> toMap() {
@@ -61,6 +66,7 @@ class SettingsState extends Equatable {
       'isDynamicColor': isDynamicColor,
       'accentColor': accentColor,
       'isPrivateMode': isPrivateMode,
+      'gapiAccessToken': gapiAccessToken?.toJson(),
     };
   }
 
@@ -73,6 +79,9 @@ class SettingsState extends Equatable {
       isDynamicColor: map['isDynamicColor'] as bool,
       accentColor: map['accentColor'] as int?,
       isPrivateMode: map['isPrivateMode'] as bool,
+      gapiAccessToken: map['gapiAccessToken'] != null
+          ? AccessToken.fromJson(map['gapiAccessToken'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

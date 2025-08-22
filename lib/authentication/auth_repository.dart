@@ -1,18 +1,16 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:googleapis/abusiveexperiencereport/v1.dart';
-import 'package:googleapis_auth/googleapis_auth.dart';
-import 'package:intl/intl.dart';
-import 'package:invesly/common/presentations/widgets/popups.dart';
-import 'package:invesly/common_libs.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
-import 'package:googleapis/drive/v3.dart' as drive;
+
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/abusiveexperiencereport/v1.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
+import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart' as http;
-import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'package:intl/intl.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:invesly/common_libs.dart';
 
 // Future<bool> checkConnection() async {
 //   late bool isConnected;
@@ -40,14 +38,15 @@ import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sig
 //     return _client.send(request..headers.addAll(_headers));
 //   }
 // }
+// Auth means Authentication and Authorization
+enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
-enum AuthenticationStatus { initial, loading, authenticated, unauthenticated, error }
+class AuthRepository {
+  // GoogleSignInAccount? googleUser;
+  drive.DriveApi? _driveApi;
 
-class AuthenticationRepository {
-  GoogleSignIn? googleSignIn;
-  GoogleSignInAccount? googleUser;
-
-  final scopes = <String>[
+  final _googleSignIn = GoogleSignIn.instance;
+  final _scopes = <String>[
     // See https://github.com/flutter/flutter/issues/155490 and https://github.com/flutter/flutter/issues/155429
     // Once an account is logged in with these scopes, they are not needed
     // So we will keep these to apply for all users to prevent errors, especially on silent sign in
@@ -83,14 +82,13 @@ class AuthenticationRepository {
       // if (waitForCompletion == true && context != null) openLoadingPopup(context);
       // if (googleUser == null) {
 
-      final signIn = GoogleSignIn.instance;
-      await signIn.initialize(
+      await _googleSignIn.initialize(
         serverClientId: '791480731407-hc266q1klj0br5c9312gkjbsko05qjoq.apps.googleusercontent.com',
         // serverClientId: '791480731407-4j2dmhvu2l061j7g5odqelvg74bagu28.apps.googleusercontent.com', // Home
         // serverClientId: '791480731407-5k0kglrd6k78s11v4bkhnv473tva5862.apps.googleusercontent.com', // Office
       ); // TODO: Hide client Id
-      googleUser = await signIn.authenticate();
-      return googleUser;
+      return await _googleSignIn.authenticate();
+      // return googleUser;
 
       // googleSignIn?.currentUser?.clearAuthCache();
 
@@ -136,39 +134,69 @@ class AuthenticationRepository {
 
   Future<void> signOutGoogle() async {
     // Call disconnect rather than signOut to more fully reset the example app.
-    await googleSignIn?.disconnect();
-    googleUser = null;
+    await _googleSignIn.disconnect();
+    // googleUser = null;
   }
 
-  // Future<void> _requestAuthorization() async {
-  //   _updateAuthorization(
-  //     await _currentUser?.authorizationClient.authorizeScopes(<String>[PeopleServiceApi.contactsReadonlyScope]),
-  //   );
-  // }
+  Future<AccessToken> getAccessToken(GoogleSignInAccount user) async {
+    GoogleSignInClientAuthorization? authorization;
 
-  // void _updateAuthorization(GoogleSignInClientAuthorization? authorization) {
-  //   if (!mounted) {
-  //     return;
-  //   }
-  //   setState(() {
-  //     _authorization = authorization;
-  //   });
-
-  //   if (authorization != null) {
-  //     unawaited(_handleGetContact(authorization));
-  //   }
-  // }
-
-  Future<List<drive.File>?> getDriveFiles() async {
     try {
-      final authorization = await googleUser?.authorizationClient.authorizationForScopes(scopes);
-      if (authorization == null) {
-        return null;
-      }
+      // First check authorization without client interaction
+      authorization = await user.authorizationClient.authorizationForScopes(_scopes);
+      // If authorization is still null, request it interactively
+      authorization ??= await user.authorizationClient.authorizeScopes(_scopes);
 
-      final client = authorization.authClient(scopes: scopes);
-      final driveApi = drive.DriveApi(client);
+      return gapis.AccessToken(
+        'Bearer',
+        authorization.accessToken,
+        // The underlying SDKs don't provide expiry information, so set an arbitrary distant-future time.
+        DateTime.now().toUtc().add(const Duration(days: 365)),
+      );
+    } catch (err) {
+      $logger.e(err);
+      throw ('Error getting Drive API');
+      // if (err is DetailedApiRequestError && err.status == 401) {
+      //   // await refreshGoogleSignIn();
+      //   return await getDriveFiles();
+      // } else if (err is PlatformException) {
+      //   // await refreshGoogleSignIn();
+      //   return await getDriveFiles();
+      // } else {
+      //   // openSnackbar(SnackbarMessage(title: e.toString(), icon: Icons.error_rounded));
+      // }
+    }
+  }
 
+  Future<drive.DriveApi> _getDriveApi(AccessToken accessToken) async {
+    try {
+      final credentials = gapis.AccessCredentials(
+        accessToken,
+        null, // The underlying SDKs don't provide a refresh token.
+        _scopes,
+      );
+      final client = gapis.authenticatedClient(http.Client(), credentials);
+      // final client = authorization.authClient(scopes: _scopes);
+
+      return _driveApi = drive.DriveApi(client);
+    } catch (err) {
+      $logger.e(err);
+      throw ('Error getting Drive API');
+      // if (err is DetailedApiRequestError && err.status == 401) {
+      //   // await refreshGoogleSignIn();
+      //   return await getDriveFiles();
+      // } else if (err is PlatformException) {
+      //   // await refreshGoogleSignIn();
+      //   return await getDriveFiles();
+      // } else {
+      //   // openSnackbar(SnackbarMessage(title: e.toString(), icon: Icons.error_rounded));
+      // }
+    }
+  }
+
+  Future<List<drive.File>?> getDriveFiles(AccessToken accessToken) async {
+    try {
+      final driveApi = _driveApi ?? await _getDriveApi(accessToken);
       final fileList = await driveApi.files.list(
         spaces: 'appDataFolder',
         $fields: 'files(id, name, modifiedTime, size)',
@@ -373,7 +401,12 @@ class AuthenticationRepository {
   //   return false;
   // }
 
-  Future<void> createBackup({bool? silentBackup, bool deleteOldBackups = false, String? clientIDForSync}) async {
+  Future<void> createBackupInGoogleDrive(
+    AccessToken accessToken, {
+    bool? silentBackup,
+    bool deleteOldBackups = false,
+    String? clientIDForSync,
+  }) async {
     // try {
     //   if (silentBackup == false || silentBackup == null) {
     //     loadingIndeterminateKey.currentState?.setVisibility(true);
@@ -391,15 +424,7 @@ class AuthenticationRepository {
 
       // final currentDBFileInfo = await getCurrentDBFileInfo();
 
-      final authorization = await googleUser?.authorizationClient.authorizationForScopes(scopes);
-      if (authorization == null) {
-        return;
-      }
-
-      // final authHeaders = await googleUser!.authHeaders;
-      // final authenticateClient = GoogleAuthClient(authHeaders);
-      final client = authorization.authClient(scopes: scopes);
-      final driveApi = drive.DriveApi(client);
+      final driveApi = _driveApi ?? await _getDriveApi(accessToken);
 
       // TODO: Get database file from InveslyApi
       final dbFolder = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();

@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:faker/faker.dart';
+// import 'package:faker/faker.dart';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 
@@ -48,5 +48,5 @@ export 'package:flutter_slidable/flutter_slidable.dart' hide ConfirmDismissCallb
 
 const $uuid = Uuid();
 final $logger = Logger();
-final $faker = Faker();
+// final $faker = Faker();
 final $random = Random();
