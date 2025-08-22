@@ -3,6 +3,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/authentication/login_screen.dart';
 import 'package:invesly/authentication/user_model.dart';
 
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
@@ -57,12 +58,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 slivers: [
                   SliverAppBar(
                     leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 32.0)),
-
                     // title:
                     titleSpacing: 0.0,
                     actions: <Widget>[
+                      // ~~~ User avatar ~~~
                       GestureDetector(
-                        onTap: () => context.push(const SettingsScreen()),
+                        // onTap: () => context.push(const SettingsScreen()),
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) {
+                              return LoginScreen();
+                            },
+                          );
+                        }, // TODO: Testing purpose only, remove this line
                         child: BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
                           selector: (state) => state.currentUser,
                           builder: (context, currentUser) {
