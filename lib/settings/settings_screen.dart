@@ -432,7 +432,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           AccessToken? accessToken = context.read<SettingsCubit>().state.gapiAccessToken;
 
                           if (accessToken == null) {
-                            final user = await context.read<AuthRepository>().signInGoogle();
+                            final user = await context.read<AuthRepository>().signInWithGoogle();
                             if (user == null) {
                               $logger.w('Google sign-in failed');
                               return;
@@ -452,7 +452,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           AccessToken? accessToken = context.read<SettingsCubit>().state.gapiAccessToken;
 
                           if (accessToken == null) {
-                            final user = await context.read<AuthRepository>().signInGoogle();
+                            final user = await context.read<AuthRepository>().signInWithGoogle();
                             if (user == null) {
                               $logger.w('Google sign-in failed');
                               return;

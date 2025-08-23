@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_print
 
-import 'package:invesly/authentication/login_screen.dart';
+import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/common_libs.dart';
 
 import 'package:invesly/settings/cubit/settings_cubit.dart';
@@ -92,7 +92,7 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
     //   // If there are accounts but currentAccountId is null, set the first account as current account
     if (settingsState.currentUser == null) {
       // context.read<SettingsCubit>().saveCurrentAccount(accountsState.accounts.first.id);
-      context.go(LoginScreen());
+      context.go(LoginPage());
       return;
     }
     //   // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);

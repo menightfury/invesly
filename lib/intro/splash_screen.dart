@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/authentication/login_screen.dart';
+import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/intro/intro_screen.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
       }
 
       if (settingsState.currentUser == null) {
-        context.go(LoginScreen());
+        context.go(LoginPage());
         return;
       }
       //   // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
@@ -134,9 +134,15 @@ class _SplashScreenState extends State<SplashScreen> {
                       TextSpan(
                         children: [
                           TextSpan(text: 'By logging in, you agree to the '),
-                          TextSpan(text: 'Privacy Policy', style: TextStyle(color: colorScheme.primary)),
+                          TextSpan(
+                            text: 'Privacy Policy',
+                            style: TextStyle(color: colorScheme.primary),
+                          ),
                           TextSpan(text: ' and the '),
-                          TextSpan(text: 'Terms of Use', style: TextStyle(color: colorScheme.primary)),
+                          TextSpan(
+                            text: 'Terms of Use',
+                            style: TextStyle(color: colorScheme.primary),
+                          ),
                           TextSpan(text: ' of the application'),
                         ],
                         style: textTheme.labelSmall,

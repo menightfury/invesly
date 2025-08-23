@@ -15,7 +15,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthLoadingState());
 
     try {
-      final user = await _repository.signInGoogle();
+      final user = await _repository.signInWithGoogle();
       if (user != null) {
         final accessToken = await _repository.getAccessToken(user);
         // final files = await _repository.getDriveFiles(accessToken);
@@ -29,7 +29,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> signout() async {
-    await _repository.signOutGoogle();
+    await _repository.signOut();
     emit(const UnauthenticatedState());
   }
 }

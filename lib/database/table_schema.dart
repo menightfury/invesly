@@ -4,6 +4,138 @@ enum TableColumnType { integer, string, real, boolean }
 
 enum TableChangeEventType { insertion, updation, deletion }
 
+class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilder<T> {
+  TableQueryBuilder({required Database db, required TableSchema table, List<TableColumnBase>? columns})
+    : _db = db,
+      _table = table,
+      _columns = columns ?? [];
+
+  final Database _db;
+  final TableSchema _table;
+  final List<TableColumnBase> _columns;
+
+  final List<TableSchema> _joinTables = [];
+  final Map<TableColumn, dynamic> _where = {};
+  final List<TableColumnBase> _group = [];
+
+  String get effectiveTableName {
+    // SELECT table1.*, table2.id as table2_id FROM table1 JOIN table2 ON table1.amc_id = table2.id
+    final tableName = StringBuffer(_table.name);
+    if (_joinTables.isNotEmpty && _table.foreignKeys.isNotEmpty) {
+      for (final joinTable in _joinTables) {
+        // get foreignKey
+        final fkc = _table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == joinTable.name);
+
+        if (fkc == null) continue;
+
+        tableName.write(
+          ' JOIN ${joinTable.name} ON ${fkc.fullTitle} = ${joinTable.name}.${fkc.foreignReference!.columnName}',
+        );
+      }
+    }
+    return tableName.toString();
+  }
+
+  List<String> get effectiveTableColumns {
+    if (_columns.isEmpty) {
+      // SELECT table1.*, table2.id as table2_id FROM table1 JOIN table2 ON table1.amc_id = table2.id
+      _columns.addAll(_table.columns);
+      if (_joinTables.isNotEmpty && _table.foreignKeys.isNotEmpty) {
+        for (final joinTable in _joinTables) {
+          // get foreignKey
+          final fkc = _table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == joinTable.name);
+
+          if (fkc == null) continue;
+
+          final joinTableColumns = joinTable.columns.map<TableColumnBase>((col) {
+            return col.alias('${joinTable.type.toString().toCamelCase()}_${col.title}');
+          });
+
+          _columns.addAll(joinTableColumns);
+        }
+      }
+    }
+
+    return _columns.map<String>((col) => col.fullTitle).toList();
+  }
+
+  TableQueryBuilder<T> join(List<TableSchema> tables) {
+    if (tables.isNotEmpty) {
+      _joinTables.addAll(tables);
+    }
+    return this;
+  }
+
+  @override
+  TableFilterBuilder where(Map<TableColumn, dynamic> condition) {
+    if (condition.isNotEmpty) {
+      _where.addAll(condition);
+    }
+    return this;
+  }
+
+  @override
+  TableFilterBuilder groupBy(List<TableColumn> columns) {
+    if (columns.isNotEmpty) {
+      _group.addAll(columns);
+    }
+    return this;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> toList() async {
+    final List<Map<String, dynamic>> data = [];
+
+    final where = _where.isEmpty ? null : _where.keys.map<String>((key) => '${key.fullTitle} = ?').join(' AND ');
+    final whereArgs = _where.isEmpty ? null : _where.values.toList();
+
+    final groupBy = _group.isEmpty ? null : _group.map<String>((col) => col.fullTitle).join(', ');
+
+    try {
+      final list = await _db.query(
+        effectiveTableName,
+        columns: effectiveTableColumns,
+        where: where,
+        whereArgs: whereArgs,
+        // orderBy: orderBy,
+        // limit: limit,
+        groupBy: groupBy,
+      );
+      if (list.isEmpty) return List<Map<String, dynamic>>.empty();
+
+      for (final el in list) {
+        final map = Map<String, dynamic>.from(el);
+        if (_joinTables.isNotEmpty && _table.foreignKeys.isNotEmpty) {
+          for (final joinTable in _joinTables) {
+            final fkc = _table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == joinTable.name);
+
+            if (fkc == null) continue;
+
+            map.nest(joinTable.type.toString().toCamelCase());
+          }
+        }
+
+        data.add(map);
+      }
+    } on Exception catch (err) {
+      $logger.e(err);
+    }
+    return data;
+  }
+}
+
+abstract class TableFilterBuilder<T extends InveslyDataModel> {
+  TableFilterBuilder where(Map<TableColumn, dynamic> condition);
+
+  TableFilterBuilder groupBy(List<TableColumn> columns);
+
+  Future<List<Map<String, dynamic>>> toList();
+
+  // InveslyApiFilterBuilder orderBy(String column) => InveslyApiFilterBuilder();
+
+  // InveslyApiFilterBuilder limit(int limit) => InveslyApiFilterBuilder();
+}
+
 abstract class InveslyDataModel extends Equatable {
   const InveslyDataModel({required this.id});
 

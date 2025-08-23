@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:invesly/database/data_access_object.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -76,8 +75,8 @@ class InveslyApi {
   AmcTable get amcTable => getTable<AmcTable>()!;
   TransactionTable get trnTable => getTable<TransactionTable>()!;
 
-  DaoQueryBuilder select(TableSchema table, [List<TableColumnBase>? columns]) {
-    return DaoQueryBuilder(db: db, table: table, columns: columns);
+  TableQueryBuilder select(TableSchema table, [List<TableColumnBase>? columns]) {
+    return TableQueryBuilder(db: db, table: table, columns: columns);
   }
 
   Future<int> insert(TableSchema table, InveslyDataModel data) async {

@@ -56,7 +56,7 @@ class AuthRepository {
     drive.DriveApi.driveFileScope,
   ];
 
-  Future<GoogleSignInAccount?> signInGoogle({
+  Future<GoogleSignInAccount?> signInWithGoogle({
     BuildContext? context,
     bool? waitForCompletion = false,
     Function()? next,
@@ -132,7 +132,7 @@ class AuthRepository {
     }
   }
 
-  Future<void> signOutGoogle() async {
+  Future<void> signOut() async {
     // Call disconnect rather than signOut to more fully reset the example app.
     await _googleSignIn.disconnect();
     // googleUser = null;
@@ -547,31 +547,28 @@ class AuthRepository {
   //   }
   // }
 
-  // Future<bool> saveDriveFileToDevice({
-  //   required BuildContext boxContext,
-  //   required DriveApi driveApi,
-  //   required File fileToSave,
-  // }) async {
-  //   List<int> dataStore = [];
-  //   dynamic response = await driveApi.files.get(fileToSave.id!, downloadOptions: drive.DownloadOptions.fullMedia);
-  //   await for (var data in response.stream) {
-  //     dataStore.insertAll(dataStore.length, data);
-  //   }
-  //   String fileName =
-  //       "cashew-" +
-  //       ((fileToSave.name ?? "") + cleanFileNameString((fileToSave.modifiedTime ?? DateTime.now()).toString()))
-  //           .replaceAll(".sqlite", "") +
-  //       ".sql";
+  Future<bool> saveDriveFileToDevice({
+    required BuildContext boxContext,
+    required drive.DriveApi driveApi,
+    required drive.File fileToSave,
+  }) async {
+    List<int> dataStore = [];
+    final response = await driveApi.files.get(fileToSave.id!, downloadOptions: drive.DownloadOptions.fullMedia);
+    await for (var data in response.stream) {
+      dataStore.insertAll(dataStore.length, data);
+    }
+    String fileName =
+        'cashew-${((fileToSave.name ?? "")}${cleanFileNameString((fileToSave.modifiedTime ?? DateTime.now()).toString()))}.db';
 
-  //   return await saveFile(
-  //     boxContext: boxContext,
-  //     dataStore: dataStore,
-  //     dataString: null,
-  //     fileName: fileName,
-  //     successMessage: "backup-downloaded-success".tr(),
-  //     errorMessage: "error-downloading".tr(),
-  //   );
-  // }
+    return await saveFile(
+      boxContext: boxContext,
+      dataStore: dataStore,
+      dataString: null,
+      fileName: fileName,
+      successMessage: "backup-downloaded-success".tr(),
+      errorMessage: "error-downloading".tr(),
+    );
+  }
 
   // bool openBackupReminderPopupCheck(BuildContext context) {
   //   if ((appStateSettings["currentUserEmail"] == null || appStateSettings["currentUserEmail"] == "") &&

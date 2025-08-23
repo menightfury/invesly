@@ -3,7 +3,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/authentication/login_screen.dart';
+import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/authentication/user_model.dart';
 
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
@@ -68,7 +68,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           showModalBottomSheet(
                             context: context,
                             builder: (context) {
-                              return LoginScreen();
+                              return LoginPage();
                             },
                           );
                         }, // TODO: Testing purpose only, remove this line
