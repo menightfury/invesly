@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/abusiveexperiencereport/v1.dart';
+import 'package:googleapis/adsense/v2.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
 import 'package:googleapis_auth/googleapis_auth.dart';
@@ -30,14 +31,6 @@ import 'package:invesly/common_libs.dart';
 //   return isConnected;
 // }
 
-// class GoogleAuthClient extends http.BaseClient {
-//   final Map<String, String> _headers;
-//   final http.Client _client = http.Client();
-//   GoogleAuthClient(this._headers);
-//   Future<http.StreamedResponse> send(http.BaseRequest request) {
-//     return _client.send(request..headers.addAll(_headers));
-//   }
-// }
 // Auth means Authentication and Authorization
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
@@ -155,16 +148,7 @@ class AuthRepository {
       );
     } catch (err) {
       $logger.e(err);
-      throw ('Error getting Drive API');
-      // if (err is DetailedApiRequestError && err.status == 401) {
-      //   // await refreshGoogleSignIn();
-      //   return await getDriveFiles();
-      // } else if (err is PlatformException) {
-      //   // await refreshGoogleSignIn();
-      //   return await getDriveFiles();
-      // } else {
-      //   // openSnackbar(SnackbarMessage(title: e.toString(), icon: Icons.error_rounded));
-      // }
+      throw ('Error getting Access Token');
     }
   }
 
@@ -182,26 +166,31 @@ class AuthRepository {
     } catch (err) {
       $logger.e(err);
       throw ('Error getting Drive API');
-      // if (err is DetailedApiRequestError && err.status == 401) {
-      //   // await refreshGoogleSignIn();
-      //   return await getDriveFiles();
-      // } else if (err is PlatformException) {
-      //   // await refreshGoogleSignIn();
-      //   return await getDriveFiles();
-      // } else {
-      //   // openSnackbar(SnackbarMessage(title: e.toString(), icon: Icons.error_rounded));
-      // }
     }
   }
 
-  Future<List<drive.File>?> getDriveFiles(AccessToken accessToken) async {
+  Future<List<int>?> getDriveFileContent(AccessToken accessToken) async {
     try {
       final driveApi = _driveApi ?? await _getDriveApi(accessToken);
       final fileList = await driveApi.files.list(
         spaces: 'appDataFolder',
         $fields: 'files(id, name, modifiedTime, size)',
       );
-      return fileList.files;
+      final files = fileList.files;
+      if (files == null || files.isEmpty) {
+        return null;
+      }
+
+      final fileId = files.first.id;
+      if (fileId == null) return null;
+      final file = await driveApi.files.get(fileId, downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
+
+      final List<int> dataStore = [];
+      file.stream.listen(
+        (data) => dataStore.insertAll(dataStore.length, data),
+        onError: (err) => $logger.e('Error :$err'),
+      );
+      return dataStore;
     } catch (err) {
       $logger.e(err);
       // if (err is DetailedApiRequestError && err.status == 401) {
@@ -329,7 +318,7 @@ class AuthRepository {
   //   if (kIsWeb && !entireAppLoaded) return;
   //   // print(entireAppLoaded);
   //   print("Last backup: " + appStateSettings["lastBackup"]);
-  //   //Only run this once, don't run again if the global state changes (e.g. when changing a setting)
+  //   // Only run this once, don't run again if the global state changes (e.g. when changing a setting)
   //   // Update: Does this still run when global state changes? I don't think so...
   //   // If the entire app is loaded and we want to do an auto backup, lets do it no matter what!
   //   // if (entireAppLoaded == false || entireAppLoaded) {
@@ -401,11 +390,12 @@ class AuthRepository {
   //   return false;
   // }
 
-  Future<void> createBackupInGoogleDrive(
-    AccessToken accessToken, {
-    bool? silentBackup,
-    bool deleteOldBackups = false,
-    String? clientIDForSync,
+  Future<void> createBackupInGoogleDrive({
+    required AccessToken accessToken,
+    required File file,
+    // bool? silentBackup,
+    // bool deleteOldBackups = false,
+    // String? clientIDForSync,
   }) async {
     // try {
     //   if (silentBackup == false || silentBackup == null) {
@@ -427,21 +417,18 @@ class AuthRepository {
       final driveApi = _driveApi ?? await _getDriveApi(accessToken);
 
       // TODO: Get database file from InveslyApi
-      final dbFolder = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
-      final dbFile = File(p.join(dbFolder.path, 'invesly.db'));
-      $logger.i('File Size ${(dbFile.lengthSync() / 1e+6).toString()}');
-      final dbFileBytes = await dbFile.readAsBytes();
+      // final dbFolder = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
+      // final dbFile = File(p.join(dbFolder.path, 'invesly.db'));
+      $logger.i('File Size ${(file.lengthSync() / 1e+6).toString()}');
+      final dbFileBytes = await file.readAsBytes();
 
-      final media = drive.Media(dbFile.openRead(), dbFileBytes.length);
+      final media = drive.Media(file.openRead(), dbFileBytes.length);
+      final dateTime = DateTime.now().toUtc();
+      final timestamp = DateFormat("yyyy-MM-dd-hhmmss").format(dateTime);
+      final driveFile = drive.File(name: 'invesly-$timestamp.db', modifiedTime: dateTime, parents: ['appDataFolder']);
 
-      var driveFile = drive.File();
-      final timestamp = DateFormat("yyyy-MM-dd-hhmmss").format(DateTime.now().toUtc());
-
-      driveFile.name = "invesly-$timestamp.db";
       // if (clientIDForSync != null)
       // driveFile.name = getCurrentDeviceSyncBackupFileName(clientIDForSync: clientIDForSync);
-      driveFile.modifiedTime = DateTime.now().toUtc();
-      driveFile.parents = ['appDataFolder'];
 
       await driveApi.files.create(driveFile, uploadMedia: media);
 
@@ -546,29 +533,6 @@ class AuthRepository {
   //     return 0.0; // or throw an exception, depending on your requirements
   //   }
   // }
-
-  Future<bool> saveDriveFileToDevice({
-    required BuildContext boxContext,
-    required drive.DriveApi driveApi,
-    required drive.File fileToSave,
-  }) async {
-    List<int> dataStore = [];
-    final response = await driveApi.files.get(fileToSave.id!, downloadOptions: drive.DownloadOptions.fullMedia);
-    await for (var data in response.stream) {
-      dataStore.insertAll(dataStore.length, data);
-    }
-    String fileName =
-        'cashew-${((fileToSave.name ?? "")}${cleanFileNameString((fileToSave.modifiedTime ?? DateTime.now()).toString()))}.db';
-
-    return await saveFile(
-      boxContext: boxContext,
-      dataStore: dataStore,
-      dataString: null,
-      fileName: fileName,
-      successMessage: "backup-downloaded-success".tr(),
-      errorMessage: "error-downloading".tr(),
-    );
-  }
 
   // bool openBackupReminderPopupCheck(BuildContext context) {
   //   if ((appStateSettings["currentUserEmail"] == null || appStateSettings["currentUserEmail"] == "") &&

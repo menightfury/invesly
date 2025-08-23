@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:path/path.dart' as p;
 
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -38,11 +39,10 @@ class InveslyApi {
   //   return _instance!;
   // }
 
-  Future<void> initializeDatabase({String? path}) async {
-    // if (_instance != null) return _instance!;
+  String get dbPath => p.join(databaseDirectory.path, 'invesly.db');
 
-    // Initialize sqlite database in that declared directory and open the database.
-    final dbPath = p.join(path ?? databaseDirectory.path, 'invesly.db');
+  Future<void> initializeDatabase() async {
+    // if (_instance != null) return _instance!;
 
     // sqflite - copy from assets (for optimizing performance, asset is copied only once)
     final isDbExists = await databaseExists(dbPath);
@@ -65,6 +65,19 @@ class InveslyApi {
     // final trnTable = TransactionTable();
     _tables.addAll([AccountTable(), AmcTable(), TransactionTable()]);
     // return _instance = InveslyApi._(db: db, tables: [accountTable, amcTable, trnTable]);
+  }
+
+  Future<bool> saveDriveFileToDevice(List<int> fileContent) async {
+    //   String fileName =
+    //       'cashew-${((fileToSave.name ?? "")}${cleanFileNameString((fileToSave.modifiedTime ?? DateTime.now()).toString()))}.db';
+
+    //   return await saveFile(
+    //     dataStore: dataStore,
+    //     dataString: null,
+    //     fileName: fileName,
+    //     successMessage: "backup-downloaded-success".tr(),
+    //     errorMessage: "error-downloading".tr(),
+    //   );
   }
 
   // helper function to get a table out of initialized tables
