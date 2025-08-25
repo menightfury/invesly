@@ -15,7 +15,7 @@ class EditTransactionState extends Equatable {
   const EditTransactionState({
     this.status = EditTransactionStatus.initial,
     this.id,
-    this.userId,
+    this.accountId,
     this.quantity,
     required this.amount, //? required ?
     this.type = TransactionType.invested,
@@ -26,7 +26,7 @@ class EditTransactionState extends Equatable {
 
   final EditTransactionStatus status;
   final String? id;
-  final String? userId;
+  final String? accountId;
   final double? quantity;
   final double? amount;
   final TransactionType type;
@@ -38,7 +38,7 @@ class EditTransactionState extends Equatable {
 
   // Check if all required fields are filled and valid
   bool get canSave {
-    return userId != null &&
+    return accountId != null &&
         amc != null &&
         amount != null &&
         (amount?.isFinite ?? false) &&
@@ -49,7 +49,7 @@ class EditTransactionState extends Equatable {
   EditTransactionState copyWith({
     EditTransactionStatus? status,
     InveslyTransaction? initialTransaction,
-    String? userId,
+    String? accountId,
     double? quantity,
     double? amount,
     TransactionType? type,
@@ -60,7 +60,7 @@ class EditTransactionState extends Equatable {
     return EditTransactionState(
       id: id,
       status: status ?? this.status,
-      userId: userId ?? this.userId,
+      accountId: accountId ?? this.accountId,
       quantity: quantity ?? this.quantity,
       amount: amount ?? this.amount,
       type: type ?? this.type,
@@ -71,5 +71,5 @@ class EditTransactionState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, id, userId, quantity, amount, type, date, amc, notes];
+  List<Object?> get props => [status, id, accountId, quantity, amount, type, date, amc, notes];
 }

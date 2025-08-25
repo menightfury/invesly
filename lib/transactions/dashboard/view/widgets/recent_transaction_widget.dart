@@ -49,7 +49,7 @@ class _RecentTransactionsWidgetState extends State<RecentTransactionsWidget> {
                 ),
                 //! TODO: For testing purpose only. Delete in production mode
                 Text(
-                  inv.userId,
+                  inv.accountId,
                   style: const TextStyle(fontSize: 12.0, color: Colors.redAccent),
                   overflow: TextOverflow.ellipsis,
                 ),

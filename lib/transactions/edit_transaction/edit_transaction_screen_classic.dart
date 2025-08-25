@@ -403,10 +403,10 @@ class _UserPickerWidget extends StatelessWidget {
           shake: state.hasError,
           child: IconButton(
             onPressed: () async {
-              final newUser = await InveslyAccountPickerWidget.showModal(context, cubit.state.userId);
+              final newUser = await InveslyAccountPickerWidget.showModal(context, cubit.state.accountId);
               if (newUser == null) return;
 
-              cubit.updateUser(newUser.id);
+              cubit.updateAccount(newUser.id);
               state.didChange(newUser);
             },
             style: IconButton.styleFrom(

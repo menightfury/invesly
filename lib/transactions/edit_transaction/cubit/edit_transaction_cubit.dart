@@ -11,13 +11,12 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       super(
         EditTransactionState(
           id: initialInvestment?.id,
-          userId: initialInvestment?.userId,
+          accountId: initialInvestment?.accountId,
           quantity: initialInvestment?.quantity,
           amount: initialInvestment?.totalAmount,
-          type:
-              (initialInvestment?.totalAmount.isNegative ?? false)
-                  ? TransactionType.redeemed
-                  : TransactionType.invested,
+          type: (initialInvestment?.totalAmount.isNegative ?? false)
+              ? TransactionType.redeemed
+              : TransactionType.invested,
           amc: initialInvestment?.amc,
           notes: initialInvestment?.note,
         ),
@@ -25,8 +24,8 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
 
   final TransactionRepository _repository;
 
-  void updateUser(String userId) {
-    emit(state.copyWith(userId: userId));
+  void updateAccount(String accountId) {
+    emit(state.copyWith(accountId: accountId));
   }
 
   void updateQuantity(double result) {
@@ -58,7 +57,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
 
     final inv = InveslyTransaction(
       id: state.id ?? $uuid.v1(),
-      userId: state.userId!,
+      accountId: state.accountId!,
       amc: state.amc,
       quantity: state.quantity ?? 0.0,
       totalAmount: state.amount!,

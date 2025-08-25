@@ -30,7 +30,7 @@ enum TransactionType {
 class InveslyTransaction extends TransactionInDb {
   InveslyTransaction({
     required super.id,
-    required super.userId,
+    required super.accountId,
     this.transactionType = TransactionType.invested,
     this.amc,
     super.quantity = 0.0,
@@ -50,7 +50,7 @@ class InveslyTransaction extends TransactionInDb {
     }
     return InveslyTransaction(
       id: trn.id,
-      userId: trn.userId,
+      accountId: trn.accountId,
       transactionType: TransactionType.values.elementAt(typeIndex),
       amc: InveslyAmc.fromDb(amc),
       quantity: trn.quantity,
@@ -88,7 +88,7 @@ class InveslyTransaction extends TransactionInDb {
 class TransactionInDb extends InveslyDataModel {
   const TransactionInDb({
     required super.id,
-    required this.userId,
+    required this.accountId,
     this.typeIndex = 0, // 0: invested, 1: redeemed
     this.amcId,
     this.quantity = 0.0,
@@ -97,7 +97,7 @@ class TransactionInDb extends InveslyDataModel {
     this.note,
   });
 
-  final String userId;
+  final String accountId;
   final int typeIndex;
   final String? amcId;
   final double quantity;
@@ -108,7 +108,7 @@ class TransactionInDb extends InveslyDataModel {
   final String? note;
 
   @override
-  List<Object?> get props => super.props..addAll([userId, typeIndex, amcId, quantity, totalAmount, date, note]);
+  List<Object?> get props => super.props..addAll([accountId, typeIndex, amcId, quantity, totalAmount, date, note]);
 
   // TransactionInDb copyWith({
   //   String? userId,
@@ -138,7 +138,7 @@ class TransactionTable extends TableSchema<TransactionInDb> {
   static final _i = TransactionTable._();
   factory TransactionTable() => _i;
 
-  TableColumn<String> get userIdColumn =>
+  TableColumn<String> get accountIdColumn =>
       TableColumn('account_id', name, foreignReference: ForeignReference('accounts', 'id'));
   TableColumn<int> get typeColumn => TableColumn('type', name, type: TableColumnType.integer); // invested or redeemed
   TableColumn<String> get amcIdColumn =>
@@ -151,13 +151,13 @@ class TransactionTable extends TableSchema<TransactionInDb> {
   @override
   Set<TableColumn> get columns =>
       super.columns
-        ..addAll([userIdColumn, amcIdColumn, quantityColumn, amountColumn, typeColumn, dateColumn, noteColumn]);
+        ..addAll([accountIdColumn, amcIdColumn, quantityColumn, amountColumn, typeColumn, dateColumn, noteColumn]);
 
   @override
   Map<String, dynamic> decode(TransactionInDb data) {
     return <String, dynamic>{
       idColumn.title: data.id,
-      userIdColumn.title: data.userId,
+      accountIdColumn.title: data.accountId,
       typeColumn.title: data.typeIndex,
       amcIdColumn.title: data.amcId,
       quantityColumn.title: data.quantity,
@@ -171,7 +171,7 @@ class TransactionTable extends TableSchema<TransactionInDb> {
   TransactionInDb encode(Map<String, dynamic> map) {
     return TransactionInDb(
       id: map[idColumn.title] as String,
-      userId: map[userIdColumn.title] as String,
+      accountId: map[accountIdColumn.title] as String,
       typeIndex: map[typeColumn.title] as int,
       amcId: map[amcIdColumn.title] as String?,
       quantity: (map[quantityColumn.title] as num).toDouble(),

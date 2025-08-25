@@ -26,7 +26,7 @@ class TransactionRepository {
   Future<List<InveslyTransaction>> getTransactions({String? userId, String? amcId, int? showItems}) async {
     final filter = <TableColumn, String>{};
     if (userId != null) {
-      filter.putIfAbsent(_trnTable.userIdColumn, () => userId);
+      filter.putIfAbsent(_trnTable.accountIdColumn, () => userId);
     }
 
     if (amcId != null) {
@@ -42,13 +42,12 @@ class TransactionRepository {
       $logger.f(result);
       if (result.isEmpty) return List<InveslyTransaction>.empty();
 
-      transactions =
-          result.map<InveslyTransaction>((map) {
-            return InveslyTransaction.fromDb(
-              _trnTable.encode(map),
-              _amcTable.encode(map[_amcTable.type.toString().toCamelCase()] as Map<String, dynamic>),
-            );
-          }).toList();
+      transactions = result.map<InveslyTransaction>((map) {
+        return InveslyTransaction.fromDb(
+          _trnTable.encode(map),
+          _amcTable.encode(map[_amcTable.type.toString().toCamelCase()] as Map<String, dynamic>),
+        );
+      }).toList();
     } on Exception catch (err) {
       $logger.e(err);
       transactions = List<InveslyTransaction>.empty();
@@ -59,32 +58,30 @@ class TransactionRepository {
 
   /// Get transaction statistics
   Future<List<TransactionStat>> getTransactionStats(String userId) async {
-    final filter = {_trnTable.userIdColumn: userId};
+    final filter = {_trnTable.accountIdColumn: userId};
 
     late final List<TransactionStat> stats;
     try {
-      final result =
-          await _api
-              .select(_trnTable, [
-                _trnTable.userIdColumn.alias('user_id'),
-                _amcTable.genreColumn.alias('genre'),
-                _trnTable.amountColumn.sum('total_amount'),
-                _trnTable.idColumn.count('num_transactions'),
-              ])
-              .join([_amcTable])
-              .where(filter)
-              .groupBy([_amcTable.genreColumn])
-              .toList();
+      final result = await _api
+          .select(_trnTable, [
+            _trnTable.accountIdColumn.alias('account_id'),
+            _amcTable.genreColumn.alias('genre'),
+            _trnTable.amountColumn.sum('total_amount'),
+            _trnTable.idColumn.count('num_transactions'),
+          ])
+          .join([_amcTable])
+          .where(filter)
+          .groupBy([_amcTable.genreColumn])
+          .toList();
       $logger.w(result);
-      stats =
-          result.map<TransactionStat>((map) {
-            return TransactionStat(
-              userId: map['user_id'] as String,
-              amcGenre: AmcGenre.getByIndex(map['genre'] as int),
-              numTransactions: map['num_transactions'] as int,
-              totalAmount: (map['total_amount'] as num).toDouble(),
-            );
-          }).toList();
+      stats = result.map<TransactionStat>((map) {
+        return TransactionStat(
+          userId: map['account_id'] as String,
+          amcGenre: AmcGenre.getByIndex(map['genre'] as int),
+          numTransactions: map['num_transactions'] as int,
+          totalAmount: (map['total_amount'] as num).toDouble(),
+        );
+      }).toList();
     } on Exception catch (err) {
       $logger.e(err);
       stats = List<TransactionStat>.empty();
