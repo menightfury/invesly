@@ -47,7 +47,7 @@ class EditAccountCubit extends Cubit<EditAccountState> {
       return;
     }
 
-    final user = AccountInDb(
+    final account = AccountInDb(
       id: state.initialAccount?.id ?? $uuid.v1(),
       name: name,
       avatarIndex: state.avatarIndex,
@@ -55,7 +55,7 @@ class EditAccountCubit extends Cubit<EditAccountState> {
       // aadhaarNumber: state.aadhaarNumber,
     );
     try {
-      await _repository.saveAccount(user, state.isNewAccount);
+      await _repository.saveAccount(account, state.isNewAccount);
       emit(state.copyWith(status: EditAccountFormStatus.success));
     } on Exception catch (err) {
       $logger.e(err);

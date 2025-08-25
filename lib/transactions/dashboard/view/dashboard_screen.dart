@@ -145,12 +145,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                       BlocSelector<SettingsCubit, SettingsState, String?>(
                         selector: (state) => state.currentAccountId,
-                        builder: (context, userId) {
+                        builder: (context, currentAccountId) {
                           final usersState = context.read<AccountsCubit>().state;
                           final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
                           final currentUser = users.isEmpty
                               ? null
-                              : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
+                              : users.firstWhere((u) => u.id == currentAccountId, orElse: () => users.first);
                           return BlocProvider(
                             create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
                             child: _DashboardContents(currentUser, key: ValueKey<String?>(currentUser?.id)),

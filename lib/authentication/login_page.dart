@@ -84,27 +84,28 @@ class _LoginPageState extends State<_LoginPage> {
 
   void _onSignInPressed(BuildContext context) async {
     final authRepository = context.read<AuthRepository>();
-    openLoadingPopup(context, () async {
-      final user = await authRepository.signInWithGoogle();
-      if (user != null) {
-        final accessToken = await authRepository.getAccessToken(user);
+    // openLoadingPopup(context, () async {
+    //   final user = await authRepository.signInWithGoogle();
+    //   if (user != null) {
+    //     final accessToken = await authRepository.getAccessToken(user);
 
-        // Save access token to device
-        if (!context.mounted) return;
-        context.read<SettingsCubit>().saveGapiAccessToken(accessToken);
+    //     // Save access token to device
+    //     if (!context.mounted) return;
+    //     context.read<SettingsCubit>().saveGapiAccessToken(accessToken);
 
-        // Get Google Drive files
-        final fileContent = await authRepository.getDriveFileContent(accessToken);
-        $logger.i('File content: $fileContent');
-        if (fileContent != null && fileContent.isNotEmpty) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Backup file found! Restoring your data...')));
-          // Copy the latest backup file to the device
-        }
-        await authRepository.writeDatabaseFile(fileContent);
-      }
-    }, onSuccess: (_) => context.push(const DashboardScreen()));
+    //     // Get Google Drive files
+    //     final fileContent = await authRepository.getDriveFileContent(accessToken);
+    //     $logger.i('File content: $fileContent');
+    //     if (fileContent != null && fileContent.isNotEmpty) {
+    //       ScaffoldMessenger.of(
+    //         context,
+    //       ).showSnackBar(const SnackBar(content: Text('Backup file found! Restoring your data...')));
+    //       // Copy the latest backup file to the device
+    //     }
+    //     await authRepository.writeDatabaseFile(fileContent);
+    //   }
+    // }, onSuccess: (_) => context.push(const DashboardScreen()));
+    context.push(const DashboardScreen());
   }
 }
 

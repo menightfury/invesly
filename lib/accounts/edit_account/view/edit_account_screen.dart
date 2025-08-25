@@ -21,8 +21,8 @@ class EditAccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (context) => EditAccountCubit(repository: context.read<AccountRepository>(), initialAccount: initialAccount),
+      create: (context) =>
+          EditAccountCubit(repository: context.read<AccountRepository>(), initialAccount: initialAccount),
       child: const _EditAccountScreen(),
     );
   }
@@ -72,7 +72,7 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
           } else {
             context.go(const DashboardScreen());
           }
-          message = const SnackBar(content: Text('User saved successfully'), backgroundColor: Colors.teal);
+          message = const SnackBar(content: Text('Account saved successfully'), backgroundColor: Colors.teal);
         } else if (state.status == EditAccountFormStatus.failure) {
           message = const SnackBar(content: Text('Sorry! some error occurred'), backgroundColor: Colors.redAccent);
         }
@@ -306,14 +306,13 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
                     child: ElevatedButton.icon(
                       onPressed: isLoadingOrSuccess ? null : () => _handleSavePressed(context),
                       label: isLoadingOrSuccess ? const Text('Saving user...') : const Text('Save user'),
-                      icon:
-                          isLoadingOrSuccess
-                              ? CircularProgressIndicator(
-                                strokeWidth: 2.0,
-                                // color: Colors.white,
-                                constraints: BoxConstraints.tightForFinite(width: 16.0, height: 16.0),
-                              )
-                              : Icon(Icons.save_alt_rounded),
+                      icon: isLoadingOrSuccess
+                          ? CircularProgressIndicator(
+                              strokeWidth: 2.0,
+                              // color: Colors.white,
+                              constraints: BoxConstraints.tightForFinite(width: 16.0, height: 16.0),
+                            )
+                          : Icon(Icons.save_alt_rounded),
                     ),
                   ),
                 );

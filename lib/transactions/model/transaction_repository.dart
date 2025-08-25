@@ -23,10 +23,10 @@ class TransactionRepository {
   }
 
   /// Get transactions
-  Future<List<InveslyTransaction>> getTransactions({String? userId, String? amcId, int? showItems}) async {
+  Future<List<InveslyTransaction>> getTransactions({String? accountId, String? amcId, int? showItems}) async {
     final filter = <TableColumn, String>{};
-    if (userId != null) {
-      filter.putIfAbsent(_trnTable.accountIdColumn, () => userId);
+    if (accountId != null) {
+      filter.putIfAbsent(_trnTable.accountIdColumn, () => accountId);
     }
 
     if (amcId != null) {
@@ -57,8 +57,8 @@ class TransactionRepository {
   }
 
   /// Get transaction statistics
-  Future<List<TransactionStat>> getTransactionStats(String userId) async {
-    final filter = {_trnTable.accountIdColumn: userId};
+  Future<List<TransactionStat>> getTransactionStats(String accountId) async {
+    final filter = {_trnTable.accountIdColumn: accountId};
 
     late final List<TransactionStat> stats;
     try {
@@ -76,7 +76,7 @@ class TransactionRepository {
       $logger.w(result);
       stats = result.map<TransactionStat>((map) {
         return TransactionStat(
-          userId: map['account_id'] as String,
+          accountId: map['account_id'] as String,
           amcGenre: AmcGenre.getByIndex(map['genre'] as int),
           numTransactions: map['num_transactions'] as int,
           totalAmount: (map['total_amount'] as num).toDouble(),
