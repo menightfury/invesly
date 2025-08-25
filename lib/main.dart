@@ -38,7 +38,7 @@ class InveslyApp extends StatelessWidget {
 
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<AuthRepository>(create: (_) => AuthRepository()),
+        RepositoryProvider<AuthRepository>(create: (_) => AuthRepository(api)),
         RepositoryProvider.value(value: accountRepository),
         RepositoryProvider(create: (_) => AmcRepository(api)),
         RepositoryProvider(create: (_) => TransactionRepository(api)),

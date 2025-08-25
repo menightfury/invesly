@@ -5,10 +5,12 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/abusiveexperiencereport/v1.dart';
 import 'package:googleapis/adsense/v2.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:googleapis/servicecontrol/v2.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:invesly/database/invesly_api.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:invesly/common_libs.dart';
@@ -35,6 +37,10 @@ import 'package:invesly/common_libs.dart';
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
 class AuthRepository {
+  AuthRepository(InveslyApi api) : _api = api;
+
+  final InveslyApi _api;
+
   // GoogleSignInAccount? googleUser;
   drive.DriveApi? _driveApi;
 
@@ -563,4 +569,28 @@ class AuthRepository {
   //   }
   //   return false;
   // }
+
+  Future<void> writeDatabaseFile([List<int>? fileContent]) async {
+    try {
+      // sqflite - copy from assets (for optimizing performance, asset is copied only once)
+      final isDbExists = await databaseExists(_api.dbPath);
+      if (!isDbExists) {
+        List<int>? bytes = fileContent;
+
+        if (bytes == null || bytes.isEmpty) {
+          // should happen only first time the application is launched copy from asset
+          final data = await rootBundle.load('assets/data/initial.db');
+          bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        }
+
+        // write and flush the bytes written
+        await File(_api.dbPath).writeAsBytes(bytes, flush: true);
+      } else {
+        $logger.d('Opening existing database');
+      }
+    } catch (e) {
+      $logger.e('Error saving backup to device: $e');
+      throw ('Error saving backup to device');
+    }
+  }
 }

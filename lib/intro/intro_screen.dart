@@ -76,7 +76,6 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
     if (_currentPage.value != _pageData.length - 1) return;
 
     // context.read<SettingsCubit>().completeOnboarding();
-    // context.go(const LoginScreen());
     // final accountsState = context.read<AccountsCubit>().state;
     final settingsState = context.read<SettingsCubit>().state;
 
@@ -92,7 +91,7 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
     //   // If there are accounts but currentAccountId is null, set the first account as current account
     if (settingsState.currentUser == null) {
       // context.read<SettingsCubit>().saveCurrentAccount(accountsState.accounts.first.id);
-      context.go(LoginPage());
+      LoginPage.showModal(context);
       return;
     }
     //   // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);

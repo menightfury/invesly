@@ -170,54 +170,54 @@ Future<T?> openPopup<T extends Object?>(
                                     children: [
                                       onCancelLabel != null
                                           ? IntrinsicWidth(
-                                            child: Padding(
-                                              padding: const EdgeInsetsDirectional.symmetric(horizontal: 8.0),
-                                              child: Builder(
-                                                builder: (boxContext) {
-                                                  return TextButton(
-                                                    // color: tertiaryButtonColor,
-                                                    // textColor: onTertiaryButtonColor,
-                                                    child: Text(onCancelLabel),
-                                                    onPressed: () {
-                                                      if (onCancel != null) {
-                                                        onCancel();
-                                                      }
-                                                      if (onCancelWithBoxContext != null) {
-                                                        onCancelWithBoxContext(boxContext);
-                                                      }
-                                                    },
-                                                  );
-                                                },
+                                              child: Padding(
+                                                padding: const EdgeInsetsDirectional.symmetric(horizontal: 8.0),
+                                                child: Builder(
+                                                  builder: (boxContext) {
+                                                    return TextButton(
+                                                      // color: tertiaryButtonColor,
+                                                      // textColor: onTertiaryButtonColor,
+                                                      child: Text(onCancelLabel),
+                                                      onPressed: () {
+                                                        if (onCancel != null) {
+                                                          onCancel();
+                                                        }
+                                                        if (onCancelWithBoxContext != null) {
+                                                          onCancelWithBoxContext(boxContext);
+                                                        }
+                                                      },
+                                                    );
+                                                  },
+                                                ),
                                               ),
-                                            ),
-                                          )
+                                            )
                                           : SizedBox.shrink(),
                                       onExtraLabel != null
                                           ? IntrinsicWidth(
-                                            child: Padding(
-                                              padding: const EdgeInsetsDirectional.symmetric(horizontal: 8.0),
-                                              child: TextButton(
-                                                // expandedLayout: true,
-                                                // color: primaryButtonColor,
-                                                // textColor: onPrimaryButtonColor,
-                                                onPressed: onExtra ?? () {},
-                                                child: Text(onExtraLabel),
+                                              child: Padding(
+                                                padding: const EdgeInsetsDirectional.symmetric(horizontal: 8.0),
+                                                child: TextButton(
+                                                  // expandedLayout: true,
+                                                  // color: primaryButtonColor,
+                                                  // textColor: onPrimaryButtonColor,
+                                                  onPressed: onExtra ?? () {},
+                                                  child: Text(onExtraLabel),
+                                                ),
                                               ),
-                                            ),
-                                          )
+                                            )
                                           : SizedBox.shrink(),
                                       onSubmitLabel != null
                                           ? IntrinsicWidth(
-                                            child: Padding(
-                                              padding: const EdgeInsetsDirectional.symmetric(horizontal: 8.0),
-                                              child: TextButton(
-                                                // color: primaryButtonColor,
-                                                // textColor: onPrimaryButtonColor,
-                                                onPressed: onSubmit ?? () {},
-                                                child: Text(onSubmitLabel),
+                                              child: Padding(
+                                                padding: const EdgeInsetsDirectional.symmetric(horizontal: 8.0),
+                                                child: TextButton(
+                                                  // color: primaryButtonColor,
+                                                  // textColor: onPrimaryButtonColor,
+                                                  onPressed: onSubmit ?? () {},
+                                                  child: Text(onSubmitLabel),
+                                                ),
                                               ),
-                                            ),
-                                          )
+                                            )
                                           : SizedBox.shrink(),
                                     ],
                                   ),
@@ -368,13 +368,18 @@ enum RoutesToPopAfterDelete { none, one, all, preventDelete }
 //   );
 // }
 
-Future<T?> openLoadingPopup<T extends Object?>(BuildContext context) {
-  return showGeneralDialog(
+Future<void> openLoadingPopup<T extends Object>(
+  BuildContext context,
+  Future<T?> Function()? callback, {
+  ValueChanged Function(Object error)? onError,
+  Function(T? result)? onSuccess,
+}) async {
+  showGeneralDialog(
     context: context,
     useRootNavigator: false,
     barrierDismissible: false,
     barrierColor: Colors.black.withOpacity(0.4),
-    barrierLabel: '',
+    // barrierLabel: '',
     transitionBuilder: (_, anim, _, child) {
       Tween<double> tween;
       if (anim.status == AnimationStatus.reverse) {
@@ -394,16 +399,16 @@ Future<T?> openLoadingPopup<T extends Object?>(BuildContext context) {
         onWillPop: () async => false,
         child: Center(
           child: Container(
-            padding: EdgeInsetsDirectional.symmetric(horizontal: 20, vertical: 20),
-            margin: EdgeInsetsDirectional.only(
-              start: 20,
-              end: 20,
-              top: MediaQuery.paddingOf(context).top,
-              bottom: MediaQuery.paddingOf(context).bottom,
-            ),
+            padding: EdgeInsetsDirectional.all(20.0),
+            // margin: EdgeInsetsDirectional.only(
+            //   start: 20,
+            //   end: 20,
+            //   top: MediaQuery.paddingOf(context).top,
+            //   bottom: MediaQuery.paddingOf(context).bottom,
+            // ),
             decoration: BoxDecoration(
               color: context.colors.secondaryContainer,
-              borderRadius: BorderRadiusDirectional.circular(25),
+              borderRadius: BorderRadiusDirectional.circular(25.0),
             ),
             child: CircularProgressIndicator(),
           ),
@@ -411,50 +416,65 @@ Future<T?> openLoadingPopup<T extends Object?>(BuildContext context) {
       );
     },
   );
-}
 
-Future openLoadingPopupTryCatch(
-  Future Function() function, {
-  BuildContext? context,
-  Function(dynamic error)? onError,
-  Function(dynamic result)? onSuccess,
-}) async {
-  openLoadingPopup(context ?? navigatorKey.currentContext!);
   try {
-    dynamic result = await function();
-    popRoute(context ?? navigatorKey.currentContext!, result);
-    if (onSuccess != null) onSuccess(result);
-    return result;
-  } catch (e) {
-    $logger.e(e);
-    popRoute(context ?? navigatorKey.currentContext!, null);
+    final result = await callback?.call();
+    if (context.mounted) context.pop(result);
+    onSuccess?.call(result);
+  } catch (err) {
+    $logger.e(err);
+    if (context.mounted) context.pop(null);
     if (onError != null) {
-      onError(e);
+      onError(err);
     } else {
-      $logger.e(e);
-      // openSnackbar(SnackbarMessage(title: 'an-error-occurred', icon: Icons.warning_rounded, description: e.toString()));
+      $logger.e(err);
+      // openSnackbar(SnackbarMessage(title: 'an-error-occurred', icon: Icons.warning_rounded, description: err.toString()));
     }
   }
-  return null;
 }
 
-// TODO: Move this function to new file
-void popRoute<T extends Object?>(BuildContext? context, [T? result]) {
-  BuildContext? contextToPop = context;
-  if (context == null) contextToPop = navigatorKey.currentContext;
-  if (contextToPop == null) return;
-  Navigator.of(contextToPop, rootNavigator: false).pop(result);
-  // bool hasPopped = false;
-  // Navigator.of(contextToPop, rootNavigator: true).popUntil((route) {
-  //   if (route.isFirst) return true;
-  //   if (hasPopped == false) {
-  //     hasPopped = true;
-  //     return route.isFirst;
-  //   } else {
-  //     return true;
-  //   }
-  // });
-}
+// Future openLoadingPopupTryCatch(
+//   Future Function() function, {
+//   BuildContext? context,
+//   Function(dynamic error)? onError,
+//   Function(dynamic result)? onSuccess,
+// }) async {
+//   openLoadingPopup(context ?? navigatorKey.currentContext!);
+//   try {
+//     dynamic result = await function();
+//     popRoute(context ?? navigatorKey.currentContext!, result);
+//     if (onSuccess != null) onSuccess(result);
+//     return result;
+//   } catch (e) {
+//     $logger.e(e);
+//     popRoute(context ?? navigatorKey.currentContext!, null);
+//     if (onError != null) {
+//       onError(e);
+//     } else {
+//       $logger.e(e);
+//       // openSnackbar(SnackbarMessage(title: 'an-error-occurred', icon: Icons.warning_rounded, description: e.toString()));
+//     }
+//   }
+//   return null;
+// }
+
+// // TODO: Move this function to new file
+// void popRoute<T extends Object?>(BuildContext? context, [T? result]) {
+//   BuildContext? contextToPop = context;
+//   if (context == null) contextToPop = navigatorKey.currentContext;
+//   if (contextToPop == null) return;
+//   Navigator.of(contextToPop, rootNavigator: false).pop(result);
+//   // bool hasPopped = false;
+//   // Navigator.of(contextToPop, rootNavigator: true).popUntil((route) {
+//   //   if (route.isFirst) return true;
+//   //   if (hasPopped == false) {
+//   //     hasPopped = true;
+//   //     return route.isFirst;
+//   //   } else {
+//   //     return true;
+//   //   }
+//   // });
+// }
 
 // void discardChangesPopup(context, {previousObject, currentObject, Function? onDiscard, bool forceShow = false}) async {
 //   print(previousObject);

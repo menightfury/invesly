@@ -18,22 +18,36 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => AuthCubit(repository: context.read<AuthRepository>()),
-      child: const _LoginScreen(),
+      child: const _LoginPage(),
+    );
+  }
+
+  static Future<void> showModal(BuildContext context, [String? accountId]) async {
+    return await showModalBottomSheet<void>(
+      context: context,
+      builder: (context) {
+        return BlocProvider(
+          create: (context) => AuthCubit(repository: context.read<AuthRepository>()),
+          child: const _LoginPage(showInModal: true),
+        );
+      },
     );
   }
 }
 
-class _LoginScreen extends StatefulWidget {
-  const _LoginScreen({super.key});
+class _LoginPage extends StatefulWidget {
+  const _LoginPage({this.showInModal = false, super.key});
+
+  final bool showInModal;
 
   @override
-  State<_LoginScreen> createState() => __LoginScreenState();
+  State<_LoginPage> createState() => _LoginPageState();
 }
 
-class __LoginScreenState extends State<_LoginScreen> {
+class _LoginPageState extends State<_LoginPage> {
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    Widget content = Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -49,8 +63,8 @@ class __LoginScreenState extends State<_LoginScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => _handleSignIn(context),
-              icon: CircleAvatar(radius: 20.0, backgroundImage: AssetImage('assets/google_logo.png')),
+              onPressed: () => _onSignInPressed(context),
+              icon: CircleAvatar(radius: 20.0, backgroundImage: AssetImage('assets/images/google_logo.png')),
               label: Text('Sign in with Google', textAlign: TextAlign.center),
             ),
           ),
@@ -58,105 +72,39 @@ class __LoginScreenState extends State<_LoginScreen> {
       ),
     );
 
-    return Scaffold(
-      appBar: AppBar(title: Text('Login with google')),
-      body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            BlocBuilder<AuthCubit, AuthState>(
-              builder: (context, state) {
-                // final authorization = _authorization;
-                if (state is AuthLoadingState) {
-                  return const CircularProgressIndicator();
-                }
+    if (!widget.showInModal) {
+      content = Scaffold(
+        appBar: AppBar(title: Text('Login with google')),
+        body: SafeArea(child: content),
+      );
+    }
 
-                if (state is AuthErrorState) {
-                  return Column(
-                    children: <Widget>[
-                      Text(state.message),
-                      ElevatedButton(
-                        onPressed: context.read<AuthCubit>().signin,
-                        child: const Text('Sign in with Google'),
-                      ),
-                    ],
-                  );
-                }
-
-                if (state is AuthenticatedState) {
-                  final user = state.user;
-                  // Save current user
-                  context.read<SettingsCubit>().saveCurrentUser(InveslyUser.fromGoogleSignInAccount(user));
-                  context.read<SettingsCubit>().saveGapiAccessToken(state.accessToken);
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      ListTile(
-                        leading: GoogleUserCircleAvatar(identity: user),
-                        title: Text(user.displayName ?? ''),
-                        subtitle: Text(user.email),
-                      ),
-                      const Text('Signed in successfully.'),
-
-                      ElevatedButton(
-                        onPressed: () async {
-                          final files = await context.read<AuthRepository>().getDriveFileContent(state.accessToken);
-                          $logger.i(files);
-                          // if files is not null and not empty, copy the latest backup file in the device,
-                          // After copying, navigate to DashboardScreen
-                          if (mounted) {
-                            context.go(DashboardScreen());
-                          }
-                        },
-                        child: const Text('Load Files'),
-                      ),
-
-                      ElevatedButton(onPressed: context.read<AuthCubit>().signout, child: const Text('Sign out')),
-                    ],
-                  );
-                }
-
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    const Text('You are not currently signed in.'),
-                    ElevatedButton(onPressed: context.read<AuthCubit>().signin, child: const Text('SIGN IN')),
-                  ],
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+    return content;
   }
 
-  void _handleSignIn(BuildContext context) async {
-    // final ctx = context;
-
+  void _onSignInPressed(BuildContext context) async {
     final authRepository = context.read<AuthRepository>();
-    openLoadingPopup(context);
+    openLoadingPopup(context, () async {
+      final user = await authRepository.signInWithGoogle();
+      if (user != null) {
+        final accessToken = await authRepository.getAccessToken(user);
 
-    final user = await authRepository.signInWithGoogle();
-    if (user != null) {
-      final accessToken = await authRepository.getAccessToken(user);
+        // Save access token to device
+        if (!context.mounted) return;
+        context.read<SettingsCubit>().saveGapiAccessToken(accessToken);
 
-      // Save access token to device
-      if (!context.mounted) return;
-      context.read<SettingsCubit>().saveGapiAccessToken(accessToken);
-
-      // Get Google Drive files
-      final fileContent = await authRepository.getDriveFileContent(accessToken);
-      if (fileContent != null && fileContent.isNotEmpty) {
-        // Copy the latest backup file to the device
-        await authRepository.saveDriveFileToDevice(fileContent);
+        // Get Google Drive files
+        final fileContent = await authRepository.getDriveFileContent(accessToken);
+        $logger.i('File content: $fileContent');
+        if (fileContent != null && fileContent.isNotEmpty) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Backup file found! Restoring your data...')));
+          // Copy the latest backup file to the device
+        }
+        await authRepository.writeDatabaseFile(fileContent);
       }
-    }
+    }, onSuccess: (_) => context.push(const DashboardScreen()));
   }
 }
 

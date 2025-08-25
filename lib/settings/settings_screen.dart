@@ -440,7 +440,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                             accessToken = await context.read<AuthRepository>().getAccessToken(user);
                           }
-                          await context.read<AuthRepository>().createBackupInGoogleDrive(accessToken);
+                          // await context.read<AuthRepository>().createBackupInGoogleDrive(accessToken: accessToken);
                           $logger.i('Backup created successfully');
                         },
                       ),

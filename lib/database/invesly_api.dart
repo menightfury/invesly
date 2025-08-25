@@ -44,19 +44,6 @@ class InveslyApi {
   Future<void> initializeDatabase() async {
     // if (_instance != null) return _instance!;
 
-    // sqflite - copy from assets (for optimizing performance, asset is copied only once)
-    final isDbExists = await databaseExists(dbPath);
-    if (!isDbExists) {
-      // should happen only first time the application is launched copy from asset
-      final data = await rootBundle.load('assets/data/initial.db');
-      final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-
-      // write and flush the bytes written
-      await File(dbPath).writeAsBytes(bytes, flush: true);
-    } else {
-      $logger.d('Opening existing database');
-    }
-
     _db = await openDatabase(dbPath, version: 1);
 
     // initialize all necessary tables
@@ -65,19 +52,6 @@ class InveslyApi {
     // final trnTable = TransactionTable();
     _tables.addAll([AccountTable(), AmcTable(), TransactionTable()]);
     // return _instance = InveslyApi._(db: db, tables: [accountTable, amcTable, trnTable]);
-  }
-
-  Future<bool> saveDriveFileToDevice(List<int> fileContent) async {
-    //   String fileName =
-    //       'cashew-${((fileToSave.name ?? "")}${cleanFileNameString((fileToSave.modifiedTime ?? DateTime.now()).toString()))}.db';
-
-    //   return await saveFile(
-    //     dataStore: dataStore,
-    //     dataString: null,
-    //     fileName: fileName,
-    //     successMessage: "backup-downloaded-success".tr(),
-    //     errorMessage: "error-downloading".tr(),
-    //   );
   }
 
   // helper function to get a table out of initialized tables
