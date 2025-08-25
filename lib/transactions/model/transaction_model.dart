@@ -139,7 +139,7 @@ class TransactionTable extends TableSchema<TransactionInDb> {
   factory TransactionTable() => _i;
 
   TableColumn<String> get userIdColumn =>
-      TableColumn('user_id', name, foreignReference: ForeignReference('users', 'id'));
+      TableColumn('account_id', name, foreignReference: ForeignReference('accounts', 'id'));
   TableColumn<int> get typeColumn => TableColumn('type', name, type: TableColumnType.integer); // invested or redeemed
   TableColumn<String> get amcIdColumn =>
       TableColumn('amc_id', name, foreignReference: ForeignReference('amcs', 'id'), isNullable: true);
