@@ -368,25 +368,15 @@ enum RoutesToPopAfterDelete { none, one, all, preventDelete }
 //   );
 // }
 
-Future<void> openLoadingPopup<T extends Object>(
-  BuildContext context,
-  Future<T?> Function()? callback, {
-  ValueChanged Function(Object error)? onError,
-  Function(T? result)? onSuccess,
-}) async {
-  showGeneralDialog(
+Future<T?> openLoadingPopup<T extends Object?>(BuildContext context, Future<T?> Function() callback) async {
+  return showGeneralDialog(
     context: context,
     useRootNavigator: false,
     barrierDismissible: false,
     barrierColor: Colors.black.withOpacity(0.4),
     // barrierLabel: '',
     transitionBuilder: (_, anim, _, child) {
-      Tween<double> tween;
-      if (anim.status == AnimationStatus.reverse) {
-        tween = Tween(begin: 0.9, end: 1);
-      } else {
-        tween = Tween(begin: 0.95, end: 1);
-      }
+      final tween = Tween<double>(begin: 0.9, end: 1);
       return ScaleTransition(
         scale: tween.animate(CurvedAnimation(parent: anim, curve: Curves.easeInOutQuart)),
         child: FadeTransition(opacity: anim, child: child),
@@ -394,43 +384,25 @@ Future<void> openLoadingPopup<T extends Object>(
     },
     transitionDuration: Duration(milliseconds: 200),
     pageBuilder: (_, _, _) {
-      return WillPopScope(
-        //Stop back button
-        onWillPop: () async => false,
-        child: Center(
-          child: Container(
-            padding: EdgeInsetsDirectional.all(20.0),
-            // margin: EdgeInsetsDirectional.only(
-            //   start: 20,
-            //   end: 20,
-            //   top: MediaQuery.paddingOf(context).top,
-            //   bottom: MediaQuery.paddingOf(context).bottom,
-            // ),
-            decoration: BoxDecoration(
-              color: context.colors.secondaryContainer,
-              borderRadius: BorderRadiusDirectional.circular(25.0),
-            ),
-            child: CircularProgressIndicator(),
-          ),
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        T? result;
+        try {
+          result = await callback.call();
+        } catch (err) {
+          $logger.e(err);
+        }
+        if (context.mounted) context.pop(result);
+      });
+      return Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Material(
+          borderRadius: BorderRadiusDirectional.circular(25.0),
+          color: context.colors.secondaryContainer,
+          child: CircularProgressIndicator(),
         ),
       );
     },
   );
-
-  try {
-    final result = await callback?.call();
-    if (context.mounted) context.pop(result);
-    onSuccess?.call(result);
-  } catch (err) {
-    $logger.e(err);
-    if (context.mounted) context.pop(null);
-    if (onError != null) {
-      onError(err);
-    } else {
-      $logger.e(err);
-      // openSnackbar(SnackbarMessage(title: 'an-error-occurred', icon: Icons.warning_rounded, description: err.toString()));
-    }
-  }
 }
 
 // Future openLoadingPopupTryCatch(

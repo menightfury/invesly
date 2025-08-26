@@ -158,7 +158,7 @@ class AuthRepository {
     }
   }
 
-  Future<drive.DriveApi> _getDriveApi(AccessToken accessToken) async {
+  Future<drive.DriveApi> getDriveApi(AccessToken accessToken) async {
     try {
       final credentials = gapis.AccessCredentials(
         accessToken,
@@ -175,20 +175,37 @@ class AuthRepository {
     }
   }
 
-  Future<List<int>?> getDriveFileContent(AccessToken accessToken) async {
+  Future<List<drive.File>?> getDriveFiles(AccessToken accessToken) async {
     try {
-      final driveApi = _driveApi ?? await _getDriveApi(accessToken);
+      final driveApi = _driveApi ?? await getDriveApi(accessToken);
       final fileList = await driveApi.files.list(
         spaces: 'appDataFolder',
         $fields: 'files(id, name, modifiedTime, size)',
       );
       final files = fileList.files;
+      $logger.i(files);
       if (files == null || files.isEmpty) {
         return null;
       }
+      return files;
+    } catch (err) {
+      $logger.e(err);
+      // if (err is DetailedApiRequestError && err.status == 401) {
+      //   // await refreshGoogleSignIn();
+      //   return await getDriveFiles();
+      // } else if (err is PlatformException) {
+      //   // await refreshGoogleSignIn();
+      //   return await getDriveFiles();
+      // } else {
+      //   // openSnackbar(SnackbarMessage(title: e.toString(), icon: Icons.error_rounded));
+      // }
+    }
+    return null;
+  }
 
-      final fileId = files.first.id;
-      if (fileId == null) return null;
+  Future<List<int>?> getDriveFileContent({required AccessToken accessToken, required String fileId}) async {
+    try {
+      final driveApi = _driveApi ?? await getDriveApi(accessToken);
       final file = await driveApi.files.get(fileId, downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
 
       final List<int> dataStore = [];
@@ -420,11 +437,7 @@ class AuthRepository {
 
       // final currentDBFileInfo = await getCurrentDBFileInfo();
 
-      final driveApi = _driveApi ?? await _getDriveApi(accessToken);
-
-      // TODO: Get database file from InveslyApi
-      // final dbFolder = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
-      // final dbFile = File(p.join(dbFolder.path, 'invesly.db'));
+      final driveApi = _driveApi ?? await getDriveApi(accessToken);
       $logger.i('File Size ${(file.lengthSync() / 1e+6).toString()}');
       final dbFileBytes = await file.readAsBytes();
 
@@ -465,69 +478,38 @@ class AuthRepository {
     }
   }
 
-  // Future<void> deleteRecentBackups(context, amountToKeep, {bool? silentDelete}) async {
-  //   try {
-  //     final authHeaders = await googleUser!.authHeaders;
-  //     final authenticateClient = GoogleAuthClient(authHeaders);
-  //     final driveApi = DriveApi(authenticateClient);
+  Future<void> deleteBackups(AccessToken accessToken) async {
+    try {
+      final files = await getDriveFiles(accessToken);
 
-  //     FileList fileList = await driveApi.files.list(
-  //       spaces: 'appDataFolder',
-  //       $fields: 'files(id, name, modifiedTime, size)',
-  //     );
-  //     List<File>? files = fileList.files;
-  //     if (files == null) {
-  //       throw "No backups found.";
-  //     }
+      if (files == null || files.isEmpty) {
+        return;
+      }
 
-  //     int index = 0;
-  //     files.forEach((file) {
-  //       // subtract 1 because we just made a backup
-  //       if (index >= amountToKeep - 1) {
-  //         // only delete excess backups that don't belong to a client sync
-  //         if (!isSyncBackupFile(file.name)) deleteBackup(driveApi, file.id ?? "");
-  //       }
-  //       if (!isSyncBackupFile(file.name)) index++;
-  //     });
-  //   } catch (e) {
-  //     // openSnackbar(
-  //     //   SnackbarMessage(
-  //     //     title: e.toString(),
-  //     //     icon: appStateSettings["outlinedIcons"] ? Icons.error_outlined : Icons.error_rounded,
-  //     //   ),
-  //     // );
-  //   }
-  // }
+      // files.forEach((file) async {
+      //   await deleteBackup(accessToken: accessToken, fileId: file.id!);
+      // });
+      Future.wait(files.map((file) => deleteBackup(accessToken: accessToken, fileId: file.id!)));
+    } catch (err) {
+      $logger.e(err);
+      // openSnackbar(
+      //   SnackbarMessage(
+      //     title: err.toString(),
+      //     icon: Icon(Icons.error_rounded),
+      //   ),
+      // );
+    }
+  }
 
-  // Future<void> deleteBackup(DriveApi driveApi, String fileId) async {
-  //   try {
-  //     await driveApi.files.delete(fileId);
-  //   } catch (e) {
-  //     openSnackbar(SnackbarMessage(title: e.toString()));
-  //   }
-  // }
-
-  // Future<void> chooseBackup(
-  //   BuildContext context, {
-  //   bool isManaging = false,
-  //   bool isClientSync = false,
-  //   bool hideDownloadButton = false,
-  // }) async {
-  //   try {
-  //     openBottomSheet(
-  //       context,
-  //       BackupManagement(isManaging: isManaging, isClientSync: isClientSync, hideDownloadButton: hideDownloadButton),
-  //     );
-  //   } catch (e) {
-  //     popRoute(context);
-  //     openSnackbar(
-  //       SnackbarMessage(
-  //         title: e.toString(),
-  //         icon: Icons.error_rounded,
-  //       ),
-  //     );
-  //   }
-  // }
+  Future<void> deleteBackup({required AccessToken accessToken, required String fileId}) async {
+    try {
+      final driveApi = _driveApi ?? await getDriveApi(accessToken);
+      await driveApi.files.delete(fileId);
+    } catch (err) {
+      $logger.e(err);
+      // openSnackbar(SnackbarMessage(title: err.toString()));
+    }
+  }
 
   // double convertBytesToMB(String bytesString) {
   //   try {
@@ -581,6 +563,7 @@ class AuthRepository {
           // should happen only first time the application is launched copy from asset
           final data = await rootBundle.load('assets/data/initial.db');
           bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+          $logger.i('Data written from assets');
         }
 
         // write and flush the bytes written

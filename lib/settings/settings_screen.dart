@@ -460,7 +460,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                             accessToken = await context.read<AuthRepository>().getAccessToken(user);
                           }
-                          final files = await context.read<AuthRepository>().getDriveFileContent(accessToken);
+                          final files = await context.read<AuthRepository>().getDriveFiles(accessToken);
                           $logger.i(files);
                         },
                       ),
