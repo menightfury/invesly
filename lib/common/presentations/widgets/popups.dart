@@ -369,21 +369,21 @@ enum RoutesToPopAfterDelete { none, one, all, preventDelete }
 // }
 
 Future<T?> openLoadingPopup<T extends Object?>(BuildContext context, Future<T?> Function() callback) async {
-  return showGeneralDialog(
+  return showDialog(
     context: context,
     useRootNavigator: false,
     barrierDismissible: false,
     barrierColor: Colors.black.withOpacity(0.4),
     // barrierLabel: '',
-    transitionBuilder: (_, anim, _, child) {
-      final tween = Tween<double>(begin: 0.9, end: 1);
-      return ScaleTransition(
-        scale: tween.animate(CurvedAnimation(parent: anim, curve: Curves.easeInOutQuart)),
-        child: FadeTransition(opacity: anim, child: child),
-      );
-    },
-    transitionDuration: Duration(milliseconds: 200),
-    pageBuilder: (_, _, _) {
+    // transitionBuilder: (_, anim, _, child) {
+    //   final tween = Tween<double>(begin: 0.9, end: 1);
+    //   return ScaleTransition(
+    //     scale: tween.animate(CurvedAnimation(parent: anim, curve: Curves.easeInOutQuart)),
+    //     child: FadeTransition(opacity: anim, child: child),
+    //   );
+    // },
+    // transitionDuration: Duration(milliseconds: 200),
+    builder: (context) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         T? result;
         try {
@@ -393,16 +393,17 @@ Future<T?> openLoadingPopup<T extends Object?>(BuildContext context, Future<T?> 
         }
         if (context.mounted) context.pop(result);
       });
-      return Padding(
-        padding: const EdgeInsets.all(20.0),
+      return Center(
         child: Material(
           borderRadius: BorderRadiusDirectional.circular(25.0),
           color: context.colors.secondaryContainer,
-          child: CircularProgressIndicator(),
+          child: Padding(padding: const EdgeInsets.all(20.0), child: CircularProgressIndicator()),
         ),
       );
     },
   );
+
+  // return result;
 }
 
 // Future openLoadingPopupTryCatch(
