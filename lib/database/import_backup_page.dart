@@ -1,9 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'dart:ffi';
+
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
-import 'package:shimmer/shimmer.dart';
 
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
@@ -68,31 +69,42 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
                 spacing: 4.0,
                 children: <Widget>[
                   // Welcome text
+                  Text('Restore backup', style: context.textTheme.headlineMedium),
+                  Gap(8.0),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Icon(Icons.cloud_done, size: 48.0, color: Colors.teal),
+                  ),
                   Text('Backup found!', style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600)),
+                  Gap(8.0),
+                  Text('6 minutes ago', style: context.textTheme.labelMedium?.copyWith(color: Colors.grey)),
+                  Text('Size: 215 KB', style: context.textTheme.labelMedium?.copyWith(color: Colors.grey)),
+                  Gap(16.0),
                   Text(
-                    'Restore your data from Google Drive',
-                    style: context.textTheme.labelMedium?.copyWith(color: Colors.grey),
+                    'Restore your data from Google Drive. If you don\'t restore now, you won\'t be able to restore it later.',
                   ),
                   Spacer(),
 
-                  LoadingShimmerDriveFiles(isManaging: true, i: 5),
-
                   // Restore button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          // ScaffoldMessenger.of(
-                          //   context,
-                          // ).showSnackBar(const SnackBar(content: Text('No backup file found!')));
-                          return;
-                        }
-                        _onRestorePressed(context, snapshot.data!.first);
-                      },
-                      icon: CircleAvatar(radius: 20.0, backgroundImage: AssetImage('assets/images/google_logo.png')),
-                      label: Text('Restore', textAlign: TextAlign.center),
-                    ),
+                  Row(
+                    spacing: 8.0,
+                    children: <Widget>[
+                      Expanded(
+                        child: OutlinedButton(onPressed: () {}, child: Text('Skip')),
+                      ),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                              return;
+                            }
+                            _onRestorePressed(context, snapshot.data!.first);
+                          },
+                          icon: Icon(Icons.restore_rounded),
+                          label: Text('Restore', textAlign: TextAlign.center),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               );
@@ -103,11 +115,11 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
             }
 
             return GestureDetector(
-              child: LoadingShimmerDriveFiles(isManaging: true, i: 3),
+              child: Text('No backup file found. Tap to return to dashboard.'),
               onTap: () => context.go(const DashboardScreen()),
             );
           }
-          return Center(child: CircularProgressIndicator());
+          return Center(child: Column(children: <Widget>[CircularProgressIndicator(), Text('Looking for backups...')]));
         },
       ),
     );
@@ -188,86 +200,4 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
   //     openSnackbar(SnackbarMessage(title: e.toString(), icon: Icons.error_rounded));
   //   }
   // }
-}
-
-class LoadingShimmerDriveFiles extends StatelessWidget {
-  const LoadingShimmerDriveFiles({super.key, required this.isManaging, required this.i});
-
-  final bool isManaging;
-  final int i;
-
-  @override
-  Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      // period: Duration(milliseconds: (1000 + randomDouble[i % 10] * 520).toInt()),
-      period: Duration(milliseconds: (1000 + 0.5 * 520).toInt()),
-      baseColor: context.colors.secondaryContainer,
-      highlightColor: context.colors.secondaryContainer.withOpacity(0.2),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsetsDirectional.only(bottom: 8.0),
-            child: Tappable(
-              onTap: () {},
-              // borderRadius: 15,
-              // color: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.5),
-              content: Container(
-                padding: EdgeInsetsDirectional.symmetric(horizontal: 20, vertical: 15),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Icon(Icons.description_rounded, color: Theme.of(context).colorScheme.secondary, size: 30),
-                          SizedBox(width: 13),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadiusDirectional.all(Radius.circular(5)),
-                                    color: Colors.white,
-                                  ),
-                                  height: 20,
-                                  // width: 70 + randomDouble[i % 10] * 120 + 13,
-                                  width: 70 + 0.5 * 120 + 13,
-                                ),
-                                SizedBox(height: 6),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadiusDirectional.all(Radius.circular(5)),
-                                    color: Colors.white,
-                                  ),
-                                  height: 14,
-                                  // width: 90 + randomDouble[i % 10] * 120,
-                                  width: 90 + 0.9 * 120,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 13),
-                    isManaging
-                        ? Row(
-                            children: [
-                              IconButton(onPressed: () {}, icon: Icon(Icons.close_rounded)),
-                              SizedBox(width: 5),
-                              IconButton(onPressed: () {}, icon: Icon(Icons.close_rounded)),
-                            ],
-                          )
-                        : SizedBox.shrink(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          SizedBox(height: 10.0, width: 300),
-        ],
-      ),
-    );
-  }
 }
