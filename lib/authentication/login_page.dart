@@ -45,13 +45,13 @@ class _LoginPageState extends State<_LoginPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 4.0,
+        spacing: 8.0,
         children: <Widget>[
           // Welcome text
-          SizedBox.square(dimension: 200.0, child: Image.asset('assets/images/app_icon/app_icon.png')),
-          Text('Welcome to Invesly!', style: context.textTheme.displayLarge),
+          SizedBox.square(dimension: 120.0, child: Image.asset('assets/images/app_icon/app_icon.png')),
+          Text('Welcome to Invesly!', style: context.textTheme.headlineLarge),
           Text(
-            'Keep your data backup and synced with Google drive',
+            'Keep your data backed up and synced with Google Drive',
             style: context.textTheme.labelMedium?.copyWith(color: Colors.grey),
           ),
           Spacer(),
@@ -62,7 +62,7 @@ class _LoginPageState extends State<_LoginPage> {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () => _onSignInPressed(context),
-              icon: CircleAvatar(radius: 20.0, backgroundImage: AssetImage('assets/images/google_logo.png')),
+              icon: CircleAvatar(radius: 16.0, backgroundImage: AssetImage('assets/images/google_logo.png')),
               label: Text('Sign in with Google', textAlign: TextAlign.center),
             ),
           ),
@@ -70,7 +70,7 @@ class _LoginPageState extends State<_LoginPage> {
           // Without sign-in return User.empty()
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: OutlinedButton(
               onPressed: () => _onWithoutSignInPressed(context),
               child: Text('Continue without sign in', textAlign: TextAlign.center),
             ),

@@ -145,10 +145,7 @@ class AppStyle {
             //   borderColor = colorScheme.error;
             // }
 
-            return RoundedRectangleBorder(
-              // side: BorderSide(width: 1.0, color: borderColor),
-              borderRadius: AppConstants.buttonBorderRadius,
-            );
+            return RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius);
           }),
         ),
       ),
@@ -156,12 +153,10 @@ class AppStyle {
         style: ButtonStyle(
           padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
           minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
-          shape: WidgetStatePropertyAll<OutlinedBorder>(
-            RoundedRectangleBorder(
-              side: BorderSide(color: colorScheme.primary),
-              borderRadius: AppConstants.buttonBorderRadius,
-            ),
+          shape: const WidgetStatePropertyAll<OutlinedBorder>(
+            RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
           ),
+          side: WidgetStatePropertyAll(BorderSide(width: 2.0, color: colorScheme.primary)),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
