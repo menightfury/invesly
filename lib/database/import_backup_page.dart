@@ -10,32 +10,39 @@ import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 
-class ChooseBackupPage extends StatelessWidget {
-  const ChooseBackupPage({super.key});
+class ImportBackupPage extends StatelessWidget {
+  const ImportBackupPage({super.key, this.onRestoreComplete});
+
+  final VoidCallback? onRestoreComplete;
 
   @override
   Widget build(BuildContext context) {
-    return const _ChooseBackupPage();
+    return _ImportBackupPage(key: key, onRestoreComplete: onRestoreComplete);
   }
 
-  static Future<void> showModal(BuildContext context, [String? accountId]) async {
+  static Future<void> showModal(BuildContext context, {Key? key}) async {
     return await showModalBottomSheet<void>(
       context: context,
-      builder: (context) => const _ChooseBackupPage(showInModal: true),
+      isDismissible: false,
+      enableDrag: false,
+      builder: (context) {
+        return _ImportBackupPage(key: key, showInModal: true, onRestoreComplete: () => context.pop());
+      },
     );
   }
 }
 
-class _ChooseBackupPage extends StatefulWidget {
-  const _ChooseBackupPage({this.showInModal = false, super.key});
+class _ImportBackupPage extends StatefulWidget {
+  const _ImportBackupPage({super.key, this.showInModal = false, this.onRestoreComplete});
 
   final bool showInModal;
+  final VoidCallback? onRestoreComplete;
 
   @override
-  State<_ChooseBackupPage> createState() => _ChooseBackupPageState();
+  State<_ImportBackupPage> createState() => _ImportBackupPageState();
 }
 
-class _ChooseBackupPageState extends State<_ChooseBackupPage> {
+class _ImportBackupPageState extends State<_ImportBackupPage> {
   late final Future<List<drive.File>?> _files;
   AccessToken? _accessToken;
 
@@ -107,7 +114,7 @@ class _ChooseBackupPageState extends State<_ChooseBackupPage> {
 
     if (!widget.showInModal) {
       content = Scaffold(
-        appBar: AppBar(title: Text('Restore from Google drive')),
+        appBar: AppBar(title: Text('Import from Google drive')),
         body: SafeArea(child: content),
       );
     }
@@ -162,6 +169,7 @@ class _ChooseBackupPageState extends State<_ChooseBackupPage> {
     }
 
     await authRepository.writeDatabaseFile(fileContent);
+    widget.onRestoreComplete?.call();
   }
 
   // Future<void> chooseBackup(

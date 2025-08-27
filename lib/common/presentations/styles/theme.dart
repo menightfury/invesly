@@ -46,15 +46,16 @@ class AppStyle {
         padding: const EdgeInsets.all(4.0),
       ),
       appBarTheme: AppBarTheme(
-        color: colorScheme.surface,
+        backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
         scrolledUnderElevation: 1.0,
         elevation: 0,
         surfaceTintColor: colorScheme.surface,
         systemOverlayStyle: SystemUiOverlayStyle(
           systemNavigationBarColor: colorScheme.surface,
-          systemNavigationBarIconBrightness:
-              colorScheme.brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+          systemNavigationBarIconBrightness: colorScheme.brightness == Brightness.dark
+              ? Brightness.light
+              : Brightness.dark,
         ),
         // shadowColor: Colors.black38,
         // iconTheme: IconThemeData(color: colorScheme.onBackground),
@@ -168,6 +169,21 @@ class AppStyle {
         foregroundColor: colorScheme.onPrimary,
         elevation: 2.0,
         shape: const RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+          // padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
+          // minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
+          // backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
+          //   if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);
+          //   if (state.contains(WidgetState.error)) return colorScheme.error;
+          //   return colorScheme.primary;
+          // }),
+          // foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimary),
+          shape: const WidgetStatePropertyAll<OutlinedBorder>(
+            RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
+          ),
+        ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         elevation: 10.0,

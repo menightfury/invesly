@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/database/cubit/database_cubit.dart';
-import 'package:invesly/intro/splash_screen.dart';
+import 'package:invesly/intro/splash_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'bloc_observer.dart';
@@ -110,7 +110,7 @@ class _AppViewState extends State<_AppView> {
               theme: AppStyle.instance.getTheme(lightScheme),
               darkTheme: AppStyle.instance.getTheme(darkScheme),
               themeMode: state.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-              home: const SplashScreen(),
+              home: const SplashPage(),
             );
           },
         );

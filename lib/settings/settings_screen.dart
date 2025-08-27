@@ -3,12 +3,8 @@
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:path/path.dart';
-
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
-import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
-import 'package:invesly/authentication/cubit/auth_cubit.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/common_libs.dart';

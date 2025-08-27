@@ -12,7 +12,6 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/cubit/database_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
-import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_classic.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';

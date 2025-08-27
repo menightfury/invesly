@@ -1,20 +1,22 @@
 // ignore_for_file: avoid_print
 
+import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/login_page.dart';
+import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/database/choose_backup_page.dart';
+import 'package:invesly/database/import_backup_page.dart';
 
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
-class IntroScreen extends StatefulWidget {
-  const IntroScreen({super.key});
+class IntroPage extends StatefulWidget {
+  const IntroPage({super.key});
 
   @override
-  State<IntroScreen> createState() => _IntroScreenState();
+  State<IntroPage> createState() => _IntroPageState();
 }
 
-class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStateMixin {
+class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMixin {
   List<_PageModel> _pageData = [];
 
   late final PageController _pageController;
@@ -73,41 +75,32 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
-  void _handleCompletePressed(BuildContext context) {
+  Future<void> _handleCompletePressed(BuildContext context) async {
     if (_currentPage.value != _pageData.length - 1) return;
 
     // context.read<SettingsCubit>().completeOnboarding();
-    // final accountsState = context.read<AccountsCubit>().state;
     final settingsState = context.read<SettingsCubit>().state;
-
-    // if (accountsState is AccountsLoadedState) {
-    //   if (!context.mounted) return;
-
-    //   // If there are no accounts, go to EditAccountScreen
-    //   if (accountsState.hasNoAccount) {
-    //     context.go(const EditAccountScreen());
-    //     return;
-    //   }
-
-    //   // If there are accounts but currentAccountId is null, set the first account as current account
     if (settingsState.currentUser == null) {
-      // context.read<SettingsCubit>().saveCurrentAccount(accountsState.accounts.first.id);
-      LoginPage.showModal(context, onComplete: (context) => ChooseBackupPage.showModal(context));
-      return;
+      final user = await LoginPage.showModal(context);
+
+      if (!context.mounted || user == null) {
+        // User cancelled sign-in or error occurred
+        return;
+      }
+
+      if (user == InveslyUser.empty()) {
+        // User chose to continue without sign-in
+        // Write initial database file from assets
+        await context.read<AuthRepository>().writeDatabaseFile();
+      } else {
+        // User signed in successfully
+        await ImportBackupPage.showModal(context);
+      }
+
+      if (!context.mounted) return;
+      // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
+      context.go(const DashboardScreen());
     }
-    //   // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
-    context.go(const DashboardScreen());
-    // } else if (accountsState is AccountsErrorState) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     SnackBar(
-    //       backgroundColor: context.colors.errorContainer,
-    //       content: Text(
-    //         'Error loading users: ${accountsState.errorMsg}',
-    //         style: TextStyle(color: context.colors.onErrorContainer),
-    //       ),
-    //     ),
-    //   );
-    // }
   }
 
   void _animateToPage(int index) {

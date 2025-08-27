@@ -11,8 +11,6 @@ import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:invesly/database/invesly_api.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:invesly/common_libs.dart';
 
 // Future<bool> checkConnection() async {
@@ -511,17 +509,6 @@ class AuthRepository {
     }
   }
 
-  // double convertBytesToMB(String bytesString) {
-  //   try {
-  //     int bytes = int.parse(bytesString);
-  //     double megabytes = bytes / (1024 * 1024);
-  //     return megabytes;
-  //   } catch (e) {
-  //     debugPrint('Error parsing bytes string: $e');
-  //     return 0.0; // or throw an exception, depending on your requirements
-  //   }
-  // }
-
   // bool openBackupReminderPopupCheck(BuildContext context) {
   //   if ((appStateSettings["currentUserEmail"] == null || appStateSettings["currentUserEmail"] == "") &&
   //       ((appStateSettings["numLogins"] + 1) % 7 == 0) &&
@@ -555,12 +542,12 @@ class AuthRepository {
   Future<void> writeDatabaseFile([List<int>? fileContent]) async {
     try {
       // sqflite - copy from assets (for optimizing performance, asset is copied only once)
+      // should happen only first time the application is launched copy from asset
       final isDbExists = await databaseExists(_api.dbPath);
       if (!isDbExists) {
         List<int>? bytes = fileContent;
 
         if (bytes == null || bytes.isEmpty) {
-          // should happen only first time the application is launched copy from asset
           final data = await rootBundle.load('assets/data/initial.db');
           bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
           $logger.i('Data written from assets');
@@ -569,7 +556,7 @@ class AuthRepository {
         // write and flush the bytes written
         await File(_api.dbPath).writeAsBytes(bytes, flush: true);
       } else {
-        $logger.d('Opening existing database');
+        $logger.d('Database exists. No need to overwrite.');
       }
     } catch (e) {
       $logger.e('Error saving backup to device: $e');

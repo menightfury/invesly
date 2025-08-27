@@ -1,20 +1,17 @@
 import 'dart:async';
-
-import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/database/choose_backup_page.dart';
-import 'package:invesly/intro/intro_screen.dart';
+import 'package:invesly/intro/intro_page.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+class SplashPage extends StatefulWidget {
+  const SplashPage({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  State<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashPageState extends State<SplashPage> {
   late final Timer _timer;
   // late final Completer _completer;
 
@@ -28,15 +25,15 @@ class _SplashScreenState extends State<SplashScreen> {
     // _timer = Timer(2.seconds, () => _completer.complete());
     _timer = Timer(2.seconds, () {
       if (!settingsState.isOnboarded) {
-        context.go(const IntroScreen());
+        context.go(const IntroPage());
         return;
       }
 
-      if (settingsState.currentUser == null) {
-        LoginPage.showModal(context, onComplete: (context) => ChooseBackupPage.showModal(context));
-        return;
-      }
-      //   // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
+      // if (settingsState.currentUser == null) {
+      //   LoginPage.showModal(context);
+      //   return;
+      // }
+      // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
       context.go(const DashboardScreen());
     });
   }
