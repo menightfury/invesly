@@ -2,6 +2,7 @@
 
 import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/database/choose_backup_page.dart';
 
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
@@ -91,7 +92,7 @@ class _IntroScreenState extends State<IntroScreen> with SingleTickerProviderStat
     //   // If there are accounts but currentAccountId is null, set the first account as current account
     if (settingsState.currentUser == null) {
       // context.read<SettingsCubit>().saveCurrentAccount(accountsState.accounts.first.id);
-      LoginPage.showModal(context);
+      LoginPage.showModal(context, onComplete: (context) => ChooseBackupPage.showModal(context));
       return;
     }
     //   // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);

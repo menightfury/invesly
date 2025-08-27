@@ -1,33 +1,39 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'package:invesly/common/presentations/widgets/popups.dart';
-import 'package:invesly/database/choose_backup_page.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.onComplete});
+
+  final void Function(BuildContext context)? onComplete;
 
   @override
   Widget build(BuildContext context) {
-    return const _LoginPage();
+    return _LoginPage(key: key, onComplete: onComplete);
   }
 
-  static Future<void> showModal(BuildContext context, [String? accountId]) async {
+  static Future<void> showModal(
+    BuildContext context, {
+    Key? key,
+    void Function(BuildContext context)? onComplete,
+  }) async {
     return await showModalBottomSheet<void>(
       context: context,
       builder: (context) {
-        return const _LoginPage(showInModal: true);
+        return _LoginPage(key: key, showInModal: true, onComplete: onComplete);
       },
     );
   }
 }
 
 class _LoginPage extends StatefulWidget {
-  const _LoginPage({this.showInModal = false, super.key});
+  const _LoginPage({super.key, this.showInModal = false, this.onComplete});
 
   final bool showInModal;
+  final void Function(BuildContext context)? onComplete;
 
   @override
   State<_LoginPage> createState() => _LoginPageState();
@@ -88,6 +94,6 @@ class _LoginPageState extends State<_LoginPage> {
     });
 
     if (!context.mounted) return;
-    ChooseBackupPage.showModal(context);
+    widget.onComplete?.call(context);
   }
 }

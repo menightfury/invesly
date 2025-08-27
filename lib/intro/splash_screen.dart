@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/database/choose_backup_page.dart';
 import 'package:invesly/intro/intro_screen.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
       }
 
       if (settingsState.currentUser == null) {
-        LoginPage.showModal(context);
+        LoginPage.showModal(context, onComplete: (context) => ChooseBackupPage.showModal(context));
         return;
       }
       //   // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
