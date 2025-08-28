@@ -1,7 +1,5 @@
-// import 'package:flutter/scheduler.dart' show timeDilation;
-
 import 'package:flutter/foundation.dart';
-import 'package:flutter/scheduler.dart';
+// import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/database/cubit/database_cubit.dart';
 import 'package:invesly/intro/splash_page.dart';

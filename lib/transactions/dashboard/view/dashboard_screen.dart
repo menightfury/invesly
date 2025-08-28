@@ -3,7 +3,6 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/authentication/user_model.dart';
 
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
@@ -12,6 +11,7 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/cubit/database_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
+import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_classic.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
@@ -62,15 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     actions: <Widget>[
                       // ~~~ User avatar ~~~
                       GestureDetector(
-                        // onTap: () => context.push(const SettingsScreen()),
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            builder: (context) {
-                              return LoginPage();
-                            },
-                          );
-                        }, // TODO: Testing purpose only, remove this line
+                        onTap: () => context.push(const SettingsScreen()),
                         child: BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
                           selector: (state) => state.currentUser,
                           builder: (context, currentUser) {

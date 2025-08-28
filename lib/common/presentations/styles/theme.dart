@@ -33,7 +33,7 @@ class AppStyle {
         headlineSmall: TextStyle(fontFamily: _headerFont, fontSize: 22.0),
         titleLarge: TextStyle(fontSize: 20.0), // appbar title
         titleMedium: TextStyle(fontSize: 18.0), // textfield
-        bodyLarge: TextStyle(fontSize: 20.0, height: 1.25), // chip
+        bodyLarge: TextStyle(fontSize: 20.0, height: 1.25), // chip, ListTile title,
         bodyMedium: TextStyle(fontSize: 18.0, height: 1.25), // body
         bodySmall: TextStyle(fontSize: 14.0), // textfield helper
         labelLarge: TextStyle(fontSize: 16.0), // button, *-chip
@@ -190,6 +190,11 @@ class AppStyle {
       ),
       listTileTheme: ListTileThemeData(minVerticalPadding: 16.0),
       navigationBarTheme: NavigationBarThemeData(backgroundColor: colorScheme.surface),
+      cardTheme: CardThemeData(
+        shape: RoundedRectangleBorder(borderRadius: AppConstants.cardBorderRadius),
+        elevation: 1.0,
+        color: colorScheme.secondaryContainer,
+      ),
     );
   }
 }

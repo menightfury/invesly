@@ -19,6 +19,10 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
     emit(state.copyWith(currentUser: user));
   }
 
+  void saveCurrentAccount(String accountId) {
+    emit(state.copyWith(currentAccountId: accountId));
+  }
+
   void setDarkTheme(bool isDarkMode) async {
     emit(state.copyWith(isDarkMode: isDarkMode));
   }

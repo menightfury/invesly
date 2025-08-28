@@ -86,6 +86,9 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
         return;
       }
 
+      // Save current user
+      context.read<SettingsCubit>().saveCurrentUser(user);
+
       if (user == InveslyUser.empty()) {
         // User chose to continue without sign-in
         // Write initial database file from assets

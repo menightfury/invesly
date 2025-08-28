@@ -52,7 +52,7 @@ class SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subtitleStyle = context.textTheme.labelSmall?.copyWith(
+    final subtitleStyle = context.textTheme.labelMedium?.copyWith(
       color: enabled ? context.colors.secondary : context.theme.disabledColor,
     );
     if (type == SettingsTileType.toggle) {
@@ -67,7 +67,7 @@ class SettingsTile extends StatelessWidget {
     }
 
     return ListTile(
-      title: Text(title),
+      title: Text(title, style: context.textTheme.bodyMedium),
       subtitle: description != null ? Text(description!, style: subtitleStyle) : null,
       leading: icon,
       trailing: trailingIcon,

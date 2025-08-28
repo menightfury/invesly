@@ -10,25 +10,24 @@ class SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Material(
-        borderRadius: BorderRadius.circular(16.0),
-        clipBehavior: Clip.hardEdge,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (title != null) ...[
-              ListTile(
-                title: Text(title!),
-                leading: icon,
-                subtitle: subTitle != null ? Text(subTitle!, style: TextStyle(color: context.colors.secondary)) : null,
-              ),
-              InveslyDivider.dashed(dashGap: 2.0, dashWidth: 2.0, colors: [Colors.grey]),
-            ],
-            ...tiles,
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      clipBehavior: Clip.hardEdge,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title != null) ...[
+            ListTile(
+              title: Text(title!, style: context.textTheme.bodyMedium),
+              leading: icon,
+              subtitle: subTitle != null
+                  ? Text(subTitle!, style: context.textTheme.labelMedium?.copyWith(color: context.colors.secondary))
+                  : null,
+            ),
+            InveslyDivider.dashed(dashGap: 2.0, dashWidth: 2.0, colors: [Colors.grey]),
           ],
-        ),
+          ...tiles,
+        ],
       ),
     );
   }

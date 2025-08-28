@@ -11,6 +11,7 @@ class AppConstants {
 
   static const buttonPadding = EdgeInsetsGeometry.symmetric(horizontal: 20.0, vertical: 12.0);
   static const buttonBorderRadius = BorderRadius.all(Radius.circular(16.0));
+  static const cardBorderRadius = BorderRadius.all(Radius.circular(16.0));
   static const formFieldLabelSpacing = 6.0;
   static const minButtonSize = Size(112.0, 48.0);
   static const formFieldContentPadding = EdgeInsetsGeometry.symmetric(horizontal: 12.0, vertical: 12.0);

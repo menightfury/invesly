@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, avoid_print
 
 import 'package:googleapis_auth/googleapis_auth.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:path/path.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
@@ -72,160 +73,119 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SliverList(
                 delegate: SliverChildListDelegate.fixed([
                   // ~~~ User Profile Section ~~~
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Material(
-                      borderRadius: BorderRadius.circular(16.0),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                        child: BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
-                          selector: (state) => state.currentUser,
-                          builder: (context, currentUser) {
-                            final user = currentUser ?? InveslyUser.empty();
-                            return Row(
-                              spacing: 8.0,
-                              children: <Widget>[
-                                CircleAvatar(
-                                  backgroundImage: user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
-                                ), // TODO: Cached network image
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(user.name.toSentenceCase()),
-                                    Text(user.email, style: TextStyle(fontSize: 12.0, color: Colors.grey[600])),
-                                  ],
-                                ),
-                              ],
-                            );
-                          },
-                        ),
+                  Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      child: Column(
+                        spacing: 12.0,
+                        children: <Widget>[
+                          BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
+                            selector: (state) => state.currentUser,
+                            builder: (context, currentUser) {
+                              final user = currentUser ?? InveslyUser.empty();
+                              return Row(
+                                spacing: 8.0,
+                                children: <Widget>[
+                                  CircleAvatar(
+                                    backgroundImage: user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
+                                  ), // TODO: Cached network image
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(user.name.toSentenceCase()),
+                                      Text(user.email, style: TextStyle(fontSize: 12.0, color: Colors.grey[600])),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+
+                          InveslyDivider(),
+
+                          BlocBuilder<AccountsCubit, AccountsState>(
+                            builder: (context, state) {
+                              if (state is AccountsErrorState) {
+                                return Text('Failed to load accounts');
+                              }
+
+                              if (state is AccountsLoadedState) {
+                                final accounts = state.accounts;
+                                return BlocSelector<SettingsCubit, SettingsState, String?>(
+                                  selector: (state) => state.currentAccountId,
+                                  builder: (context, currentAccountId) {
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      spacing: 4.0,
+                                      children: <Widget>[
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: <Widget>[
+                                            Text('Accounts (${accounts.length})'),
+                                            GestureDetector(
+                                              onTap: () => context.push(const EditAccountScreen()),
+                                              child: Text(
+                                                'Add',
+                                                style: context.textTheme.labelMedium?.copyWith(
+                                                  color: Colors.blue,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+
+                                        ColumnBuilder(
+                                          itemBuilder: (context, index) {
+                                            final account = accounts[index];
+                                            final isCurrentAccount = account.id == currentAccountId;
+                                            return ListTile(
+                                              contentPadding: EdgeInsets.zero,
+                                              onTap: () => context.read<SettingsCubit>().saveCurrentAccount(account.id),
+                                              leading: CircleAvatar(backgroundImage: AssetImage(account.avatar)),
+                                              title: Text(
+                                                account.name.toSentenceCase(),
+                                                style: context.textTheme.bodyMedium?.copyWith(
+                                                  fontWeight: isCurrentAccount ? FontWeight.bold : null,
+                                                ),
+                                              ),
+                                              subtitle: isCurrentAccount
+                                                  ? Text(
+                                                      'Current Account',
+                                                      style: context.textTheme.bodySmall?.copyWith(
+                                                        color: Colors.grey[600],
+                                                      ),
+                                                    )
+                                                  : null,
+                                              trailing: IconButton(
+                                                onPressed: () =>
+                                                    context.push(EditAccountScreen(initialAccount: account)),
+                                                icon: Icon(Icons.edit_note_rounded),
+                                                style: IconButton.styleFrom(
+                                                  // foregroundColor: context.colors.onPrimary,
+                                                  backgroundColor: Colors.black.withAlpha(0x1F),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          separatorBuilder: (_, _) => const SizedBox(height: 4.0),
+                                          itemCount: accounts.length,
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              }
+
+                              return CircularProgressIndicator();
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   ),
-
-                  // BlocBuilder<AccountsCubit, AccountsState>(
-                  //   builder: (context, state) {
-                  //     if (state is AccountsErrorState) {
-                  //       return Text('Failed to load users');
-                  //     }
-
-                  //     if (state is AccountsLoadedState) {
-                  //       final users = state.accounts;
-                  //       return BlocSelector<SettingsCubit, SettingsState, String?>(
-                  //         selector: (state) => state.currentUserId,
-                  //         builder: (context, userId) {
-                  //           final currentUser =
-                  //               users.isEmpty
-                  //                   ? null
-                  //                   : users.firstWhere((u) => u.id == userId, orElse: () => users.first);
-                  //           final otherUsers =
-                  //               users.isEmpty
-                  //                   ? <InveslyAccount>[]
-                  //                   : users.whereNot((u) => u.id == currentUser?.id).toList();
-
-                  //           return Padding(
-                  //             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  //             child: Material(
-                  //               borderRadius: BorderRadius.circular(16.0),
-                  //               child: Padding(
-                  //                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                  //                 child: Column(
-                  //                   crossAxisAlignment: CrossAxisAlignment.start,
-                  //                   spacing: 16.0,
-                  //                   children: <Widget>[
-                  //                     if (currentUser != null)
-                  //                       Padding(
-                  //                         padding: const EdgeInsets.only(bottom: 8.0),
-                  //                         child: Row(
-                  //                           spacing: 8.0,
-                  //                           children: <Widget>[
-                  //                             CircleAvatar(backgroundImage: AssetImage(currentUser.avatar)),
-                  //                             Column(
-                  //                               crossAxisAlignment: CrossAxisAlignment.start,
-                  //                               children: <Widget>[
-                  //                                 Text(currentUser.name.toSentenceCase()),
-                  //                                 Text(
-                  //                                   'PAN: ${currentUser.panNumber ?? "NA"}',
-                  //                                   style: TextStyle(fontSize: 12.0, color: Colors.grey[600]),
-                  //                                 ),
-                  //                                 Text(
-                  //                                   'AADHAAR: ${currentUser.aadhaarNumber ?? "NA"}',
-                  //                                   style: TextStyle(fontSize: 12.0, color: Colors.grey[600]),
-                  //                                 ),
-                  //                               ],
-                  //                             ),
-                  //                             Spacer(),
-                  //                             IconButton(
-                  //                               onPressed:
-                  //                                   () => context.push(EditAccountScreen(initialAccount: currentUser)),
-                  //                               icon: Icon(Icons.edit_note_rounded),
-                  //                             ),
-                  //                           ],
-                  //                         ),
-                  //                       ),
-
-                  //                     Column(
-                  //                       crossAxisAlignment: CrossAxisAlignment.start,
-                  //                       children: <Widget>[
-                  //                         Row(
-                  //                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //                           children: <Widget>[
-                  //                             Text('More accounts (${otherUsers.length})'),
-                  //                             GestureDetector(
-                  //                               onTap: () => context.push(const EditAccountScreen()),
-                  //                               child: Text(
-                  //                                 'Add',
-                  //                                 style: textTheme.labelMedium?.copyWith(
-                  //                                   color: Colors.blue,
-                  //                                   fontWeight: FontWeight.bold,
-                  //                                 ),
-                  //                               ),
-                  //                             ),
-                  //                           ],
-                  //                         ),
-                  //                         // if (otherUsers.isNotEmpty)
-                  //                         //   Padding(
-                  //                         //     padding: const EdgeInsets.only(top: 8.0),
-                  //                         //     child: SizedBox(
-                  //                         //       height: 56.0,
-                  //                         //       child: ListView.separated(
-                  //                         //         scrollDirection: Axis.horizontal,
-                  //                         //         itemBuilder: (context, index) {
-                  //                         //           final user = otherUsers[index];
-                  //                         //           return GestureDetector(
-                  //                         //             onTap: () => context.read<SettingsCubit>().saveCurrentUser(user),
-                  //                         //             child: Column(
-                  //                         //               children: <Widget>[
-                  //                         //                 CircleAvatar(backgroundImage: AssetImage(user.avatar)),
-                  //                         //                 Text(
-                  //                         //                   user.name.toSentenceCase(),
-                  //                         //                   style: textTheme.labelSmall?.copyWith(
-                  //                         //                     color: Colors.grey[600],
-                  //                         //                   ),
-                  //                         //                 ),
-                  //                         //               ],
-                  //                         //             ),
-                  //                         //           );
-                  //                         //         },
-                  //                         //         separatorBuilder: (_, _) => const SizedBox(width: 16.0),
-                  //                         //         itemCount: otherUsers.length,
-                  //                         //       ),
-                  //                         //     ),
-                  //                         //   ),
-                  //                       ],
-                  //                     ),
-                  //                   ],
-                  //                 ),
-                  //               ),
-                  //             ),
-                  //           );
-                  //         },
-                  //       );
-                  //     }
-
-                  //     return CircularProgressIndicator();
-                  //   },
-                  // ),
 
                   // ~~~ Settings Section ~~~
                   SettingsSection(

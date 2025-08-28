@@ -84,4 +84,10 @@ class SettingsState extends Equatable {
           : null,
     );
   }
+
+  @override
+  String toString() =>
+      '''SettingsState(isOnboarded: $isOnboarded, isDarkMode: $isDarkMode, currentUser: $currentUser,
+      currentAccountId: $currentAccountId, isDynamicColor: $isDynamicColor, accentColor: $accentColor,
+      isPrivateMode: $isPrivateMode, gapiAccessToken: $gapiAccessToken)''';
 }

@@ -91,7 +91,7 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
                   //   // TODO: Not working properly, fix this
                   //   builder: (context, opacity) {
                   //     return Text(
-                  //       cubit.state.isNewUser ? 'Add user' : 'Edit user',
+                  //       cubit.state.isNewAccount ? 'Add account' : 'Edit account',
                   //       style: TextStyle(color: Colors.black.withOpacity(opacity)),
                   //     );
                   //   },
@@ -148,7 +148,7 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
                                     key: _nameKey,
                                     decoration: InputDecoration(
                                       hintText: 'e.g. John Doe',
-                                      helperText: cubit.state.isNewAccount ? 'Nickname can\'t be changed later' : null,
+                                      helperText: cubit.state.isNewAccount ? 'Title can\'t be changed later' : null,
                                     ),
                                     initialValue: cubit.state.name,
                                     validator: (value) {
@@ -160,7 +160,7 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
                                     onChanged: cubit.updateName,
                                     enabled: cubit.state.isNewAccount,
                                     onTapOutside: (_) => minimizeKeyboard(),
-                                  ).withLabel('Nickname'),
+                                  ).withLabel('Title'),
                                 ),
 
                                 // ~ PAN number
@@ -248,12 +248,12 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
                 //     alignment: Alignment.bottomCenter,
                 //     child: Padding(
                 //       padding: const EdgeInsets.symmetric(vertical: 8.0),
-                //       child: BlocSelector<EditUserCubit, EditUserState, bool>(
+                //       child: BlocSelector<EditAccountCubit, EditAccountState, bool>(
                 //         selector: (state) => state.status.isLoadingOrSuccess,
                 //         builder: (context, isLoadingOrSuccess) {
                 //           return ElevatedButton.icon(
                 //             onPressed: isLoadingOrSuccess ? null : () => _handleSavePressed(context),
-                //             label: isLoadingOrSuccess ? const Text('Saving user...') : const Text('Save user'),
+                //             label: isLoadingOrSuccess ? const Text('Saving account...') : const Text('Save account'),
                 //             icon:
                 //                 isLoadingOrSuccess
                 //                     ? CircularProgressIndicator(
@@ -305,7 +305,7 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: ElevatedButton.icon(
                       onPressed: isLoadingOrSuccess ? null : () => _handleSavePressed(context),
-                      label: isLoadingOrSuccess ? const Text('Saving user...') : const Text('Save user'),
+                      label: isLoadingOrSuccess ? const Text('Saving account...') : const Text('Save account'),
                       icon: isLoadingOrSuccess
                           ? CircularProgressIndicator(
                               strokeWidth: 2.0,
@@ -325,12 +325,12 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
     );
   }
 
-  // ~ Save user
+  // ~ Save account
   Future<void> _handleSavePressed(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       context.read<EditAccountCubit>().save();
       // if (!context.mounted) return;
-      // context.read<SettingsCubit>().saveCurrentUser(user);
+      // context.read<SettingsCubit>().saveCurrentAccount(account);
     } else {
       if (!(_nameKey.currentState?.isValid ?? false)) {
         _nameShakeKey.currentState?.shake();
