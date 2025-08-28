@@ -45,11 +45,11 @@ class _LoginPageState extends State<_LoginPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 8.0,
+        spacing: 4.0,
         children: <Widget>[
           // Welcome text
-          SizedBox.square(dimension: 120.0, child: Image.asset('assets/images/app_icon/app_icon.png')),
-          Text('Welcome to Invesly!', style: context.textTheme.headlineLarge),
+          SizedBox.square(dimension: 80.0, child: Image.asset('assets/images/app_icon/app_icon.png')),
+          Text('Welcome to Invesly!', style: context.textTheme.headlineMedium),
           Text(
             'Keep your data backed up and synced with Google Drive',
             style: context.textTheme.labelMedium?.copyWith(color: Colors.grey),
@@ -66,7 +66,7 @@ class _LoginPageState extends State<_LoginPage> {
               label: Text('Sign in with Google', textAlign: TextAlign.center),
             ),
           ),
-
+          Gap(2.0),
           // Without sign-in return User.empty()
           SizedBox(
             width: double.infinity,

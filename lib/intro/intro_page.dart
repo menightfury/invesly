@@ -78,7 +78,6 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
   Future<void> _handleCompletePressed(BuildContext context) async {
     if (_currentPage.value != _pageData.length - 1) return;
 
-    // context.read<SettingsCubit>().completeOnboarding();
     final settingsState = context.read<SettingsCubit>().state;
     if (settingsState.currentUser == null) {
       final user = await LoginPage.showModal(context);
@@ -98,6 +97,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
       }
 
       if (!context.mounted) return;
+      context.read<SettingsCubit>().completeOnboarding();
       // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
       context.go(const DashboardScreen());
     }

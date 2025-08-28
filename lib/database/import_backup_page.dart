@@ -1,10 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'dart:ffi';
-
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart';
-import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
@@ -90,7 +87,7 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
                     spacing: 8.0,
                     children: <Widget>[
                       Expanded(
-                        child: OutlinedButton(onPressed: () {}, child: Text('Skip')),
+                        child: OutlinedButton(onPressed: () => widget.onRestoreComplete?.call(), child: Text('Skip')),
                       ),
                       Expanded(
                         child: ElevatedButton.icon(
@@ -114,12 +111,29 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
               return Center(child: Text('Error: ${snapshot.error}'));
             }
 
-            return GestureDetector(
-              child: Text('No backup file found. Tap to return to dashboard.'),
-              onTap: () => context.go(const DashboardScreen()),
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8.0,
+              children: <Widget>[
+                Image.asset('assets/images/empty_1.png', height: 200),
+                Text('Sorry! No backup found.', textAlign: TextAlign.center),
+                Spacer(),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => widget.onRestoreComplete?.call(),
+                    child: Text('Go to dashboard'),
+                  ),
+                ),
+              ],
             );
           }
-          return Center(child: Column(children: <Widget>[CircularProgressIndicator(), Text('Looking for backups...')]));
+          return Center(
+            child: Column(
+              spacing: 8.0,
+              children: <Widget>[CircularProgressIndicator(), Text('Looking for backups...')],
+            ),
+          );
         },
       ),
     );
@@ -174,30 +188,7 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
     // // Delete drive files -- Testing only
     // await authRepository.deleteBackups(accessToken);
     final fileContent = await authRepository.getDriveFileContent(accessToken: _accessToken!, fileId: file.id!);
-    if (fileContent != null && fileContent.isNotEmpty) {
-      // ScaffoldMessenger.of(
-      //   context,
-      // ).showSnackBar(const SnackBar(content: Text('Backup file found! Restoring your data...')));
-    }
-
     await authRepository.writeDatabaseFile(fileContent);
     widget.onRestoreComplete?.call();
   }
-
-  // Future<void> chooseBackup(
-  //   BuildContext context, {
-  //   bool isManaging = false,
-  //   bool isClientSync = false,
-  //   bool hideDownloadButton = false,
-  // }) async {
-  //   try {
-  //     openBottomSheet(
-  //       context,
-  //       BackupManagement(isManaging: isManaging, isClientSync: isClientSync, hideDownloadButton: hideDownloadButton),
-  //     );
-  //   } catch (e) {
-  //     popRoute(context);
-  //     openSnackbar(SnackbarMessage(title: e.toString(), icon: Icons.error_rounded));
-  //   }
-  // }
 }
