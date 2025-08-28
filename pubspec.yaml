@@ -103,7 +103,7 @@ flutter:
     - assets/images/app_icon/
     - assets/images/avatar/
     - assets/images/intro/
-    - assets/data/initial.db
+    # - assets/data/initial.db
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

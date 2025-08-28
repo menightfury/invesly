@@ -1,6 +1,20 @@
 import 'package:invesly/common_libs.dart';
 
-enum TableColumnType { integer, string, real, boolean }
+enum TableColumnType {
+  integer,
+  string,
+  real,
+  boolean;
+
+  String toSqlType() {
+    return switch (this) {
+      TableColumnType.integer => 'INTEGER',
+      TableColumnType.string => 'TEXT',
+      TableColumnType.real => 'REAL',
+      TableColumnType.boolean => 'BOOLEAN',
+    };
+  }
+}
 
 enum TableChangeEventType { insertion, updation, deletion }
 
@@ -174,6 +188,35 @@ abstract class TableSchema<T extends InveslyDataModel> extends Equatable {
 
   @override
   List<Object?> get props => [name];
+
+  /// Create table SQL statement
+  String get schema {
+    final columnDefs = columns
+        .map<String>((col) {
+          final buffer = StringBuffer('${col.title} ${col.type.toSqlType()}');
+
+          if (col.isPrimary) {
+            buffer.write(' PRIMARY KEY');
+          }
+          if (col.isUnique) {
+            buffer.write(' UNIQUE');
+          }
+          if (!col.isNullable) {
+            buffer.write(' NOT NULL');
+          }
+          if (col.defaultValue != null) {
+            buffer.write(' DEFAULT ${col.defaultValue}');
+          }
+          if (col.foreignReference != null) {
+            buffer.write(' REFERENCES ${col.foreignReference!.tableName}(${col.foreignReference!.columnName})');
+          }
+
+          return buffer.toString();
+        })
+        .join(', ');
+
+    return 'CREATE TABLE IF NOT EXISTS $name ($columnDefs);';
+  }
 }
 
 class TableColumnBase extends Equatable {

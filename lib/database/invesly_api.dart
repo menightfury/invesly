@@ -43,13 +43,24 @@ class InveslyApi {
   Future<void> initializeDatabase() async {
     // if (_instance != null) return _instance!;
 
-    _db = await openDatabase(dbPath, version: 1);
-
     // initialize all necessary tables
-    // final accountTable = AccountTable();
-    // final amcTable = AmcTable();
-    // final trnTable = TransactionTable();
-    _tables.addAll([AccountTable(), AmcTable(), TransactionTable()]);
+    final accountTable = AccountTable();
+    final amcTable = AmcTable();
+    final trnTable = TransactionTable();
+
+    _db = await openDatabase(
+      dbPath,
+      version: 1,
+      onCreate: (db, version) {
+        db.transaction((txn) async {
+          await txn.execute(accountTable.schema);
+          await txn.execute(amcTable.schema);
+          await txn.execute(trnTable.schema);
+        });
+      },
+    );
+
+    _tables.addAll([accountTable, amcTable, trnTable]);
     // return _instance = InveslyApi._(db: db, tables: [accountTable, amcTable, trnTable]);
   }
 

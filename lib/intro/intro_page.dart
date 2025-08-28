@@ -90,7 +90,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
       if (user == InveslyUser.empty()) {
         // User chose to continue without sign-in
         // Write initial database file from assets
-        await context.read<AuthRepository>().writeDatabaseFile();
+        // await context.read<AuthRepository>().writeDatabaseFile();
       } else {
         // User signed in successfully
         await ImportBackupPage.showModal(context);

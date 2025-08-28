@@ -548,9 +548,10 @@ class AuthRepository {
         List<int>? bytes = fileContent;
 
         if (bytes == null || bytes.isEmpty) {
-          final data = await rootBundle.load('assets/data/initial.db');
-          bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-          $logger.i('Data written from assets');
+          // final data = await rootBundle.load('assets/data/initial.db');
+          // bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+          // $logger.i('Data written from assets');
+          return;
         }
 
         // write and flush the bytes written
