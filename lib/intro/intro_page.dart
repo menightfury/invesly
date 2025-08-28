@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common_libs.dart';
