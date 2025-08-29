@@ -5,6 +5,7 @@ import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/authentication/user_model.dart';
 
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
+import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/cubit/database_cubit.dart';
@@ -17,7 +18,6 @@ import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
-import 'package:shimmer/shimmer.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -185,111 +185,133 @@ class AccountsList extends StatelessWidget {
           builder: (context, databaseState) {
             return BlocBuilder<AccountsCubit, AccountsState>(
               builder: (context, accountState) {
-                if (accountState is AccountsErrorState) {
-                  return Center(child: Text('Error: ${accountState.message}'));
-                }
-                if (accountState is AccountsLoadedState) {
-                  final accounts = accountState.accounts;
-                  return Row(
-                    spacing: 8.0,
-                    children: <Widget>[
-                      // ~~~ Accounts ~~~
-                      ...List.generate(accounts.length, (index) {
-                        final account = accounts.elementAt(index);
+                final isError = databaseState is DatabaseErrorState || accountState is AccountsErrorState;
+                final isLoading =
+                    databaseState is DatabaseLoadingState ||
+                    databaseState is DatabaseInitialState ||
+                    accountState is AccountsLoadingState ||
+                    accountState is AccountsInitialState;
 
-                        return Shimmer.fromColors(
-                          baseColor: context.colors.surface,
-                          highlightColor: context.colors.onSurface,
-                          enabled: databaseState is DatabaseLoadingState || accountState is AccountsLoadingState,
-                          child: Tappable(
-                            // onTap: () => RouteUtils.pushRoute(
-                            //       context,
-                            //       AccountDetailsPage(
-                            //         account: account,
-                            //         accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
-                            //       ),
-                            //     ),
-                            width: 120.0,
-                            height: 80.0,
-                            border: BorderSide(color: context.colors.primary, width: 1.0),
-                            content: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 4.0,
-                              children: <Widget>[
-                                Text(account.name),
-                                Row(
-                                  children: <Widget>[
-                                    // StreamBuilder(
-                                    //   initialData: 0.0,
-                                    //   stream: AccountService.instance.getAccountMoney(account: account),
-                                    //   builder: (context, snapshot) {
-                                    //     return CurrencyDisplayer(
-                                    //       amountToConvert: snapshot.data!,
-                                    //       currency: account.currency,
-                                    //       compactView: snapshot.data! >= 10000000,
-                                    //       integerStyle: Theme.of(
-                                    //         context,
-                                    //       ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600),
-                                    //     );
-                                    //   },
-                                    // ),
-                                    CurrencyView(
-                                      amount: 500.0,
-                                      compactView: true,
-                                      integerStyle: context.textTheme.titleMedium!.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    // StreamBuilder(
-                                    //   initialData: 0.0,
-                                    //   stream: AccountService.instance.getAccountsMoneyVariation(
-                                    //     accounts: [account],
-                                    //     startDate: dateRangeService.startDate,
-                                    //     endDate: dateRangeService.endDate,
-                                    //     convertToPreferredCurrency: false,
-                                    //   ),
-                                    //   builder: (context, snapshot) {
-                                    //     return TrendingValue(percentage: snapshot.data!, decimalDigits: 0);
-                                    //   },
-                                    // ),
-                                  ],
-                                ),
-                                Spacer(),
-                                Text('5 transactions', style: context.textTheme.labelSmall),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
+                // if (accountState is AccountsErrorState) {
+                //   return Center(child: Text('Error: ${accountState.message}'));
+                // }
+                // if (accountState is AccountsLoadedState) {
+                final accounts = databaseState is DatabaseLoadedState && accountState is AccountsLoadedState
+                    ? accountState.accounts
+                    : null;
+                return Row(
+                  spacing: 8.0,
+                  children: <Widget>[
+                    // ~~~ Accounts ~~~
+                    // dummy count for shimmer effect
+                    ...List.generate(accounts?.length ?? 2, (index) {
+                      final account = accounts?.elementAt(index);
+                      final isCurrentAccount = account?.id == context.read<SettingsCubit>().state.currentAccountId;
 
-                      // ~~~ Add account ~~~
-                      Tappable(
-                        onTap: () => context.push(const EditAccountScreen()),
-                        color: Colors.grey.shade100,
+                      return Tappable(
+                        // onTap: () => RouteUtils.pushRoute(
+                        //       context,
+                        //       AccountDetailsPage(
+                        //         account: account,
+                        //         accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
+                        //       ),
+                        //     ),
                         width: 120.0,
                         height: 80.0,
-                        border: BorderSide(color: Colors.grey.shade500, width: 1.0),
-                        content: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          spacing: 4.0,
-                          children: [
-                            Icon(Icons.format_list_bulleted_add, color: Colors.grey.shade500),
-                            Text('Create account', style: TextStyle(color: Colors.grey.shade500)),
-                          ],
+                        border: BorderSide(color: isCurrentAccount ? context.colors.primary : Colors.black, width: 1.0),
+                        content: Shimmer(
+                          isLoading: isLoading,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 4.0,
+                            children: <Widget>[
+                              account == null
+                                  ? Skeleton(color: isError ? context.colors.error : null)
+                                  : Text(account.name),
+                              Row(
+                                children: <Widget>[
+                                  CurrencyView(
+                                    amount: 500.0, //account.currency,
+                                    compactView: true, //snapshot.data! >= 10000000
+                                    integerStyle: context.textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  BlocBuilder<DashboardCubit, DashboardState>(
+                                    builder: (context, state) {
+                                      if (state is DashboardLoadedState) {
+                                        final totalAmount = state.summaries.fold<double>(
+                                          0,
+                                          (v, el) => v + el.totalAmount,
+                                        );
+                                        return BlocSelector<SettingsCubit, SettingsState, bool>(
+                                          selector: (state) => state.isPrivateMode,
+                                          builder: (context, isPrivateMode) {
+                                            return CurrencyView(
+                                              amount: totalAmount,
+                                              integerStyle: context.textTheme.headlineLarge?.copyWith(fontSize: 48.0),
+                                              decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 24.0),
+                                              currencyStyle: context.textTheme.bodyMedium,
+                                              privateMode: isPrivateMode,
+                                            );
+                                          },
+                                        );
+                                      }
+                                      return Text('Loading...');
+                                    },
+                                  ),
+                                ],
+                              ),
+                              Spacer(),
+                              Text('5 transactions', style: context.textTheme.labelMedium),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                }
+                      );
+                    }),
 
-                return const Center(child: CircularProgressIndicator());
+                    // ~~~ Add account ~~~
+                    Tappable(
+                      onTap: () => context.push(const EditAccountScreen()),
+                      color: Colors.grey.shade100,
+                      width: 120.0,
+                      height: 80.0,
+                      border: BorderSide(color: Colors.grey.shade500, width: 1.0),
+                      content: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: 4.0,
+                        children: [
+                          Icon(Icons.format_list_bulleted_add, color: Colors.grey.shade500),
+                          Text('Create account', style: TextStyle(color: Colors.grey.shade500)),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+                // }
+
+                // return const Center(child: CircularProgressIndicator());
               },
             );
           },
         ),
       ),
+    );
+  }
+}
+
+class Skeleton extends StatelessWidget {
+  const Skeleton({super.key, this.height = 16.0, this.width = double.infinity, this.color = Colors.white});
+
+  final double height, width;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color ?? Colors.white,
+      borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+      child: SizedBox(width: width, height: height),
     );
   }
 }
