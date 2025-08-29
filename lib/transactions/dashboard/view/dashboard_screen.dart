@@ -235,7 +235,7 @@ class AccountsList extends StatelessWidget {
                                     compactView: true, //snapshot.data! >= 10000000
                                     integerStyle: context.textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 8.0),
                                   BlocBuilder<DashboardCubit, DashboardState>(
                                     builder: (context, state) {
                                       if (state is DashboardLoadedState) {

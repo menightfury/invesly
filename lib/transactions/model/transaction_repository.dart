@@ -3,14 +3,11 @@ import 'dart:async';
 import 'package:csv/csv.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
-// import 'package:invesly/database/data_access_object.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 
-// class TransactionRepository extends DataAccessObject<TransactionInDb> {
 class TransactionRepository {
-  // TransactionRepository(InveslyApi api) : _api = api, super(db: api.db, table: api.trnTable);
   TransactionRepository(InveslyApi api) : _api = api;
 
   final InveslyApi _api;
@@ -57,8 +54,8 @@ class TransactionRepository {
   }
 
   /// Get transaction statistics
-  Future<List<TransactionStat>> getTransactionStats(String accountId) async {
-    final filter = {_trnTable.accountIdColumn: accountId};
+  Future<List<TransactionStat>> getTransactionStats() async {
+    // final filter = {_trnTable.accountIdColumn: accountId};
 
     late final List<TransactionStat> stats;
     try {
@@ -66,12 +63,12 @@ class TransactionRepository {
           .select(_trnTable, [
             _trnTable.accountIdColumn.alias('account_id'),
             _amcTable.genreColumn.alias('genre'),
-            _trnTable.amountColumn.sum('total_amount'),
             _trnTable.idColumn.count('num_transactions'),
+            _trnTable.amountColumn.sum('total_amount'),
           ])
           .join([_amcTable])
-          .where(filter)
-          .groupBy([_amcTable.genreColumn])
+          // .where(filter)
+          .groupBy([_trnTable.accountIdColumn, _amcTable.genreColumn])
           .toList();
       $logger.w(result);
       stats = result.map<TransactionStat>((map) {
