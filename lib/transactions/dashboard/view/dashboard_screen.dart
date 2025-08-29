@@ -1,6 +1,5 @@
 // ignore_for_file: unused_element
 
-import 'package:animate_do/animate_do.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/authentication/user_model.dart';
@@ -18,6 +17,7 @@ import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
+import 'package:shimmer/shimmer.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -45,132 +45,85 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       // appBar: AppBar(),
       body: SafeArea(
-        child: BlocBuilder<DatabaseCubit, DatabaseState>(
-          builder: (context, state) {
-            if (state is DatabaseError) {
-              return Center(child: Text('Error: ${state.message}', style: textTheme.bodyLarge));
-            }
-
-            if (state is DatabaseLoaded) {
-              return CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  SliverAppBar(
-                    leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 32.0)),
-                    // title:
-                    titleSpacing: 0.0,
-                    actions: <Widget>[
-                      // ~~~ User avatar ~~~
-                      GestureDetector(
-                        onTap: () => context.push(const SettingsScreen()),
-                        child: BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
-                          selector: (state) => state.currentUser,
-                          builder: (context, currentUser) {
-                            final user = currentUser ?? InveslyUser.empty();
-                            return GoogleUserCircleAvatar(identity: user);
-                          },
-                        ),
-                      ),
-                      // BlocSelector<SettingsCubit, SettingsState, String?>(
-                      //   selector: (state) => state.currentAccountId,
-                      //   builder: (context, currentAccountId) {
-                      //     final accountsState = context.read<AccountsCubit>().state;
-                      //     final accounts =
-                      //         accountsState is AccountsLoadedState ? accountsState.accounts : <InveslyAccount>[];
-                      //     final currentAccount =
-                      //         accounts.isEmpty
-                      //             ? null
-                      //             : accounts.firstWhere((a) => a.id == currentAccountId, orElse: () => accounts.first);
-
-                      //     return IconButton(
-                      //       padding: EdgeInsets.zero,
-                      //       onPressed: () => context.push(const SettingsScreen()),
-                      //       icon: CircleAvatar(
-                      //         backgroundImage: currentAccount != null ? AssetImage(currentAccount.avatar) : null,
-                      //         child: currentAccount == null ? Icon(Icons.person_pin) : null,
-                      //       ),
-                      //     );
-                      //   },
-                      // ),
-                    ],
-                    actionsPadding: EdgeInsets.only(right: 16.0),
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            SliverAppBar(
+              leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 32.0)),
+              titleSpacing: 0.0,
+              actions: <Widget>[
+                // ~~~ User avatar ~~~
+                GestureDetector(
+                  onTap: () => context.push(const SettingsScreen()),
+                  child: BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
+                    selector: (state) => state.currentUser,
+                    builder: (context, currentUser) {
+                      final user = currentUser ?? InveslyUser.empty();
+                      return GoogleUserCircleAvatar(identity: user);
+                    },
                   ),
+                ),
+              ],
+              actionsPadding: EdgeInsets.only(right: 16.0),
+            ),
 
-                  SliverList(
-                    delegate: SliverChildListDelegate.fixed([
-                      // ~~~ Greetings ~~~
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Text(
-                                  DateTime.now().greetingsMsg,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: textTheme.headlineSmall,
-                                ),
-                                BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
-                                  selector: (state) => state.currentUser,
-                                  builder: (context, currentUser) {
-                                    return Text(
-                                      currentUser?.name ?? 'Investor',
-                                      overflow: TextOverflow.ellipsis,
-                                      style: textTheme.headlineMedium,
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+            SliverList(
+              delegate: SliverChildListDelegate.fixed([
+                // ~~~ Greetings ~~~
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        DateTime.now().greetingsMsg,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.headlineSmall,
                       ),
-
-                      const Gap(16.0),
-
-                      // ~~~ Accounts ~~~
-                      AccountsList(),
-
-                      BlocSelector<SettingsCubit, SettingsState, String?>(
-                        selector: (state) => state.currentAccountId,
-                        builder: (context, currentAccountId) {
-                          final usersState = context.read<AccountsCubit>().state;
-                          final users = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
-                          final currentUser = users.isEmpty
-                              ? null
-                              : users.firstWhere((u) => u.id == currentAccountId, orElse: () => users.first);
-                          return BlocProvider(
-                            create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
-                            child: _DashboardContents(currentUser, key: ValueKey<String?>(currentUser?.id)),
+                      BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
+                        selector: (state) => state.currentUser,
+                        builder: (context, currentUser) {
+                          return Text(
+                            currentUser?.name ?? 'Investor',
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.headlineMedium,
                           );
                         },
                       ),
-                      SizedBox(height: 80.0), // ! for testing
-                    ]),
+                    ],
                   ),
-                ],
-              );
-            }
+                ),
 
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 16.0,
-                children: <Widget>[
-                  const CircularProgressIndicator(),
-                  Text('Database loading...', style: textTheme.bodyLarge),
-                ],
-              ),
-            );
-          },
+                const Gap(16.0),
+
+                // ~~~ Accounts ~~~
+                AccountsList(),
+
+                // ~~~ Stats, Recent transactions etc. ~~~
+                BlocSelector<SettingsCubit, SettingsState, String?>(
+                  selector: (state) => state.currentAccountId,
+                  builder: (context, currentAccountId) {
+                    final usersState = context.read<AccountsCubit>().state;
+                    final accounts = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
+                    final currentAccount = accounts.isEmpty
+                        ? null
+                        : accounts.firstWhere((u) => u.id == currentAccountId, orElse: () => accounts.first);
+                    return BlocProvider(
+                      create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
+                      child: _TransactionContents(currentAccount, key: ValueKey<String?>(currentAccount?.id)),
+                    );
+                  },
+                ),
+                const Gap(40.0),
+              ]),
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
-        onPressed: () => _handlePressed(context),
+        onPressed: () => _handleNewTransactionPressed(context),
         icon: const Icon(Icons.add_rounded),
         extendedPadding: const EdgeInsetsDirectional.only(start: 16.0, end: 16.0),
         extendedIconLabelSpacing: 0.0,
@@ -183,7 +136,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _handlePressed(BuildContext context) async {
+  void _handleNewTransactionPressed(BuildContext context) async {
     final accountsState = context.read<AccountsCubit>().state;
 
     // Load accounts if not loaded
@@ -227,110 +180,113 @@ class AccountsList extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: BlocBuilder<AccountsCubit, AccountsState>(
-          // stream: AccountService.instance.getAccounts(predicate: (acc, curr) => acc.closingDate.isNull()),
-          builder: (context, state) {
-            if (state is AccountsErrorState) {
-              return Center(child: Text('Error: ${state.message}'));
-            }
-            if (state is AccountsLoadedState) {
-              final accounts = state.accounts;
-              return Row(
-                spacing: 8.0,
-                children: <Widget>[
-                  // ~~~ Accounts ~~~
-                  ...List.generate(accounts.length, (index) {
-                    final account = accounts.elementAt(index);
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        child: BlocBuilder<DatabaseCubit, DatabaseState>(
+          builder: (context, databaseState) {
+            return BlocBuilder<AccountsCubit, AccountsState>(
+              builder: (context, accountState) {
+                if (accountState is AccountsErrorState) {
+                  return Center(child: Text('Error: ${accountState.message}'));
+                }
+                if (accountState is AccountsLoadedState) {
+                  final accounts = accountState.accounts;
+                  return Row(
+                    spacing: 8.0,
+                    children: <Widget>[
+                      // ~~~ Accounts ~~~
+                      ...List.generate(accounts.length, (index) {
+                        final account = accounts.elementAt(index);
 
-                    return Tappable(
-                      // onTap: () => RouteUtils.pushRoute(
-                      //       context,
-                      //       AccountDetailsPage(
-                      //         account: account,
-                      //         accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
-                      //       ),
-                      //     ),
-                      // bgColor: Theme.of(context).cardColor,
-                      // borderRadius: BorderRadius.circular(16.0),
-                      // padding: const EdgeInsets.all(16.0),
-                      // leading: Hero(
-                      //   tag: 'dashboard-page__account-icon-${account.id}',
-                      //   child: account.displayIcon(context, size: 28),
-                      // ),
-                      width: 120.0,
-                      height: 80.0,
-                      border: BorderSide(color: context.colors.primary, width: 1.0),
-                      content: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 4.0,
-                        children: <Widget>[
-                          Text(account.name),
-                          Row(
-                            children: [
-                              // StreamBuilder(
-                              //   initialData: 0.0,
-                              //   stream: AccountService.instance.getAccountMoney(account: account),
-                              //   builder: (context, snapshot) {
-                              //     return CurrencyDisplayer(
-                              //       amountToConvert: snapshot.data!,
-                              //       currency: account.currency,
-                              //       compactView: snapshot.data! >= 10000000,
-                              //       integerStyle: Theme.of(
-                              //         context,
-                              //       ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600),
-                              //     );
-                              //   },
-                              // ),
-                              CurrencyView(
-                                amount: 500.0,
-                                compactView: true,
-                                integerStyle: context.textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600),
-                              ),
-                              const SizedBox(width: 8),
-                              // StreamBuilder(
-                              //   initialData: 0.0,
-                              //   stream: AccountService.instance.getAccountsMoneyVariation(
-                              //     accounts: [account],
-                              //     startDate: dateRangeService.startDate,
-                              //     endDate: dateRangeService.endDate,
-                              //     convertToPreferredCurrency: false,
-                              //   ),
-                              //   builder: (context, snapshot) {
-                              //     return TrendingValue(percentage: snapshot.data!, decimalDigits: 0);
-                              //   },
-                              // ),
-                            ],
+                        return Shimmer.fromColors(
+                          baseColor: context.colors.surface,
+                          highlightColor: context.colors.onSurface,
+                          enabled: databaseState is DatabaseLoadingState || accountState is AccountsLoadingState,
+                          child: Tappable(
+                            // onTap: () => RouteUtils.pushRoute(
+                            //       context,
+                            //       AccountDetailsPage(
+                            //         account: account,
+                            //         accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
+                            //       ),
+                            //     ),
+                            width: 120.0,
+                            height: 80.0,
+                            border: BorderSide(color: context.colors.primary, width: 1.0),
+                            content: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              spacing: 4.0,
+                              children: <Widget>[
+                                Text(account.name),
+                                Row(
+                                  children: <Widget>[
+                                    // StreamBuilder(
+                                    //   initialData: 0.0,
+                                    //   stream: AccountService.instance.getAccountMoney(account: account),
+                                    //   builder: (context, snapshot) {
+                                    //     return CurrencyDisplayer(
+                                    //       amountToConvert: snapshot.data!,
+                                    //       currency: account.currency,
+                                    //       compactView: snapshot.data! >= 10000000,
+                                    //       integerStyle: Theme.of(
+                                    //         context,
+                                    //       ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600),
+                                    //     );
+                                    //   },
+                                    // ),
+                                    CurrencyView(
+                                      amount: 500.0,
+                                      compactView: true,
+                                      integerStyle: context.textTheme.titleMedium!.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    // StreamBuilder(
+                                    //   initialData: 0.0,
+                                    //   stream: AccountService.instance.getAccountsMoneyVariation(
+                                    //     accounts: [account],
+                                    //     startDate: dateRangeService.startDate,
+                                    //     endDate: dateRangeService.endDate,
+                                    //     convertToPreferredCurrency: false,
+                                    //   ),
+                                    //   builder: (context, snapshot) {
+                                    //     return TrendingValue(percentage: snapshot.data!, decimalDigits: 0);
+                                    //   },
+                                    // ),
+                                  ],
+                                ),
+                                Spacer(),
+                                Text('5 transactions', style: context.textTheme.labelSmall),
+                              ],
+                            ),
                           ),
-                          Spacer(),
-                          Text('5 transactions', style: context.textTheme.labelSmall),
-                        ],
+                        );
+                      }),
+
+                      // ~~~ Add account ~~~
+                      Tappable(
+                        onTap: () => context.push(const EditAccountScreen()),
+                        color: Colors.grey.shade100,
+                        width: 120.0,
+                        height: 80.0,
+                        border: BorderSide(color: Colors.grey.shade500, width: 1.0),
+                        content: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: 4.0,
+                          children: [
+                            Icon(Icons.format_list_bulleted_add, color: Colors.grey.shade500),
+                            Text('Create account', style: TextStyle(color: Colors.grey.shade500)),
+                          ],
+                        ),
                       ),
-                    );
-                  }),
+                    ],
+                  );
+                }
 
-                  // ~~~ Add account ~~~
-                  Tappable(
-                    onTap: () => context.push(const EditAccountScreen()),
-                    color: Colors.grey.shade100,
-                    width: 120.0,
-                    height: 80.0,
-                    border: BorderSide(color: Colors.grey.shade500, width: 1.0),
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 4.0,
-                      children: [
-                        Icon(Icons.format_list_bulleted_add, color: Colors.grey.shade500),
-                        Text('Create account', style: TextStyle(color: Colors.grey.shade500)),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            }
-
-            return const Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
+              },
+            );
           },
         ),
       ),
@@ -338,52 +294,16 @@ class AccountsList extends StatelessWidget {
   }
 }
 
-class ShakeTestWidget extends StatefulWidget {
-  const ShakeTestWidget({super.key});
-
-  @override
-  State<ShakeTestWidget> createState() => _ShakeTestWidgetState();
-}
-
-class _ShakeTestWidgetState extends State<ShakeTestWidget> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: 1.seconds);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        await _controller.forward();
-        if (_controller.status == AnimationStatus.completed) {
-          _controller.reset();
-        }
-      },
-      child: ShakeX(child: Text('This is shaking...')),
-    );
-  }
-}
-
-class _DashboardContents extends StatefulWidget {
-  const _DashboardContents(this.user, {super.key});
+class _TransactionContents extends StatefulWidget {
+  const _TransactionContents(this.user, {super.key});
 
   final InveslyAccount? user;
 
   @override
-  State<_DashboardContents> createState() => _DashboardContentsState();
+  State<_TransactionContents> createState() => _TransactionContentsState();
 }
 
-class _DashboardContentsState extends State<_DashboardContents> {
+class _TransactionContentsState extends State<_TransactionContents> {
   @override
   void initState() {
     super.initState();
@@ -392,9 +312,6 @@ class _DashboardContentsState extends State<_DashboardContents> {
 
   @override
   Widget build(BuildContext context) {
-    // final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = context.textTheme;
-
     return Column(
       spacing: 16.0,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -411,15 +328,14 @@ class _DashboardContentsState extends State<_DashboardContents> {
                   builder: (context, state) {
                     if (state is DashboardLoadedState) {
                       final totalAmount = state.summaries.fold<double>(0, (v, el) => v + el.totalAmount);
-                      // return Text(totalAmount.toCompact(), style: textTheme.headlineLarge?.copyWith(fontSize: 48.0));
                       return BlocSelector<SettingsCubit, SettingsState, bool>(
                         selector: (state) => state.isPrivateMode,
                         builder: (context, isPrivateMode) {
                           return CurrencyView(
                             amount: totalAmount,
-                            integerStyle: textTheme.headlineLarge?.copyWith(fontSize: 48.0),
-                            decimalsStyle: textTheme.headlineSmall?.copyWith(fontSize: 24.0),
-                            currencyStyle: textTheme.bodyMedium,
+                            integerStyle: context.textTheme.headlineLarge?.copyWith(fontSize: 48.0),
+                            decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 24.0),
+                            currencyStyle: context.textTheme.bodyMedium,
                             privateMode: isPrivateMode,
                           );
                         },
@@ -428,15 +344,6 @@ class _DashboardContentsState extends State<_DashboardContents> {
                     return Text('Loading...');
                   },
                 ),
-                // Text.rich(
-                //   TextSpan(
-                //     children: [
-                //       TextSpan(text: 'Rs. 0.0', style: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0)),
-                //       TextSpan(text: ' invested this month'),
-                //     ],
-                //     style: context.textTheme.bodySmall,
-                //   ),
-                // ),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

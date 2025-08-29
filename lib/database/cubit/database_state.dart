@@ -7,16 +7,16 @@ sealed class DatabaseState extends Equatable {
   List<Object> get props => [];
 }
 
-final class DatabaseInitial extends DatabaseState {}
+final class DatabaseInitialState extends DatabaseState {}
 
-final class DatabaseLoading extends DatabaseState {}
+final class DatabaseLoadingState extends DatabaseState {}
 
-final class DatabaseLoaded extends DatabaseState {}
+final class DatabaseLoadedState extends DatabaseState {}
 
-final class DatabaseError extends DatabaseState {
+final class DatabaseErrorState extends DatabaseState {
   final String message;
 
-  const DatabaseError(this.message);
+  const DatabaseErrorState(this.message);
 
   @override
   List<Object> get props => [message];

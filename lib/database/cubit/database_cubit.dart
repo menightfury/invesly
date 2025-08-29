@@ -4,17 +4,17 @@ import 'package:invesly/main.dart';
 part 'database_state.dart';
 
 class DatabaseCubit extends Cubit<DatabaseState> {
-  DatabaseCubit() : super(DatabaseInitial());
+  DatabaseCubit() : super(DatabaseInitialState());
 
   Future<void> loadDatabase() async {
-    emit(DatabaseLoading());
+    emit(DatabaseLoadingState());
     try {
       final api = Bootstrap.instance.api;
       await api.initializeDatabase();
-      emit(DatabaseLoaded());
+      emit(DatabaseLoadedState());
     } catch (e) {
       $logger.e('Error loading database: $e');
-      emit(DatabaseError(e.toString()));
+      emit(DatabaseErrorState(e.toString()));
     }
   }
 }
