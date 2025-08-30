@@ -15,11 +15,6 @@ class InveslyApi {
   final StreamController<TableChangeEvent> _tableChangeEventController;
 
   InveslyApi(this.databaseDirectory) : _tableChangeEventController = StreamController<TableChangeEvent>.broadcast();
-  // preventing from calling the class
-  // InveslyApi._({required this.db, required this.tables});
-
-  // final Database db;
-  // final List<TableSchema> tables;
 
   Database? _db;
   Database get db {
@@ -32,45 +27,37 @@ class InveslyApi {
   // Stream of TableChangeEvent
   Stream<TableChangeEvent> get onTableChange => _tableChangeEventController.stream;
 
-  // static InveslyApi? _instance;
-  // static InveslyApi get instance {
-  //   assert(_instance != null, 'No instance found, please make sure to initialize before getting instance');
-  //   return _instance!;
-  // }
-
   String get dbPath => p.join(databaseDirectory.path, 'invesly.db');
 
+  // define all necessary tables
+  final _accountTable = AccountTable();
+  final _amcTable = AmcTable();
+  final _trnTable = TransactionTable();
+
+  // Table getters
+  AccountTable get accountTable => _accountTable;
+  AmcTable get amcTable => _amcTable;
+  TransactionTable get trnTable => _trnTable;
+
   Future<void> initializeDatabase() async {
-    // if (_instance != null) return _instance!;
-
-    // initialize all necessary tables
-    final accountTable = AccountTable();
-    final amcTable = AmcTable();
-    final trnTable = TransactionTable();
-
     _db = await openDatabase(
       dbPath,
       version: 1,
       onCreate: (db, version) {
         db.transaction((txn) async {
-          await txn.execute(accountTable.schema);
-          await txn.execute(amcTable.schema);
-          await txn.execute(trnTable.schema);
+          // intialize all necessary tables in database
+          await txn.execute(_accountTable.schema);
+          await txn.execute(_amcTable.schema);
+          await txn.execute(_trnTable.schema);
         });
       },
     );
 
-    _tables.addAll([accountTable, amcTable, trnTable]);
-    // return _instance = InveslyApi._(db: db, tables: [accountTable, amcTable, trnTable]);
+    _tables.addAll([_accountTable, _amcTable, _trnTable]);
   }
 
   // helper function to get a table out of initialized tables
   T? getTable<T extends TableSchema>() => _tables.firstWhereOrNull((table) => table is T) as T?;
-
-  // Table getters
-  AccountTable get accountTable => getTable<AccountTable>()!;
-  AmcTable get amcTable => getTable<AmcTable>()!;
-  TransactionTable get trnTable => getTable<TransactionTable>()!;
 
   TableQueryBuilder select(TableSchema table, [List<TableColumnBase>? columns]) {
     return TableQueryBuilder(db: db, table: table, columns: columns);

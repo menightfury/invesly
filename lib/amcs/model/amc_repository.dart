@@ -1,10 +1,7 @@
 import 'package:invesly/amcs/model/amc_model.dart';
-// import 'package:invesly/database/data_access_object.dart';
 import 'package:invesly/database/invesly_api.dart';
 
-// class AmcRepository extends DataAccessObject<AmcInDb> {
 class AmcRepository {
-  // AmcRepository(InveslyApi api) : super(db: api.db, table: api.amcTable);
   AmcRepository(InveslyApi api) : _api = api;
 
   final InveslyApi _api;

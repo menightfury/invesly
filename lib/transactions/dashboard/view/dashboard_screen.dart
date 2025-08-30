@@ -34,6 +34,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
 
     context.read<DatabaseCubit>().loadDatabase().then((_) {
+      if (!mounted) return;
       context.read<AccountsCubit>().fetchAccounts();
     });
   }
@@ -187,10 +188,10 @@ class AccountsList extends StatelessWidget {
               builder: (context, accountState) {
                 final isError = databaseState is DatabaseErrorState || accountState is AccountsErrorState;
                 final isLoading =
-                    databaseState is DatabaseLoadingState ||
                     databaseState is DatabaseInitialState ||
-                    accountState is AccountsLoadingState ||
-                    accountState is AccountsInitialState;
+                    databaseState is DatabaseLoadingState ||
+                    accountState is AccountsInitialState ||
+                    accountState is AccountsLoadingState;
 
                 // if (accountState is AccountsErrorState) {
                 //   return Center(child: Text('Error: ${accountState.message}'));
@@ -210,12 +211,12 @@ class AccountsList extends StatelessWidget {
 
                       return Tappable(
                         // onTap: () => RouteUtils.pushRoute(
-                        //       context,
-                        //       AccountDetailsPage(
-                        //         account: account,
-                        //         accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
-                        //       ),
-                        //     ),
+                        //   context,
+                        //   AccountDetailsPage(
+                        //     account: account,
+                        //     accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
+                        //   ),
+                        // ),
                         width: 120.0,
                         height: 80.0,
                         border: BorderSide(color: isCurrentAccount ? context.colors.primary : Colors.black, width: 1.0),
@@ -255,6 +256,15 @@ class AccountsList extends StatelessWidget {
                                             );
                                           },
                                         );
+
+                                        // Selector2 implementation
+                                        //
+                                        // Selector<Foo, ({String item1, String item2})>(
+                                        //   selector: (_, foo) => (item1: foo.item1, item2: foo.item2),
+                                        //   builder: (_, data, __) {
+                                        //     return Text('${data.item1}  ${data.item2}');
+                                        //   },
+                                        // );
                                       }
                                       return Text('Loading...');
                                     },
