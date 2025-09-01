@@ -188,14 +188,10 @@ class AccountsList extends StatelessWidget {
               builder: (context, accountState) {
                 final isError = databaseState.isError || accountState.isError;
                 final isLoading = databaseState.isLoading || accountState.isLoading;
-
-                // if (accountState is AccountsErrorState) {
-                //   return Center(child: Text('Error: ${accountState.message}'));
-                // }
-                // if (accountState is AccountsLoadedState) {
                 final accounts = databaseState.isLoaded && accountState.isLoaded
                     ? (accountState as AccountsLoadedState).accounts
                     : null;
+
                 return Row(
                   spacing: 8.0,
                   children: <Widget>[
@@ -294,9 +290,6 @@ class AccountsList extends StatelessWidget {
                     ),
                   ],
                 );
-                // }
-
-                // return const Center(child: CircularProgressIndicator());
               },
             );
           },

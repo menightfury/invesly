@@ -8,28 +8,26 @@ import 'package:invesly/common_libs.dart';
 part 'dashboard_state.dart';
 
 class DashboardCubit extends Cubit<DashboardState> {
-  DashboardCubit({required TransactionRepository repository})
-    : _repository = repository,
-      super(const DashboardInitialState());
+  DashboardCubit({required TransactionRepository repository}) : _repository = repository, super(const DashboardState());
+  // super(const DashboardInitialState());
 
   final TransactionRepository _repository;
 
   StreamSubscription<TableChangeEvent>? _subscription;
 
-  /// Fetch transaction statistics
+  /// Fetch transaction statistics (on initial load, on transactions change)
   Future<void> fetchTransactionStats(String? accountId) async {
-    if (accountId == null) {
-      emit(DashboardErrorState('No accounts exists'));
-      return;
-    }
-
     // Get initial transactions
-    emit(const DashboardLoadingState());
+    // emit(const DashboardLoadingState());
+    emit(const DashboardState(statStatus: DashboardStatus.loading, recentTransactionStatus: DashboardStatus.loading));
     try {
-      final transactions = await _repository.getTransactions(accountId: accountId);
-      final transactionStats = await _repository.getTransactionStats(accountId);
+      final transactionStats = await _repository.getTransactionStats();
+      List<InveslyTransaction>? recentTransactions;
+      if (accountId != null) {
+        recentTransactions = await _repository.getTransactions(accountId: accountId);
+      }
 
-      emit(DashboardLoadedState(summaries: transactionStats, recentTransactions: transactions));
+      emit(DashboardLoadedState(summaries: transactionStats, recentTransactions: recentTransactions));
     } on Exception catch (error) {
       emit(DashboardErrorState(error.toString()));
     }
@@ -59,6 +57,18 @@ class DashboardCubit extends Cubit<DashboardState> {
     _subscription?.onDone(() {
       _subscription?.cancel();
     });
+  }
+
+  /// Get recent transactions, (when account changes)
+  Future<void> getRecentTransactions(String accountId) async {
+    emit(state.copyWith(recentTransactionStatus: DashboardStatus.loading, recentTransactions: []));
+
+    try {
+      final recentTransactions = await _repository.getTransactions(accountId: accountId);
+      emit(state.copyWith(recentTransactionStatus: DashboardStatus.loaded, recentTransactions: recentTransactions));
+    } on Exception catch (error) {
+      emit(state.copyWith(recentTransactionStatus: DashboardStatus.error, errorMsg: error.toString()));
+    }
   }
 
   @override
