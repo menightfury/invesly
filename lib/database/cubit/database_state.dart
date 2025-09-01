@@ -21,3 +21,9 @@ final class DatabaseErrorState extends DatabaseState {
   @override
   List<Object> get props => [message];
 }
+
+extension DatabaseStateX on DatabaseState {
+  bool get isLoading => this is DatabaseInitialState || this is DatabaseLoadingState;
+  bool get isLoaded => this is DatabaseLoadedState;
+  bool get isError => this is DatabaseErrorState;
+}

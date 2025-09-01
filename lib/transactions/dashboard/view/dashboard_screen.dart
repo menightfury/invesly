@@ -186,19 +186,15 @@ class AccountsList extends StatelessWidget {
           builder: (context, databaseState) {
             return BlocBuilder<AccountsCubit, AccountsState>(
               builder: (context, accountState) {
-                final isError = databaseState is DatabaseErrorState || accountState is AccountsErrorState;
-                final isLoading =
-                    databaseState is DatabaseInitialState ||
-                    databaseState is DatabaseLoadingState ||
-                    accountState is AccountsInitialState ||
-                    accountState is AccountsLoadingState;
+                final isError = databaseState.isError || accountState.isError;
+                final isLoading = databaseState.isLoading || accountState.isLoading;
 
                 // if (accountState is AccountsErrorState) {
                 //   return Center(child: Text('Error: ${accountState.message}'));
                 // }
                 // if (accountState is AccountsLoadedState) {
-                final accounts = databaseState is DatabaseLoadedState && accountState is AccountsLoadedState
-                    ? accountState.accounts
+                final accounts = databaseState.isLoaded && accountState.isLoaded
+                    ? (accountState as AccountsLoadedState).accounts
                     : null;
                 return Row(
                   spacing: 8.0,
@@ -207,36 +203,35 @@ class AccountsList extends StatelessWidget {
                     // dummy count for shimmer effect
                     ...List.generate(accounts?.length ?? 2, (index) {
                       final account = accounts?.elementAt(index);
-                      final isCurrentAccount = account?.id == context.read<SettingsCubit>().state.currentAccountId;
 
-                      return Tappable(
-                        // onTap: () => RouteUtils.pushRoute(
-                        //   context,
-                        //   AccountDetailsPage(
-                        //     account: account,
-                        //     accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
-                        //   ),
-                        // ),
-                        width: 120.0,
-                        height: 80.0,
-                        border: BorderSide(color: isCurrentAccount ? context.colors.primary : Colors.black, width: 1.0),
-                        content: Shimmer(
-                          isLoading: isLoading,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 4.0,
-                            children: <Widget>[
-                              account == null
-                                  ? Skeleton(color: isError ? context.colors.error : null)
-                                  : Text(account.name),
-                              Row(
+                      return BlocSelector<SettingsCubit, SettingsState, bool>(
+                        selector: (state) => state.currentAccountId == account?.id,
+                        builder: (context, isCurrentAccount) {
+                          $logger.i('rebuilding $account');
+                          return Tappable(
+                            // onTap: () => RouteUtils.pushRoute(
+                            //   context,
+                            //   AccountDetailsPage(
+                            //     account: account,
+                            //     accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
+                            //   ),
+                            // ),
+                            width: 120.0,
+                            height: 80.0,
+                            border: BorderSide(
+                              color: isCurrentAccount ? context.colors.primary : Colors.black,
+                              width: 1.0,
+                            ),
+                            content: Shimmer(
+                              isLoading: isLoading,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                spacing: 4.0,
                                 children: <Widget>[
-                                  CurrencyView(
-                                    amount: 500.0, //account.currency,
-                                    compactView: true, //snapshot.data! >= 10000000
-                                    integerStyle: context.textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600),
-                                  ),
-                                  const SizedBox(width: 8.0),
+                                  account == null
+                                      ? Skeleton(color: isError ? context.colors.error : null)
+                                      : Text(account.name),
+
                                   BlocBuilder<DashboardCubit, DashboardState>(
                                     builder: (context, state) {
                                       if (state is DashboardLoadedState) {
@@ -253,6 +248,7 @@ class AccountsList extends StatelessWidget {
                                               decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 24.0),
                                               currencyStyle: context.textTheme.bodyMedium,
                                               privateMode: isPrivateMode,
+                                              // compactView: snapshot.data! >= 10000000
                                             );
                                           },
                                         );
@@ -269,13 +265,13 @@ class AccountsList extends StatelessWidget {
                                       return Text('Loading...');
                                     },
                                   ),
+                                  Spacer(),
+                                  Text('5 transactions', style: context.textTheme.labelMedium),
                                 ],
                               ),
-                              Spacer(),
-                              Text('5 transactions', style: context.textTheme.labelMedium),
-                            ],
-                          ),
-                        ),
+                            ),
+                          );
+                        },
                       );
                     }),
 

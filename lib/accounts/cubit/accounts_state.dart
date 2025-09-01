@@ -40,3 +40,9 @@ class AccountsLoadedState extends AccountsState {
   @override
   List<Object> get props => [accounts];
 }
+
+extension AccountsStateX on AccountsState {
+  bool get isLoading => this is AccountsInitialState || this is AccountsLoadingState;
+  bool get isLoaded => this is AccountsLoadedState;
+  bool get isError => this is AccountsErrorState;
+}
