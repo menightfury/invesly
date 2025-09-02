@@ -18,53 +18,46 @@ enum TableColumnType {
 
 enum TableChangeEventType { insertion, updation, deletion }
 
-abstract class TableFilterValue {
-  const TableFilterValue();
+abstract class TableFilter<T extends Object> {
+  const TableFilter() : assert(T is String || T is num || T is bool, 'Value must be of type String, num or bool');
 
-  (String, dynamic) toSql();
+  (String, List<T>) toSql();
 }
 
-class SingleFilterValue<T extends Object> implements TableFilterValue {
-  const SingleFilterValue(this.column, this.value)
-    : assert(value is String || value is num || value is bool, 'Value must be of type String, num or bool');
+class SingleValueTableFilter<T extends Object> implements TableFilter<T> {
+  const SingleValueTableFilter(this.column, this.value);
 
   final TableColumn column;
   final T value;
 
   @override
-  (String, dynamic) toSql() {
-    return ('${column.fullTitle} = ?', value);
+  (String, List<T>) toSql() {
+    return ('${column.fullTitle} = ?', [value]);
   }
 }
 
-class MultipleFilterValue<T extends Object> implements TableFilterValue {
-  MultipleFilterValue(this.column, this.values)
-    : assert(
-        values.every((v) => v is String || v is num || v is bool),
-        'All values must be of type String, num or bool',
-      );
+class MultipleValueTableFilter<T extends Object> implements TableFilter<T> {
+  MultipleValueTableFilter(this.column, this.values) : assert(values.isNotEmpty, 'Values list must not be empty');
 
   final TableColumn column;
   final List<T> values;
 
   @override
-  (String, dynamic) toSql() {
+  (String, List<T>) toSql() {
     final placeholders = values.map((_) => '?').join(', ');
     return ('${column.fullTitle} IN ($placeholders)', values);
   }
 }
 
-class RangeFilterValue<T extends Object> implements TableFilterValue {
-  const RangeFilterValue(this.column, this.start, this.end)
-    : assert(start is String || start is num || start is bool, 'Start value must be of type String, num or bool'),
-      assert(end is String || end is num || end is bool, 'End value must be of type String, num or bool');
+class RangeValueTableFilter<T extends Object> implements TableFilter<T> {
+  const RangeValueTableFilter(this.column, this.start, this.end);
 
   final TableColumn column;
   final T start;
   final T end;
 
   @override
-  (String, dynamic) toSql() {
+  (String, List<T>) toSql() {
     return ('${column.fullTitle} BETWEEN ? AND ?', [start, end]);
   }
 }
@@ -80,7 +73,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
   final List<TableColumnBase> _columns;
 
   final List<TableSchema> _joinTables = [];
-  final List<TableFilterValue> _where = [];
+  final List<TableFilter> _where = [];
   final List<TableColumnBase> _group = [];
 
   String get effectiveTableName {
@@ -132,7 +125,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
   }
 
   @override
-  TableFilterBuilder where(List<TableFilterValue> condition) {
+  TableFilterBuilder where(List<TableFilter> condition) {
     if (condition.isNotEmpty) {
       _where.addAll(condition);
     }
@@ -156,13 +149,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
 
     final whereMap = _where.isEmpty ? null : _where.map((fv) => fv.toSql());
     final where = whereMap?.map<String>((fv) => fv.$1).join(' AND ');
-    final whereArgs = whereMap?.map((fv) {
-      final values = fv.$2;
-      if (values is List) {
-        return values.toList();
-      }
-      return values;
-    }).toList();
+    final whereArgs = whereMap?.map((fv) => fv.$2).expand((el) => el).toList();
 
     final groupBy = _group.isEmpty ? null : _group.map<String>((col) => col.fullTitle).join(', ');
 
@@ -200,7 +187,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
 }
 
 abstract class TableFilterBuilder<T extends InveslyDataModel> {
-  TableFilterBuilder where(List<TableFilterValue> condition);
+  TableFilterBuilder where(List<TableFilter> condition);
 
   TableFilterBuilder groupBy(List<TableColumn> columns);
 

@@ -45,7 +45,7 @@ class InveslyApi {
       version: 1,
       onCreate: (db, version) {
         db.transaction((txn) async {
-          // intialize all necessary tables in database
+          // initialize all necessary tables in database
           await txn.execute(_accountTable.schema);
           await txn.execute(_amcTable.schema);
           await txn.execute(_trnTable.schema);

@@ -26,16 +26,20 @@ class TransactionRepository {
     DateTimeRange? dateRange,
     int? limit,
   }) async {
-    final filter = <TableColumn, String>{};
+    final filter = <TableFilter>[];
     if (accountId != null) {
-      filter.putIfAbsent(_trnTable.accountIdColumn, () => accountId);
+      filter.add(SingleValueTableFilter(_trnTable.accountIdColumn, accountId));
     }
 
     if (amcId != null) {
-      filter.putIfAbsent(_trnTable.amcIdColumn, () => amcId);
+      filter.add(SingleValueTableFilter(_trnTable.amcIdColumn, amcId));
     }
 
-    dateRange ??= DateTimeRange(start: DateTime.now().subtract(const Duration(days: 30)), end: DateTime.now());
+    // dateRange ??= DateTimeRange(start: DateTime.now().subtract(const Duration(days: 30)), end: DateTime.now());
+
+    if (dateRange != null) {
+      filter.add(RangeValueTableFilter<DateTime>(_trnTable.dateColumn, dateRange.start, dateRange.end));
+    }
 
     late final List<InveslyTransaction> transactions;
     try {

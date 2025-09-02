@@ -8,24 +8,21 @@ import 'package:invesly/common_libs.dart';
 part 'dashboard_state.dart';
 
 class DashboardCubit extends Cubit<DashboardState> {
-  DashboardCubit({required TransactionRepository repository}) : _repository = repository, super(const DashboardState());
-  // super(const DashboardInitialState());
+  DashboardCubit({required TransactionRepository repository})
+    : _repository = repository,
+      super(const DashboardInitialState());
 
   final TransactionRepository _repository;
 
   StreamSubscription<TableChangeEvent>? _subscription;
 
   /// Fetch transaction statistics (on initial load, on transactions change)
-  Future<void> fetchTransactionStats(String? accountId) async {
+  Future<void> fetchTransactionStats() async {
     // Get initial transactions
-    // emit(const DashboardLoadingState());
-    emit(const DashboardState(statStatus: DashboardStatus.loading, recentTransactionStatus: DashboardStatus.loading));
+    emit(const DashboardLoadingState());
     try {
       final transactionStats = await _repository.getTransactionStats();
-      List<InveslyTransaction>? recentTransactions;
-      if (accountId != null) {
-        recentTransactions = await _repository.getTransactions(accountId: accountId);
-      }
+      final recentTransactions = await _repository.getTransactions();
 
       emit(DashboardLoadedState(stats: transactionStats, recentTransactions: recentTransactions));
     } on Exception catch (error) {
@@ -43,8 +40,8 @@ class DashboardCubit extends Cubit<DashboardState> {
       _subscription?.pause();
 
       try {
-        final transactions = await _repository.getTransactions(accountId: accountId);
-        final transactionStats = await _repository.getTransactionStats(accountId);
+        final transactionStats = await _repository.getTransactionStats();
+        final transactions = await _repository.getTransactions();
 
         emit(DashboardLoadedState(stats: transactionStats, recentTransactions: transactions));
       } on Exception catch (error) {
@@ -57,18 +54,6 @@ class DashboardCubit extends Cubit<DashboardState> {
     _subscription?.onDone(() {
       _subscription?.cancel();
     });
-  }
-
-  /// Get recent transactions, (when account changes)
-  Future<void> getRecentTransactions(String accountId) async {
-    emit(state.copyWith(recentTransactionStatus: DashboardStatus.loading, recentTransactions: []));
-
-    try {
-      final recentTransactions = await _repository.getTransactions(accountId: accountId);
-      emit(state.copyWith(recentTransactionStatus: DashboardStatus.loaded, recentTransactions: recentTransactions));
-    } on Exception catch (error) {
-      emit(state.copyWith(recentTransactionStatus: DashboardStatus.error, errorMsg: error.toString()));
-    }
   }
 
   @override

@@ -32,10 +32,12 @@ class InveslyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final api = Bootstrap.instance.api;
+    final accountRepository = AccountRepository(api);
 
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider<AuthRepository>(create: (_) => AuthRepository(api)),
+        RepositoryProvider<AccountRepository>.value(value: accountRepository),
         RepositoryProvider(create: (_) => AmcRepository(api)),
         RepositoryProvider(create: (_) => TransactionRepository(api)),
       ],
@@ -43,7 +45,7 @@ class InveslyApp extends StatelessWidget {
         providers: [
           // BlocProvider<InternetCubit>(create: (_) => InternetCubit()),
           BlocProvider<DatabaseCubit>(create: (_) => DatabaseCubit()),
-          BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: AccountRepository(api))),
+          BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)),
           BlocProvider<SettingsCubit>(create: (_) => SettingsCubit()),
         ],
         child: const _AppView(),

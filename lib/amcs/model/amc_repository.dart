@@ -1,5 +1,6 @@
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/database/invesly_api.dart';
+import 'package:invesly/database/table_schema.dart';
 
 class AmcRepository {
   AmcRepository(InveslyApi api) : _api = api;
@@ -18,7 +19,7 @@ class AmcRepository {
   /// Get amc by Id
   Future<InveslyAmc?> getAmc(String id) async {
     // return _api.getAmc(id);
-    final list = await _api.select(_amcTable).where({_amcTable.idColumn: id}).toList(); // TODO: fix this
+    final list = await _api.select(_amcTable).where([SingleValueTableFilter(_amcTable.idColumn, id)]).toList();
 
     if (list.isEmpty) return null;
 

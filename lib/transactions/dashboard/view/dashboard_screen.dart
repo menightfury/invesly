@@ -17,7 +17,6 @@ import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_cl
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/model/account_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -32,11 +31,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-
-    context.read<DatabaseCubit>().loadDatabase().then((_) {
-      if (!mounted) return;
-      context.read<AccountsCubit>().fetchAccounts();
-    });
+    context.read<DatabaseCubit>().loadDatabase();
   }
 
   @override
@@ -98,23 +93,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 const Gap(16.0),
 
-                // ~~~ Accounts ~~~
-                AccountsList(),
-
-                // ~~~ Stats, Recent transactions etc. ~~~
-                BlocSelector<SettingsCubit, SettingsState, String?>(
-                  selector: (state) => state.currentAccountId,
-                  builder: (context, currentAccountId) {
-                    final usersState = context.read<AccountsCubit>().state;
-                    final accounts = usersState is AccountsLoadedState ? usersState.accounts : <InveslyAccount>[];
-                    final currentAccount = accounts.isEmpty
-                        ? null
-                        : accounts.firstWhere((u) => u.id == currentAccountId, orElse: () => accounts.first);
-                    return BlocProvider(
-                      create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
-                      child: _TransactionContents(currentAccount, key: ValueKey<String?>(currentAccount?.id)),
-                    );
-                  },
+                // ~~~ Accounts, Stats, Recent transactions etc. ~~~
+                BlocProvider(
+                  create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
+                  child: BlocBuilder<DatabaseCubit, DatabaseState>(
+                    builder: (context, state) {
+                      return _DashboardContents(isInitialized: state is DatabaseLoadedState);
+                    },
+                  ),
                 ),
                 const Gap(40.0),
               ]),
@@ -122,6 +108,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
+      // ~~~ Add transaction button ~~~
       floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
         onPressed: () => _handleNewTransactionPressed(context),
@@ -171,131 +158,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-class AccountsList extends StatelessWidget {
-  const AccountsList({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-        child: BlocBuilder<DatabaseCubit, DatabaseState>(
-          builder: (context, databaseState) {
-            return BlocBuilder<AccountsCubit, AccountsState>(
-              builder: (context, accountState) {
-                final isError = databaseState.isError || accountState.isError;
-                final isLoading = databaseState.isLoading || accountState.isLoading;
-                final accounts = databaseState.isLoaded && accountState.isLoaded
-                    ? (accountState as AccountsLoadedState).accounts
-                    : null;
-
-                return Row(
-                  spacing: 8.0,
-                  children: <Widget>[
-                    // ~~~ Accounts ~~~
-                    // dummy count for shimmer effect
-                    ...List.generate(accounts?.length ?? 2, (index) {
-                      final account = accounts?.elementAt(index);
-
-                      return BlocSelector<SettingsCubit, SettingsState, bool>(
-                        selector: (state) => state.currentAccountId == account?.id,
-                        builder: (context, isCurrentAccount) {
-                          $logger.i('rebuilding $account');
-                          return Tappable(
-                            // onTap: () => RouteUtils.pushRoute(
-                            //   context,
-                            //   AccountDetailsPage(
-                            //     account: account,
-                            //     accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
-                            //   ),
-                            // ),
-                            width: 120.0,
-                            height: 80.0,
-                            border: BorderSide(
-                              color: isCurrentAccount ? context.colors.primary : Colors.black,
-                              width: 1.0,
-                            ),
-                            content: Shimmer(
-                              isLoading: isLoading,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                spacing: 4.0,
-                                children: <Widget>[
-                                  account == null
-                                      ? Skeleton(color: isError ? context.colors.error : null)
-                                      : Text(account.name),
-
-                                  BlocBuilder<DashboardCubit, DashboardState>(
-                                    builder: (context, state) {
-                                      if (state is DashboardLoadedState) {
-                                        final totalAmount = state.stats.fold<double>(0, (v, el) => v + el.totalAmount);
-                                        return BlocSelector<SettingsCubit, SettingsState, bool>(
-                                          selector: (state) => state.isPrivateMode,
-                                          builder: (context, isPrivateMode) {
-                                            return CurrencyView(
-                                              amount: totalAmount,
-                                              integerStyle: context.textTheme.headlineLarge?.copyWith(fontSize: 48.0),
-                                              decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 24.0),
-                                              currencyStyle: context.textTheme.bodyMedium,
-                                              privateMode: isPrivateMode,
-                                              // compactView: snapshot.data! >= 10000000
-                                            );
-                                          },
-                                        );
-
-                                        // Selector2 implementation
-                                        //
-                                        // Selector<Foo, ({String item1, String item2})>(
-                                        //   selector: (_, foo) => (item1: foo.item1, item2: foo.item2),
-                                        //   builder: (_, data, __) {
-                                        //     return Text('${data.item1}  ${data.item2}');
-                                        //   },
-                                        // );
-                                      }
-                                      return Text('Loading...');
-                                    },
-                                  ),
-                                  Spacer(),
-                                  Text('5 transactions', style: context.textTheme.labelMedium),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    }),
-
-                    // ~~~ Add account ~~~
-                    Tappable(
-                      onTap: () => context.push(const EditAccountScreen()),
-                      color: Colors.grey.shade100,
-                      width: 120.0,
-                      height: 80.0,
-                      border: BorderSide(color: Colors.grey.shade500, width: 1.0),
-                      content: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        spacing: 4.0,
-                        children: [
-                          Icon(Icons.format_list_bulleted_add, color: Colors.grey.shade500),
-                          Text('Create account', style: TextStyle(color: Colors.grey.shade500)),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
 class Skeleton extends StatelessWidget {
   const Skeleton({super.key, this.height = 16.0, this.width = double.infinity, this.color = Colors.white});
 
@@ -312,20 +174,31 @@ class Skeleton extends StatelessWidget {
   }
 }
 
-class _TransactionContents extends StatefulWidget {
-  const _TransactionContents(this.user, {super.key});
+class _DashboardContents extends StatefulWidget {
+  const _DashboardContents({super.key, this.isInitialized = false});
 
-  final InveslyAccount? user;
+  final bool isInitialized;
 
   @override
-  State<_TransactionContents> createState() => _TransactionContentsState();
+  State<_DashboardContents> createState() => _DashboardContentsState();
 }
 
-class _TransactionContentsState extends State<_TransactionContents> {
+class _DashboardContentsState extends State<_DashboardContents> {
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   if (widget.isLoaded) {
+  //     context.read<DashboardCubit>().fetchTransactionStats();
+  //   }
+  // }
+
   @override
-  void initState() {
-    super.initState();
-    context.read<DashboardCubit>().fetchTransactionStats(widget.user?.id);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.isInitialized) {
+      context.read<AccountsCubit>().fetchAccounts();
+      context.read<DashboardCubit>().fetchTransactionStats();
+    }
   }
 
   @override
@@ -334,6 +207,8 @@ class _TransactionContentsState extends State<_TransactionContents> {
       spacing: 16.0,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        _AccountsList(isInitialized: widget.isInitialized),
+
         Align(
           alignment: Alignment.topCenter,
           child: Padding(
@@ -388,6 +263,120 @@ class _TransactionContentsState extends State<_TransactionContents> {
 
         _RecentTransactions(),
       ],
+    );
+  }
+}
+
+class _AccountsList extends StatelessWidget {
+  const _AccountsList({super.key, this.isInitialized = false});
+
+  final bool isInitialized;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = context.textTheme;
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        child: BlocBuilder<AccountsCubit, AccountsState>(
+          builder: (context, accountState) {
+            return BlocBuilder<DashboardCubit, DashboardState>(
+              builder: (context, dashboardState) {
+                final isError = accountState.isError || dashboardState.isError;
+                final isLoading = !isInitialized || accountState.isLoading || dashboardState.isLoading;
+                final accounts = isInitialized && accountState.isLoaded
+                    ? (accountState as AccountsLoadedState).accounts
+                    : null;
+                final totalAmount = isInitialized && dashboardState is DashboardLoadedState
+                    ? dashboardState.stats.fold<double>(0, (v, el) => v + el.totalAmount)
+                    : null;
+
+                return Row(
+                  spacing: 8.0,
+                  children: <Widget>[
+                    // ~~~ Accounts ~~~
+                    // dummy count for shimmer effect
+                    ...List.generate(accounts?.length ?? 1, (index) {
+                      final account = accounts?.elementAt(index);
+
+                      return BlocSelector<SettingsCubit, SettingsState, bool>(
+                        selector: (state) => state.currentAccountId == account?.id,
+                        builder: (context, isCurrentAccount) {
+                          $logger.i('rebuilding $account');
+                          return Tappable(
+                            // onTap: isLoading ? null : () => RouteUtils.pushRoute(
+                            //   context,
+                            //   AccountDetailsPage(
+                            //     account: account,
+                            //     accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
+                            //   ),
+                            // ),
+                            width: 120.0,
+                            height: 80.0,
+                            border: BorderSide(color: isCurrentAccount ? context.colors.primary : Colors.black),
+                            content: Shimmer(
+                              isLoading: isLoading,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                spacing: 4.0,
+                                children: <Widget>[
+                                  account == null
+                                      ? Skeleton(color: isError ? context.colors.error : null)
+                                      : Text(account.name),
+
+                                  totalAmount == null
+                                      ? Skeleton(color: isError ? context.colors.error : null)
+                                      : BlocSelector<SettingsCubit, SettingsState, bool>(
+                                          selector: (state) => state.isPrivateMode,
+                                          builder: (context, isPrivateMode) {
+                                            return CurrencyView(
+                                              amount: totalAmount,
+                                              integerStyle: textTheme.headlineLarge?.copyWith(fontSize: 48.0),
+                                              decimalsStyle: textTheme.headlineSmall?.copyWith(fontSize: 24.0),
+                                              currencyStyle: textTheme.bodyMedium,
+                                              privateMode: isPrivateMode,
+                                              // compactView: snapshot.data! >= 10000000
+                                            );
+                                          },
+                                        ),
+                                  Spacer(),
+                                  Text('5 transactions', style: textTheme.labelMedium),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }),
+
+                    // ~~~ Add account ~~~
+                    Tappable(
+                      onTap: () => context.push(const EditAccountScreen()),
+                      color: Colors.grey.shade100,
+                      width: 120.0,
+                      height: 80.0,
+                      border: BorderSide(color: Colors.grey.shade500, width: 1.0),
+                      content: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: 4.0,
+                        children: [
+                          Icon(Icons.format_list_bulleted_add, color: Colors.grey.shade500),
+                          Text('Create account', style: TextStyle(color: Colors.grey.shade500)),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+      ),
     );
   }
 }
