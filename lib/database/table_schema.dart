@@ -18,6 +18,57 @@ enum TableColumnType {
 
 enum TableChangeEventType { insertion, updation, deletion }
 
+abstract class TableFilterValue {
+  const TableFilterValue();
+
+  (String, dynamic) toSql();
+}
+
+class SingleFilterValue<T extends Object> implements TableFilterValue {
+  const SingleFilterValue(this.column, this.value)
+    : assert(value is String || value is num || value is bool, 'Value must be of type String, num or bool');
+
+  final TableColumn column;
+  final T value;
+
+  @override
+  (String, dynamic) toSql() {
+    return ('${column.fullTitle} = ?', value);
+  }
+}
+
+class MultipleFilterValue<T extends Object> implements TableFilterValue {
+  MultipleFilterValue(this.column, this.values)
+    : assert(
+        values.every((v) => v is String || v is num || v is bool),
+        'All values must be of type String, num or bool',
+      );
+
+  final TableColumn column;
+  final List<T> values;
+
+  @override
+  (String, dynamic) toSql() {
+    final placeholders = values.map((_) => '?').join(', ');
+    return ('${column.fullTitle} IN ($placeholders)', values);
+  }
+}
+
+class RangeFilterValue<T extends Object> implements TableFilterValue {
+  const RangeFilterValue(this.column, this.start, this.end)
+    : assert(start is String || start is num || start is bool, 'Start value must be of type String, num or bool'),
+      assert(end is String || end is num || end is bool, 'End value must be of type String, num or bool');
+
+  final TableColumn column;
+  final T start;
+  final T end;
+
+  @override
+  (String, dynamic) toSql() {
+    return ('${column.fullTitle} BETWEEN ? AND ?', [start, end]);
+  }
+}
+
 class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilder<T> {
   TableQueryBuilder({required Database db, required TableSchema table, List<TableColumnBase>? columns})
     : _db = db,
@@ -29,7 +80,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
   final List<TableColumnBase> _columns;
 
   final List<TableSchema> _joinTables = [];
-  final Map<TableColumn, dynamic> _where = {};
+  final List<TableFilterValue> _where = [];
   final List<TableColumnBase> _group = [];
 
   String get effectiveTableName {
@@ -81,7 +132,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
   }
 
   @override
-  TableFilterBuilder where(Map<TableColumn, dynamic> condition) {
+  TableFilterBuilder where(List<TableFilterValue> condition) {
     if (condition.isNotEmpty) {
       _where.addAll(condition);
     }
@@ -100,8 +151,18 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
   Future<List<Map<String, dynamic>>> toList() async {
     final List<Map<String, dynamic>> data = [];
 
-    final where = _where.isEmpty ? null : _where.keys.map<String>((key) => '${key.fullTitle} = ?').join(' AND ');
-    final whereArgs = _where.isEmpty ? null : _where.values.toList();
+    // final where = _where.isEmpty ? null : _where.keys.map<String>((key) => '${key.fullTitle} = ?').join(' AND ');
+    // final whereArgs = _where.isEmpty ? null : _where.values.toList();
+
+    final whereMap = _where.isEmpty ? null : _where.map((fv) => fv.toSql());
+    final where = whereMap?.map<String>((fv) => fv.$1).join(' AND ');
+    final whereArgs = whereMap?.map((fv) {
+      final values = fv.$2;
+      if (values is List) {
+        return values.toList();
+      }
+      return values;
+    }).toList();
 
     final groupBy = _group.isEmpty ? null : _group.map<String>((col) => col.fullTitle).join(', ');
 
@@ -139,7 +200,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
 }
 
 abstract class TableFilterBuilder<T extends InveslyDataModel> {
-  TableFilterBuilder where(Map<TableColumn, dynamic> condition);
+  TableFilterBuilder where(List<TableFilterValue> condition);
 
   TableFilterBuilder groupBy(List<TableColumn> columns);
 

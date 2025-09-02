@@ -231,10 +231,7 @@ class AccountsList extends StatelessWidget {
                                   BlocBuilder<DashboardCubit, DashboardState>(
                                     builder: (context, state) {
                                       if (state is DashboardLoadedState) {
-                                        final totalAmount = state.summaries.fold<double>(
-                                          0,
-                                          (v, el) => v + el.totalAmount,
-                                        );
+                                        final totalAmount = state.stats.fold<double>(0, (v, el) => v + el.totalAmount);
                                         return BlocSelector<SettingsCubit, SettingsState, bool>(
                                           selector: (state) => state.isPrivateMode,
                                           builder: (context, isPrivateMode) {
@@ -348,7 +345,7 @@ class _TransactionContentsState extends State<_TransactionContents> {
                 BlocBuilder<DashboardCubit, DashboardState>(
                   builder: (context, state) {
                     if (state is DashboardLoadedState) {
-                      final totalAmount = state.summaries.fold<double>(0, (v, el) => v + el.totalAmount);
+                      final totalAmount = state.stats.fold<double>(0, (v, el) => v + el.totalAmount);
                       return BlocSelector<SettingsCubit, SettingsState, bool>(
                         selector: (state) => state.isPrivateMode,
                         builder: (context, isPrivateMode) {
@@ -515,7 +512,7 @@ class _TransactionStatsWidgetState extends State<_TransactionStatsWidget> {
                         BlocBuilder<DashboardCubit, DashboardState>(
                           builder: (context, state) {
                             if (state is DashboardLoadedState) {
-                              final stats = state.summaries.firstWhereOrNull((stat) => stat.amcGenre == genre);
+                              final stats = state.stats.firstWhereOrNull((stat) => stat.amcGenre == genre);
 
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -20,7 +20,12 @@ class TransactionRepository {
   }
 
   /// Get transactions
-  Future<List<InveslyTransaction>> getTransactions({String? accountId, String? amcId, int? showItems}) async {
+  Future<List<InveslyTransaction>> getTransactions({
+    String? accountId,
+    String? amcId,
+    DateTimeRange? dateRange,
+    int? limit,
+  }) async {
     final filter = <TableColumn, String>{};
     if (accountId != null) {
       filter.putIfAbsent(_trnTable.accountIdColumn, () => accountId);
@@ -29,6 +34,8 @@ class TransactionRepository {
     if (amcId != null) {
       filter.putIfAbsent(_trnTable.amcIdColumn, () => amcId);
     }
+
+    dateRange ??= DateTimeRange(start: DateTime.now().subtract(const Duration(days: 30)), end: DateTime.now());
 
     late final List<InveslyTransaction> transactions;
     try {
