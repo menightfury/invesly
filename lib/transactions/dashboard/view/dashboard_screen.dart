@@ -341,11 +341,12 @@ class _AmcGenreList extends StatelessWidget {
                 borderRadius: borderRadius,
                 childAlignment: Alignment.centerLeft,
                 padding: EdgeInsets.zero,
+                color: context.colors.secondaryContainer,
                 content: Stack(
                   children: <Widget>[
                     Positioned(
-                      right: -12.0,
-                      top: -12.0,
+                      right: -4.0,
+                      top: -4.0,
                       child: Icon(genre.icon, size: 64.0, color: context.colors.secondary.withAlpha(50)),
                     ),
                     Padding(
@@ -362,7 +363,7 @@ class _AmcGenreList extends StatelessWidget {
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  spacing: 8.0,
+                                  spacing: 4.0,
                                   children: <Widget>[
                                     Text(
                                       '${stats?.numTransactions ?? 0} transactions',
