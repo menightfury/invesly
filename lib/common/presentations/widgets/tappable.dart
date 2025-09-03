@@ -56,22 +56,23 @@ class Tappable extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
-        child: Padding(
-          padding: padding ?? const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            spacing: spacing,
-            children: <Widget>[
-              ?leading,
-              Flexible(
-                child: Align(
-                  alignment: childAlignment,
-                  child: SizedBox(width: width, height: height, child: this.content),
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: Padding(
+            padding: padding ?? const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: spacing,
+              children: <Widget>[
+                // ?leading,
+                Flexible(
+                  child: Align(alignment: childAlignment, child: this.content),
                 ),
-              ),
-              ?trailing,
-            ],
+                ?trailing,
+              ],
+            ),
           ),
         ),
       ),
