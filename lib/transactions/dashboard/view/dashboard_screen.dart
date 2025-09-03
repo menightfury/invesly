@@ -181,7 +181,7 @@ class _DashboardContentsState extends State<_DashboardContents> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      spacing: 16.0,
+      spacing: 4.0,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[_AccountsList(), _AmcGenreList(), _RecentTransactions()],
     );
@@ -313,92 +313,98 @@ class _AmcGenreList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Card(
-        clipBehavior: Clip.hardEdge,
-        child: Column(
-          children: <Widget>[
-            ListTile(
-              title: Text('Investment genres', style: context.textTheme.headlineSmall),
-              leading: Icon(Icons.swap_vert_rounded),
-            ),
-            InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
-            ColumnBuilder(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              itemCount: AmcGenre.values.length,
-              itemBuilder: (context, index) {
-                final genre = AmcGenre.getByIndex(index);
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        children: <Widget>[
+          ListTile(
+            title: Text('Investment genres', style: context.textTheme.headlineSmall),
+            leading: const Icon(Icons.swap_vert_rounded),
+          ),
+          // InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
+          ColumnBuilder(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 2.0,
+            itemCount: AmcGenre.values.length,
+            itemBuilder: (context, index) {
+              final genre = AmcGenre.getByIndex(index);
+              late final BorderRadius borderRadius;
+              if (index == 0) {
+                borderRadius = const BorderRadius.vertical(top: Radius.circular(20.0), bottom: Radius.circular(4.0));
+              } else if (index == AmcGenre.values.length - 1) {
+                borderRadius = const BorderRadius.vertical(top: Radius.circular(4.0), bottom: Radius.circular(20.0));
+              } else {
+                borderRadius = const BorderRadius.all(Radius.circular(4.0));
+              }
 
-                return Tappable(
-                  onTap: () {},
-                  childAlignment: Alignment.centerLeft,
-                  width: 160.0,
-                  padding: EdgeInsets.zero,
-                  content: Stack(
-                    children: <Widget>[
-                      Align(
-                        alignment: Alignment(1.25, -1.5),
-                        child: Icon(genre.icon, size: 64.0, color: context.colors.secondary.withAlpha(50)),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(genre.title, overflow: TextOverflow.ellipsis),
-                            BlocBuilder<DashboardCubit, DashboardState>(
-                              builder: (context, state) {
-                                if (state is DashboardLoadedState) {
-                                  final stats = state.stats.firstWhereOrNull((stat) => stat.amcGenre == genre);
+              return Tappable(
+                onTap: () {},
+                borderRadius: borderRadius,
+                childAlignment: Alignment.centerLeft,
+                padding: EdgeInsets.zero,
+                content: Stack(
+                  children: <Widget>[
+                    Positioned(
+                      right: -12.0,
+                      top: -12.0,
+                      child: Icon(genre.icon, size: 64.0, color: context.colors.secondary.withAlpha(50)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(genre.title, overflow: TextOverflow.ellipsis),
+                          BlocBuilder<DashboardCubit, DashboardState>(
+                            builder: (context, state) {
+                              if (state is DashboardLoadedState) {
+                                final stats = state.stats.firstWhereOrNull((stat) => stat.amcGenre == genre);
 
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    spacing: 20.0,
-                                    children: <Widget>[
-                                      Text(
-                                        '${stats?.numTransactions ?? 0} transactions',
-                                        style: context.textTheme.labelSmall,
-                                        overflow: TextOverflow.ellipsis,
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  spacing: 8.0,
+                                  children: <Widget>[
+                                    Text(
+                                      '${stats?.numTransactions ?? 0} transactions',
+                                      style: context.textTheme.labelSmall,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+
+                                    Align(
+                                      alignment: Alignment.bottomRight,
+                                      child: BlocSelector<SettingsCubit, SettingsState, bool>(
+                                        selector: (state) => state.isPrivateMode,
+                                        builder: (context, isPrivateMode) {
+                                          return CurrencyView(
+                                            amount: stats?.totalAmount ?? 0.0,
+                                            integerStyle: context.textTheme.headlineMedium,
+                                            decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0),
+                                            currencyStyle: context.textTheme.bodySmall,
+                                            privateMode: isPrivateMode,
+                                          );
+                                        },
                                       ),
-
-                                      Align(
-                                        alignment: Alignment.bottomRight,
-                                        child: BlocSelector<SettingsCubit, SettingsState, bool>(
-                                          selector: (state) => state.isPrivateMode,
-                                          builder: (context, isPrivateMode) {
-                                            return CurrencyView(
-                                              amount: stats?.totalAmount ?? 0.0,
-                                              integerStyle: context.textTheme.headlineMedium,
-                                              decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0),
-                                              currencyStyle: context.textTheme.bodySmall,
-                                              privateMode: isPrivateMode,
-                                            );
-                                          },
-                                        ),
-                                        // child: Text(
-                                        //   stats?.totalAmount.toCompact() ?? '0.0',
-                                        //   style: context.textTheme.,
-                                        //   overflow: TextOverflow.ellipsis,
-                                        // ),
-                                      ),
-                                    ],
-                                  );
-                                }
-                                return const Center(child: CircularProgressIndicator());
-                              },
-                            ),
-                          ],
-                        ),
+                                      // child: Text(
+                                      //   stats?.totalAmount.toCompact() ?? '0.0',
+                                      //   style: context.textTheme.,
+                                      //   overflow: TextOverflow.ellipsis,
+                                      // ),
+                                    ),
+                                  ],
+                                );
+                              }
+                              return const Center(child: CircularProgressIndicator());
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
-              separatorBuilder: (_, _) => SizedBox(height: 8.0),
-            ),
-          ],
-        ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

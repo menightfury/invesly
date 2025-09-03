@@ -238,7 +238,7 @@ abstract class TableSchema<T extends InveslyDataModel> extends Equatable {
   List<Object?> get props => [name];
 
   /// Create table SQL statement
-  String get schema {
+  String createTable() {
     final columnDefs = columns
         .map<String>((col) {
           final buffer = StringBuffer('${col.title} ${col.type.toSqlType()}');

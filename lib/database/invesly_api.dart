@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:invesly/database/seed.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -43,15 +44,21 @@ class InveslyApi {
     _db = await openDatabase(
       dbPath,
       version: 1,
-      onCreate: (db, version) {
-        db.transaction((txn) async {
-          // initialize all necessary tables in database
-          await txn.execute(_accountTable.schema);
-          await txn.execute(_amcTable.schema);
-          await txn.execute(_trnTable.schema);
-        });
+      onCreate: (db, version) async {
+        final batch = db.batch();
+        // initialize all necessary tables in database
+
+        batch.execute(_accountTable.createTable());
+        batch.execute(_amcTable.createTable());
+        // insert default table values in amcTable
+        // ignore: avoid_function_literals_in_foreach_calls
+        initialAmcs.forEach((amc) => batch.insert(_amcTable.name, _amcTable.decode(amc)));
+        batch.execute(_trnTable.createTable());
+        await batch.commit(noResult: true);
       },
     );
+
+    // Close database at the end ??
 
     _tables.addAll([_accountTable, _amcTable, _trnTable]);
   }

@@ -51,9 +51,11 @@ class Tappable extends StatelessWidget {
 
     Widget content = Material(
       color: color ?? context.colors.primaryContainer,
+      clipBehavior: Clip.hardEdge,
       type: MaterialType.canvas,
       shape: shape ?? defaultShape,
       child: InkWell(
+        customBorder: shape ?? defaultShape,
         onTap: onTap,
         onLongPress: onLongPress,
         child: SizedBox(
