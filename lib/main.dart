@@ -44,7 +44,7 @@ class InveslyApp extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           // BlocProvider<InternetCubit>(create: (_) => InternetCubit()),
-          BlocProvider<DatabaseCubit>(create: (_) => DatabaseCubit()),
+          // BlocProvider<DatabaseCubit>(create: (_) => DatabaseCubit()),
           BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)),
           BlocProvider<SettingsCubit>(create: (_) => SettingsCubit()),
         ],

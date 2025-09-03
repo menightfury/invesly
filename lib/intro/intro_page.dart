@@ -2,6 +2,7 @@ import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/import_backup_page.dart';
+import 'package:invesly/main.dart';
 
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
@@ -95,6 +96,9 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
         // User signed in successfully
         await ImportBackupPage.showModal(context);
       }
+
+      // Load database
+      await Bootstrap.instance.api.initializeDatabase();
 
       if (!context.mounted) return;
       context.read<SettingsCubit>().completeOnboarding();

@@ -31,7 +31,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<DatabaseCubit>().loadDatabase();
+    // context.read<DatabaseCubit>().loadDatabase();
   }
 
   @override

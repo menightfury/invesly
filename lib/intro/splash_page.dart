@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/intro/intro_page.dart';
+import 'package:invesly/main.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
@@ -23,7 +24,7 @@ class _SplashPageState extends State<SplashPage> {
     // _completer = Completer();
     // show splash screen for few seconds
     // _timer = Timer(2.seconds, () => _completer.complete());
-    _timer = Timer(2.seconds, () {
+    _timer = Timer(2.seconds, () async {
       if (!settingsState.isOnboarded) {
         context.go(const IntroPage());
         return;
@@ -33,6 +34,11 @@ class _SplashPageState extends State<SplashPage> {
       //   LoginPage.showModal(context);
       //   return;
       // }
+      // Load database
+      await Bootstrap.instance.api.initializeDatabase();
+      if (!mounted) {
+        return;
+      }
       // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
       context.go(const DashboardScreen());
     });
