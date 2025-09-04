@@ -188,7 +188,7 @@ class AppStyle {
         clipBehavior: Clip.hardEdge,
         showDragHandle: true,
       ),
-      listTileTheme: ListTileThemeData(minVerticalPadding: 8.0, dense: true),
+      listTileTheme: ListTileThemeData(minVerticalPadding: 8.0, minTileHeight: 64.0),
       navigationBarTheme: NavigationBarThemeData(backgroundColor: colorScheme.surface),
       cardTheme: CardThemeData(
         shape: RoundedRectangleBorder(borderRadius: AppConstants.cardBorderRadius),

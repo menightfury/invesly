@@ -4,13 +4,26 @@ import 'package:invesly/common_libs.dart';
 class Section extends StatelessWidget {
   const Section({super.key, this.title, this.subTitle, this.icon, required this.tiles});
 
-  final String? title;
-  final String? subTitle;
+  final Widget? title;
+  final Widget? subTitle;
   final Widget? icon;
   final List<Widget> tiles;
 
   @override
   Widget build(BuildContext context) {
+    // TextStyle titleStyle = titleTextStyle ?? tileTheme.titleTextStyle ?? defaults.titleTextStyle!;
+    // final Color? titleColor = effectiveColor;
+    // titleStyle = titleStyle.copyWith(color: titleColor, fontSize: _isDenseLayout(theme, tileTheme) ? 13.0 : null);
+    final titleText = DefaultTextStyle(
+      style: context.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
+      child: title ?? const SizedBox.shrink(),
+    );
+
+    final subtitleText = DefaultTextStyle(
+      style: context.textTheme.labelMedium!.copyWith(color: context.colors.secondary),
+      child: subTitle ?? const SizedBox.shrink(),
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
@@ -19,11 +32,9 @@ class Section extends StatelessWidget {
         children: <Widget>[
           if (title != null) ...[
             ListTile(
-              title: Text(title!, style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+              title: titleText,
               leading: icon,
-              subtitle: subTitle != null
-                  ? Text(subTitle!, style: context.textTheme.labelMedium?.copyWith(color: context.colors.secondary))
-                  : null,
+              subtitle: subtitleText,
               tileColor: context.colors.primaryContainer.darken(10),
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20.0), bottom: Radius.circular(4.0)),

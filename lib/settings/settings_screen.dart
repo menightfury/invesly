@@ -66,7 +66,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               delegate: SliverChildListDelegate.fixed([
                 // ~~~ User Profile Section ~~~
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
                     spacing: 2.0,
                     children: <Widget>[
@@ -74,6 +74,84 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         selector: (state) => state.currentUser,
                         builder: (context, currentUser) {
                           final user = currentUser ?? InveslyUser.empty();
+                          return Section(
+                            title: Text(user.name.toSentenceCase()),
+                            subTitle: Text(user.email),
+                            icon: CircleAvatar(
+                              backgroundImage: user.photoUrl != null
+                                  ? CachedNetworkImageProvider(user.photoUrl!)
+                                  : null,
+                              child: user.photoUrl == null ? const Icon(Icons.person, size: 32.0) : null,
+                            ),
+                            tiles: [
+                              BlocBuilder<AccountsCubit, AccountsState>(
+                                builder: (context, state) {
+                                  if (state is AccountsErrorState) {
+                                    return Text('Failed to load accounts');
+                                  }
+
+                                  if (state is AccountsLoadedState) {
+                                    final accounts = state.accounts;
+
+                                    return BlocSelector<SettingsCubit, SettingsState, String?>(
+                                      selector: (state) => state.currentAccountId,
+                                      builder: (context, currentAccountId) {
+                                        return ColumnBuilder(
+                                          spacing: 2.0,
+                                          itemBuilder: (context, index) {
+                                            final account = accounts[index];
+                                            final isCurrentAccount = account.id == currentAccountId;
+                                            late final BorderRadius borderRadius;
+                                            if (index == accounts.length - 1) {
+                                              borderRadius = BorderRadius.vertical(
+                                                top: const Radius.circular(4.0),
+                                                bottom: AppConstants.cardBorderRadius.bottomLeft,
+                                              );
+                                            } else {
+                                              borderRadius = const BorderRadius.all(Radius.circular(4.0));
+                                            }
+                                            return ListTile(
+                                              // contentPadding: EdgeInsets.zero,
+                                              onTap: () => context.read<SettingsCubit>().saveCurrentAccount(account.id),
+                                              tileColor: context.colors.primaryContainer,
+                                              leading: CircleAvatar(backgroundImage: AssetImage(account.avatar)),
+                                              shape: RoundedRectangleBorder(borderRadius: borderRadius),
+                                              title: Text(
+                                                account.name.toSentenceCase(),
+                                                style: context.textTheme.bodyMedium?.copyWith(
+                                                  fontWeight: isCurrentAccount ? FontWeight.w600 : null,
+                                                ),
+                                              ),
+                                              subtitle: isCurrentAccount
+                                                  ? Text(
+                                                      'Primary Account',
+                                                      style: context.textTheme.labelMedium?.copyWith(
+                                                        color: context.colors.secondary,
+                                                      ),
+                                                    )
+                                                  : null,
+                                              trailing: IconButton(
+                                                onPressed: () =>
+                                                    context.push(EditAccountScreen(initialAccount: account)),
+                                                icon: Icon(Icons.edit_note_rounded),
+                                                style: IconButton.styleFrom(
+                                                  // foregroundColor: context.colors.onPrimary,
+                                                  backgroundColor: Colors.black.withAlpha(0x1F),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          itemCount: accounts.length,
+                                        );
+                                      },
+                                    );
+                                  }
+
+                                  return CircularProgressIndicator();
+                                },
+                              ),
+                            ],
+                          );
                           return ListTile(
                             title: Text(
                               user.name.toSentenceCase(),
@@ -184,9 +262,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 // ~~~ Settings Section ~~~
                 Section(
-                  title: 'General',
-                  subTitle: 'Currency, language, etc.',
+                  title: Text('General'),
+                  subTitle: Text('Currency, language, etc.'),
                   // icon: const Icon(Icons.settings_outlined),
+                  // content: SectionTiles(),
                   tiles: <Widget>[
                     SectionTile(
                       title: 'App language',
@@ -225,8 +304,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Gap(16.0),
 
                 Section(
-                  title: 'Appearance',
-                  subTitle: 'App theme, colors',
+                  title: Text('Appearance'),
+                  subTitle: Text('App theme, colors'),
                   // icon: const Icon(Icons.palette_outlined),
                   tiles: <Widget>[
                     BlocSelector<SettingsCubit, SettingsState, bool>(
@@ -283,8 +362,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Gap(16.0),
 
                 Section(
-                  title: 'Backup & Restore',
-                  subTitle: 'Last backup: 2023-10-01',
+                  title: Text('Backup & Restore'),
+                  subTitle: Text('Last backup: 2023-10-01'),
                   // icon: const Icon(Icons.import_export_rounded),
                   tiles: [
                     SectionTile(
@@ -424,8 +503,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Gap(16.0),
 
                 Section(
-                  title: 'Terms & Privacy',
-                  subTitle: 'Privacy policy, terms of service, etc.',
+                  title: Text('Terms & Privacy'),
+                  subTitle: Text('Privacy policy, terms of service, etc.'),
                   // icon: const Icon(Icons.gavel_rounded),
                   tiles: [
                     SectionTile.navigation(
@@ -446,8 +525,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Gap(16.0),
 
                 Section(
-                  title: 'Help us',
-                  subTitle: 'Thank you for your contribution to Invesly',
+                  title: Text('Help us'),
+                  subTitle: Text('Thank you for your contribution to Invesly'),
                   tiles: [
                     SectionTile.navigation(
                       icon: const Icon(Icons.star_rate_rounded),

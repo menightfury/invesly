@@ -419,7 +419,7 @@ class _RecentTransactions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Section(
       icon: const Icon(Icons.swap_vert_rounded),
-      title: 'Recent transactions',
+      title: Text('Recent transactions'),
       tiles: [
         BlocBuilder<DashboardCubit, DashboardState>(
           builder: (context, state) {
