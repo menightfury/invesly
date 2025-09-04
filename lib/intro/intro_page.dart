@@ -108,7 +108,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
   }
 
   void _animateToPage(int index) {
-    _pageController.animateToPage(index, duration: EMTimes.fast, curve: Curves.easeInOut);
+    _pageController.animateToPage(index, duration: 300.ms, curve: Curves.easeInOut);
   }
 
   @override
@@ -129,7 +129,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
                       valueListenable: _currentPage,
                       builder: (_, value, _) {
                         return AnimatedSwitcher(
-                          duration: EMTimes.med,
+                          duration: 600.ms,
                           child: Image.asset(_pageData[value].imgSrc, key: ValueKey(value), width: 320.0),
                         );
                       },
@@ -183,11 +183,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
     return ValueListenableBuilder<int>(
       valueListenable: _currentPage,
       builder: (_, pageIndex, child) {
-        return AnimatedScale(
-          scale: pageIndex == _pageData.length - 1 ? 1.0 : 0.0,
-          duration: EMTimes.pageTransition,
-          child: child,
-        );
+        return AnimatedScale(scale: pageIndex == _pageData.length - 1 ? 1.0 : 0.0, duration: 200.ms, child: child);
       },
       child: IconButton(
         icon: const Icon(Icons.arrow_forward_rounded),

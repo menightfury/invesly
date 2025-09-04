@@ -1,8 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, avoid_print
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/authentication/auth_repository.dart';
+import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:path/path.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
@@ -55,6 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     // final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
@@ -63,118 +66,122 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SliverList(
               delegate: SliverChildListDelegate.fixed([
                 // ~~~ User Profile Section ~~~
-                Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    child: Column(
-                      spacing: 12.0,
-                      children: <Widget>[
-                        BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
-                          selector: (state) => state.currentUser,
-                          builder: (context, currentUser) {
-                            final user = currentUser ?? InveslyUser.empty();
-                            return Row(
-                              spacing: 8.0,
-                              children: <Widget>[
-                                CircleAvatar(
-                                  backgroundImage: user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
-                                ), // TODO: Cached network image
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(user.name.toSentenceCase()),
-                                    Text(user.email, style: TextStyle(fontSize: 12.0, color: Colors.grey[600])),
-                                  ],
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  child: Column(
+                    spacing: 2.0,
+                    children: <Widget>[
+                      BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
+                        selector: (state) => state.currentUser,
+                        builder: (context, currentUser) {
+                          final user = currentUser ?? InveslyUser.empty();
+                          return ListTile(
+                            title: Text(
+                              user.name.toSentenceCase(),
+                              style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            leading: CircleAvatar(
+                              backgroundImage: user.photoUrl != null
+                                  ? CachedNetworkImageProvider(user.photoUrl!)
+                                  : null,
+                              child: user.photoUrl == null ? const Icon(Icons.person, size: 32.0) : null,
+                            ),
+                            trailing: GestureDetector(
+                              onTap: () => context.push(const EditAccountScreen()),
+                              child: Text(
+                                'Add',
+                                style: context.textTheme.labelMedium?.copyWith(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              ],
-                            );
-                          },
-                        ),
+                              ),
+                            ),
+                            subtitle: Text(
+                              user.email,
+                              style: context.textTheme.labelMedium?.copyWith(color: context.colors.secondary),
+                            ),
+                            tileColor: context.colors.primaryContainer.darken(10),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20.0),
+                                bottom: Radius.circular(4.0),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
 
-                        InveslyDivider(),
+                      // InveslyDivider(),
+                      BlocBuilder<AccountsCubit, AccountsState>(
+                        builder: (context, state) {
+                          if (state is AccountsErrorState) {
+                            return Text('Failed to load accounts');
+                          }
 
-                        BlocBuilder<AccountsCubit, AccountsState>(
-                          builder: (context, state) {
-                            if (state is AccountsErrorState) {
-                              return Text('Failed to load accounts');
-                            }
+                          if (state is AccountsLoadedState) {
+                            final accounts = state.accounts;
 
-                            if (state is AccountsLoadedState) {
-                              final accounts = state.accounts;
-                              return BlocSelector<SettingsCubit, SettingsState, String?>(
-                                selector: (state) => state.currentAccountId,
-                                builder: (context, currentAccountId) {
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    spacing: 4.0,
-                                    children: <Widget>[
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: <Widget>[
-                                          Text('Accounts (${accounts.length})'),
-                                          GestureDetector(
-                                            onTap: () => context.push(const EditAccountScreen()),
-                                            child: Text(
-                                              'Add',
+                            return BlocSelector<SettingsCubit, SettingsState, String?>(
+                              selector: (state) => state.currentAccountId,
+                              builder: (context, currentAccountId) {
+                                return ColumnBuilder(
+                                  spacing: 2.0,
+                                  itemBuilder: (context, index) {
+                                    final account = accounts[index];
+                                    final isCurrentAccount = account.id == currentAccountId;
+                                    late final BorderRadius borderRadius;
+                                    if (index == accounts.length - 1) {
+                                      borderRadius = BorderRadius.vertical(
+                                        top: const Radius.circular(4.0),
+                                        bottom: AppConstants.cardBorderRadius.bottomLeft,
+                                      );
+                                    } else {
+                                      borderRadius = const BorderRadius.all(Radius.circular(4.0));
+                                    }
+                                    return ListTile(
+                                      // contentPadding: EdgeInsets.zero,
+                                      onTap: () => context.read<SettingsCubit>().saveCurrentAccount(account.id),
+                                      tileColor: context.colors.primaryContainer,
+                                      leading: CircleAvatar(backgroundImage: AssetImage(account.avatar)),
+                                      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+                                      title: Text(
+                                        account.name.toSentenceCase(),
+                                        style: context.textTheme.bodyMedium?.copyWith(
+                                          fontWeight: isCurrentAccount ? FontWeight.w600 : null,
+                                        ),
+                                      ),
+                                      subtitle: isCurrentAccount
+                                          ? Text(
+                                              'Primary Account',
                                               style: context.textTheme.labelMedium?.copyWith(
-                                                color: Colors.blue,
-                                                fontWeight: FontWeight.bold,
+                                                color: context.colors.secondary,
                                               ),
-                                            ),
-                                          ),
-                                        ],
+                                            )
+                                          : null,
+                                      trailing: IconButton(
+                                        onPressed: () => context.push(EditAccountScreen(initialAccount: account)),
+                                        icon: Icon(Icons.edit_note_rounded),
+                                        style: IconButton.styleFrom(
+                                          // foregroundColor: context.colors.onPrimary,
+                                          backgroundColor: Colors.black.withAlpha(0x1F),
+                                        ),
                                       ),
+                                    );
+                                  },
+                                  itemCount: accounts.length,
+                                );
+                              },
+                            );
+                          }
 
-                                      ColumnBuilder(
-                                        itemBuilder: (context, index) {
-                                          final account = accounts[index];
-                                          final isCurrentAccount = account.id == currentAccountId;
-                                          return ListTile(
-                                            contentPadding: EdgeInsets.zero,
-                                            onTap: () => context.read<SettingsCubit>().saveCurrentAccount(account.id),
-                                            leading: CircleAvatar(backgroundImage: AssetImage(account.avatar)),
-                                            title: Text(
-                                              account.name.toSentenceCase(),
-                                              style: context.textTheme.bodyMedium?.copyWith(
-                                                fontWeight: isCurrentAccount ? FontWeight.bold : null,
-                                              ),
-                                            ),
-                                            subtitle: isCurrentAccount
-                                                ? Text(
-                                                    'Current Account',
-                                                    style: context.textTheme.bodySmall?.copyWith(
-                                                      color: Colors.grey[600],
-                                                    ),
-                                                  )
-                                                : null,
-                                            trailing: IconButton(
-                                              onPressed: () => context.push(EditAccountScreen(initialAccount: account)),
-                                              icon: Icon(Icons.edit_note_rounded),
-                                              style: IconButton.styleFrom(
-                                                // foregroundColor: context.colors.onPrimary,
-                                                backgroundColor: Colors.black.withAlpha(0x1F),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        separatorBuilder: (_, _) => const SizedBox(height: 4.0),
-                                        itemCount: accounts.length,
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            }
-
-                            return CircularProgressIndicator();
-                          },
-                        ),
-                      ],
-                    ),
+                          return CircularProgressIndicator();
+                        },
+                      ),
+                    ],
                   ),
                 ),
+
+                const Gap(16.0),
 
                 // ~~~ Settings Section ~~~
                 SettingsSection(
@@ -215,6 +222,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
+
+                const Gap(16.0),
+
                 SettingsSection(
                   title: 'Appearance',
                   subTitle: 'App theme, colors',
@@ -270,6 +280,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
+
+                const Gap(16.0),
+
                 SettingsSection(
                   title: 'Backup & Restore',
                   subTitle: 'Last backup: 2023-10-01',
@@ -408,6 +421,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
+
+                const Gap(16.0),
+
                 SettingsSection(
                   title: 'Terms & Privacy',
                   subTitle: 'Privacy policy, terms of service, etc.',
@@ -427,6 +443,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
+
+                const Gap(16.0),
+
                 SettingsSection(
                   title: 'Help us',
                   subTitle: 'Thank you for your contribution to Invesly',

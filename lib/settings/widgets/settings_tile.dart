@@ -1,6 +1,6 @@
 import 'package:invesly/common_libs.dart';
 
-enum SettingsTileType { normal, navigation, toggle }
+enum _SettingsTileVariant { normal, navigation, toggle }
 
 class SettingsTile extends StatelessWidget {
   final String title;
@@ -11,7 +11,7 @@ class SettingsTile extends StatelessWidget {
   final ValueChanged<bool>? onChanged; // for switch tile only
   final bool enabled;
   final bool value; // for switch tile only
-  final SettingsTileType type;
+  final _SettingsTileVariant _type;
 
   const SettingsTile({
     super.key,
@@ -21,7 +21,7 @@ class SettingsTile extends StatelessWidget {
     this.trailingIcon,
     this.onTap,
     this.enabled = true,
-  }) : type = SettingsTileType.normal,
+  }) : _type = _SettingsTileVariant.normal,
        onChanged = null,
        value = false;
 
@@ -33,7 +33,7 @@ class SettingsTile extends StatelessWidget {
     Widget? trailingIcon,
     this.enabled = true,
     required this.onTap,
-  }) : type = SettingsTileType.navigation,
+  }) : _type = _SettingsTileVariant.navigation,
        value = false,
        onChanged = null,
        trailingIcon = trailingIcon ?? const Icon(Icons.keyboard_double_arrow_right_outlined);
@@ -46,19 +46,20 @@ class SettingsTile extends StatelessWidget {
     required this.value,
     this.enabled = true,
     this.onChanged,
-  }) : type = SettingsTileType.toggle,
+  }) : _type = _SettingsTileVariant.toggle,
        trailingIcon = null,
        onTap = null;
 
   @override
   Widget build(BuildContext context) {
+    final titleStyle = context.textTheme.bodyMedium?.copyWith(color: enabled ? null : context.theme.disabledColor);
     final subtitleStyle = context.textTheme.labelMedium?.copyWith(
       color: enabled ? context.colors.secondary : context.theme.disabledColor,
     );
-    if (type == SettingsTileType.toggle) {
+    if (_type == _SettingsTileVariant.toggle) {
       return SwitchListTile(
         key: key,
-        title: Text(title),
+        title: Text(title, style: titleStyle),
         subtitle: description != null ? Text(description!, style: subtitleStyle) : null,
         secondary: icon,
         value: value,
@@ -67,7 +68,7 @@ class SettingsTile extends StatelessWidget {
     }
 
     return ListTile(
-      title: Text(title, style: context.textTheme.bodyMedium),
+      title: Text(title, style: titleStyle),
       subtitle: description != null ? Text(description!, style: subtitleStyle) : null,
       leading: icon,
       trailing: trailingIcon,

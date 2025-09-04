@@ -11,6 +11,7 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/settings/settings_screen.dart';
+import 'package:invesly/settings/widgets/settings_section.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_classic.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
@@ -416,79 +417,68 @@ class _RecentTransactions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Material(
-        borderRadius: BorderRadius.circular(16.0),
-        clipBehavior: Clip.hardEdge,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            ListTile(
-              title: Text('Recent transactions', style: context.textTheme.headlineSmall),
-              leading: Icon(Icons.swap_vert_rounded),
-            ),
-            InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
-            BlocBuilder<DashboardCubit, DashboardState>(
-              builder: (context, state) {
-                if (state is DashboardLoadedState) {
-                  final rts = state.recentTransactions;
-                  if (rts.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                      child: Center(
-                        child: Column(
-                          spacing: 16.0,
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Text('Oops! This is so empty', style: context.textTheme.titleLarge),
-                            Text(
-                              'No transactions have been found.\nAdd a few transactions.',
-                              textAlign: TextAlign.center,
-                              style: context.textTheme.bodySmall,
-                            ),
-                          ],
+    return SettingsSection(
+      icon: const Icon(Icons.swap_vert_rounded),
+      title: 'Recent transactions',
+      tiles: [
+        BlocBuilder<DashboardCubit, DashboardState>(
+          builder: (context, state) {
+            if (state is DashboardLoadedState) {
+              final rts = state.recentTransactions;
+              if (rts.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                  child: Center(
+                    child: Column(
+                      spacing: 16.0,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text('Oops! This is so empty', style: context.textTheme.titleLarge),
+                        Text(
+                          'No transactions have been found.\nAdd a few transactions.',
+                          textAlign: TextAlign.center,
+                          style: context.textTheme.bodySmall,
                         ),
-                      ),
-                    );
-                  }
-                  return ColumnBuilder(
-                    itemBuilder: (context, index) {
-                      final rt = rts[index];
-                      return ListTile(
-                        leading: Icon(rt.transactionType.icon),
-                        title: Text(rt.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
-                        subtitle: Text(
-                          rt.investedOn.toReadable(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.textTheme.labelSmall,
-                        ),
-                        trailing: BlocSelector<SettingsCubit, SettingsState, bool>(
-                          selector: (state) => state.isPrivateMode,
-                          builder: (context, isPrivateMode) {
-                            return CurrencyView(
-                              amount: rt.totalAmount,
-                              integerStyle: context.textTheme.headlineSmall?.copyWith(
-                                color: rt.transactionType.color(context),
-                              ),
-                              privateMode: isPrivateMode,
-                            );
-                          },
-                        ),
-                        onTap: () {},
-                      );
-                    },
-                    itemCount: rts.length,
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return ColumnBuilder(
+                itemBuilder: (context, index) {
+                  final rt = rts[index];
+                  return ListTile(
+                    leading: Icon(rt.transactionType.icon),
+                    title: Text(rt.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
+                    subtitle: Text(
+                      rt.investedOn.toReadable(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textTheme.labelSmall,
+                    ),
+                    trailing: BlocSelector<SettingsCubit, SettingsState, bool>(
+                      selector: (state) => state.isPrivateMode,
+                      builder: (context, isPrivateMode) {
+                        return CurrencyView(
+                          amount: rt.totalAmount,
+                          integerStyle: context.textTheme.headlineSmall?.copyWith(
+                            color: rt.transactionType.color(context),
+                          ),
+                          privateMode: isPrivateMode,
+                        );
+                      },
+                    ),
+                    onTap: () {},
                   );
-                }
+                },
+                itemCount: rts.length,
+              );
+            }
 
-                return const Center(child: CircularProgressIndicator());
-              },
-            ),
-          ],
+            return const Center(child: CircularProgressIndicator());
+          },
         ),
-      ),
+      ],
     );
   }
 }
