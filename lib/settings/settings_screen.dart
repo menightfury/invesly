@@ -2,22 +2,21 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
-import 'package:invesly/authentication/auth_repository.dart';
-import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:path/path.dart';
+
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
+import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/user_model.dart';
+import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
+import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/settings/import_transactions/import_transactions_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-
-import 'widgets/settings_section.dart';
-import 'widgets/settings_tile.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -30,7 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    // _askForPermission(); // TODO: Popup not showing. Fix this
+    // _askForPermission();
   }
 
   // Future<void> _askForPermission() async {
@@ -184,18 +183,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Gap(16.0),
 
                 // ~~~ Settings Section ~~~
-                SettingsSection(
+                Section(
                   title: 'General',
                   subTitle: 'Currency, language, etc.',
                   // icon: const Icon(Icons.settings_outlined),
                   tiles: <Widget>[
-                    SettingsTile(
+                    SectionTile(
                       title: 'App language',
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       icon: const Icon(Icons.language_rounded),
                       description: 'English',
                     ),
-                    SettingsTile(
+                    SectionTile(
                       title: 'Currency',
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       icon: const Icon(Icons.attach_money_rounded),
@@ -204,7 +203,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     BlocSelector<SettingsCubit, SettingsState, bool>(
                       selector: (state) => state.isPrivateMode,
                       builder: (context, isPrivateMode) {
-                        return SettingsTile.switchTile(
+                        return SectionTile.switchTile(
                           icon: const Icon(Icons.privacy_tip_outlined),
                           title: 'Private mode',
                           description: 'Hide all monetary values',
@@ -213,7 +212,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         );
                       },
                     ),
-                    SettingsTile.navigation(
+                    SectionTile.navigation(
                       icon: const Icon(Icons.account_balance_outlined),
                       title: 'Add AMC',
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
@@ -225,7 +224,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 const Gap(16.0),
 
-                SettingsSection(
+                Section(
                   title: 'Appearance',
                   subTitle: 'App theme, colors',
                   // icon: const Icon(Icons.palette_outlined),
@@ -233,7 +232,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     BlocSelector<SettingsCubit, SettingsState, bool>(
                       selector: (state) => state.isDynamicColor,
                       builder: (context, isDynamic) {
-                        return SettingsTile.switchTile(
+                        return SectionTile.switchTile(
                           title: 'Dynamic color',
                           // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                           icon: const Icon(Icons.format_color_fill_rounded),
@@ -248,7 +247,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       builder: (context, state) {
                         final (isDynamic, accentColorInt) = state;
                         final accentColor = accentColorInt != null ? Color(accentColorInt) : context.colors.primary;
-                        return SettingsTile(
+                        return SectionTile(
                           title: 'Accent color',
                           // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                           icon: const Icon(Icons.color_lens_rounded),
@@ -270,7 +269,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     BlocSelector<SettingsCubit, SettingsState, bool>(
                       selector: (state) => state.isDarkMode,
                       builder: (context, isDarkMode) {
-                        return SettingsTile.switchTile(
+                        return SectionTile.switchTile(
                           title: 'Dark mode',
                           icon: const Icon(Icons.format_paint),
                           value: isDarkMode,
@@ -283,32 +282,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 const Gap(16.0),
 
-                SettingsSection(
+                Section(
                   title: 'Backup & Restore',
                   subTitle: 'Last backup: 2023-10-01',
                   // icon: const Icon(Icons.import_export_rounded),
                   tiles: [
-                    SettingsTile(
+                    SectionTile(
                       icon: const Icon(Icons.login),
                       title: 'Google Sign-in',
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       description: 'NA', // TODO:
                       // onTap: () => context.push(const SignInDemo()),
                     ),
-                    SettingsTile(
+                    SectionTile(
                       icon: const Icon(Icons.restore_page_outlined),
                       title: 'Restore',
                       description:
                           'Restore your data from a previously saved backup. This action will overwrite your current data.',
                       onTap: () {},
                     ),
-                    SettingsTile.navigation(
+                    SectionTile.navigation(
                       icon: const Icon(Icons.restore_rounded),
                       title: 'Manual import',
                       description: 'Import transaction from a .csv file.',
                       onTap: () => context.push(const ImportTransactionsScreen()),
                     ),
-                    SettingsTile(
+                    SectionTile(
                       title: 'Export transactions',
                       icon: const Icon(Icons.backup_outlined),
                       description: 'Export transactions locally to .csv file.',
@@ -342,7 +341,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         }
                       },
                     ),
-                    SettingsTile(
+                    SectionTile(
                       title: 'Backup locally',
                       icon: const Icon(Icons.import_export_rounded),
                       description: 'This will create a new backup file locally.',
@@ -379,7 +378,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         }
                       },
                     ),
-                    SettingsTile(
+                    SectionTile(
                       title: 'Drive backup',
                       icon: const Icon(Icons.backup_outlined),
                       description: 'Backup your data in a new backup file to Google Drive.',
@@ -399,7 +398,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         $logger.i('Backup created successfully');
                       },
                     ),
-                    SettingsTile(
+                    SectionTile(
                       title: 'Load drive files',
                       icon: const Icon(Icons.backup_outlined),
                       description: 'Load your data from a backup file in Google Drive.',
@@ -424,18 +423,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 const Gap(16.0),
 
-                SettingsSection(
+                Section(
                   title: 'Terms & Privacy',
                   subTitle: 'Privacy policy, terms of service, etc.',
                   // icon: const Icon(Icons.gavel_rounded),
                   tiles: [
-                    SettingsTile.navigation(
+                    SectionTile.navigation(
                       icon: const Icon(Icons.policy_outlined),
                       title: 'Privacy policy',
                       description: 'Read our privacy policy',
                       onTap: () {},
                     ),
-                    SettingsTile.navigation(
+                    SectionTile.navigation(
                       icon: const Icon(Icons.gavel_rounded),
                       title: 'Terms of use',
                       description: 'Read our terms of use',
@@ -446,29 +445,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 const Gap(16.0),
 
-                SettingsSection(
+                Section(
                   title: 'Help us',
                   subTitle: 'Thank you for your contribution to Invesly',
                   tiles: [
-                    SettingsTile.navigation(
+                    SectionTile.navigation(
                       icon: const Icon(Icons.star_rate_rounded),
                       title: 'Rate us',
                       description: 'Rate us on the Play Store',
                       onTap: () {},
                     ),
-                    SettingsTile(
+                    SectionTile(
                       icon: const Icon(Icons.share_rounded),
                       title: 'Share with friends',
                       description: 'Share Invesly with your friends and family',
                       onTap: () {},
                     ),
-                    SettingsTile(
+                    SectionTile(
                       icon: const Icon(Icons.feedback_outlined),
                       title: 'Feedback',
                       description: 'Report bugs, request features, or just say hi!',
                       onTap: () {},
                     ),
-                    SettingsTile(
+                    SectionTile(
                       icon: const Icon(Icons.volunteer_activism_rounded),
                       title: 'Donate',
                       description: 'Support the development of Invesly',

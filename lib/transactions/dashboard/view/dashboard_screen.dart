@@ -1,22 +1,22 @@
 // ignore_for_file: unused_element
 
 import 'package:google_sign_in/google_sign_in.dart';
+
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/authentication/user_model.dart';
-
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
 import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
+import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 import 'package:invesly/settings/settings_screen.dart';
-import 'package:invesly/settings/widgets/settings_section.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_classic.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -417,7 +417,7 @@ class _RecentTransactions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SettingsSection(
+    return Section(
       icon: const Icon(Icons.swap_vert_rounded),
       title: 'Recent transactions',
       tiles: [
