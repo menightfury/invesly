@@ -22,7 +22,7 @@ class CalculatorState extends Equatable {
 enum CalculatorOperator {
   add('+'),
   subtract('-'),
-  multiply('x'),
+  multiply('×'), // \u00D7
   divide('÷');
 
   final String symbol;

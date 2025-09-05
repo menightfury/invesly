@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:invesly/common_libs.dart';
 import 'package:invesly/constants.dart';
 
 import 'cubit/calculator_cubit.dart';
@@ -12,17 +13,17 @@ class InveslyCalculatorWidget extends StatelessWidget {
   const InveslyCalculatorWidget({super.key, this.initialAmount, this.onSubmit});
 
   final num? initialAmount;
-  final ValueChanged<double>? onSubmit;
+  final ValueChanged<num>? onSubmit;
 
-  static Future<double?> showModal(BuildContext context, [num? initialAmount]) async {
-    return await showModalBottomSheet<double>(
+  static Future<num?> showModal(BuildContext context, [num? initialAmount]) async {
+    return await showModalBottomSheet<num>(
       context: context,
       // enableDrag: false,
       // isScrollControlled: true,
       builder: (context) {
         return InveslyCalculatorWidget(
           initialAmount: initialAmount,
-          onSubmit: (value) => Navigator.maybePop<double>(context, value),
+          onSubmit: (value) => Navigator.maybePop<num>(context, value),
         );
       },
     );
@@ -89,7 +90,7 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
         ].contains(key)) {
           final number = int.tryParse(key.keyLabel);
           if (number != null) {
-            cubit.handleNumber(number);
+            cubit.handleNumberPressed(number);
           }
         } else if ([
           LogicalKeyboardKey.add,
@@ -102,20 +103,20 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
         ].contains(key)) {
           final operator = CalculatorOperator.fromString(key.keyLabel);
           if (operator != null) {
-            cubit.handleOperator(operator);
+            cubit.handleOperatorPressed(operator);
           }
         } else if ([
           LogicalKeyboardKey.period,
           LogicalKeyboardKey.numpadDecimal,
           LogicalKeyboardKey.comma,
         ].contains(key)) {
-          cubit.handleDecimal();
+          cubit.handleDecimalPressed();
         } else if (key == LogicalKeyboardKey.backspace) {
-          cubit.handleBackspace();
+          cubit.handleBackspacePressed();
         } else if (key == LogicalKeyboardKey.delete) {
-          cubit.handleClear();
+          cubit.handleClearPressed();
         } else if (key == LogicalKeyboardKey.enter) {
-          cubit.calculateOrSubmit();
+          cubit.calculate();
         }
 
         return KeyEventResult.handled;
@@ -152,39 +153,42 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: <Widget>[
                 // ~ Left operand and operator
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  spacing: 4.0,
-                  children: [
-                    BlocSelector<CalculatorCubit, CalculatorState, String>(
-                      selector: (state) => state.leftOperand,
-                      builder: (_, data) {
-                        return Text(
-                          data,
-                          textAlign: TextAlign.right,
-                          style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
-                        );
-                      },
-                    ),
+                SizedBox(
+                  height: 30.0, // To avoid layout shift when left operand is empty
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    spacing: 4.0,
+                    children: <Widget>[
+                      BlocSelector<CalculatorCubit, CalculatorState, String>(
+                        selector: (state) => state.leftOperand,
+                        builder: (_, data) {
+                          return Text(
+                            data,
+                            textAlign: TextAlign.right,
+                            style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
+                          );
+                        },
+                      ),
 
-                    BlocSelector<CalculatorCubit, CalculatorState, CalculatorOperator?>(
-                      selector: (state) => state.operator,
-                      builder: (_, data) {
-                        return Text(
-                          data?.symbol ?? '',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
-                        );
-                      },
-                    ),
-                  ],
+                      BlocSelector<CalculatorCubit, CalculatorState, CalculatorOperator?>(
+                        selector: (state) => state.operator,
+                        builder: (_, data) {
+                          return Text(
+                            data?.symbol ?? '',
+                            textAlign: TextAlign.right,
+                            style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
 
                 // ~ Right operand
                 BlocSelector<CalculatorCubit, CalculatorState, String>(
                   selector: (state) => state.rightOperand,
                   builder: (_, rightOperand) {
-                    return _NumberDisplayer(double.tryParse(rightOperand) ?? 0.0);
+                    return _NumberDisplayer(num.tryParse(rightOperand) ?? 0);
                   },
                 ),
               ],
@@ -201,26 +205,26 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                 spacing: 2.0,
                 children: <Widget>[
                   _CalculatorButton(
-                    onPressed: cubit.handleToggleSign,
+                    onPressed: cubit.handleToggleSignPressed,
                     icon: const Icon(Icons.exposure_rounded),
                     bgColor: themeColor.primary,
                     textColor: themeColor.onPrimary,
                     borderRadius: _kButtonBorderRadius.copyWith(topLeft: AppConstants.buttonBorderRadius.topLeft),
                   ),
                   _CalculatorButton(
-                    onPressed: cubit.handleBackspace,
+                    onPressed: cubit.handleBackspacePressed,
                     icon: const Icon(Icons.backspace_rounded),
                     textColor: themeColor.onErrorContainer,
                     bgColor: themeColor.errorContainer,
                   ),
                   _CalculatorButton(
-                    onPressed: cubit.handleClear,
+                    onPressed: cubit.handleClearPressed,
                     label: 'AC',
                     textColor: themeColor.onErrorContainer,
                     bgColor: themeColor.errorContainer,
                   ),
                   _CalculatorButton(
-                    onPressed: () => cubit.handleOperator(CalculatorOperator.divide),
+                    onPressed: () => cubit.handleOperatorPressed(CalculatorOperator.divide),
                     label: CalculatorOperator.divide.symbol,
                     textColor: themeColor.onPrimary,
                     bgColor: themeColor.primary,
@@ -231,11 +235,11 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
               Row(
                 spacing: 2.0,
                 children: <Widget>[
-                  _CalculatorButton(onPressed: () => cubit.handleNumber(1), label: '1'),
-                  _CalculatorButton(onPressed: () => cubit.handleNumber(2), label: '2'),
-                  _CalculatorButton(onPressed: () => cubit.handleNumber(3), label: '3'),
+                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(1), label: '1'),
+                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(2), label: '2'),
+                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(3), label: '3'),
                   _CalculatorButton(
-                    onPressed: () => cubit.handleOperator(CalculatorOperator.multiply),
+                    onPressed: () => cubit.handleOperatorPressed(CalculatorOperator.multiply),
                     label: CalculatorOperator.multiply.symbol,
                     textColor: themeColor.onPrimary,
                     bgColor: themeColor.primary,
@@ -245,11 +249,11 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
               Row(
                 spacing: 2.0,
                 children: <Widget>[
-                  _CalculatorButton(onPressed: () => cubit.handleNumber(4), label: '4'),
-                  _CalculatorButton(onPressed: () => cubit.handleNumber(5), label: '5'),
-                  _CalculatorButton(onPressed: () => cubit.handleNumber(6), label: '6'),
+                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(4), label: '4'),
+                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(5), label: '5'),
+                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(6), label: '6'),
                   _CalculatorButton(
-                    onPressed: () => cubit.handleOperator(CalculatorOperator.subtract),
+                    onPressed: () => cubit.handleOperatorPressed(CalculatorOperator.subtract),
                     label: CalculatorOperator.subtract.symbol,
                     textColor: themeColor.onPrimary,
                     bgColor: themeColor.primary,
@@ -259,11 +263,11 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
               Row(
                 spacing: 2.0,
                 children: <Widget>[
-                  _CalculatorButton(onPressed: () => cubit.handleNumber(7), label: '7'),
-                  _CalculatorButton(onPressed: () => cubit.handleNumber(8), label: '8'),
-                  _CalculatorButton(onPressed: () => cubit.handleNumber(9), label: '9'),
+                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(7), label: '7'),
+                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(8), label: '8'),
+                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(9), label: '9'),
                   _CalculatorButton(
-                    onPressed: () => cubit.handleOperator(CalculatorOperator.add),
+                    onPressed: () => cubit.handleOperatorPressed(CalculatorOperator.add),
                     label: CalculatorOperator.add.symbol,
                     bgColor: themeColor.primary,
                     textColor: themeColor.onPrimary,
@@ -278,7 +282,7 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                     builder: (context, hasDecimal) {
                       return _CalculatorButton(
                         disabled: hasDecimal,
-                        onPressed: () => cubit.handleDecimal(),
+                        onPressed: () => cubit.handleDecimalPressed(),
                         label: '.',
                         borderRadius: _kButtonBorderRadius.copyWith(
                           bottomLeft: AppConstants.buttonBorderRadius.bottomLeft,
@@ -286,23 +290,26 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                       );
                     },
                   ),
-                  _CalculatorButton(onPressed: () => cubit.handleNumber(0), label: '0'),
+                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(0), label: '0'),
                   BlocBuilder<CalculatorCubit, CalculatorState>(
-                    buildWhen: (previous, current) {
-                      return (previous.leftOperand != current.leftOperand &&
-                              (current.leftOperand.isZeroOrEmpty || previous.leftOperand.isZeroOrEmpty)) ||
-                          (previous.rightOperand != current.rightOperand &&
-                              (current.rightOperand.isZeroOrEmpty || previous.rightOperand.isZeroOrEmpty));
-                    },
+                    // buildWhen: (previous, current) {
+                    //   return (previous.leftOperand != current.leftOperand &&
+                    //           (current.leftOperand.isZeroOrEmpty || previous.leftOperand.isZeroOrEmpty)) ||
+                    //       (previous.rightOperand != current.rightOperand &&
+                    //           (current.rightOperand.isZeroOrEmpty || previous.rightOperand.isZeroOrEmpty));
+                    // },
                     builder: (context, state) {
                       debugPrint('Rebuilding submit button');
                       return _CalculatorButton(
                         disabled: state.leftOperand.isZeroOrEmpty && state.rightOperand.isZeroOrEmpty,
                         onPressed: () {
-                          cubit.calculateOrSubmit();
+                          if (state.leftOperand.isNotZeroOrEmpty && state.operator != null) {
+                            cubit.calculate();
+                          }
 
                           // XOR operation
                           if (state.leftOperand.isZeroOrEmpty ^ state.rightOperand.isZeroOrEmpty) {
+                            $logger.w(state.rightOperand);
                             widget.onSubmit?.call(double.tryParse(state.rightOperand) ?? 0.0);
                           }
                         },
@@ -360,15 +367,32 @@ class _CalculatorButton extends StatelessWidget {
       flex: flex,
       child: TextButton(
         onPressed: disabled ? null : onPressed,
-        style: TextButton.styleFrom(
-          minimumSize: const Size.fromHeight(56.0),
-          foregroundColor: textColor ?? theme.colorScheme.onPrimaryContainer,
-          backgroundColor: bgColor ?? theme.colorScheme.primaryContainer,
-          disabledForegroundColor: textColor?.withAlpha(200) ?? Colors.black38,
-          disabledBackgroundColor: bgColor?.withAlpha(100) ?? theme.colorScheme.surface,
-          padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(borderRadius: borderRadius),
+        style: ButtonStyle(
+          minimumSize: WidgetStateProperty.all(const Size.fromHeight(56.0)),
+          backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return bgColor?.withAlpha(100) ?? theme.disabledColor;
+            }
+            return bgColor ?? theme.colorScheme.primaryContainer;
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return textColor?.withAlpha(200) ?? Colors.black38;
+            }
+            return textColor ?? theme.colorScheme.onPrimaryContainer;
+          }),
+          padding: WidgetStateProperty.all(EdgeInsets.zero),
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: borderRadius)),
         ),
+        // style: TextButton.styleFrom(
+        //   minimumSize: const Size.fromHeight(56.0),
+        //   backgroundColor: bgColor ?? theme.colorScheme.primaryContainer,
+        //   foregroundColor: textColor ?? theme.colorScheme.onPrimaryContainer,
+        //   disabledBackgroundColor: bgColor?.withAlpha(100) ?? theme.disabledColor,
+        //   disabledForegroundColor: textColor?.withAlpha(200) ?? Colors.black38,
+        //   padding: EdgeInsets.zero,
+        //   shape: RoundedRectangleBorder(borderRadius: borderRadius),
+        // ),
         child: child,
       ),
     );
@@ -379,46 +403,35 @@ class _CalculatorButton extends StatelessWidget {
 class _NumberDisplayer extends StatelessWidget {
   const _NumberDisplayer(this.amount, [this.format]);
 
-  final double amount;
+  final num amount;
   final RegExp? format;
-
-  List<String?>? formatAmount(String data) {
-    final match = format?.firstMatch(data);
-    if (match == null) return null;
-
-    final List<String?> strings = [];
-    for (int i = 0; i < match.groupCount; i++) {
-      strings.add(match.group(i + 1));
-    }
-    return strings;
-  }
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.secondary;
-    final data = NumberFormat.decimalPattern('en_IN').format(amount);
-    final fData = formatAmount(data);
-
-    if (fData == null) {
-      return Text(
-        data,
-        style: TextStyle(fontSize: 40.0, color: color),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      );
-    }
+    $logger.d('Building number displayer for $amount');
+    final parts = amount.toString().split('.');
+    // final data = NumberFormat.decimalPattern('en_IN').format(amount);
+    // final fData = formatAmount(data);
+    final integer = int.tryParse(parts[0]) ?? 0;
 
     return Text.rich(
       TextSpan(
-        text: fData[0] ?? '',
-        style: TextStyle(fontSize: 40.0, color: color.withAlpha(125)),
+        style: const TextStyle(fontSize: 36.0),
         children: <TextSpan>[
-          if (fData.length > 1)
-            TextSpan(
-              text: fData[1] ?? '',
-              style: TextStyle(fontSize: 72.0, color: color),
-            ),
-          if (fData.length > 2) TextSpan(text: fData.sublist(2).where((e) => e != null).join()),
+          // Integer part
+          TextSpan(text: NumberFormat.decimalPattern('en_IN').format(integer)),
+
+          if (parts.length > 1) ...[
+            // Decimal separator
+            TextSpan(text: '.'),
+            // Decimal part
+            TextSpan(text: parts[1], style: TextStyle(fontSize: 28.0)),
+          ],
+          // TextSpan(
+          //   text: parts[1] ?? '',
+          //   style: TextStyle(fontSize: 72.0, color: color),
+          // ),
+          // if (fData.length > 2) TextSpan(text: fData.sublist(2).where((e) => e != null).join()),
         ],
       ),
       maxLines: 1,

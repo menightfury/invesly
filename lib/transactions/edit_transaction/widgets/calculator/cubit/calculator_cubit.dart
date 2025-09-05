@@ -24,7 +24,7 @@ class CalculatorCubit extends Cubit<CalculatorState> {
   String get _right => state.rightOperand.trim();
 
   /// Right operand preixed with - sign
-  void handleToggleSign() {
+  void handleToggleSignPressed() {
     if (_right.startsWith('-')) {
       _setRightOperand(_right.substring(1));
       return;
@@ -35,7 +35,7 @@ class CalculatorCubit extends Cubit<CalculatorState> {
   /// Handle number (0-9) pressed
   /// If the expression has only zero, whole expression will be replaced, (only if the number tapped is not zero)
   /// For all other cases, the number tapped will be appended
-  void handleNumber(int number) {
+  void handleNumberPressed(int number) {
     String right = _right;
     if (right == '0') {
       if (number == 0) return;
@@ -48,7 +48,7 @@ class CalculatorCubit extends Cubit<CalculatorState> {
   /// Handle decimal (.) pressed.
   /// If the expression has a decimal, nothing will happen.
   /// If the expression is empty, a '0' will be prefixed
-  void handleDecimal() {
+  void handleDecimalPressed() {
     String right = _right;
     if (right.hasDecimal) return;
 
@@ -62,7 +62,7 @@ class CalculatorCubit extends Cubit<CalculatorState> {
   /// Existing operator will be replaced with the new one.
   /// Left operand will be calculated (only if right operand is not empty).
   /// Right operand be set to empty.
-  void handleOperator(CalculatorOperator operator) {
+  void handleOperatorPressed(CalculatorOperator operator) {
     String left = _left;
     if (_right.isZeroOrEmpty) {
       if (_left.isZeroOrEmpty) left = '0';
@@ -78,26 +78,27 @@ class CalculatorCubit extends Cubit<CalculatorState> {
   }
 
   /// Handle clearing screen
-  void handleClear() {
+  void handleClearPressed() {
     emit(state.copyWith(leftOperand: '', rightOperand: '0', operator: null));
   }
 
   /// Handle backspace (delete last character)
-  void handleBackspace() {
+  void handleBackspacePressed() {
     if (_right.isEmpty) return;
     final right = _right.substring(0, _right.length - 1);
     _setRightOperand(right.isEmpty ? '0' : right);
   }
 
   /// Calculate or Submit result
-  void calculateOrSubmit() {
+  void calculate() {
+    if (_left.isEmpty || state.operator == null) return;
     emit(CalculatorState(leftOperand: '', rightOperand: '$result', operator: null));
   }
 
   double get result {
     final left = double.tryParse(_left) ?? 0.0;
     final right = double.tryParse(_right) ?? 0.0;
-    if (state.operator == null) return 0.0;
+    if (state.operator == null) return right;
 
     return state.operator!.apply(left, right);
   }

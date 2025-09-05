@@ -44,7 +44,7 @@ class CurrencyView extends StatelessWidget {
   final int? decimalDigits;
   final bool compactView;
 
-  int get _compactLimit => 1000;
+  final _compactLimit = 1000;
   bool get _shouldCompact => compactView && amount.abs() >= _compactLimit;
 
   NumberFormat _getFormatter() {
@@ -80,7 +80,7 @@ class CurrencyView extends StatelessWidget {
           TextSpan(text: parts[0], style: integerStyle),
 
           if (parts.length > 1) ...[
-            // Decimal separator:
+            // Decimal separator
             TextSpan(text: '.', style: integerStyle), // TODO: decimal_separator
             // Decimal part
             TextSpan(text: parts[1], style: _shouldCompact ? integerStyle : (decimalsStyle ?? integerStyle)),

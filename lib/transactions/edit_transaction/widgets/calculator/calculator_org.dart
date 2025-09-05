@@ -586,7 +586,7 @@
 // enum CalculatorOperator {
 //   add('+'),
 //   subtract('-'),
-//   multiply('x'),
+//   multiply('×'),
 //   divide('÷');
 
 //   final String symbol;

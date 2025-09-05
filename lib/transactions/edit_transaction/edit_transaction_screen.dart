@@ -146,7 +146,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           // ~ Amount
-                          AsyncFormField<double>(
+                          AsyncFormField<num>(
                             initialValue: cubit.state.amount,
                             validator: (value) {
                               if (value == null || value.isNegative) {
@@ -161,7 +161,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                             },
                             onChanged: (value) {
                               if (value == null) return;
-                              cubit.updateAmount(value);
+                              cubit.updateAmount(value.toDouble());
                             },
                             contentAlignment: Alignment.center,
                             padding: EdgeInsets.zero,
@@ -185,7 +185,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                             children: <Widget>[
                               // ~ Units
                               Expanded(
-                                child: AsyncFormField<double>(
+                                child: AsyncFormField<num>(
                                   initialValue: cubit.state.quantity,
                                   validator: (value) {
                                     if (value == null) {
@@ -203,7 +203,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                   },
                                   onChanged: (value) {
                                     if (value == null) return;
-                                    cubit.updateQuantity(value);
+                                    cubit.updateQuantity(value.toDouble());
                                   },
                                   childBuilder: (value) {
                                     if (value == null) {

@@ -152,7 +152,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                             children: <Widget>[
                               // ~ Units
                               Expanded(
-                                child: AsyncFormField<double>(
+                                child: AsyncFormField<num>(
                                   initialValue: cubit.state.quantity,
                                   validator: (value) {
                                     if (value == null) {
@@ -164,13 +164,16 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                     return null;
                                   },
                                   onTapCallback: () async {
-                                    final value = await InveslyCalculatorWidget.showModal(context);
+                                    final value = await InveslyCalculatorWidget.showModal(
+                                      context,
+                                      cubit.state.quantity,
+                                    );
                                     if (value == null) return null;
                                     return value;
                                   },
                                   onChanged: (value) {
                                     if (value == null) return;
-                                    cubit.updateQuantity(value);
+                                    cubit.updateQuantity(value.toDouble());
                                   },
                                   childBuilder: (value) {
                                     if (value == null) {
@@ -191,7 +194,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
 
                               // ~ Amount
                               Expanded(
-                                child: AsyncFormField<double>(
+                                child: AsyncFormField<num>(
                                   initialValue: cubit.state.amount,
                                   validator: (value) {
                                     if (value == null || value.isNegative) {
@@ -200,14 +203,14 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                     return null;
                                   },
                                   onTapCallback: () async {
-                                    final value = await InveslyCalculatorWidget.showModal(context);
+                                    final value = await InveslyCalculatorWidget.showModal(context, cubit.state.amount);
                                     if (value == null) return null;
                                     return value;
                                   },
 
                                   onChanged: (value) {
                                     if (value == null) return;
-                                    cubit.updateAmount(value);
+                                    cubit.updateAmount(value.toDouble());
                                   },
                                   childBuilder: (value) {
                                     if (value == null) {
