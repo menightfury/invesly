@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:invesly/constants.dart';
 
 import 'cubit/calculator_cubit.dart';
+
+const _kButtonBorderRadius = BorderRadius.all(Radius.circular(4.0));
 
 class InveslyCalculatorWidget extends StatelessWidget {
   const InveslyCalculatorWidget({super.key, this.initialAmount, this.onSubmit});
@@ -180,8 +183,8 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                 // ~ Right operand
                 BlocSelector<CalculatorCubit, CalculatorState, String>(
                   selector: (state) => state.rightOperand,
-                  builder: (_, data) {
-                    return _NumberDisplayer(double.tryParse(data) ?? 0.0);
+                  builder: (_, rightOperand) {
+                    return _NumberDisplayer(double.tryParse(rightOperand) ?? 0.0);
                   },
                 ),
               ],
@@ -192,10 +195,18 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
 
           // ~ Buttons
           Column(
+            spacing: 2.0,
             children: <Widget>[
               Row(
+                spacing: 2.0,
                 children: <Widget>[
-                  _CalculatorButton(onPressed: cubit.handleToggleSign, icon: Icon(Icons.exposure_rounded)),
+                  _CalculatorButton(
+                    onPressed: cubit.handleToggleSign,
+                    icon: const Icon(Icons.exposure_rounded),
+                    bgColor: themeColor.primary,
+                    textColor: themeColor.onPrimary,
+                    borderRadius: _kButtonBorderRadius.copyWith(topLeft: AppConstants.buttonBorderRadius.topLeft),
+                  ),
                   _CalculatorButton(
                     onPressed: cubit.handleBackspace,
                     icon: const Icon(Icons.backspace_rounded),
@@ -211,12 +222,14 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                   _CalculatorButton(
                     onPressed: () => cubit.handleOperator(CalculatorOperator.divide),
                     label: CalculatorOperator.divide.symbol,
-                    textColor: themeColor.onPrimaryContainer,
-                    bgColor: themeColor.primaryContainer,
+                    textColor: themeColor.onPrimary,
+                    bgColor: themeColor.primary,
+                    borderRadius: _kButtonBorderRadius.copyWith(topRight: AppConstants.buttonBorderRadius.topRight),
                   ),
                 ],
               ),
               Row(
+                spacing: 2.0,
                 children: <Widget>[
                   _CalculatorButton(onPressed: () => cubit.handleNumber(1), label: '1'),
                   _CalculatorButton(onPressed: () => cubit.handleNumber(2), label: '2'),
@@ -224,12 +237,13 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                   _CalculatorButton(
                     onPressed: () => cubit.handleOperator(CalculatorOperator.multiply),
                     label: CalculatorOperator.multiply.symbol,
-                    textColor: themeColor.onPrimaryContainer,
-                    bgColor: themeColor.primaryContainer,
+                    textColor: themeColor.onPrimary,
+                    bgColor: themeColor.primary,
                   ),
                 ],
               ),
               Row(
+                spacing: 2.0,
                 children: <Widget>[
                   _CalculatorButton(onPressed: () => cubit.handleNumber(4), label: '4'),
                   _CalculatorButton(onPressed: () => cubit.handleNumber(5), label: '5'),
@@ -237,12 +251,13 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                   _CalculatorButton(
                     onPressed: () => cubit.handleOperator(CalculatorOperator.subtract),
                     label: CalculatorOperator.subtract.symbol,
-                    textColor: themeColor.onPrimaryContainer,
-                    bgColor: themeColor.primaryContainer,
+                    textColor: themeColor.onPrimary,
+                    bgColor: themeColor.primary,
                   ),
                 ],
               ),
               Row(
+                spacing: 2.0,
                 children: <Widget>[
                   _CalculatorButton(onPressed: () => cubit.handleNumber(7), label: '7'),
                   _CalculatorButton(onPressed: () => cubit.handleNumber(8), label: '8'),
@@ -250,12 +265,13 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                   _CalculatorButton(
                     onPressed: () => cubit.handleOperator(CalculatorOperator.add),
                     label: CalculatorOperator.add.symbol,
-                    textColor: themeColor.onPrimaryContainer,
-                    bgColor: themeColor.primaryContainer,
+                    bgColor: themeColor.primary,
+                    textColor: themeColor.onPrimary,
                   ),
                 ],
               ),
               Row(
+                spacing: 2.0,
                 children: <Widget>[
                   BlocSelector<CalculatorCubit, CalculatorState, bool>(
                     selector: (state) => state.rightOperand.hasDecimal,
@@ -264,6 +280,9 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                         disabled: hasDecimal,
                         onPressed: () => cubit.handleDecimal(),
                         label: '.',
+                        borderRadius: _kButtonBorderRadius.copyWith(
+                          bottomLeft: AppConstants.buttonBorderRadius.bottomLeft,
+                        ),
                       );
                     },
                   ),
@@ -288,13 +307,15 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                           }
                         },
                         label: (state.leftOperand.isZeroOrEmpty || state.rightOperand.isZeroOrEmpty) ? null : '=',
-                        icon:
-                            (state.leftOperand.isZeroOrEmpty || state.rightOperand.isZeroOrEmpty)
-                                ? Icon(Icons.check_rounded)
-                                : null,
+                        icon: (state.leftOperand.isZeroOrEmpty || state.rightOperand.isZeroOrEmpty)
+                            ? Icon(Icons.check_rounded)
+                            : null,
                         flex: 2,
                         textColor: themeColor.onPrimary,
                         bgColor: themeColor.primary,
+                        borderRadius: _kButtonBorderRadius.copyWith(
+                          bottomRight: AppConstants.buttonBorderRadius.bottomRight,
+                        ),
                       );
                     },
                   ),
@@ -316,6 +337,7 @@ class _CalculatorButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final int flex;
   final bool disabled;
+  final BorderRadius borderRadius;
 
   const _CalculatorButton({
     this.flex = 1,
@@ -325,30 +347,29 @@ class _CalculatorButton extends StatelessWidget {
     this.textColor,
     this.bgColor,
     this.disabled = false,
+    this.borderRadius = _kButtonBorderRadius,
   }) : assert(icon != null || label != null, "Either label or icon has to be assigned"),
        assert(label == null || icon == null, "Both label and icon can't be assigned");
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final child = icon ?? Text(label!);
+    final child = icon ?? Text(label!, style: const TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600));
 
     return Expanded(
       flex: flex,
-      child: Padding(
-        padding: const EdgeInsets.all(2.0),
-        child: TextButton(
-          onPressed: disabled ? null : onPressed,
-          style: TextButton.styleFrom(
-            minimumSize: const Size.fromHeight(48.0),
-            foregroundColor: textColor ?? Colors.black,
-            backgroundColor: bgColor ?? Colors.white,
-            disabledForegroundColor: textColor?.withAlpha(200) ?? Colors.black38,
-            disabledBackgroundColor: bgColor?.withAlpha(100) ?? theme.colorScheme.surface,
-            padding: EdgeInsets.zero,
-          ),
-          child: child,
+      child: TextButton(
+        onPressed: disabled ? null : onPressed,
+        style: TextButton.styleFrom(
+          minimumSize: const Size.fromHeight(56.0),
+          foregroundColor: textColor ?? theme.colorScheme.onPrimaryContainer,
+          backgroundColor: bgColor ?? theme.colorScheme.primaryContainer,
+          disabledForegroundColor: textColor?.withAlpha(200) ?? Colors.black38,
+          disabledBackgroundColor: bgColor?.withAlpha(100) ?? theme.colorScheme.surface,
+          padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: borderRadius),
         ),
+        child: child,
       ),
     );
   }
@@ -374,26 +395,34 @@ class _NumberDisplayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final color = Theme.of(context).colorScheme.secondary;
+    final color = Theme.of(context).colorScheme.secondary;
     final data = NumberFormat.decimalPattern('en_IN').format(amount);
-    // final fData = formatAmount(data);
+    final fData = formatAmount(data);
 
-    return Text(data);
-    // if (fData == null) {
-    //   return Text(data, style: TextStyle(fontSize: 40.0, color: color), maxLines: 1, overflow: TextOverflow.ellipsis);
-    // }
+    if (fData == null) {
+      return Text(
+        data,
+        style: TextStyle(fontSize: 40.0, color: color),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
 
-    // return Text.rich(
-    //   TextSpan(
-    //     text: fData[0] ?? '',
-    //     style: TextStyle(fontSize: 40.0, color: color.withAlpha(125)),
-    //     children: <TextSpan>[
-    //       if (fData.length > 1) TextSpan(text: fData[1] ?? '', style: TextStyle(fontSize: 72.0, color: color)),
-    //       if (fData.length > 2) TextSpan(text: fData.sublist(2).where((e) => e != null).join()),
-    //     ],
-    //   ),
-    //   maxLines: 1,
-    //   overflow: TextOverflow.ellipsis,
-    // );
+    return Text.rich(
+      TextSpan(
+        text: fData[0] ?? '',
+        style: TextStyle(fontSize: 40.0, color: color.withAlpha(125)),
+        children: <TextSpan>[
+          if (fData.length > 1)
+            TextSpan(
+              text: fData[1] ?? '',
+              style: TextStyle(fontSize: 72.0, color: color),
+            ),
+          if (fData.length > 2) TextSpan(text: fData.sublist(2).where((e) => e != null).join()),
+        ],
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
   }
 }
