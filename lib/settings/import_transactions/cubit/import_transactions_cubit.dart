@@ -23,7 +23,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
     try {
       final csvString = await File(result.files.first.path!).readAsString();
-      final parsedCSV = BackupDatabaseService.processCsv(csvString);
+      final parsedCSV = BackupRestoreRepository.processCsv(csvString);
 
       final firstRowLength = parsedCSV.first.length;
 

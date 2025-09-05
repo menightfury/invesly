@@ -394,7 +394,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         late final SnackBar snackBar;
                         try {
                           final csvData = await context.read<TransactionRepository>().transactionsToCsv();
-                          final file = await BackupDatabaseService.exportCsv(csvData);
+                          final file = await BackupRestoreRepository.exportCsv(csvData);
                           if (file != null) {
                             final fileName = basename(file.path);
                             snackBar = SnackBar(
@@ -432,7 +432,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           //   return;
                           // }
 
-                          final file = await BackupDatabaseService.exportDatabaseFile();
+                          final file = await BackupRestoreRepository.exportDatabaseFile();
                           if (file != null) {
                             snackBar = SnackBar(
                               content: Text('File saved successfully, ${file.path}'),

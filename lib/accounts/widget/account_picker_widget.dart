@@ -1,7 +1,9 @@
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 class InveslyAccountPickerWidget extends StatelessWidget {
   const InveslyAccountPickerWidget({super.key, this.accountId, this.onPickup});
@@ -12,6 +14,7 @@ class InveslyAccountPickerWidget extends StatelessWidget {
   static Future<InveslyAccount?> showModal(BuildContext context, [String? accountId]) async {
     return await showModalBottomSheet<InveslyAccount>(
       context: context,
+      // isScrollControlled: true,
       builder: (context) {
         return InveslyAccountPickerWidget(
           accountId: accountId,
@@ -25,49 +28,44 @@ class InveslyAccountPickerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AccountsCubit, AccountsState>(
       builder: (context, state) {
-        if (state is AccountsErrorState) {
-          return const PMErrorWidget();
-        }
+        final isLoading = state.isLoading;
+        final isError = state.isError;
+        final accounts = state.isLoaded ? (state as AccountsLoadedState).accounts : null;
 
-        if (state is AccountsLoadedState) {
-          final accounts = state.accounts;
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Column(
+            children: <Widget>[
+              ColumnBuilder(
+                itemBuilder: (context, index) {
+                  final account = accounts?.elementAt(index);
 
-          if (accounts.isEmpty) {
-            return const EmptyWidget(label: 'No accounts exists');
-          }
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Column(
-              children: <Widget>[
-                ColumnBuilder(
-                  itemBuilder: (context, index) {
-                    final account = accounts[index];
-
-                    return ListTile(
-                      leading: CircleAvatar(foregroundImage: AssetImage(account.avatar)),
-                      title: Text(account.name),
-                      trailing: account.id == accountId ? const Icon(Icons.check_rounded) : null,
-                      onTap: () => onPickup?.call(account),
-                    );
-                  },
-                  itemCount: accounts.length,
-                ),
-                ListTile(
-                  leading: const Icon(Icons.add_reaction_rounded),
-                  title: const Text('Add new account'),
-                  onTap: () {
-                    // Navigator.maybePop(context);
-                    // context.push(AppRouter.editAccount);
-                    context.push(const EditAccountScreen());
-                  },
-                ),
-              ],
-            ),
-          );
-        }
-
-        return const Center(child: CircularProgressIndicator());
+                  return Shimmer(
+                    isLoading: isLoading,
+                    child: ListTile(
+                      leading: CircleAvatar(foregroundImage: account != null ? AssetImage(account.avatar) : null),
+                      title: isLoading || isError
+                          ? Skeleton(height: 24.0, color: isError ? context.colors.error : null)
+                          : Text(account?.name ?? ''),
+                      trailing: account?.id == accountId ? const Icon(Icons.check_rounded) : null,
+                      onTap: account != null ? () => onPickup?.call(account) : null,
+                    ),
+                  );
+                },
+                itemCount: accounts?.length ?? 2, // dummy count for shimmer effect
+              ),
+              ListTile(
+                leading: const Icon(Icons.add_reaction_rounded),
+                title: const Text('Add new account'),
+                onTap: () {
+                  // Navigator.maybePop(context);
+                  // context.push(AppRouter.editAccount);
+                  context.push(const EditAccountScreen());
+                },
+              ),
+            ],
+          ),
+        );
       },
     );
   }

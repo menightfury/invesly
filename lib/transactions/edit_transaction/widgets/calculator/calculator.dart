@@ -18,8 +18,8 @@ class InveslyCalculatorWidget extends StatelessWidget {
   static Future<num?> showModal(BuildContext context, [num? initialAmount]) async {
     return await showModalBottomSheet<num>(
       context: context,
-      // enableDrag: false,
-      // isScrollControlled: true,
+      enableDrag: false,
+      isScrollControlled: true,
       builder: (context) {
         return InveslyCalculatorWidget(
           initialAmount: initialAmount,
@@ -140,7 +140,7 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
     final cubit = context.read<CalculatorCubit>();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12.0, 0.0, 12.0, 12.0),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -188,7 +188,7 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                 BlocSelector<CalculatorCubit, CalculatorState, String>(
                   selector: (state) => state.rightOperand,
                   builder: (_, rightOperand) {
-                    return _NumberDisplayer(num.tryParse(rightOperand) ?? 0);
+                    return _NumberDisplayer(rightOperand);
                   },
                 ),
               ],
@@ -403,7 +403,7 @@ class _CalculatorButton extends StatelessWidget {
 class _NumberDisplayer extends StatelessWidget {
   const _NumberDisplayer(this.amount, [this.format]);
 
-  final num amount;
+  final String amount;
   final RegExp? format;
 
   @override

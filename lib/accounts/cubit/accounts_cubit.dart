@@ -22,7 +22,6 @@ class AccountsCubit extends Cubit<AccountsState> {
     emit(const AccountsLoadingState());
     try {
       final accounts = await _repository.getAccounts();
-      $logger.f(accounts);
       await Future.delayed(const Duration(seconds: 3)); // TODO: Remove this delay
       emit(AccountsLoadedState(accounts));
     } on Exception catch (error) {
