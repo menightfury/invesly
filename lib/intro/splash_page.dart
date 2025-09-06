@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/intro/intro_page.dart';
 import 'package:invesly/main.dart';
-import 'package:invesly/settings/cubit/settings_cubit.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 class SplashPage extends StatefulWidget {
@@ -19,7 +19,7 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    final settingsState = context.read<SettingsCubit>().state;
+    final settingsState = context.read<AppCubit>().state;
 
     // _completer = Completer();
     // show splash screen for few seconds

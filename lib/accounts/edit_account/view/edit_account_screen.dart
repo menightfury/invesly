@@ -1,8 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'dart:convert';
-
-import 'package:invesly/common/data/bank.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/utils/keyboard.dart';
@@ -475,283 +472,283 @@ class _ScrollBasedSliverAppBarContentBuilderState extends State<ScrollBasedSlive
   }
 }
 
-class _AccountModel extends Equatable {
-  final String? bankName;
-  final String? accountNumber;
+// class _AccountModel extends Equatable {
+//   final String? bankName;
+//   final String? accountNumber;
 
-  const _AccountModel({this.bankName, this.accountNumber});
+//   const _AccountModel({this.bankName, this.accountNumber});
 
-  _AccountModel copyWith({String? bankName, String? accountNumber}) {
-    return _AccountModel(bankName: bankName ?? this.bankName, accountNumber: accountNumber ?? this.accountNumber);
-  }
+//   _AccountModel copyWith({String? bankName, String? accountNumber}) {
+//     return _AccountModel(bankName: bankName ?? this.bankName, accountNumber: accountNumber ?? this.accountNumber);
+//   }
 
-  @override
-  List<Object?> get props => [bankName, accountNumber];
+//   @override
+//   List<Object?> get props => [bankName, accountNumber];
 
-  Map<String, dynamic> toMap() => {'bankName': bankName, 'accountNumber': accountNumber};
+//   Map<String, dynamic> toMap() => {'bankName': bankName, 'accountNumber': accountNumber};
 
-  factory _AccountModel.fromMap(Map<String, dynamic> map) {
-    return _AccountModel(bankName: map['bankName'] as String?, accountNumber: map['accountNumber'] as String?);
-  }
+//   factory _AccountModel.fromMap(Map<String, dynamic> map) {
+//     return _AccountModel(bankName: map['bankName'] as String?, accountNumber: map['accountNumber'] as String?);
+//   }
 
-  String toJson() => json.encode(toMap());
+//   String toJson() => json.encode(toMap());
 
-  factory _AccountModel.fromJson(String source) => _AccountModel.fromMap(json.decode(source) as Map<String, dynamic>);
-}
+//   factory _AccountModel.fromJson(String source) => _AccountModel.fromMap(json.decode(source) as Map<String, dynamic>);
+// }
 
-class _AccountWidget extends StatefulWidget {
-  const _AccountWidget({super.key, required this.account, this.onChanged});
+// class _AccountWidget extends StatefulWidget {
+//   const _AccountWidget({super.key, required this.account, this.onChanged});
 
-  // final void Function(String bankName, String accountNumber)? onChanged;
-  final _AccountModel account;
-  final ValueChanged<_AccountModel>? onChanged;
+//   // final void Function(String bankName, String accountNumber)? onChanged;
+//   final _AccountModel account;
+//   final ValueChanged<_AccountModel>? onChanged;
 
-  @override
-  State<_AccountWidget> createState() => __AccountWidgetState();
-}
+//   @override
+//   State<_AccountWidget> createState() => __AccountWidgetState();
+// }
 
-class __AccountWidgetState extends State<_AccountWidget> {
-  // late final TextEditingController _accountNumber;
-  late final ValueNotifier<String?> _bankName;
-  late final _AccountModel _account;
+// class __AccountWidgetState extends State<_AccountWidget> {
+//   // late final TextEditingController _accountNumber;
+//   late final ValueNotifier<String?> _bankName;
+//   late final _AccountModel _account;
 
-  @override
-  void initState() {
-    super.initState();
-    // _accountNumber = TextEditingController(text: widget.account.accountNumber);
-    _bankName = ValueNotifier<String?>(widget.account.bankName);
-    _account = widget.account;
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     // _accountNumber = TextEditingController(text: widget.account.accountNumber);
+//     _bankName = ValueNotifier<String?>(widget.account.bankName);
+//     _account = widget.account;
+//   }
 
-  @override
-  void dispose() {
-    // _accountNumber.dispose();
-    _bankName.dispose();
-    super.dispose();
-  }
+//   @override
+//   void dispose() {
+//     // _accountNumber.dispose();
+//     _bankName.dispose();
+//     super.dispose();
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+//   @override
+//   Widget build(BuildContext context) {
+//     final theme = Theme.of(context);
 
-    return Material(
-      color: theme.colorScheme.primary.withAlpha(30),
-      borderRadius: AppConstants.textFieldBorderRadius,
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: GestureDetector(
-                  onTap: () async {
-                    final newBank = await _selectBank(context);
-                    if (newBank == null) return;
+//     return Material(
+//       color: theme.colorScheme.primary.withAlpha(30),
+//       borderRadius: AppConstants.textFieldBorderRadius,
+//       clipBehavior: Clip.antiAlias,
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: <Widget>[
+//           Row(
+//             children: <Widget>[
+//               Expanded(
+//                 child: GestureDetector(
+//                   onTap: () async {
+//                     final newBank = await _selectBank(context);
+//                     if (newBank == null) return;
 
-                    _bankName.value = newBank;
-                    widget.onChanged?.call(_account.copyWith(bankName: _bankName.value));
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ValueListenableBuilder<String?>(
-                            valueListenable: _bankName,
-                            builder: (context, value, _) {
-                              return Text($PMBanks[value] ?? 'Select a bank');
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8.0),
-                        const Icon(Icons.keyboard_arrow_down_rounded),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Material(
-                color: Colors.redAccent.withAlpha(60),
-                child: InkWell(
-                  splashColor: Colors.redAccent.withAlpha(60),
-                  onTap: () => $logger.d('Deleting account'),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    child: Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const InveslyDivider(),
-          TextFormField(
-            decoration: const InputDecoration(hintText: 'Account number, e.g. 1234567890', filled: false),
-            keyboardType: const TextInputType.numberWithOptions(),
-            validator: (value) {
-              if (value == null || !value.isValidText) return 'Please enter account number';
+//                     _bankName.value = newBank;
+//                     widget.onChanged?.call(_account.copyWith(bankName: _bankName.value));
+//                   },
+//                   child: Padding(
+//                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+//                     child: Row(
+//                       children: <Widget>[
+//                         Expanded(
+//                           child: ValueListenableBuilder<String?>(
+//                             valueListenable: _bankName,
+//                             builder: (context, value, _) {
+//                               return Text($PMBanks[value] ?? 'Select a bank');
+//                             },
+//                           ),
+//                         ),
+//                         const SizedBox(width: 8.0),
+//                         const Icon(Icons.keyboard_arrow_down_rounded),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//               Material(
+//                 color: Colors.redAccent.withAlpha(60),
+//                 child: InkWell(
+//                   splashColor: Colors.redAccent.withAlpha(60),
+//                   onTap: () => $logger.d('Deleting account'),
+//                   child: const Padding(
+//                     padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+//                     child: Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//           const InveslyDivider(),
+//           TextFormField(
+//             decoration: const InputDecoration(hintText: 'Account number, e.g. 1234567890', filled: false),
+//             keyboardType: const TextInputType.numberWithOptions(),
+//             validator: (value) {
+//               if (value == null || !value.isValidText) return 'Please enter account number';
 
-              return null;
-            },
-            // controller: _accountNumber,
-            // onEditingComplete: () {
-            //   widget.onChanged?.call(_account.copyWith(accountNumber: _accountNumber.text));
-            // },
-            onChanged: (value) => widget.onChanged?.call(_account.copyWith(accountNumber: value)),
-          ),
-        ],
-      ),
-    );
-  }
+//               return null;
+//             },
+//             // controller: _accountNumber,
+//             // onEditingComplete: () {
+//             //   widget.onChanged?.call(_account.copyWith(accountNumber: _accountNumber.text));
+//             // },
+//             onChanged: (value) => widget.onChanged?.call(_account.copyWith(accountNumber: value)),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
 
-  Future<String?> _selectBank(BuildContext context) async {
-    final bank = await showModalBottomSheet<String?>(
-      context: context,
-      builder: (context) {
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          itemBuilder: (context, index) {
-            final bank = $PMBanks.entries.elementAt(index);
+//   Future<String?> _selectBank(BuildContext context) async {
+//     final bank = await showModalBottomSheet<String?>(
+//       context: context,
+//       builder: (context) {
+//         return ListView.builder(
+//           padding: const EdgeInsets.symmetric(vertical: 16.0),
+//           itemBuilder: (context, index) {
+//             final bank = $PMBanks.entries.elementAt(index);
 
-            return ListTile(
-              leading: CircleAvatar(child: Text(bank.value.substring(0, 1).toUpperCase())),
-              title: Text(bank.value),
-              onTap: () => Navigator.maybePop(context, bank.key),
-            );
-          },
-          itemCount: $PMBanks.length,
-        );
-      },
-    );
+//             return ListTile(
+//               leading: CircleAvatar(child: Text(bank.value.substring(0, 1).toUpperCase())),
+//               title: Text(bank.value),
+//               onTap: () => Navigator.maybePop(context, bank.key),
+//             );
+//           },
+//           itemCount: $PMBanks.length,
+//         );
+//       },
+//     );
 
-    return bank;
-  }
-}
+//     return bank;
+//   }
+// }
 
-class _AccountWidget2 extends FormField<_AccountModel> {
-  _AccountWidget2({
-    super.key,
-    super.initialValue,
-    ValueChanged<_AccountModel>? onChanged,
-    super.validator,
-    super.onSaved,
-  }) : super(
-         builder: (FormFieldState<_AccountModel> field) {
-           final state = field as __AccountWidget2State;
-           final theme = Theme.of(state.context);
-           final account = initialValue ?? const _AccountModel();
+// class _AccountWidget2 extends FormField<_AccountModel> {
+//   _AccountWidget2({
+//     super.key,
+//     super.initialValue,
+//     ValueChanged<_AccountModel>? onChanged,
+//     super.validator,
+//     super.onSaved,
+//   }) : super(
+//          builder: (FormFieldState<_AccountModel> field) {
+//            final state = field as __AccountWidget2State;
+//            final theme = Theme.of(state.context);
+//            final account = initialValue ?? const _AccountModel();
 
-           Future<String?> selectBank(BuildContext context) async {
-             final bank = await showModalBottomSheet<String?>(
-               context: context,
-               builder: (context) {
-                 return ListView.builder(
-                   padding: const EdgeInsets.symmetric(vertical: 16.0),
-                   itemBuilder: (context, index) {
-                     final bank = $PMBanks.entries.elementAt(index);
+//            Future<String?> selectBank(BuildContext context) async {
+//              final bank = await showModalBottomSheet<String?>(
+//                context: context,
+//                builder: (context) {
+//                  return ListView.builder(
+//                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+//                    itemBuilder: (context, index) {
+//                      final bank = $PMBanks.entries.elementAt(index);
 
-                     return ListTile(
-                       leading: CircleAvatar(child: Text(bank.value.substring(0, 1).toUpperCase())),
-                       title: Text(bank.value),
-                       onTap: () => Navigator.maybePop(context, bank.key),
-                     );
-                   },
-                   itemCount: $PMBanks.length,
-                 );
-               },
-             );
+//                      return ListTile(
+//                        leading: CircleAvatar(child: Text(bank.value.substring(0, 1).toUpperCase())),
+//                        title: Text(bank.value),
+//                        onTap: () => Navigator.maybePop(context, bank.key),
+//                      );
+//                    },
+//                    itemCount: $PMBanks.length,
+//                  );
+//                },
+//              );
 
-             return bank;
-           }
+//              return bank;
+//            }
 
-           return Material(
-             color: theme.colorScheme.primary.withAlpha(30),
-             borderRadius: AppConstants.textFieldBorderRadius,
-             clipBehavior: Clip.antiAlias,
-             child: Column(
-               crossAxisAlignment: CrossAxisAlignment.start,
-               children: <Widget>[
-                 Row(
-                   children: <Widget>[
-                     Expanded(
-                       child: GestureDetector(
-                         onTap: () async {
-                           final newBank = await selectBank(state.context);
-                           if (newBank == null) return;
+//            return Material(
+//              color: theme.colorScheme.primary.withAlpha(30),
+//              borderRadius: AppConstants.textFieldBorderRadius,
+//              clipBehavior: Clip.antiAlias,
+//              child: Column(
+//                crossAxisAlignment: CrossAxisAlignment.start,
+//                children: <Widget>[
+//                  Row(
+//                    children: <Widget>[
+//                      Expanded(
+//                        child: GestureDetector(
+//                          onTap: () async {
+//                            final newBank = await selectBank(state.context);
+//                            if (newBank == null) return;
 
-                           state.bankName.value = newBank;
-                           onChanged?.call(account.copyWith(bankName: newBank));
-                         },
-                         child: Padding(
-                           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                           child: Row(
-                             children: <Widget>[
-                               Expanded(
-                                 child: ValueListenableBuilder<String?>(
-                                   valueListenable: state.bankName,
-                                   builder: (context, value, _) {
-                                     return Text($PMBanks[value] ?? 'Select a bank');
-                                   },
-                                 ),
-                               ),
-                               const SizedBox(width: 8.0),
-                               const Icon(Icons.keyboard_arrow_down_rounded),
-                             ],
-                           ),
-                         ),
-                       ),
-                     ),
-                     Material(
-                       color: Colors.redAccent.withAlpha(60),
-                       child: InkWell(
-                         splashColor: Colors.redAccent.withAlpha(60),
-                         onTap: () => $logger.d('Deleting account'),
-                         child: const Padding(
-                           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                           child: Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
-                         ),
-                       ),
-                     ),
-                   ],
-                 ),
-                 const InveslyDivider(),
-                 TextFormField(
-                   decoration: const InputDecoration(hintText: 'Account number, e.g. 1234567890', filled: false),
-                   keyboardType: const TextInputType.numberWithOptions(),
-                   // onEditingComplete: () {
-                   //   widget.onChanged?.call(_account.copyWith(accountNumber: _accountNumber.text));
-                   // },
-                   onChanged: (value) => onChanged?.call(account.copyWith(accountNumber: value)),
-                 ),
-               ],
-             ),
-           );
-         },
-       );
+//                            state.bankName.value = newBank;
+//                            onChanged?.call(account.copyWith(bankName: newBank));
+//                          },
+//                          child: Padding(
+//                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+//                            child: Row(
+//                              children: <Widget>[
+//                                Expanded(
+//                                  child: ValueListenableBuilder<String?>(
+//                                    valueListenable: state.bankName,
+//                                    builder: (context, value, _) {
+//                                      return Text($PMBanks[value] ?? 'Select a bank');
+//                                    },
+//                                  ),
+//                                ),
+//                                const SizedBox(width: 8.0),
+//                                const Icon(Icons.keyboard_arrow_down_rounded),
+//                              ],
+//                            ),
+//                          ),
+//                        ),
+//                      ),
+//                      Material(
+//                        color: Colors.redAccent.withAlpha(60),
+//                        child: InkWell(
+//                          splashColor: Colors.redAccent.withAlpha(60),
+//                          onTap: () => $logger.d('Deleting account'),
+//                          child: const Padding(
+//                            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+//                            child: Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
+//                          ),
+//                        ),
+//                      ),
+//                    ],
+//                  ),
+//                  const InveslyDivider(),
+//                  TextFormField(
+//                    decoration: const InputDecoration(hintText: 'Account number, e.g. 1234567890', filled: false),
+//                    keyboardType: const TextInputType.numberWithOptions(),
+//                    // onEditingComplete: () {
+//                    //   widget.onChanged?.call(_account.copyWith(accountNumber: _accountNumber.text));
+//                    // },
+//                    onChanged: (value) => onChanged?.call(account.copyWith(accountNumber: value)),
+//                  ),
+//                ],
+//              ),
+//            );
+//          },
+//        );
 
-  @override
-  FormFieldState<_AccountModel> createState() => __AccountWidget2State();
-}
+//   @override
+//   FormFieldState<_AccountModel> createState() => __AccountWidget2State();
+// }
 
-class __AccountWidget2State extends FormFieldState<_AccountModel> {
-  // late final PageController _avatarController;
-  late final ValueNotifier<String?> bankName;
-  // late final _AccountModel account;
+// class __AccountWidget2State extends FormFieldState<_AccountModel> {
+//   // late final PageController _avatarController;
+//   late final ValueNotifier<String?> bankName;
+//   // late final _AccountModel account;
 
-  // PageController get controller => _avatarController;
+//   // PageController get controller => _avatarController;
 
-  @override
-  void initState() {
-    // _avatarController = PageController(initialPage: widget.initialValue ?? 0, viewportFraction: 0.35);
-    super.initState();
-    bankName = ValueNotifier<String?>(widget.initialValue?.bankName);
-    // account = widget.initialValue;
-  }
+//   @override
+//   void initState() {
+//     // _avatarController = PageController(initialPage: widget.initialValue ?? 0, viewportFraction: 0.35);
+//     super.initState();
+//     bankName = ValueNotifier<String?>(widget.initialValue?.bankName);
+//     // account = widget.initialValue;
+//   }
 
-  @override
-  void dispose() {
-    // _avatarController.dispose();
-    bankName.dispose();
-    super.dispose();
-  }
-}
+//   @override
+//   void dispose() {
+//     // _avatarController.dispose();
+//     bankName.dispose();
+//     super.dispose();
+//   }
+// }

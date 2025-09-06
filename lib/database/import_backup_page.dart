@@ -7,7 +7,7 @@ import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
-import 'package:invesly/settings/cubit/settings_cubit.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
 
 class ImportBackupPage extends StatelessWidget {
   const ImportBackupPage({super.key, this.onRestoreComplete});
@@ -48,7 +48,7 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
   @override
   void initState() {
     super.initState();
-    _accessToken = context.read<SettingsCubit>().state.gapiAccessToken;
+    _accessToken = context.read<AppCubit>().state.gapiAccessToken;
     _getDriveFiles(context);
   }
 

@@ -5,7 +5,7 @@ import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/settings/cubit/settings_cubit.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key, this.onLoginComplete});
@@ -46,7 +46,7 @@ class LoginPage extends StatelessWidget {
 
         // Save access token to device
         if (!context.mounted) return null;
-        context.read<SettingsCubit>().saveGapiAccessToken(accessToken!);
+        context.read<AppCubit>().saveGapiAccessToken(accessToken!);
 
         return user_;
       });

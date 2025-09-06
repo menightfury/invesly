@@ -2,10 +2,10 @@ import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common_libs.dart';
 
-part 'settings_state.dart';
+part 'app_state.dart';
 
-class SettingsCubit extends HydratedCubit<SettingsState> {
-  SettingsCubit() : super(const SettingsState());
+class AppCubit extends HydratedCubit<AppState> {
+  AppCubit() : super(const AppState());
 
   // void initialize() {
   //   emit(state.copyWith(initialized: true));
@@ -44,12 +44,12 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
   }
 
   @override
-  SettingsState fromJson(Map<String, dynamic> json) {
-    return SettingsState.fromMap(json);
+  AppState fromJson(Map<String, dynamic> json) {
+    return AppState.fromMap(json);
   }
 
   @override
-  Map<String, dynamic> toJson(SettingsState state) {
+  Map<String, dynamic> toJson(AppState state) {
     return state.toMap();
   }
 }

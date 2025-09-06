@@ -15,7 +15,7 @@ import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
-import 'package:invesly/settings/cubit/settings_cubit.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/settings/import_transactions/import_transactions_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
@@ -71,7 +71,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     spacing: 2.0,
                     children: <Widget>[
-                      BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
+                      BlocSelector<AppCubit, AppState, InveslyUser?>(
                         selector: (state) => state.currentUser,
                         builder: (context, currentUser) {
                           final user = currentUser ?? InveslyUser.empty();
@@ -94,7 +94,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   if (state is AccountsLoadedState) {
                                     final accounts = state.accounts;
 
-                                    return BlocSelector<SettingsCubit, SettingsState, String?>(
+                                    return BlocSelector<AppCubit, AppState, String?>(
                                       selector: (state) => state.currentAccountId,
                                       builder: (context, currentAccountId) {
                                         return ColumnBuilder(
@@ -113,7 +113,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                             }
                                             return ListTile(
                                               // contentPadding: EdgeInsets.zero,
-                                              onTap: () => context.read<SettingsCubit>().saveCurrentAccount(account.id),
+                                              onTap: () => context.read<AppCubit>().saveCurrentAccount(account.id),
                                               tileColor: context.colors.primaryContainer,
                                               leading: CircleAvatar(backgroundImage: AssetImage(account.avatar)),
                                               shape: RoundedRectangleBorder(borderRadius: borderRadius),
@@ -199,7 +199,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           if (state is AccountsLoadedState) {
                             final accounts = state.accounts;
 
-                            return BlocSelector<SettingsCubit, SettingsState, String?>(
+                            return BlocSelector<AppCubit, AppState, String?>(
                               selector: (state) => state.currentAccountId,
                               builder: (context, currentAccountId) {
                                 return ColumnBuilder(
@@ -218,7 +218,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     }
                                     return ListTile(
                                       // contentPadding: EdgeInsets.zero,
-                                      onTap: () => context.read<SettingsCubit>().saveCurrentAccount(account.id),
+                                      onTap: () => context.read<AppCubit>().saveCurrentAccount(account.id),
                                       tileColor: context.colors.primaryContainer,
                                       leading: CircleAvatar(backgroundImage: AssetImage(account.avatar)),
                                       shape: RoundedRectangleBorder(borderRadius: borderRadius),
@@ -280,7 +280,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: const Icon(Icons.attach_money_rounded),
                       description: 'Choose your preferred currency',
                     ),
-                    BlocSelector<SettingsCubit, SettingsState, bool>(
+                    BlocSelector<AppCubit, AppState, bool>(
                       selector: (state) => state.isPrivateMode,
                       builder: (context, isPrivateMode) {
                         return SectionTile.switchTile(
@@ -288,7 +288,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: 'Private mode',
                           description: 'Hide all monetary values',
                           value: isPrivateMode,
-                          onChanged: (value) => context.read<SettingsCubit>().setPrivateMode(value),
+                          onChanged: (value) => context.read<AppCubit>().setPrivateMode(value),
                         );
                       },
                     ),
@@ -309,7 +309,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subTitle: Text('App theme, colors'),
                   // icon: const Icon(Icons.palette_outlined),
                   tiles: <Widget>[
-                    BlocSelector<SettingsCubit, SettingsState, bool>(
+                    BlocSelector<AppCubit, AppState, bool>(
                       selector: (state) => state.isDynamicColor,
                       builder: (context, isDynamic) {
                         return SectionTile.switchTile(
@@ -318,11 +318,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           icon: const Icon(Icons.format_color_fill_rounded),
                           description: 'Choose the accent color to emphasize certain elements',
                           value: isDynamic,
-                          onChanged: (value) => context.read<SettingsCubit>().setDynamicColorMode(value),
+                          onChanged: (value) => context.read<AppCubit>().setDynamicColorMode(value),
                         );
                       },
                     ),
-                    BlocSelector<SettingsCubit, SettingsState, (bool, int?)>(
+                    BlocSelector<AppCubit, AppState, (bool, int?)>(
                       selector: (state) => (state.isDynamicColor, state.accentColor),
                       builder: (context, state) {
                         final (isDynamic, accentColorInt) = state;
@@ -338,7 +338,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           onTap: () async {
                             final color = await InveslyColorPickerWidget.showModal(context, selectedColor: accentColor);
                             if (context.mounted && color != null) {
-                              context.read<SettingsCubit>().setAccentColor(color.toARGB32());
+                              context.read<AppCubit>().setAccentColor(color.toARGB32());
                             }
                           },
                           enabled: !isDynamic,
@@ -346,14 +346,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     // SettingsTile
-                    BlocSelector<SettingsCubit, SettingsState, bool>(
+                    BlocSelector<AppCubit, AppState, bool>(
                       selector: (state) => state.isDarkMode,
                       builder: (context, isDarkMode) {
                         return SectionTile.switchTile(
                           title: 'Dark mode',
                           icon: const Icon(Icons.format_paint),
                           value: isDarkMode,
-                          onChanged: (value) => context.read<SettingsCubit>().setDarkTheme(value),
+                          onChanged: (value) => context.read<AppCubit>().setDarkTheme(value),
                         );
                       },
                     ),
@@ -459,7 +459,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     SectionTile(
-                      title: 'Drive backup',
+                      title: 'Backup to Google Drive',
                       icon: const Icon(Icons.backup_outlined),
                       description: 'Backup your data in a new backup file to Google Drive.',
                       onTap: () => _onBackupToDrivePressed(context),
@@ -469,7 +469,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: const Icon(Icons.backup_outlined),
                       description: 'Load your data from a backup file in Google Drive.',
                       onTap: () async {
-                        AccessToken? accessToken = context.read<SettingsCubit>().state.gapiAccessToken;
+                        AccessToken? accessToken = context.read<AppCubit>().state.gapiAccessToken;
 
                         if (accessToken == null) {
                           final user = await context.read<AuthRepository>().signInWithGoogle();
@@ -550,7 +550,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _onBackupToDrivePressed(BuildContext context) async {
-    AccessToken? accessToken = context.read<SettingsCubit>().state.gapiAccessToken;
+    AccessToken? accessToken = context.read<AppCubit>().state.gapiAccessToken;
     try {
       if (accessToken == null) {
         final (_, accessToken_) = await LoginPage.startLoginFlow(context);

@@ -1,7 +1,7 @@
-part of 'settings_cubit.dart';
+part of 'app_cubit.dart';
 
-class SettingsState extends Equatable {
-  const SettingsState({
+class AppState extends Equatable {
+  const AppState({
     this.isOnboarded = false,
     this.isDarkMode = false,
     this.currentUser,
@@ -23,7 +23,7 @@ class SettingsState extends Equatable {
   /// Hide all currency values
   final bool isPrivateMode;
 
-  SettingsState copyWith({
+  AppState copyWith({
     bool? isOnboarded,
     bool? isDarkMode,
     InveslyUser? currentUser,
@@ -33,7 +33,7 @@ class SettingsState extends Equatable {
     bool? isPrivateMode,
     AccessToken? gapiAccessToken,
   }) {
-    return SettingsState(
+    return AppState(
       isOnboarded: isOnboarded ?? this.isOnboarded,
       isDarkMode: isDarkMode ?? this.isDarkMode,
       currentUser: currentUser ?? this.currentUser,
@@ -70,8 +70,8 @@ class SettingsState extends Equatable {
     };
   }
 
-  factory SettingsState.fromMap(Map<String, dynamic> map) {
-    return SettingsState(
+  factory AppState.fromMap(Map<String, dynamic> map) {
+    return AppState(
       isOnboarded: map['isOnboarded'] as bool,
       isDarkMode: map['isDarkMode'] as bool,
       currentUser: map['currentUser'] != null ? InveslyUser.fromJson(map['currentUser'] as String) : null,

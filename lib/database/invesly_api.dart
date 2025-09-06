@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:invesly/database/seed.dart';
+import 'package:invesly/database/data/seed.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:invesly/amcs/model/amc_model.dart';

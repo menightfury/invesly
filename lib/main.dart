@@ -14,7 +14,7 @@ import 'transactions/model/transaction_repository.dart';
 import 'accounts/model/account_repository.dart';
 import 'common/presentations/styles/theme.dart';
 import 'common_libs.dart';
-import 'settings/cubit/settings_cubit.dart';
+import 'common/cubit/app_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +46,7 @@ class InveslyApp extends StatelessWidget {
         providers: [
           // BlocProvider<InternetCubit>(create: (_) => InternetCubit()),
           BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)),
-          BlocProvider<SettingsCubit>(create: (_) => SettingsCubit()),
+          BlocProvider<AppCubit>(create: (_) => AppCubit()),
         ],
         child: const _AppView(),
       ),
@@ -85,7 +85,7 @@ class _AppViewState extends State<_AppView> {
     //     $logger.d(state);
     //   },
     //   child:
-    BlocBuilder<SettingsCubit, SettingsState>(
+    BlocBuilder<AppCubit, AppState>(
       buildWhen: (previous, current) {
         return previous.isDarkMode != current.isDarkMode ||
             previous.isDynamicColor != current.isDynamicColor ||

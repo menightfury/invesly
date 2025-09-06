@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/constants.dart';
 
 /// Display a dialog with a title, a description and confirm/cancel buttons.
 ///

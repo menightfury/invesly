@@ -4,7 +4,7 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/import_backup_page.dart';
 import 'package:invesly/main.dart';
 
-import 'package:invesly/settings/cubit/settings_cubit.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 class IntroPage extends StatefulWidget {
@@ -76,7 +76,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
   Future<void> _handleCompletePressed(BuildContext context) async {
     if (_currentPage.value != _pageData.length - 1) return;
 
-    final settingsState = context.read<SettingsCubit>().state;
+    final settingsState = context.read<AppCubit>().state;
     if (settingsState.currentUser == null) {
       final user = await LoginPage.showModal(context);
 
@@ -86,7 +86,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
       }
 
       // Save current user
-      context.read<SettingsCubit>().saveCurrentUser(user);
+      context.read<AppCubit>().saveCurrentUser(user);
 
       if (user == InveslyUser.empty()) {
         // User chose to continue without sign-in
@@ -101,7 +101,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
       await Bootstrap.instance.api.initializeDatabase();
 
       if (!context.mounted) return;
-      context.read<SettingsCubit>().completeOnboarding();
+      context.read<AppCubit>().completeOnboarding();
       // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
       context.go(const DashboardScreen());
     }

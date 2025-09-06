@@ -11,7 +11,7 @@ import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/settings/cubit/settings_cubit.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_classic.dart';
@@ -45,7 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 // ~~~ User avatar ~~~
                 GestureDetector(
                   onTap: () => context.push(const SettingsScreen()),
-                  child: BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
+                  child: BlocSelector<AppCubit, AppState, InveslyUser?>(
                     selector: (state) => state.currentUser,
                     builder: (context, currentUser) {
                       final user = currentUser ?? InveslyUser.empty();
@@ -71,7 +71,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: textTheme.headlineSmall,
                       ),
-                      BlocSelector<SettingsCubit, SettingsState, InveslyUser?>(
+                      BlocSelector<AppCubit, AppState, InveslyUser?>(
                         selector: (state) => state.currentUser,
                         builder: (context, currentUser) {
                           return Text(
@@ -223,7 +223,7 @@ class _AccountsList extends StatelessWidget {
                       ...List.generate(accounts?.length ?? 1, (index) {
                         final account = accounts?.elementAt(index);
 
-                        return BlocSelector<SettingsCubit, SettingsState, bool>(
+                        return BlocSelector<AppCubit, AppState, bool>(
                           selector: (state) => state.currentAccountId == account?.id,
                           builder: (context, isCurrentAccount) {
                             $logger.i('rebuilding $account');
@@ -250,7 +250,7 @@ class _AccountsList extends StatelessWidget {
 
                                     totalAmount == null
                                         ? Skeleton(color: isError ? context.colors.error : null)
-                                        : BlocSelector<SettingsCubit, SettingsState, bool>(
+                                        : BlocSelector<AppCubit, AppState, bool>(
                                             selector: (state) => state.isPrivateMode,
                                             builder: (context, isPrivateMode) {
                                               return CurrencyView(
@@ -374,7 +374,7 @@ class _AmcGenreList extends StatelessWidget {
 
                                     Align(
                                       alignment: Alignment.bottomRight,
-                                      child: BlocSelector<SettingsCubit, SettingsState, bool>(
+                                      child: BlocSelector<AppCubit, AppState, bool>(
                                         selector: (state) => state.isPrivateMode,
                                         builder: (context, isPrivateMode) {
                                           return CurrencyView(
@@ -456,7 +456,7 @@ class _RecentTransactions extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: context.textTheme.labelSmall,
                     ),
-                    trailing: BlocSelector<SettingsCubit, SettingsState, bool>(
+                    trailing: BlocSelector<AppCubit, AppState, bool>(
                       selector: (state) => state.isPrivateMode,
                       builder: (context, isPrivateMode) {
                         return CurrencyView(
