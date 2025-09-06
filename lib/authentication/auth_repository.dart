@@ -8,7 +8,6 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis/servicecontrol/v2.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:invesly/common_libs.dart';
 
 // Future<bool> checkConnection() async {
@@ -405,8 +404,11 @@ class AuthRepository {
 
       final media = drive.Media(file.openRead(), dbFileBytes.length);
       final dateTime = DateTime.now().toUtc();
-      final timestamp = DateFormat("yyyy-MM-dd-hhmmss").format(dateTime);
-      final driveFile = drive.File(name: 'invesly-$timestamp.db', modifiedTime: dateTime, parents: ['appDataFolder']);
+      final driveFile = drive.File(
+        name: 'invesly-${dateTime.millisecondsSinceEpoch}.db',
+        modifiedTime: dateTime,
+        parents: ['appDataFolder'],
+      );
 
       // if (clientIDForSync != null)
       // driveFile.name = getCurrentDeviceSyncBackupFileName(clientIDForSync: clientIDForSync);

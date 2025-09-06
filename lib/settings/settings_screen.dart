@@ -433,7 +433,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           //   return;
                           // }
 
-                          final file = await BackupRestoreRepository.exportDatabaseFile();
+                          final file = await context.read<BackupRestoreRepository>().exportDatabaseFile();
                           if (file != null) {
                             snackBar = SnackBar(
                               content: Text('File saved successfully, ${file.path}'),
@@ -550,17 +550,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _onBackupToDrivePressed(BuildContext context) async {
-    // context.read<BackupRestoreRepository>()
-
-    //
-
     AccessToken? accessToken = context.read<SettingsCubit>().state.gapiAccessToken;
+    try {
+      if (accessToken == null) {
+        final (_, accessToken_) = await LoginPage.startLoginFlow(context);
 
-    if (accessToken == null) {
-      final (_, accessToken_) = await LoginPage.startLoginFlow(context);
+        if (accessToken_ == null) return;
+
+        final file = context.read<BackupRestoreRepository>().dbFile;
+        await context.read<AuthRepository>().saveFileInDrive(accessToken: accessToken_, file: file);
+        $logger.i('Backup created successfully');
+      }
+    } catch (err) {
+      $logger.e(err);
     }
-
-    // await context.read<AuthRepository>().createBackupInGoogleDrive(accessToken: accessToken);
-    $logger.i('Backup created successfully');
   }
 }

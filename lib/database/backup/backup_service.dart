@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:csv/csv.dart';
+import 'package:intl/intl.dart';
 
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/invesly_api.dart';
@@ -27,32 +28,31 @@ class BackupRestoreRepository {
   // }
   // AppDB db = AppDB.instance;
 
-  static List<List<dynamic>> processCsv(String csvData) {
-    return const CsvToListConverter().convert(csvData, eol: '\n');
-  }
+  File get dbFile => File(_api.dbPath);
 
-  static Future<File?> exportDatabaseFile() async {
-    // final source = File(InveslyApi.instance.db.path);
-    // final fileName = 'invesly-${DateTime.now().millisecondsSinceEpoch}.db';
+  Future<File?> exportDatabaseFile() async {
+    $logger.i('File Size ${(dbFile.lengthSync() / 1e+6).toString()}');
 
-    // final dir = await getApplicationDocumentsDirectory();
-    // final destination = Directory(p.join(dir.path, fileName));
-    // // if ((await destination.exists())) {
-    // //   final status = await Permission.storage.status;
-    // //   if (!status.isGranted) {
-    // //     await Permission.storage.request();
-    // //   }
-    // // } else {
-    // //   if (await Permission.storage.request().isGranted) {
-    // //     // Either the permission was already granted before or the user just granted it.
-    // //     await destination.create();
-    // //   } else {
-    // //     print('Please give permission');
-    // //   }
-    // // }
+    final dateTime = DateTime.now().toUtc();
+    final fileName = 'invesly-${dateTime.millisecondsSinceEpoch}.db';
 
-    // return await source.copy(destination.path);
-    return null;
+    final dir = await getApplicationDocumentsDirectory();
+    final destination = Directory(p.join(dir.path, fileName));
+    // if ((await destination.exists())) {
+    //   final status = await Permission.storage.status;
+    //   if (!status.isGranted) {
+    //     await Permission.storage.request();
+    //   }
+    // } else {
+    //   if (await Permission.storage.request().isGranted) {
+    //     // Either the permission was already granted before or the user just granted it.
+    //     await destination.create();
+    //   } else {
+    //     print('Please give permission');
+    //   }
+    // }
+
+    return await dbFile.copy(destination.path);
   }
 
   // Future<void> downloadDatabaseFile() async {
@@ -201,6 +201,10 @@ class BackupRestoreRepository {
   //   }
   //   return false;
   // }
+
+  static List<List<dynamic>> processCsv(String csvData) {
+    return const CsvToListConverter().convert(csvData, eol: '\n');
+  }
 
   static Future<File?> exportCsv(String csvData) async {
     // final dir = await _getDownloadsDirectory();
