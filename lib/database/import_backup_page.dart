@@ -149,7 +149,7 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
     return content;
   }
 
-  Future<void> _getDriveFiles(BuildContext context) async {
+  void _getDriveFiles(BuildContext context) async {
     try {
       // // ignore: prefer_conditional_assignment
       if (_accessToken == null) {
