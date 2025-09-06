@@ -28,15 +28,15 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  static Future<(GoogleSignInAccount?, AccessToken?)> startLoginFlow(BuildContext context) async {
+  static Future<(GoogleSignInAccount, AccessToken)> startLoginFlow(BuildContext context) async {
     final authRepository = context.read<AuthRepository>();
 
-    GoogleSignInAccount? user;
-    AccessToken? accessToken;
+    // GoogleSignInAccount? user;
+    late final AccessToken accessToken;
 
     try {
       // ignore: prefer_conditional_assignment
-      user = await openLoadingPopup(context, () async {
+      final user = await openLoadingPopup<GoogleSignInAccount>(context, () async {
         final user_ = await authRepository.signInWithGoogle();
         if (user_ == null) {
           throw Exception('Sign in failed');
@@ -46,10 +46,14 @@ class LoginPage extends StatelessWidget {
 
         // Save access token to device
         if (!context.mounted) return null;
-        context.read<AppCubit>().saveGapiAccessToken(accessToken!);
+        context.read<AppCubit>().saveGapiAccessToken(accessToken);
 
         return user_;
       });
+
+      if (user == null) {
+        throw Exception('Sign in failed');
+      }
 
       return (user, accessToken);
     } catch (err) {
@@ -123,7 +127,7 @@ class _LoginPageState extends State<_LoginPage> {
 
   Future<void> _onSignInPressed(BuildContext context) async {
     final (user, _) = await LoginPage.startLoginFlow(context);
-    if (!context.mounted || user == null) return;
+    if (!context.mounted) return;
     widget.onLoginComplete?.call(InveslyUser.fromGoogleSignInAccount(user));
   }
 

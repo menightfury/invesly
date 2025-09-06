@@ -199,13 +199,16 @@ class AuthRepository {
   Future<List<int>?> getDriveFileContent({required gapis.AccessToken accessToken, required String fileId}) async {
     try {
       final driveApi = _driveApi ?? await getDriveApi(accessToken);
-      final file = await driveApi.files.get(fileId, downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
+      final media = await driveApi.files.get(fileId, downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
 
       final List<int> dataStore = [];
-      file.stream.listen(
-        (data) => dataStore.insertAll(dataStore.length, data),
-        onError: (err) => $logger.e('Error :$err'),
-      );
+      // media.stream.listen(
+      //   (data) => dataStore.insertAll(dataStore.length, data),
+      //   onError: (err) => $logger.e('Error :$err'),
+      // );
+      await for (var data in media.stream) {
+        dataStore.insertAll(dataStore.length, data);
+      }
       return dataStore;
     } catch (err) {
       $logger.e(err);

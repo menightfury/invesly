@@ -49,7 +49,7 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
   void initState() {
     super.initState();
     _accessToken = context.read<AppCubit>().state.gapiAccessToken;
-    _getDriveFiles(context);
+    _files = _getDriveFiles(context);
   }
 
   @override
@@ -149,19 +149,19 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
     return content;
   }
 
-  void _getDriveFiles(BuildContext context) async {
+  Future<List<drive.File>?> _getDriveFiles(BuildContext context) async {
     try {
       // // ignore: prefer_conditional_assignment
       if (_accessToken == null) {
         final (_, accessToken_) = await LoginPage.startLoginFlow(context);
-
-        if (accessToken_ == null) {
-          throw Exception('Error getting accessToken');
-        }
-
-        if (!context.mounted) return;
-        _files = context.read<AuthRepository>().getDriveFiles(accessToken_);
+        _accessToken = accessToken_;
       }
+      // if (accessToken_ == null) {
+      //   throw Exception('Error getting accessToken');
+      // }
+
+      if (!context.mounted) return null;
+      return await context.read<AuthRepository>().getDriveFiles(_accessToken!);
     } catch (err) {
       $logger.e(err);
       throw Exception('Error getting drive files: $err');

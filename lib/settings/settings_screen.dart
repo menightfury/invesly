@@ -1,21 +1,21 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, avoid_print
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:googleapis_auth/googleapis_auth.dart';
-import 'package:invesly/authentication/login_page.dart';
+import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
 import 'package:path/path.dart';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
 import 'package:invesly/authentication/auth_repository.dart';
+import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/authentication/user_model.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
-import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/settings/import_transactions/import_transactions_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
@@ -469,7 +469,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: const Icon(Icons.backup_outlined),
                       description: 'Load your data from a backup file in Google Drive.',
                       onTap: () async {
-                        AccessToken? accessToken = context.read<AppCubit>().state.gapiAccessToken;
+                        gapis.AccessToken? accessToken = context.read<AppCubit>().state.gapiAccessToken;
 
                         if (accessToken == null) {
                           final user = await context.read<AuthRepository>().signInWithGoogle();
@@ -550,17 +550,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _onBackupToDrivePressed(BuildContext context) async {
-    AccessToken? accessToken = context.read<AppCubit>().state.gapiAccessToken;
+    gapis.AccessToken? accessToken = context.read<AppCubit>().state.gapiAccessToken;
+
     try {
       if (accessToken == null) {
         final (_, accessToken_) = await LoginPage.startLoginFlow(context);
 
-        if (accessToken_ == null) return;
-
-        final file = context.read<BackupRestoreRepository>().dbFile;
-        await context.read<AuthRepository>().saveFileInDrive(accessToken: accessToken_, file: file);
-        $logger.i('Backup created successfully');
+        // if (accessToken_ == null) return;
+        accessToken = accessToken_;
       }
+      final file = context.read<BackupRestoreRepository>().databaseFile;
+      await context.read<AuthRepository>().saveFileInDrive(accessToken: accessToken, file: file);
+      $logger.i('Backup created successfully');
     } catch (err) {
       $logger.e(err);
     }

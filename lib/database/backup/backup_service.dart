@@ -27,10 +27,10 @@ class BackupRestoreRepository {
   // }
   // AppDB db = AppDB.instance;
 
-  File get dbFile => File(_api.dbPath);
+  File get databaseFile => File(_api.dbPath);
 
   Future<File?> exportDatabaseFile() async {
-    $logger.i('File Size ${(dbFile.lengthSync() / 1e+6).toString()}');
+    $logger.i('File Size ${(databaseFile.lengthSync() / 1e+6).toString()}');
 
     final dateTime = DateTime.now().toUtc();
     final fileName = 'invesly-${dateTime.millisecondsSinceEpoch}.db';
@@ -51,7 +51,7 @@ class BackupRestoreRepository {
     //   }
     // }
 
-    return await dbFile.copy(destination.path);
+    return await databaseFile.copy(destination.path);
   }
 
   // Future<void> downloadDatabaseFile() async {
