@@ -2,6 +2,7 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
+import 'package:invesly/authentication/login_page.dart';
 import 'package:path/path.dart';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
@@ -461,21 +462,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: 'Drive backup',
                       icon: const Icon(Icons.backup_outlined),
                       description: 'Backup your data in a new backup file to Google Drive.',
-                      onTap: () async {
-                        AccessToken? accessToken = context.read<SettingsCubit>().state.gapiAccessToken;
-
-                        if (accessToken == null) {
-                          final user = await context.read<AuthRepository>().signInWithGoogle();
-                          if (user == null) {
-                            $logger.w('Google sign-in failed');
-                            return;
-                          }
-
-                          accessToken = await context.read<AuthRepository>().getAccessToken(user);
-                        }
-                        // await context.read<AuthRepository>().createBackupInGoogleDrive(accessToken: accessToken);
-                        $logger.i('Backup created successfully');
-                      },
+                      onTap: () => _onBackupToDrivePressed(context),
                     ),
                     SectionTile(
                       title: 'Load drive files',
@@ -560,5 +547,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _onBackupToDrivePressed(BuildContext context) async {
+    // context.read<BackupRestoreRepository>()
+
+    //
+
+    AccessToken? accessToken = context.read<SettingsCubit>().state.gapiAccessToken;
+
+    if (accessToken == null) {
+      final (_, accessToken_) = await LoginPage.startLoginFlow(context);
+    }
+
+    // await context.read<AuthRepository>().createBackupInGoogleDrive(accessToken: accessToken);
+    $logger.i('Backup created successfully');
   }
 }

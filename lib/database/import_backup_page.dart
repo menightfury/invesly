@@ -4,8 +4,9 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart';
 
 import 'package:invesly/authentication/auth_repository.dart';
-import 'package:invesly/common/presentations/widgets/popups.dart';
+import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/database/backup/backup_service.dart';
 import 'package:invesly/settings/cubit/settings_cubit.dart';
 
 class ImportBackupPage extends StatelessWidget {
@@ -149,33 +150,18 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
   }
 
   Future<void> _getDriveFiles(BuildContext context) async {
-    final authRepository = context.read<AuthRepository>();
     try {
-      // ignore: prefer_conditional_assignment
+      // // ignore: prefer_conditional_assignment
       if (_accessToken == null) {
-        _accessToken = await openLoadingPopup<AccessToken>(context, () async {
-          final user = await authRepository.signInWithGoogle();
-          if (user == null) {
-            throw Exception('Sign in failed');
-          }
+        final (_, accessToken_) = await LoginPage.startLoginFlow(context);
 
-          final accessToken = await authRepository.getAccessToken(user);
+        if (accessToken_ == null) {
+          throw Exception('Error getting accessToken');
+        }
 
-          // Save access token to device
-          if (context.mounted) {
-            context.read<SettingsCubit>().saveGapiAccessToken(accessToken);
-          }
-          return accessToken;
-        });
+        if (!context.mounted) return;
+        _files = context.read<AuthRepository>().getDriveFiles(accessToken_);
       }
-
-      if (_accessToken == null) {
-        throw Exception('Error getting accessToken');
-      }
-
-      if (!context.mounted) return;
-
-      _files = context.read<AuthRepository>().getDriveFiles(_accessToken!);
     } catch (err) {
       $logger.e(err);
       throw Exception('Error getting drive files: $err');
@@ -184,11 +170,12 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
 
   Future<void> _onRestorePressed(BuildContext context, drive.File file) async {
     final authRepository = context.read<AuthRepository>();
+    final backupRepository = context.read<BackupRestoreRepository>();
 
     // // Delete drive files -- Testing only
     // await authRepository.deleteBackups(accessToken);
     final fileContent = await authRepository.getDriveFileContent(accessToken: _accessToken!, fileId: file.id!);
-    await authRepository.writeDatabaseFile(fileContent);
+    await backupRepository.writeDatabaseFile(fileContent);
     widget.onRestoreComplete?.call();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 // import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:invesly/authentication/auth_repository.dart';
+import 'package:invesly/database/backup/backup_service.dart';
 import 'package:invesly/intro/splash_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:invesly/database/invesly_api.dart';
@@ -35,7 +36,8 @@ class InveslyApp extends StatelessWidget {
 
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<AuthRepository>(create: (_) => AuthRepository(api)),
+        RepositoryProvider<AuthRepository>(create: (_) => AuthRepository()),
+        RepositoryProvider<BackupRestoreRepository>(create: (_) => BackupRestoreRepository(api)),
         RepositoryProvider<AccountRepository>.value(value: accountRepository),
         RepositoryProvider(create: (_) => AmcRepository(api)),
         RepositoryProvider(create: (_) => TransactionRepository(api)),

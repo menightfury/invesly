@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/authentication/auth_repository.dart';
@@ -24,6 +26,36 @@ class LoginPage extends StatelessWidget {
         return _LoginPage(key: key, showInModal: true, onLoginComplete: (user) => context.pop(user));
       },
     );
+  }
+
+  static Future<(GoogleSignInAccount?, AccessToken?)> startLoginFlow(BuildContext context) async {
+    final authRepository = context.read<AuthRepository>();
+
+    GoogleSignInAccount? user;
+    AccessToken? accessToken;
+
+    try {
+      // ignore: prefer_conditional_assignment
+      user = await openLoadingPopup(context, () async {
+        final user_ = await authRepository.signInWithGoogle();
+        if (user_ == null) {
+          throw Exception('Sign in failed');
+        }
+
+        accessToken = await authRepository.getAccessToken(user_);
+
+        // Save access token to device
+        if (!context.mounted) return null;
+        context.read<SettingsCubit>().saveGapiAccessToken(accessToken!);
+
+        return user_;
+      });
+
+      return (user, accessToken);
+    } catch (err) {
+      $logger.e(err);
+      throw Exception('Error signing in');
+    }
   }
 }
 
@@ -89,24 +121,8 @@ class _LoginPageState extends State<_LoginPage> {
     return content;
   }
 
-  void _onSignInPressed(BuildContext context) async {
-    final authRepository = context.read<AuthRepository>();
-
-    final user = await openLoadingPopup(context, () async {
-      final user$ = await authRepository.signInWithGoogle();
-      if (user$ == null) {
-        throw Exception('Sign in failed');
-      }
-
-      final accessToken = await authRepository.getAccessToken(user$);
-
-      // Save access token to device
-      if (!context.mounted) return null;
-      context.read<SettingsCubit>().saveGapiAccessToken(accessToken);
-
-      return user$;
-    });
-
+  Future<void> _onSignInPressed(BuildContext context) async {
+    final (user, _) = await LoginPage.startLoginFlow(context);
     if (!context.mounted || user == null) return;
     widget.onLoginComplete?.call(InveslyUser.fromGoogleSignInAccount(user));
   }
