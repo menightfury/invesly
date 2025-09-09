@@ -8,6 +8,7 @@ import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 const _kPaddingTop = 56.0;
+const _kImageSize = 156.0;
 
 class IntroPage extends StatefulWidget {
   const IntroPage({super.key});
@@ -122,93 +123,80 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: ColoredBox(
-          color: Colors.red.withAlpha(30),
-          child: Stack(
-            children: <Widget>[
-              // ~ Image
-              Padding(
-                padding: const EdgeInsets.only(top: _kPaddingTop),
-                child: Align(
-                  // top: _kPaddingTop,
-                  child: SizedBox(
-                    height: 200.0,
-                    child: Column(
-                      children: <Widget>[
-                        // SizedBox(height: MediaQuery.viewPaddingOf(context).top + 56.0),
-                        SlideTransition(
-                          position: _offsetAnimation,
-                          child: Stack(
-                            children: <Widget>[
-                              Material(
-                                type: MaterialType.circle,
-                                color: context.colors.primaryContainer,
-                                child: SizedBox.square(dimension: 200.0),
-                              ),
-                              ValueListenableBuilder<int>(
-                                valueListenable: _currentPage,
-                                builder: (_, value, _) {
-                                  return AnimatedSwitcher(
-                                    duration: 600.ms,
-                                    child: Image.asset(
-                                      _pageData[value].imgSrc,
-                                      key: ValueKey(value),
-                                      height: 200.0,
-                                      width: 200.0,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: <Widget>[
+            // ~ Image
+            Padding(
+              padding: const EdgeInsets.only(top: _kPaddingTop + 48.0),
+              child: SlideTransition(
+                position: _offsetAnimation,
+                child: Stack(
+                  children: <Widget>[
+                    Material(
+                      type: MaterialType.circle,
+                      color: context.colors.primaryContainer,
+                      child: SizedBox.square(dimension: _kImageSize),
                     ),
-                  ),
+                    ValueListenableBuilder<int>(
+                      valueListenable: _currentPage,
+                      builder: (_, value, _) {
+                        return AnimatedSwitcher(
+                          duration: 600.ms,
+                          child: Image.asset(
+                            _pageData[value].imgSrc,
+                            key: ValueKey(value),
+                            height: _kImageSize,
+                            width: _kImageSize,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
+            ),
 
-              PageView.builder(
-                controller: _pageController,
-                itemBuilder: (_, index) {
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, _kPaddingTop, 16.0, 72.0),
-                    child: _Page(_pageData[index]),
-                  );
-                },
-                itemCount: _pageData.length,
-                onPageChanged: (value) => _currentPage.value = value,
-              ),
+            PageView.builder(
+              controller: _pageController,
+              itemBuilder: (_, index) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, _kPaddingTop, 16.0, 72.0),
+                  child: _Page(_pageData[index]),
+                );
+              },
+              itemCount: _pageData.length,
+              onPageChanged: (value) => _currentPage.value = value,
+            ),
 
-              // ~ Bottom indicator and button
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      // ~ Page indicator
-                      SmoothPageIndicator(
-                        controller: _pageController,
-                        count: _pageData.length,
-                        effect: ExpandingDotsEffect(
-                          dotWidth: 8.0,
-                          dotHeight: 8.0,
-                          expansionFactor: 2.0,
-                          activeDotColor: context.colors.secondary,
-                        ),
-                        onDotClicked: (index) => _animateToPage(index),
+            // ~ Bottom indicator and button
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    // ~ Page indicator
+                    SmoothPageIndicator(
+                      controller: _pageController,
+                      count: _pageData.length,
+                      effect: ExpandingDotsEffect(
+                        dotWidth: 8.0,
+                        dotHeight: 8.0,
+                        expansionFactor: 2.0,
+                        activeDotColor: context.colors.secondary,
                       ),
+                      onDotClicked: (index) => _animateToPage(index),
+                    ),
 
-                      // // ~ Finish button
-                      // _buildFinishBtn(context),
-                    ],
-                  ),
+                    // // ~ Finish button
+                    // _buildFinishBtn(context),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
 
@@ -267,12 +255,22 @@ class _Page extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 56.0,
+        spacing: 24.0,
         children: <Widget>[
-          Text(data.title, style: TextStyle(fontSize: 32.0, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 200.0), // space for image
-          Column(children: <Widget>[if (data.description != null) Text(data.description!), ?data.content]),
-          const SizedBox(height: 112.0), // space for indicators
+          Text(data.title, style: TextStyle(fontSize: 28.0, fontWeight: FontWeight.w600)),
+          const SizedBox(height: _kImageSize), // space for image
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                spacing: 16.0,
+                children: <Widget>[
+                  if (data.description != null) Text(data.description!, style: context.textTheme.bodySmall),
+                  ?data.content,
+                ],
+              ),
+            ),
+          ),
+          // const SizedBox(height: 112.0), // space for indicators
         ],
       ),
     );
