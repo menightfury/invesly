@@ -7,6 +7,8 @@ import 'package:invesly/main.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
+const _kPaddingTop = 56.0;
+
 class IntroPage extends StatefulWidget {
   const IntroPage({super.key});
 
@@ -45,22 +47,27 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
         // title: $strings.introWelcomeTitle,
         title: 'Welcome',
         // description: $strings.introWelcomeDescription,
-        description: 'Some description here',
-        imgSrc: 'assets/images/intro/piggybank.png',
+        description:
+            'With Invesly, you can finally achieve the stress free independence. You will have graphs, statistics, tips and so much',
+        imgSrc: 'assets/images/intro/chart.png',
       ),
       const _PageModel(
         // title: $strings.introMoneyTitle,
-        title: 'Easy money management',
+        title: 'Manage all your accounts',
         // description: $strings.introMoneyDescription,
-        description: 'Manage your money with ease',
-        imgSrc: 'assets/images/intro/locker.png',
+        description:
+            'Your default currency will be used in reports and general charts. You will be able to change currency later at any time in the application settings',
+        imgSrc: 'assets/images/intro/piggybank.png',
+        content: ListTile(title: Text('Select your currency'), subtitle: Text('Indian rupee')),
       ),
-      const _PageModel(
+      _PageModel(
         // title: $strings.introPayLaterTitle,
-        title: 'Pay later for the things you love',
+        title: 'Safe, protected and reliable',
         // description: $strings.introPayLaterDescription,
-        description: 'Pay anytime you want',
-        imgSrc: 'assets/images/intro/trophy.png',
+        description:
+            'Your data is truly yours. The information is stored in your device and synced with your Google Drive account (optional).\nThis makes this app possible to use it without using internet, while at the same time offers to backup and restore your data even if your device is lost or switched. ',
+        imgSrc: 'assets/images/intro/locker.png',
+        content: ElevatedButton(onPressed: () {}, child: Text('Sign in with Google')),
       ),
     ];
   }
@@ -115,67 +122,110 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Stack(
-          children: <Widget>[
-            // ~ Image
-            Align(
-              alignment: Alignment.topCenter,
-              child: Column(
-                children: <Widget>[
-                  SizedBox(height: MediaQuery.viewPaddingOf(context).top + 56.0),
-                  SlideTransition(
-                    position: _offsetAnimation,
-                    child: ValueListenableBuilder<int>(
-                      valueListenable: _currentPage,
-                      builder: (_, value, _) {
-                        return AnimatedSwitcher(
-                          duration: 600.ms,
-                          child: Image.asset(_pageData[value].imgSrc, key: ValueKey(value), width: 320.0),
-                        );
-                      },
+        child: ColoredBox(
+          color: Colors.red.withAlpha(30),
+          child: Stack(
+            children: <Widget>[
+              // ~ Image
+              Padding(
+                padding: const EdgeInsets.only(top: _kPaddingTop),
+                child: Align(
+                  // top: _kPaddingTop,
+                  child: SizedBox(
+                    height: 200.0,
+                    child: Column(
+                      children: <Widget>[
+                        // SizedBox(height: MediaQuery.viewPaddingOf(context).top + 56.0),
+                        SlideTransition(
+                          position: _offsetAnimation,
+                          child: Stack(
+                            children: <Widget>[
+                              Material(
+                                type: MaterialType.circle,
+                                color: context.colors.primaryContainer,
+                                child: SizedBox.square(dimension: 200.0),
+                              ),
+                              ValueListenableBuilder<int>(
+                                valueListenable: _currentPage,
+                                builder: (_, value, _) {
+                                  return AnimatedSwitcher(
+                                    duration: 600.ms,
+                                    child: Image.asset(
+                                      _pageData[value].imgSrc,
+                                      key: ValueKey(value),
+                                      height: 200.0,
+                                      width: 200.0,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-
-            PageView.builder(
-              controller: _pageController,
-              itemBuilder: (_, index) => _Page(_pageData[index]),
-              itemCount: _pageData.length,
-              onPageChanged: (value) => _currentPage.value = value,
-            ),
-
-            // ~ Bottom indicator and button
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    // ~ Page indicator
-                    SmoothPageIndicator(
-                      controller: _pageController,
-                      count: _pageData.length,
-                      effect: ExpandingDotsEffect(
-                        dotWidth: 8.0,
-                        dotHeight: 8.0,
-                        expansionFactor: 2.0,
-                        activeDotColor: context.colors.secondary,
-                      ),
-                      onDotClicked: (index) => _animateToPage(index),
-                    ),
-
-                    // ~ Finish button
-                    _buildFinishBtn(context),
-                  ],
                 ),
               ),
-            ),
-          ],
+
+              PageView.builder(
+                controller: _pageController,
+                itemBuilder: (_, index) {
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, _kPaddingTop, 16.0, 72.0),
+                    child: _Page(_pageData[index]),
+                  );
+                },
+                itemCount: _pageData.length,
+                onPageChanged: (value) => _currentPage.value = value,
+              ),
+
+              // ~ Bottom indicator and button
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      // ~ Page indicator
+                      SmoothPageIndicator(
+                        controller: _pageController,
+                        count: _pageData.length,
+                        effect: ExpandingDotsEffect(
+                          dotWidth: 8.0,
+                          dotHeight: 8.0,
+                          expansionFactor: 2.0,
+                          activeDotColor: context.colors.secondary,
+                        ),
+                        onDotClicked: (index) => _animateToPage(index),
+                      ),
+
+                      // // ~ Finish button
+                      // _buildFinishBtn(context),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
+
+      persistentFooterButtons: <Widget>[
+        SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: ElevatedButton.icon(
+              onPressed: () => _handleCompletePressed(context),
+              label: const Text('Next'),
+              icon: const Icon(Icons.keyboard_arrow_right_rounded),
+            ),
+          ),
+        ),
+      ],
+      persistentFooterAlignment: AlignmentDirectional.center,
     );
   }
 
@@ -197,11 +247,12 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
 
 @immutable
 class _PageModel {
-  const _PageModel({required this.title, this.description, required this.imgSrc});
+  const _PageModel({required this.title, this.description, required this.imgSrc, this.content});
 
   final String title;
   final String? description;
   final String imgSrc;
+  final Widget? content;
 }
 
 class _Page extends StatelessWidget {
@@ -211,23 +262,18 @@ class _Page extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomLeft,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 32.0),
-        child: SizedBox(
-          width: 256.0,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(data.title, style: context.textTheme.headlineLarge),
-              const SizedBox(height: 16.0),
-              if (data.description != null) Text(data.description!),
-              const SizedBox(height: 112.0),
-            ],
-          ),
-        ),
+    return SizedBox(
+      // width: 256.0,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 56.0,
+        children: <Widget>[
+          Text(data.title, style: TextStyle(fontSize: 32.0, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 200.0), // space for image
+          Column(children: <Widget>[if (data.description != null) Text(data.description!), ?data.content]),
+          const SizedBox(height: 112.0), // space for indicators
+        ],
       ),
     );
   }
