@@ -34,10 +34,10 @@ class AppStyle {
         titleLarge: TextStyle(fontSize: 20.0), // appbar title
         titleMedium: TextStyle(fontSize: 18.0), // textfield
         bodyLarge: TextStyle(fontSize: 20.0, height: 1.25), // chip, ListTile title,
-        bodyMedium: TextStyle(fontSize: 18.0, height: 1.25), // body
+        bodyMedium: TextStyle(fontSize: 18.0, height: 1.4), // body
         bodySmall: TextStyle(fontSize: 14.0), // textfield helper
-        labelLarge: TextStyle(fontSize: 16.0), // button, *-chip
-        labelMedium: TextStyle(fontSize: 14.0), // bottomNavBar
+        labelLarge: TextStyle(fontSize: 18.0, height: 1.4, fontWeight: FontWeight.w600), // button, *-chip
+        labelMedium: TextStyle(fontSize: 16.0, height: 1.4), // bottomNavBar
       ),
       iconTheme: IconThemeData(color: colorScheme.onSurface),
       chipTheme: ChipThemeData(
@@ -99,6 +99,7 @@ class AppStyle {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
+          elevation: const WidgetStatePropertyAll<double>(2.0),
           padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
           minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
           backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
@@ -116,12 +117,12 @@ class AppStyle {
         style: ButtonStyle(
           padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
           minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
-          backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
-            if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);
-            if (state.contains(WidgetState.error)) return colorScheme.error;
-            return colorScheme.primary;
-          }),
-          foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimary),
+          // backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
+          //   if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);
+          //   if (state.contains(WidgetState.error)) return colorScheme.error;
+          //   return colorScheme.primary;
+          // }),
+          // foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimary),
           shape: const WidgetStatePropertyAll<OutlinedBorder>(
             RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
           ),
@@ -131,12 +132,12 @@ class AppStyle {
         style: ButtonStyle(
           padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
           minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
-          backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
-            if (state.contains(WidgetState.disabled)) return colorScheme.primaryContainer.withAlpha(30);
-            if (state.contains(WidgetState.error)) return colorScheme.errorContainer;
-            return colorScheme.primaryContainer;
-          }),
-          foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimaryContainer),
+          // backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
+          //   if (state.contains(WidgetState.disabled)) return colorScheme.primaryContainer.withAlpha(30);
+          //   if (state.contains(WidgetState.error)) return colorScheme.errorContainer;
+          //   return colorScheme.primaryContainer;
+          // }),
+          // foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimaryContainer),
           shape: WidgetStateProperty.resolveWith<OutlinedBorder>((state) {
             // Color borderColor = colorScheme.primary;
             // if (state.contains(WidgetState.disabled)) {
@@ -167,8 +168,8 @@ class AppStyle {
       ),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
-          // padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
-          // minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
+          padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
+          minimumSize: WidgetStatePropertyAll<Size>(Size.square(AppConstants.minButtonSize.shortestSide)),
           // backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
           //   if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);
           //   if (state.contains(WidgetState.error)) return colorScheme.error;

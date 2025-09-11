@@ -1,5 +1,6 @@
 import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/authentication/user_model.dart';
+import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/import_backup_page.dart';
 import 'package:invesly/main.dart';
@@ -9,6 +10,7 @@ import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 const _kPaddingTop = 56.0;
 const _kImageSize = 156.0;
+const _kSpaceFromHeaderToImage = 64.0;
 
 class IntroPage extends StatefulWidget {
   const IntroPage({super.key});
@@ -66,9 +68,12 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
         title: 'Safe, protected and reliable',
         // description: $strings.introPayLaterDescription,
         description:
-            'Your data is truly yours. The information is stored in your device and synced with your Google Drive account (optional).\nThis makes this app possible to use it without using internet, while at the same time offers to backup and restore your data even if your device is lost or switched. ',
+            'Your data is truly yours. The information is stored in your device and synced with your Google Drive account (optional).\n\nThis makes this app possible to use it without using internet, while at the same time offers to backup and restore your data even if your device is lost or switched. ',
         imgSrc: 'assets/images/intro/locker.png',
-        content: ElevatedButton(onPressed: () {}, child: Text('Sign in with Google')),
+        content: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(onPressed: () {}, child: Text('Sign in with Google')),
+        ),
       ),
     ];
   }
@@ -126,16 +131,44 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
         child: Stack(
           alignment: Alignment.topCenter,
           children: <Widget>[
+            // ~ Page indicator
+            Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    // ~ Page indicator
+                    SmoothPageIndicator(
+                      controller: _pageController,
+                      count: _pageData.length,
+                      effect: ExpandingDotsEffect(
+                        dotWidth: 8.0,
+                        dotHeight: 8.0,
+                        expansionFactor: 2.0,
+                        activeDotColor: context.colors.secondary,
+                      ),
+                      onDotClicked: (index) => _animateToPage(index),
+                    ),
+
+                    // // ~ Finish button
+                    // _buildFinishBtn(context),
+                  ],
+                ),
+              ),
+            ),
+
             // ~ Image
             Padding(
-              padding: const EdgeInsets.only(top: _kPaddingTop + 48.0),
+              padding: const EdgeInsets.only(top: _kPaddingTop + _kSpaceFromHeaderToImage + 30.0),
               child: SlideTransition(
                 position: _offsetAnimation,
                 child: Stack(
                   children: <Widget>[
                     Material(
                       type: MaterialType.circle,
-                      color: context.colors.primaryContainer,
+                      color: context.colors.primaryContainer.withAlpha(128),
                       child: SizedBox.square(dimension: _kImageSize),
                     ),
                     ValueListenableBuilder<int>(
@@ -161,76 +194,61 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
               controller: _pageController,
               itemBuilder: (_, index) {
                 return Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, _kPaddingTop, 16.0, 72.0),
+                  padding: const EdgeInsets.fromLTRB(16.0, _kPaddingTop, 16.0, 0.0),
                   child: _Page(_pageData[index]),
                 );
               },
               itemCount: _pageData.length,
               onPageChanged: (value) => _currentPage.value = value,
             ),
-
-            // ~ Bottom indicator and button
-            Align(
-              alignment: Alignment.bottomCenter,
+          ],
+        ),
+      ),
+      persistentFooterButtons: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ValueListenableBuilder<int>(
+              valueListenable: _currentPage,
+              builder: (context, currentPage, child) {
+                return AnimatedExpanded(expand: currentPage > 0, child: child!);
+              },
               child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    // ~ Page indicator
-                    SmoothPageIndicator(
-                      controller: _pageController,
-                      count: _pageData.length,
-                      effect: ExpandingDotsEffect(
-                        dotWidth: 8.0,
-                        dotHeight: 8.0,
-                        expansionFactor: 2.0,
-                        activeDotColor: context.colors.secondary,
-                      ),
-                      onDotClicked: (index) => _animateToPage(index),
-                    ),
-
-                    // // ~ Finish button
-                    // _buildFinishBtn(context),
-                  ],
+                padding: EdgeInsets.only(right: 8.0),
+                child: IconButton.filledTonal(
+                  onPressed: () => _handleCompletePressed(context),
+                  icon: const Icon(Icons.arrow_back_rounded),
                 ),
+              ),
+            ),
+            Expanded(
+              child: FilledButton.tonalIcon(
+                onPressed: () => _handleCompletePressed(context),
+                label: const Icon(Icons.arrow_forward_rounded),
+                icon: const Text('Next'),
               ),
             ),
           ],
         ),
-      ),
-
-      persistentFooterButtons: <Widget>[
-        SizedBox(
-          width: double.infinity,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: ElevatedButton.icon(
-              onPressed: () => _handleCompletePressed(context),
-              label: const Text('Next'),
-              icon: const Icon(Icons.keyboard_arrow_right_rounded),
-            ),
-          ),
-        ),
       ],
-      persistentFooterAlignment: AlignmentDirectional.center,
+      // persistentFooterAlignment: AlignmentDirectional.center,
     );
   }
 
-  Widget _buildFinishBtn(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: _currentPage,
-      builder: (_, pageIndex, child) {
-        return AnimatedScale(scale: pageIndex == _pageData.length - 1 ? 1.0 : 0.0, duration: 200.ms, child: child);
-      },
-      child: IconButton(
-        icon: const Icon(Icons.arrow_forward_rounded),
-        onPressed: () => _handleCompletePressed(context),
-        style: IconButton.styleFrom(foregroundColor: context.colors.onPrimary, backgroundColor: context.colors.primary),
-        padding: const EdgeInsets.all(16.0),
-      ),
-    );
-  }
+  // Widget _buildFinishBtn(BuildContext context) {
+  //   return ValueListenableBuilder<int>(
+  //     valueListenable: _currentPage,
+  //     builder: (_, pageIndex, child) {
+  //       return AnimatedScale(scale: pageIndex == _pageData.length - 1 ? 1.0 : 0.0, duration: 200.ms, child: child);
+  //     },
+  //     child: IconButton(
+  //       icon: const Icon(Icons.arrow_forward_rounded),
+  //       onPressed: () => _handleCompletePressed(context),
+  //       style: IconButton.styleFrom(foregroundColor: context.colors.onPrimary, backgroundColor: context.colors.primary),
+  //       padding: const EdgeInsets.all(16.0),
+  //     ),
+  //   );
+  // }
 }
 
 @immutable
@@ -250,29 +268,27 @@ class _Page extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      // width: 256.0,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 24.0,
-        children: <Widget>[
-          Text(data.title, style: TextStyle(fontSize: 28.0, fontWeight: FontWeight.w600)),
-          const SizedBox(height: _kImageSize), // space for image
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                spacing: 16.0,
-                children: <Widget>[
-                  if (data.description != null) Text(data.description!, style: context.textTheme.bodySmall),
-                  ?data.content,
-                ],
-              ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: _kSpaceFromHeaderToImage,
+      children: <Widget>[
+        Text(data.title, style: TextStyle(fontSize: 28.0, fontWeight: FontWeight.w600)),
+        const SizedBox(height: _kImageSize), // space for image
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 16.0,
+              children: <Widget>[
+                if (data.description != null) Text(data.description!, style: context.textTheme.labelMedium),
+                ?data.content,
+              ],
             ),
           ),
-          // const SizedBox(height: 112.0), // space for indicators
-        ],
-      ),
+        ),
+        // const SizedBox(height: 112.0), // space for indicators
+      ],
     );
   }
 }

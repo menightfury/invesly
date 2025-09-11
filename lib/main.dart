@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-// import 'package:flutter/scheduler.dart' show timeDilation;
+import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/database/backup/backup_service.dart';
 import 'package:invesly/intro/splash_page.dart';
