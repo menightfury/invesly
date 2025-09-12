@@ -1,6 +1,7 @@
 import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
+import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/import_backup_page.dart';
 import 'package:invesly/main.dart';
@@ -61,7 +62,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
         description:
             'Your default currency will be used in reports and general charts. You will be able to change currency later at any time in the application settings',
         imgSrc: 'assets/images/intro/piggybank.png',
-        content: ListTile(title: Text('Select your currency'), subtitle: Text('Indian rupee')),
+        extra: ListTile(title: Text('Select your currency'), subtitle: Text('Indian rupee')),
       ),
       _PageModel(
         // title: $strings.introPayLaterTitle,
@@ -70,9 +71,13 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
         description:
             'Your data is truly yours. The information is stored in your device and synced with your Google Drive account (optional).\n\nThis makes this app possible to use it without using internet, while at the same time offers to backup and restore your data even if your device is lost or switched. ',
         imgSrc: 'assets/images/intro/locker.png',
-        content: SizedBox(
+        extra: SizedBox(
           width: double.infinity,
-          child: ElevatedButton(onPressed: () {}, child: Text('Sign in with Google')),
+          child: ElevatedButton.icon(
+            onPressed: () => _onSignInPressed(context),
+            icon: CircleAvatar(radius: 16.0, backgroundImage: AssetImage('assets/images/google_logo.png')),
+            label: Text('Sign in with Google', textAlign: TextAlign.center),
+          ),
         ),
       ),
     ];
@@ -118,6 +123,28 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
       // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
       context.go(const DashboardScreen());
     }
+  }
+
+  Future<void> _finalizeSetUp(BuildContext context, InveslyUser user) async {
+    // Save current user
+    context.read<AppCubit>().saveCurrentUser(user);
+
+    if (user == InveslyUser.empty()) {
+      // User chose to continue without sign-in
+      // Write initial database file from assets
+      // await context.read<AuthRepository>().writeDatabaseFile();
+    } else {
+      // User signed in successfully
+      await ImportBackupPage.showModal(context);
+    }
+
+    // Load database
+    await Bootstrap.instance.api.initializeDatabase();
+
+    if (!context.mounted) return;
+    context.read<AppCubit>().completeOnboarding();
+    // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
+    context.go(const DashboardScreen());
   }
 
   void _animateToPage(int index) {
@@ -214,18 +241,43 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
                 return AnimatedExpanded(expand: currentPage > 0, child: child!);
               },
               child: Padding(
-                padding: EdgeInsets.only(right: 8.0),
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
                 child: IconButton.filledTonal(
-                  onPressed: () => _handleCompletePressed(context),
+                  onPressed: () {
+                    if (_currentPage.value <= 0) return;
+                    _animateToPage(_currentPage.value - 1);
+                  },
                   icon: const Icon(Icons.arrow_back_rounded),
                 ),
               ),
             ),
             Expanded(
-              child: FilledButton.tonalIcon(
-                onPressed: () => _handleCompletePressed(context),
-                label: const Icon(Icons.arrow_forward_rounded),
-                icon: const Text('Next'),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: ValueListenableBuilder<int>(
+                  valueListenable: _currentPage,
+                  builder: (context, currentPage, _) {
+                    return FilledButton.tonalIcon(
+                      onPressed: () {
+                        if (currentPage < _pageData.length - 1) {
+                          _animateToPage(currentPage + 1);
+                          return;
+                        }
+                        _onWithoutSignInPressed(context);
+                      },
+                      label: const Icon(Icons.arrow_forward_rounded),
+                      icon: currentPage == _pageData.length - 1
+                          ? FadeIn(
+                              key: Key('continue_without_sign_in'),
+                              child: const Text('Continue without sign in', textAlign: TextAlign.center),
+                            )
+                          : FadeIn(
+                              key: Key('next'),
+                              child: const Text('Next', textAlign: TextAlign.center),
+                            ),
+                    );
+                  },
+                ),
               ),
             ),
           ],
@@ -249,16 +301,26 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
   //     ),
   //   );
   // }
+
+  Future<void> _onSignInPressed(BuildContext context) async {
+    final (user, _) = await LoginPage.startLoginFlow(context);
+    if (!context.mounted) return;
+    _finalizeSetUp(context, InveslyUser.fromGoogleSignInAccount(user));
+  }
+
+  void _onWithoutSignInPressed(BuildContext context) {
+    _finalizeSetUp(context, InveslyUser.empty());
+  }
 }
 
 @immutable
 class _PageModel {
-  const _PageModel({required this.title, this.description, required this.imgSrc, this.content});
+  const _PageModel({required this.title, this.description, required this.imgSrc, this.extra});
 
   final String title;
   final String? description;
   final String imgSrc;
-  final Widget? content;
+  final Widget? extra;
 }
 
 class _Page extends StatelessWidget {
@@ -282,12 +344,12 @@ class _Page extends StatelessWidget {
               spacing: 16.0,
               children: <Widget>[
                 if (data.description != null) Text(data.description!, style: context.textTheme.labelMedium),
-                ?data.content,
+                ?data.extra,
+                SizedBox(height: 8.0),
               ],
             ),
           ),
         ),
-        // const SizedBox(height: 112.0), // space for indicators
       ],
     );
   }
