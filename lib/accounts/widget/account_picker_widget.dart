@@ -3,7 +3,6 @@ import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/accounts/model/account_model.dart';
-import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 class InveslyAccountPickerWidget extends StatelessWidget {
   const InveslyAccountPickerWidget({super.key, this.accountId, this.onPickup});
@@ -33,11 +32,21 @@ class InveslyAccountPickerWidget extends StatelessWidget {
         final accounts = state.isLoaded ? (state as AccountsLoadedState).accounts : null;
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          padding: const EdgeInsets.only(bottom: 16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              ColumnBuilder(
-                itemBuilder: (context, index) {
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
+                child: Text(
+                  'Select an account',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              ...List.generate(
+                accounts?.length ?? 2, // dummy count for shimmer effect
+                (index) {
                   final account = accounts?.elementAt(index);
 
                   return Shimmer(
@@ -52,8 +61,8 @@ class InveslyAccountPickerWidget extends StatelessWidget {
                     ),
                   );
                 },
-                itemCount: accounts?.length ?? 2, // dummy count for shimmer effect
               ),
+
               ListTile(
                 leading: const Icon(Icons.add_reaction_rounded),
                 title: const Text('Add new account'),

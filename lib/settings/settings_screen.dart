@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, avoid_print
 
-import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_sign_in/google_sign_in.dart' show GoogleUserCircleAvatar;
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
 import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:path/path.dart';
@@ -12,7 +13,6 @@ import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/login_page.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
-import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
@@ -70,14 +70,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 BlocSelector<AppCubit, AppState, InveslyUser?>(
                   selector: (state) => state.currentUser,
                   builder: (context, currentUser) {
-                    final user = currentUser ?? InveslyUser.empty();
+                    // final user = currentUser ?? InveslyUser.empty();
                     return Section(
-                      title: Text(user.name.toSentenceCase()),
-                      subTitle: Text(user.email),
-                      icon: CircleAvatar(
-                        backgroundImage: user.photoUrl != null ? CachedNetworkImageProvider(user.photoUrl!) : null,
-                        child: user.photoUrl == null ? const Icon(Icons.person, size: 32.0) : null,
-                      ),
+                      title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
+                      subTitle: currentUser.isNotNullOrEmpty ? Text(currentUser!.email) : null,
+                      // icon: CircleAvatar(
+                      //   backgroundImage: user.photoUrl != null ? CachedNetworkImageProvider(user.photoUrl!) : null,
+                      //   child: user.photoUrl == null ? const Icon(Icons.person_rounded) : null,
+                      // ),
+                      icon: currentUser.isNotNullOrEmpty
+                          ? GoogleUserCircleAvatar(identity: currentUser!) // TODO: Implement cached network image
+                          : CircleAvatar(child: const Icon(Icons.person_rounded)),
                       trailingIcon: GestureDetector(
                         onTap: () => context.push(const EditAccountScreen()),
                         child: Text(
@@ -101,19 +104,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 return ColumnBuilder(
                                   spacing: 2.0,
                                   itemBuilder: (context, index) {
-                                    final account = null;
-                                    // final account = accounts?.elementAt(index);
+                                    final account = accounts?.elementAt(index);
 
                                     return BlocSelector<AppCubit, AppState, bool>(
                                       selector: (state) => state.currentAccountId == account?.id,
                                       builder: (context, isCurrentAccount) {
                                         $logger.i('rebuilding $account');
                                         return Shimmer(
-                                          isLoading: !isLoading,
+                                          isLoading: isLoading,
 
                                           child: SectionTile(
-                                            onTap: () => context.read<AppCubit>().saveCurrentAccount(account.id),
-                                            icon: CircleAvatar(backgroundImage: AssetImage(account.avatar)),
+                                            // onTap: () => context.read<AppCubit>().saveCurrentAccount(account.id),
+                                            icon: CircleAvatar(
+                                              backgroundColor: isError
+                                                  ? context.colors.error
+                                                  : context.theme.canvasColor,
+                                              backgroundImage: account != null ? AssetImage(account.avatar) : null,
+                                            ),
                                             title: account == null
                                                 ? Skeleton(color: isError ? context.colors.error : null)
                                                 : Text(account.name.toSentenceCase(), overflow: TextOverflow.ellipsis),

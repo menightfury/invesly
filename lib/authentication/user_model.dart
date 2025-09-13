@@ -58,3 +58,8 @@ class InveslyUser extends InveslyDataModel implements GoogleIdentity {
   @override
   String get displayName => name;
 }
+
+extension InveslyUserX on InveslyUser? {
+  bool get isNullOrEmpty => this == null || this == InveslyUser.empty();
+  bool get isNotNullOrEmpty => !isNullOrEmpty;
+}

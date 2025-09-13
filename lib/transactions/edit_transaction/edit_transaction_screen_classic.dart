@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:intl/intl.dart';
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
@@ -74,13 +76,6 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
 
       Navigator.maybePop<bool>(context);
     } else {
-      // if (!(_quantityTextField.currentState?.isValid ?? false)) {
-      //   _quantityShakeKey.currentState?.shake();
-      // }
-
-      // if (!(_amountTextField.currentState?.isValid ?? false)) {
-      //   _amountShakeKey.currentState?.shake();
-      // }
       if (_validateMode.value != AutovalidateMode.onUserInteraction) {
         _validateMode.value = AutovalidateMode.onUserInteraction;
       }
@@ -121,7 +116,12 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
             },
             child: CustomScrollView(
               slivers: <Widget>[
-                SliverAppBar(pinned: true, floating: true, actions: [_UserPickerWidget()]),
+                SliverAppBar(
+                  pinned: true,
+                  floating: true,
+                  actions: [_AccountPickerWidget()],
+                  actionsPadding: EdgeInsets.only(right: 16.0),
+                ),
 
                 SliverList(
                   delegate: SliverChildListDelegate.fixed(<Widget>[
@@ -178,7 +178,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                   childBuilder: (value) {
                                     if (value == null) {
                                       return const Text(
-                                        'Select units',
+                                        'e.g. 10',
                                         style: TextStyle(color: Colors.grey),
                                         overflow: TextOverflow.ellipsis,
                                       );
@@ -215,7 +215,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                   childBuilder: (value) {
                                     if (value == null) {
                                       return const Text(
-                                        'Select units',
+                                        'e.g. 1500',
                                         style: TextStyle(color: Colors.grey),
                                         overflow: TextOverflow.ellipsis,
                                       );
@@ -382,58 +382,58 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
   }
 }
 
-class _UserPickerWidget extends StatelessWidget {
-  const _UserPickerWidget({super.key});
+class _AccountPickerWidget extends StatefulWidget {
+  const _AccountPickerWidget({super.key});
+
+  @override
+  State<_AccountPickerWidget> createState() => _AccountPickerWidgetState();
+}
+
+class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
+  InveslyAccount? initialAccount;
+
+  @override
+  void initState() {
+    super.initState();
+    final cubit = context.read<EditTransactionCubit>();
+    final accountsState = context.read<AccountsCubit>().state;
+    if (accountsState.isLoaded) {
+      final accounts = (accountsState as AccountsLoadedState).accounts;
+      if (accounts.isEmpty) return;
+
+      final currentAccountId = cubit.state.accountId ?? context.read<AppCubit>().state.currentAccountId;
+
+      if (cubit.state.isNewTransaction) {
+        initialAccount = accounts.firstWhere((acc) => acc.id == currentAccountId, orElse: () => accounts.first);
+        cubit.updateAccount(initialAccount!.id);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
 
     return FormField<InveslyAccount>(
-      builder: (state) {
-        late final Widget icon;
-
-        if (state.hasError) {
-          icon = Icon(Icons.person_2_rounded, color: context.colors.error);
-        } else if (state.value != null) {
-          icon = CircleAvatar(foregroundImage: AssetImage(state.value!.avatar), radius: 20.0);
-        } else {
-          icon = const Icon(Icons.person_2_rounded);
-        }
+      initialValue: initialAccount,
+      builder: (formFieldState) {
         return Shake(
-          shake: state.hasError,
-          child: IconButton(
-            onPressed: () async {
+          shake: formFieldState.hasError,
+          child: GestureDetector(
+            onTap: () async {
               final newUser = await InveslyAccountPickerWidget.showModal(context, cubit.state.accountId);
               if (newUser == null) return;
 
               cubit.updateAccount(newUser.id);
-              state.didChange(newUser);
+              formFieldState.didChange(newUser);
             },
-            style: IconButton.styleFrom(
-              backgroundColor: state.hasError ? context.colors.errorContainer : context.colors.primaryContainer,
+            child: CircleAvatar(
+              foregroundImage: formFieldState.value != null ? AssetImage(formFieldState.value!.avatar) : null,
+              backgroundColor: formFieldState.hasError ? context.colors.errorContainer : null,
+              child: formFieldState.value == null
+                  ? Icon(Icons.person_rounded, color: formFieldState.hasError ? context.colors.error : null)
+                  : null,
             ),
-            icon: icon,
-            // icon: BlocBuilder<UsersCubit, UsersState>(
-            //   builder: (context, state) {
-            //     if (state is UsersErrorState) {
-            //       return const Icon(Icons.error_outline_rounded, color: Colors.redAccent);
-            //     }
-
-            //     if (state is UsersLoadedState) {
-            //       final users = state.users;
-            //       final currentUser = users.isEmpty ? null : users.firstWhereOrNull((u) => u.id == cubit.state.userId);
-
-            //       return CircleAvatar(
-            //         foregroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
-            //         radius: 20.0,
-            //         child: Text(currentUser?.name.substring(0, 1).toUpperCase() ?? '?'),
-            //       );
-            //     }
-
-            //     return const CircularProgressIndicator();
-            //   },
-            // ),
           ),
         );
       },

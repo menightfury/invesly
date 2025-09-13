@@ -46,7 +46,7 @@ class Shimmer extends StatefulWidget {
     super.key,
     required this.child,
     this.gradient = const LinearGradient(
-      colors: [Color(0xFFEBEBF4), Color(0xFFF4F4F4), Color(0xFFEBEBF4)],
+      colors: [Colors.black12, Colors.white10, Colors.black12],
       stops: [0.1, 0.3, 0.4],
       begin: Alignment(-1.0, -0.3),
       end: Alignment(1.0, 0.3),
@@ -58,7 +58,7 @@ class Shimmer extends StatefulWidget {
   });
 
   @override
-  _ShimmerState createState() => _ShimmerState();
+  State<Shimmer> createState() => _ShimmerState();
 }
 
 class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
@@ -100,12 +100,11 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
     if (!widget.isLoading) {
       return widget.child;
     }
-
     return AnimatedBuilder(
       animation: _controller,
       child: widget.child,
-      builder: (BuildContext context, Widget? child) {
-        return _Shimmer(gradient: widget.gradient, percent: _controller.value, child: child);
+      builder: (context, child) {
+        return _ShimmerRenderWidget(gradient: widget.gradient, percent: _controller.value, child: child);
       },
     );
   }
@@ -118,11 +117,11 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
 }
 
 @immutable
-class _Shimmer extends SingleChildRenderObjectWidget {
+class _ShimmerRenderWidget extends SingleChildRenderObjectWidget {
   final double percent;
   final Gradient gradient;
 
-  const _Shimmer({required this.percent, required this.gradient, super.child});
+  const _ShimmerRenderWidget({required this.percent, required this.gradient, super.child});
 
   @override
   _ShimmerFilter createRenderObject(BuildContext context) {

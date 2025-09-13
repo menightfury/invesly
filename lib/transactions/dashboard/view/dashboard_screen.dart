@@ -39,7 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           controller: _scrollController,
           slivers: [
             SliverAppBar(
-              leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 32.0)),
+              leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 48.0)),
               titleSpacing: 0.0,
               actions: <Widget>[
                 // ~~~ User avatar ~~~
@@ -48,8 +48,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: BlocSelector<AppCubit, AppState, InveslyUser?>(
                     selector: (state) => state.currentUser,
                     builder: (context, currentUser) {
-                      final user = currentUser ?? InveslyUser.empty();
-                      return GoogleUserCircleAvatar(identity: user);
+                      return currentUser.isNotNullOrEmpty
+                          ? GoogleUserCircleAvatar(identity: currentUser!) // TODO: Implement cached network image
+                          : CircleAvatar(child: const Icon(Icons.person_rounded));
                     },
                   ),
                 ),
@@ -75,7 +76,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         selector: (state) => state.currentUser,
                         builder: (context, currentUser) {
                           return Text(
-                            currentUser?.name ?? 'Investor',
+                            currentUser.isNotNullOrEmpty ? currentUser!.name : 'Investor',
                             overflow: TextOverflow.ellipsis,
                             style: textTheme.headlineMedium,
                           );
@@ -92,7 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
                   child: _DashboardContents(),
                 ),
-                const Gap(40.0),
+                const Gap(80.0),
               ]),
             ),
           ],
@@ -166,7 +167,7 @@ class _DashboardContentsState extends State<_DashboardContents> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      spacing: 4.0,
+      spacing: 16.0,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[_AccountsList(), _AmcGenreList(), _RecentTransactions()],
     );
@@ -181,7 +182,7 @@ class _AccountsList extends StatelessWidget {
     final textTheme = context.textTheme;
 
     return SizedBox(
-      height: 112.0,
+      height: 120.0,
       child: Align(
         alignment: Alignment.centerLeft,
         child: SingleChildScrollView(
@@ -203,66 +204,68 @@ class _AccountsList extends StatelessWidget {
                     spacing: 8.0,
                     children: <Widget>[
                       // ~~~ Accounts ~~~
-                      // dummy count for shimmer effect
-                      ...List.generate(accounts?.length ?? 1, (index) {
-                        final account = accounts?.elementAt(index);
+                      ...List.generate(
+                        accounts?.length ?? 1, // dummy count for shimmer effect
+                        (index) {
+                          final account = accounts?.elementAt(index);
 
-                        return BlocSelector<AppCubit, AppState, bool>(
-                          selector: (state) => state.currentAccountId == account?.id,
-                          builder: (context, isCurrentAccount) {
-                            $logger.i('rebuilding $account');
-                            return Tappable(
-                              // onTap: isLoading ? null : () => RouteUtils.pushRoute(
-                              //   context,
-                              //   AccountDetailsPage(
-                              //     account: account,
-                              //     accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
-                              //   ),
-                              // ),
-                              width: 160.0,
-                              childAlignment: Alignment.centerLeft,
-                              border: BorderSide(color: isCurrentAccount ? context.colors.primary : Colors.black),
-                              content: Shimmer(
-                                isLoading: isLoading,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  spacing: 4.0,
-                                  children: <Widget>[
-                                    account == null
-                                        ? Skeleton(color: isError ? context.colors.error : null)
-                                        : Text(account.name, overflow: TextOverflow.ellipsis),
+                          return BlocSelector<AppCubit, AppState, bool>(
+                            selector: (state) => state.currentAccountId == account?.id,
+                            builder: (context, isCurrentAccount) {
+                              $logger.i('rebuilding $account');
+                              return Tappable(
+                                // onTap: isLoading ? null : () => RouteUtils.pushRoute(
+                                //   context,
+                                //   AccountDetailsPage(
+                                //     account: account,
+                                //     accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
+                                //   ),
+                                // ),
+                                width: 160.0,
+                                childAlignment: Alignment.centerLeft,
+                                border: BorderSide(color: isCurrentAccount ? context.colors.primary : Colors.black),
+                                content: Shimmer(
+                                  isLoading: isLoading,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    spacing: 4.0,
+                                    children: <Widget>[
+                                      account == null
+                                          ? Skeleton(color: isError ? context.colors.error : null)
+                                          : Text(account.name, overflow: TextOverflow.ellipsis),
 
-                                    totalAmount == null
-                                        ? Skeleton(color: isError ? context.colors.error : null)
-                                        : BlocSelector<AppCubit, AppState, bool>(
-                                            selector: (state) => state.isPrivateMode,
-                                            builder: (context, isPrivateMode) {
-                                              return CurrencyView(
-                                                amount: totalAmount,
-                                                integerStyle: textTheme.headlineLarge,
-                                                decimalsStyle: textTheme.headlineSmall,
-                                                currencyStyle: textTheme.bodyMedium,
-                                                privateMode: isPrivateMode,
-                                                // compactView: snapshot.data! >= 10000000
-                                              );
-                                            },
-                                          ),
-                                    Spacer(),
-                                    Text('5 transactions', style: textTheme.labelMedium),
-                                  ],
+                                      totalAmount == null
+                                          ? Skeleton(color: isError ? context.colors.error : null)
+                                          : BlocSelector<AppCubit, AppState, bool>(
+                                              selector: (state) => state.isPrivateMode,
+                                              builder: (context, isPrivateMode) {
+                                                return CurrencyView(
+                                                  amount: totalAmount,
+                                                  integerStyle: textTheme.headlineLarge,
+                                                  decimalsStyle: textTheme.headlineSmall,
+                                                  currencyStyle: textTheme.bodyMedium,
+                                                  privateMode: isPrivateMode,
+                                                  // compactView: snapshot.data! >= 1_00_00_000
+                                                );
+                                              },
+                                            ),
+                                      Spacer(),
+                                      Text('5 transactions', style: textTheme.labelMedium),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                        );
-                      }),
+                              );
+                            },
+                          );
+                        },
+                      ),
 
                       // ~~~ Add account ~~~
                       Tappable(
                         onTap: () => context.push(const EditAccountScreen()),
-                        color: Colors.grey.shade100,
+                        color: context.colors.secondaryContainer,
                         width: 160.0,
-                        border: BorderSide(color: Colors.grey.shade500, width: 1.0),
+                        border: BorderSide(color: context.colors.onSecondaryContainer, width: 1.0),
                         content: Shimmer(
                           isLoading: isLoading,
                           child: Column(
@@ -272,10 +275,13 @@ class _AccountsList extends StatelessWidget {
                             children: <Widget>[
                               isLoading
                                   ? Skeleton(color: isError ? context.colors.error : null)
-                                  : Icon(Icons.format_list_bulleted_add, color: Colors.grey.shade500),
+                                  : Icon(Icons.format_list_bulleted_add, color: context.colors.onSecondaryContainer),
                               isLoading
                                   ? Skeleton(color: isError ? context.colors.error : null)
-                                  : Text('Create account', style: TextStyle(color: Colors.grey.shade500)),
+                                  : Text(
+                                      'Create account',
+                                      style: TextStyle(color: context.colors.onSecondaryContainer),
+                                    ),
                             ],
                           ),
                         ),
@@ -297,98 +303,85 @@ class _AmcGenreList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
+    return Section(
+      title: Text('Investment genres'),
+      subTitle: Text('01 Sep, 2025 - 13 Sep, 2025'),
+      icon: const Icon(Icons.swap_vert_rounded),
+      // InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
+      tiles: AmcGenre.values.map((genre) => _buildGenre(context, genre)).toList(),
+    );
+  }
+
+  Widget _buildGenre(BuildContext context, AmcGenre genre) {
+    return Tappable(
+      onTap: () {},
+      borderRadius: const BorderRadius.all(Radius.circular(4.0)),
+      childAlignment: Alignment.centerLeft,
+      padding: EdgeInsets.zero,
+      color: context.colors.secondaryContainer,
+      content: Stack(
         children: <Widget>[
-          ListTile(
-            title: Text('Investment genres', style: context.textTheme.headlineSmall),
-            leading: const Icon(Icons.swap_vert_rounded),
+          Positioned(
+            right: -12.0,
+            top: -12.0,
+            child: Icon(genre.icon, size: 64.0, color: context.colors.secondary.withAlpha(50)),
           ),
-          // InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
-          ColumnBuilder(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 2.0,
-            itemCount: AmcGenre.values.length,
-            itemBuilder: (context, index) {
-              final genre = AmcGenre.getByIndex(index);
-              late final BorderRadius borderRadius;
-              if (index == 0) {
-                borderRadius = const BorderRadius.vertical(top: Radius.circular(20.0), bottom: Radius.circular(4.0));
-              } else if (index == AmcGenre.values.length - 1) {
-                borderRadius = const BorderRadius.vertical(top: Radius.circular(4.0), bottom: Radius.circular(20.0));
-              } else {
-                borderRadius = const BorderRadius.all(Radius.circular(4.0));
-              }
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(genre.title, overflow: TextOverflow.ellipsis),
+                BlocBuilder<DashboardCubit, DashboardState>(
+                  builder: (context, dashboardState) {
+                    final isError = dashboardState.isError;
+                    final isLoading = dashboardState.isLoading;
 
-              return Tappable(
-                onTap: () {},
-                borderRadius: borderRadius,
-                childAlignment: Alignment.centerLeft,
-                padding: EdgeInsets.zero,
-                color: context.colors.secondaryContainer,
-                content: Stack(
-                  children: <Widget>[
-                    Positioned(
-                      right: -4.0,
-                      top: -4.0,
-                      child: Icon(genre.icon, size: 64.0, color: context.colors.secondary.withAlpha(50)),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(genre.title, overflow: TextOverflow.ellipsis),
-                          BlocBuilder<DashboardCubit, DashboardState>(
-                            builder: (context, state) {
-                              if (state is DashboardLoadedState) {
-                                final stats = state.stats.firstWhereOrNull((stat) => stat.amcGenre == genre);
+                    final stats = dashboardState is DashboardLoadedState
+                        ? dashboardState.stats.firstWhereOrNull((stat) => stat.amcGenre == genre)
+                        : null;
 
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  spacing: 4.0,
-                                  children: <Widget>[
-                                    Text(
-                                      '${stats?.numTransactions ?? 0} transactions',
-                                      style: context.textTheme.labelSmall,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      spacing: 4.0,
+                      children: <Widget>[
+                        isLoading
+                            ? Skeleton()
+                            : Text(
+                                '${stats?.numTransactions ?? 0} transactions',
+                                style: context.textTheme.labelSmall,
+                                overflow: TextOverflow.ellipsis,
+                              ),
 
-                                    Align(
-                                      alignment: Alignment.bottomRight,
-                                      child: BlocSelector<AppCubit, AppState, bool>(
-                                        selector: (state) => state.isPrivateMode,
-                                        builder: (context, isPrivateMode) {
-                                          return CurrencyView(
-                                            amount: stats?.totalAmount ?? 0.0,
-                                            integerStyle: context.textTheme.headlineMedium,
-                                            decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0),
-                                            currencyStyle: context.textTheme.bodySmall,
-                                            privateMode: isPrivateMode,
-                                          );
-                                        },
-                                      ),
-                                      // child: Text(
-                                      //   stats?.totalAmount.toCompact() ?? '0.0',
-                                      //   style: context.textTheme.,
-                                      //   overflow: TextOverflow.ellipsis,
-                                      // ),
-                                    ),
-                                  ],
-                                );
-                              }
-                              return const Center(child: CircularProgressIndicator());
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: isLoading
+                              ? Skeleton()
+                              : BlocSelector<AppCubit, AppState, bool>(
+                                  selector: (state) => state.isPrivateMode,
+                                  builder: (context, isPrivateMode) {
+                                    return CurrencyView(
+                                      amount: stats?.totalAmount ?? 0.0,
+                                      integerStyle: context.textTheme.headlineMedium,
+                                      decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0),
+                                      currencyStyle: context.textTheme.bodySmall,
+                                      privateMode: isPrivateMode,
+                                    );
+                                  },
+                                ),
+                          // child: Text(
+                          //   stats?.totalAmount.toCompact() ?? '0.0',
+                          //   style: context.textTheme.,
+                          //   overflow: TextOverflow.ellipsis,
+                          // ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
-              );
-            },
+              ],
+            ),
           ),
         ],
       ),
@@ -402,28 +395,35 @@ class _RecentTransactions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Section(
-      icon: const Icon(Icons.swap_vert_rounded),
       title: Text('Recent transactions'),
+      subTitle: Text('01 Sep, 2025 - 13 Sep, 2025'),
+      icon: const Icon(Icons.swap_vert_rounded),
       tiles: [
         BlocBuilder<DashboardCubit, DashboardState>(
           builder: (context, state) {
             if (state is DashboardLoadedState) {
               final rts = state.recentTransactions;
               if (rts.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                  child: Center(
-                    child: Column(
-                      spacing: 16.0,
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Text('Oops! This is so empty', style: context.textTheme.titleLarge),
-                        Text(
-                          'No transactions have been found.\nAdd a few transactions.',
-                          textAlign: TextAlign.center,
-                          style: context.textTheme.bodySmall,
+                return ClipRRect(
+                  borderRadius: AppConstants.tileBorderRadius,
+                  child: ColoredBox(
+                    color: context.theme.canvasColor,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                      child: Center(
+                        child: Column(
+                          spacing: 16.0,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Text('Oops! This is so empty', style: context.textTheme.titleLarge),
+                            Text(
+                              'No transactions have been found.\nAdd a few transactions.',
+                              textAlign: TextAlign.center,
+                              style: context.textTheme.bodySmall,
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 );
@@ -431,16 +431,16 @@ class _RecentTransactions extends StatelessWidget {
               return ColumnBuilder(
                 itemBuilder: (context, index) {
                   final rt = rts[index];
-                  return ListTile(
-                    leading: Icon(rt.transactionType.icon),
+                  return SectionTile(
+                    icon: Icon(rt.transactionType.icon),
                     title: Text(rt.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
-                    subtitle: Text(
+                    description: Text(
                       rt.investedOn.toReadable(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: context.textTheme.labelSmall,
                     ),
-                    trailing: BlocSelector<AppCubit, AppState, bool>(
+                    trailingIcon: BlocSelector<AppCubit, AppState, bool>(
                       selector: (state) => state.isPrivateMode,
                       builder: (context, isPrivateMode) {
                         return CurrencyView(

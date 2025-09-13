@@ -1,7 +1,7 @@
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common_libs.dart';
 
-const _kBorderRadius = RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0)));
+const _kBorderRadius = RoundedRectangleBorder(borderRadius: AppConstants.tileBorderRadius);
 
 class Section extends StatelessWidget {
   const Section({super.key, this.title, this.subTitle, this.icon, this.trailingIcon, required this.tiles});

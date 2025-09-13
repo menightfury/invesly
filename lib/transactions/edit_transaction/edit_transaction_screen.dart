@@ -208,7 +208,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                   childBuilder: (value) {
                                     if (value == null) {
                                       return const Text(
-                                        'Select units',
+                                        'e.g. 10',
                                         style: TextStyle(color: Colors.grey),
                                         overflow: TextOverflow.ellipsis,
                                       );

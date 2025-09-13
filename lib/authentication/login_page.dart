@@ -36,7 +36,7 @@ class LoginPage extends StatelessWidget {
 
     try {
       // ignore: prefer_conditional_assignment
-      final user = await openLoadingPopup<GoogleSignInAccount>(context, () async {
+      final user = await openLoadingPopup<GoogleSignInAccount?>(context, () async {
         final user_ = await authRepository.signInWithGoogle();
         if (user_ == null) {
           throw Exception('Sign in failed');
