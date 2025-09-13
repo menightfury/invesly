@@ -23,6 +23,7 @@ export 'common/presentations/widgets/date_picker.dart';
 export 'common/presentations/widgets/empty_widget.dart';
 export 'common/presentations/widgets/error_widget.dart';
 export 'common/presentations/widgets/month_picker.dart';
+export 'common/presentations/widgets/skeleton.dart';
 export 'package:collection/collection.dart';
 export 'package:connectivity_plus/connectivity_plus.dart';
 export 'package:dynamic_color/dynamic_color.dart';

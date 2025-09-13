@@ -2,6 +2,7 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
+import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:path/path.dart';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
@@ -66,138 +67,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SliverList(
               delegate: SliverChildListDelegate.fixed([
                 // ~~~ User Profile Section ~~~
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    spacing: 2.0,
-                    children: <Widget>[
-                      BlocSelector<AppCubit, AppState, InveslyUser?>(
-                        selector: (state) => state.currentUser,
-                        builder: (context, currentUser) {
-                          final user = currentUser ?? InveslyUser.empty();
-                          return Section(
-                            title: Text(user.name.toSentenceCase()),
-                            subTitle: Text(user.email),
-                            icon: CircleAvatar(
-                              backgroundImage: user.photoUrl != null
-                                  ? CachedNetworkImageProvider(user.photoUrl!)
-                                  : null,
-                              child: user.photoUrl == null ? const Icon(Icons.person, size: 32.0) : null,
-                            ),
-                            tiles: [
-                              BlocBuilder<AccountsCubit, AccountsState>(
-                                builder: (context, state) {
-                                  if (state is AccountsErrorState) {
-                                    return Text('Failed to load accounts');
-                                  }
-
-                                  if (state is AccountsLoadedState) {
-                                    final accounts = state.accounts;
-
-                                    return BlocSelector<AppCubit, AppState, String?>(
-                                      selector: (state) => state.currentAccountId,
-                                      builder: (context, currentAccountId) {
-                                        return ColumnBuilder(
-                                          spacing: 2.0,
-                                          itemBuilder: (context, index) {
-                                            final account = accounts[index];
-                                            final isCurrentAccount = account.id == currentAccountId;
-                                            late final BorderRadius borderRadius;
-                                            if (index == accounts.length - 1) {
-                                              borderRadius = BorderRadius.vertical(
-                                                top: const Radius.circular(4.0),
-                                                bottom: AppConstants.cardBorderRadius.bottomLeft,
-                                              );
-                                            } else {
-                                              borderRadius = const BorderRadius.all(Radius.circular(4.0));
-                                            }
-                                            return ListTile(
-                                              // contentPadding: EdgeInsets.zero,
-                                              onTap: () => context.read<AppCubit>().saveCurrentAccount(account.id),
-                                              tileColor: context.colors.primaryContainer,
-                                              leading: CircleAvatar(backgroundImage: AssetImage(account.avatar)),
-                                              shape: RoundedRectangleBorder(borderRadius: borderRadius),
-                                              title: Text(
-                                                account.name.toSentenceCase(),
-                                                style: context.textTheme.bodyMedium?.copyWith(
-                                                  fontWeight: isCurrentAccount ? FontWeight.w600 : null,
-                                                ),
-                                              ),
-                                              subtitle: isCurrentAccount
-                                                  ? Text(
-                                                      'Primary Account',
-                                                      style: context.textTheme.labelMedium?.copyWith(
-                                                        color: context.colors.secondary,
-                                                      ),
-                                                    )
-                                                  : null,
-                                              trailing: IconButton(
-                                                onPressed: () =>
-                                                    context.push(EditAccountScreen(initialAccount: account)),
-                                                icon: Icon(Icons.edit_note_rounded),
-                                                style: IconButton.styleFrom(
-                                                  // foregroundColor: context.colors.onPrimary,
-                                                  backgroundColor: Colors.black.withAlpha(0x1F),
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                          itemCount: accounts.length,
-                                        );
-                                      },
-                                    );
-                                  }
-
-                                  return CircularProgressIndicator();
-                                },
-                              ),
-                            ],
-                          );
-                          return ListTile(
-                            title: Text(
-                              user.name.toSentenceCase(),
-                              style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                            leading: CircleAvatar(
-                              backgroundImage: user.photoUrl != null
-                                  ? CachedNetworkImageProvider(user.photoUrl!)
-                                  : null,
-                              child: user.photoUrl == null ? const Icon(Icons.person, size: 32.0) : null,
-                            ),
-                            trailing: GestureDetector(
-                              onTap: () => context.push(const EditAccountScreen()),
-                              child: Text(
-                                'Add',
-                                style: context.textTheme.labelMedium?.copyWith(
-                                  color: Colors.blue,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            subtitle: Text(
-                              user.email,
-                              style: context.textTheme.labelMedium?.copyWith(color: context.colors.secondary),
-                            ),
-                            tileColor: context.colors.primaryContainer.darken(10),
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(20.0),
-                                bottom: Radius.circular(4.0),
-                              ),
-                            ),
-                          );
-                        },
+                BlocSelector<AppCubit, AppState, InveslyUser?>(
+                  selector: (state) => state.currentUser,
+                  builder: (context, currentUser) {
+                    final user = currentUser ?? InveslyUser.empty();
+                    return Section(
+                      title: Text(user.name.toSentenceCase()),
+                      subTitle: Text(user.email),
+                      icon: CircleAvatar(
+                        backgroundImage: user.photoUrl != null ? CachedNetworkImageProvider(user.photoUrl!) : null,
+                        child: user.photoUrl == null ? const Icon(Icons.person, size: 32.0) : null,
                       ),
-
-                      // InveslyDivider(),
-                      BlocBuilder<AccountsCubit, AccountsState>(
-                        builder: (context, state) {
-                          if (state is AccountsErrorState) {
-                            return Text('Failed to load accounts');
-                          }
-
-                          if (state is AccountsLoadedState) {
-                            final accounts = state.accounts;
+                      trailingIcon: GestureDetector(
+                        onTap: () => context.push(const EditAccountScreen()),
+                        child: Text(
+                          'Add',
+                          style: context.textTheme.labelMedium?.copyWith(
+                            color: context.theme.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      tiles: [
+                        BlocBuilder<AccountsCubit, AccountsState>(
+                          builder: (context, state) {
+                            final isLoading = state.isLoading;
+                            final isError = state.isError;
+                            final accounts = state.isLoaded ? (state as AccountsLoadedState).accounts : null;
 
                             return BlocSelector<AppCubit, AppState, String?>(
                               selector: (state) => state.currentAccountId,
@@ -205,58 +101,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 return ColumnBuilder(
                                   spacing: 2.0,
                                   itemBuilder: (context, index) {
-                                    final account = accounts[index];
-                                    final isCurrentAccount = account.id == currentAccountId;
-                                    late final BorderRadius borderRadius;
-                                    if (index == accounts.length - 1) {
-                                      borderRadius = BorderRadius.vertical(
-                                        top: const Radius.circular(4.0),
-                                        bottom: AppConstants.cardBorderRadius.bottomLeft,
-                                      );
-                                    } else {
-                                      borderRadius = const BorderRadius.all(Radius.circular(4.0));
-                                    }
-                                    return ListTile(
-                                      // contentPadding: EdgeInsets.zero,
-                                      onTap: () => context.read<AppCubit>().saveCurrentAccount(account.id),
-                                      tileColor: context.colors.primaryContainer,
-                                      leading: CircleAvatar(backgroundImage: AssetImage(account.avatar)),
-                                      shape: RoundedRectangleBorder(borderRadius: borderRadius),
-                                      title: Text(
-                                        account.name.toSentenceCase(),
-                                        style: context.textTheme.bodyMedium?.copyWith(
-                                          fontWeight: isCurrentAccount ? FontWeight.w600 : null,
-                                        ),
-                                      ),
-                                      subtitle: isCurrentAccount
-                                          ? Text(
-                                              'Primary Account',
-                                              style: context.textTheme.labelMedium?.copyWith(
-                                                color: context.colors.secondary,
+                                    final account = null;
+                                    // final account = accounts?.elementAt(index);
+
+                                    return BlocSelector<AppCubit, AppState, bool>(
+                                      selector: (state) => state.currentAccountId == account?.id,
+                                      builder: (context, isCurrentAccount) {
+                                        $logger.i('rebuilding $account');
+                                        return Shimmer(
+                                          isLoading: !isLoading,
+
+                                          child: SectionTile(
+                                            onTap: () => context.read<AppCubit>().saveCurrentAccount(account.id),
+                                            icon: CircleAvatar(backgroundImage: AssetImage(account.avatar)),
+                                            title: account == null
+                                                ? Skeleton(color: isError ? context.colors.error : null)
+                                                : Text(account.name.toSentenceCase(), overflow: TextOverflow.ellipsis),
+                                            description: account == null
+                                                ? Skeleton(color: isError ? context.colors.error : null)
+                                                : isCurrentAccount
+                                                ? Text('Primary account')
+                                                : null,
+                                            trailingIcon: IconButton(
+                                              onPressed: () => context.push(EditAccountScreen(initialAccount: account)),
+                                              icon: const Icon(Icons.edit_note_rounded),
+                                              style: IconButton.styleFrom(
+                                                backgroundColor: Colors.black.withAlpha(0x1F),
                                               ),
-                                            )
-                                          : null,
-                                      trailing: IconButton(
-                                        onPressed: () => context.push(EditAccountScreen(initialAccount: account)),
-                                        icon: Icon(Icons.edit_note_rounded),
-                                        style: IconButton.styleFrom(
-                                          // foregroundColor: context.colors.onPrimary,
-                                          backgroundColor: Colors.black.withAlpha(0x1F),
-                                        ),
-                                      ),
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     );
                                   },
-                                  itemCount: accounts.length,
+                                  itemCount: accounts?.length ?? 2, // dummy count for shimmer effect
                                 );
                               },
                             );
-                          }
-
-                          return CircularProgressIndicator();
-                        },
-                      ),
-                    ],
-                  ),
+                          },
+                        ),
+                      ],
+                    );
+                  },
                 ),
 
                 const Gap(16.0),
@@ -269,24 +155,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // content: SectionTiles(),
                   tiles: <Widget>[
                     SectionTile(
-                      title: 'App language',
+                      title: Text('App language'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       icon: const Icon(Icons.language_rounded),
-                      description: 'English',
+                      description: Text('English'),
                     ),
                     SectionTile(
-                      title: 'Currency',
+                      title: Text('Currency'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       icon: const Icon(Icons.attach_money_rounded),
-                      description: 'Choose your preferred currency',
+                      description: Text('Choose your preferred currency'),
                     ),
                     BlocSelector<AppCubit, AppState, bool>(
                       selector: (state) => state.isPrivateMode,
                       builder: (context, isPrivateMode) {
                         return SectionTile.switchTile(
                           icon: const Icon(Icons.privacy_tip_outlined),
-                          title: 'Private mode',
-                          description: 'Hide all monetary values',
+                          title: Text('Private mode'),
+                          description: Text('Hide all monetary values'),
                           value: isPrivateMode,
                           onChanged: (value) => context.read<AppCubit>().setPrivateMode(value),
                         );
@@ -294,9 +180,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SectionTile.navigation(
                       icon: const Icon(Icons.account_balance_outlined),
-                      title: 'Add AMC',
+                      title: Text('Add AMC'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
-                      description: 'Add a new Asset Management Company to your list',
+                      description: Text('Add a new Asset Management Company to your list'),
                       onTap: () => context.push(const EditAmcScreen()),
                     ),
                   ],
@@ -313,10 +199,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       selector: (state) => state.isDynamicColor,
                       builder: (context, isDynamic) {
                         return SectionTile.switchTile(
-                          title: 'Dynamic color',
+                          title: Text('Dynamic color'),
                           // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                           icon: const Icon(Icons.format_color_fill_rounded),
-                          description: 'Choose the accent color to emphasize certain elements',
+                          description: Text('Choose the accent color to emphasize certain elements'),
                           value: isDynamic,
                           onChanged: (value) => context.read<AppCubit>().setDynamicColorMode(value),
                         );
@@ -328,10 +214,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         final (isDynamic, accentColorInt) = state;
                         final accentColor = accentColorInt != null ? Color(accentColorInt) : context.colors.primary;
                         return SectionTile(
-                          title: 'Accent color',
+                          title: Text('Accent color'),
                           // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                           icon: const Icon(Icons.color_lens_rounded),
-                          description: 'Choose the accent color to emphasize certain elements',
+                          description: Text('Choose the accent color to emphasize certain elements'),
                           trailingIcon: CircleAvatar(
                             backgroundColor: isDynamic ? accentColor.withAlpha(120) : accentColor,
                           ),
@@ -350,7 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       selector: (state) => state.isDarkMode,
                       builder: (context, isDarkMode) {
                         return SectionTile.switchTile(
-                          title: 'Dark mode',
+                          title: Text('Dark mode'),
                           icon: const Icon(Icons.format_paint),
                           value: isDarkMode,
                           onChanged: (value) => context.read<AppCubit>().setDarkTheme(value),
@@ -369,28 +255,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   tiles: [
                     SectionTile(
                       icon: const Icon(Icons.login),
-                      title: 'Google Sign-in',
+                      title: Text('Google Sign-in'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
-                      description: 'NA', // TODO:
+                      description: Text('NA'), // TODO:
                       // onTap: () => context.push(const SignInDemo()),
                     ),
                     SectionTile(
                       icon: const Icon(Icons.restore_page_outlined),
-                      title: 'Restore',
-                      description:
-                          'Restore your data from a previously saved backup. This action will overwrite your current data.',
+                      title: Text('Restore'),
+                      description: Text(
+                        'Restore your data from a previously saved backup. This action will overwrite your current data.',
+                      ),
                       onTap: () {},
                     ),
                     SectionTile.navigation(
                       icon: const Icon(Icons.restore_rounded),
-                      title: 'Manual import',
-                      description: 'Import transaction from a .csv file.',
+                      title: Text('Manual import'),
+                      description: Text('Import transaction from a .csv file.'),
                       onTap: () => context.push(const ImportTransactionsScreen()),
                     ),
                     SectionTile(
-                      title: 'Export transactions',
+                      title: Text('Export transactions'),
                       icon: const Icon(Icons.backup_outlined),
-                      description: 'Export transactions locally to .csv file.',
+                      description: Text('Export transactions locally to .csv file.'),
                       onTap: () async {
                         late final SnackBar snackBar;
                         try {
@@ -422,9 +309,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     SectionTile(
-                      title: 'Backup locally',
+                      title: Text('Backup locally'),
                       icon: const Icon(Icons.import_export_rounded),
-                      description: 'This will create a new backup file locally.',
+                      description: Text('This will create a new backup file locally.'),
                       onTap: () async {
                         late final SnackBar snackBar;
                         try {
@@ -459,15 +346,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     SectionTile(
-                      title: 'Backup to Google Drive',
+                      title: Text('Backup to Google Drive'),
                       icon: const Icon(Icons.backup_outlined),
-                      description: 'Backup your data in a new backup file to Google Drive.',
+                      description: Text('Backup your data in a new backup file to Google Drive.'),
                       onTap: () => _onBackupToDrivePressed(context),
                     ),
                     SectionTile(
-                      title: 'Load drive files',
+                      title: Text('Load drive files'),
                       icon: const Icon(Icons.backup_outlined),
-                      description: 'Load your data from a backup file in Google Drive.',
+                      description: Text('Load your data from a backup file in Google Drive.'),
                       onTap: () async {
                         gapis.AccessToken? accessToken = context.read<AppCubit>().state.gapiAccessToken;
 
@@ -496,14 +383,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   tiles: [
                     SectionTile.navigation(
                       icon: const Icon(Icons.policy_outlined),
-                      title: 'Privacy policy',
-                      description: 'Read our privacy policy',
+                      title: Text('Privacy policy'),
+                      description: Text('Read our privacy policy'),
                       onTap: () {},
                     ),
                     SectionTile.navigation(
                       icon: const Icon(Icons.gavel_rounded),
-                      title: 'Terms of use',
-                      description: 'Read our terms of use',
+                      title: Text('Terms of use'),
+                      description: Text('Read our terms of use'),
                       onTap: () {},
                     ),
                   ],
@@ -517,26 +404,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   tiles: [
                     SectionTile.navigation(
                       icon: const Icon(Icons.star_rate_rounded),
-                      title: 'Rate us',
-                      description: 'Rate us on the Play Store',
+                      title: Text('Rate us'),
+                      description: Text('Rate us on the Play Store'),
                       onTap: () {},
                     ),
                     SectionTile(
                       icon: const Icon(Icons.share_rounded),
-                      title: 'Share with friends',
-                      description: 'Share Invesly with your friends and family',
+                      title: Text('Share with friends'),
+                      description: Text('Share Invesly with your friends and family'),
                       onTap: () {},
                     ),
                     SectionTile(
                       icon: const Icon(Icons.feedback_outlined),
-                      title: 'Feedback',
-                      description: 'Report bugs, request features, or just say hi!',
+                      title: Text('Feedback'),
+                      description: Text('Report bugs, request features, or just say hi!'),
                       onTap: () {},
                     ),
                     SectionTile(
                       icon: const Icon(Icons.volunteer_activism_rounded),
-                      title: 'Donate',
-                      description: 'Support the development of Invesly',
+                      title: Text('Donate'),
+                      description: Text('Support the development of Invesly'),
                       onTap: () {},
                     ),
                   ],
