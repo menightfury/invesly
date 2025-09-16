@@ -1,3 +1,5 @@
+// import 'dart:math' as math;
+
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common_libs.dart';
 
@@ -14,11 +16,10 @@ class Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TextStyle titleStyle = titleTextStyle ?? tileTheme.titleTextStyle ?? defaults.titleTextStyle!;
-    // final Color? titleColor = effectiveColor;
-    // titleStyle = titleStyle.copyWith(color: titleColor, fontSize: _isDenseLayout(theme, tileTheme) ? 13.0 : null);
+    // final tileCount = math.max(0, separatorBuilder == null ? itemCount : itemCount * 2 - 1);
+
     final titleText = DefaultTextStyle(
-      style: context.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
+      style: context.textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
       child: title ?? const SizedBox.shrink(),
     );
 
@@ -44,6 +45,7 @@ class Section extends StatelessWidget {
                 trailing: trailingIcon,
                 subtitle: subtitleText,
                 tileColor: context.colors.primaryContainer.darken(10),
+                minVerticalPadding: 12.0,
                 // shape: const RoundedRectangleBorder(
                 //   borderRadius: BorderRadius.vertical(top: Radius.circular(20.0), bottom: Radius.circular(4.0)),
                 // ),
@@ -71,6 +73,58 @@ class Section extends StatelessWidget {
             //   return Material(borderRadius: borderRadius, clipBehavior: Clip.antiAlias, child: tile);
             // }),
             ...tiles,
+
+            // ...List.generate(tileCount, (index) {
+            //   if (separatorBuilder == null) {
+            //     Widget item = itemBuilder(context, index);
+
+            //     // if (_firstChildShape != null && index == 0) {
+            //     //   item = ClipPath(
+            //     //     clipBehavior: Clip.hardEdge,
+            //     //     clipper: ShapeBorderClipper(shape: _firstChildShape),
+            //     //     child: item,
+            //     //   );
+            //     // } else if (_lastChildShape != null && index == childCount - 1) {
+            //     //   item = ClipPath(
+            //     //     clipper: ShapeBorderClipper(shape: _lastChildShape),
+            //     //     child: item,
+            //     //   );
+            //     // } else if (_childShape != null) {
+            //     //   item = ClipPath(
+            //     //     clipper: ShapeBorderClipper(shape: _childShape),
+            //     //     child: item,
+            //     //   );
+            //     // }
+
+            //     return item;
+            //   }
+
+            //   final int itemIndex = index ~/ 2;
+            //   if (index.isEven) {
+            //     Widget item = itemBuilder(context, itemIndex);
+
+            //     // if (_firstChildShape != null && index == 0) {
+            //     //   item = ClipPath(
+            //     //     clipBehavior: Clip.hardEdge,
+            //     //     clipper: ShapeBorderClipper(shape: _firstChildShape),
+            //     //     child: item,
+            //     //   );
+            //     // } else if (_lastChildShape != null && index == childCount - 1) {
+            //     //   item = ClipPath(
+            //     //     clipper: ShapeBorderClipper(shape: _lastChildShape),
+            //     //     child: item,
+            //     //   );
+            //     // } else if (_childShape != null) {
+            //     //   item = ClipPath(
+            //     //     clipper: ShapeBorderClipper(shape: _childShape),
+            //     //     child: item,
+            //     //   );
+            //     // }
+
+            //     return item;
+            //   }
+            //   return separatorBuilder!(context, itemIndex);
+            // }),
           ],
         ),
       ),
@@ -78,16 +132,19 @@ class Section extends StatelessWidget {
   }
 }
 
-enum _SectionTileVariant { normal, navigation, toggle }
+enum _SectionTileVariant { normal, navigation, toggle, check }
 
 class SectionTile extends StatelessWidget {
   final Widget title;
   final Widget? description;
   final Widget? icon;
   final Widget? trailingIcon;
+  final Color? color;
+  final Color? selectedColor;
   final VoidCallback? _onTap; // for other than switch tile
   final ValueChanged<bool>? _onChanged; // for switch tile only
   final bool enabled;
+  final bool selected;
   final bool _value; // for switch tile only
   final _SectionTileVariant _variant;
 
@@ -97,8 +154,11 @@ class SectionTile extends StatelessWidget {
     this.description,
     this.icon,
     this.trailingIcon,
+    this.color,
+    this.selectedColor,
     VoidCallback? onTap,
     this.enabled = true,
+    this.selected = false,
   }) : _onTap = onTap,
        _variant = _SectionTileVariant.normal,
        _onChanged = null,
@@ -110,7 +170,10 @@ class SectionTile extends StatelessWidget {
     this.description,
     this.icon,
     Widget? trailingIcon,
+    this.color,
+    this.selectedColor,
     this.enabled = true,
+    this.selected = false,
     VoidCallback? onTap,
   }) : _onTap = onTap,
        _variant = _SectionTileVariant.navigation,
@@ -124,7 +187,27 @@ class SectionTile extends StatelessWidget {
     this.description,
     this.icon,
     required bool value,
+    this.color,
+    this.selectedColor,
     this.enabled = true,
+    this.selected = false,
+    void Function(bool)? onChanged,
+  }) : _onChanged = onChanged,
+       _value = value,
+       _variant = _SectionTileVariant.toggle,
+       trailingIcon = null,
+       _onTap = null;
+
+  const SectionTile.checkTile({
+    super.key,
+    required this.title,
+    this.description,
+    this.icon,
+    required bool value,
+    this.color,
+    this.selectedColor,
+    this.enabled = true,
+    this.selected = false,
     void Function(bool)? onChanged,
   }) : _onChanged = onChanged,
        _value = value,
@@ -139,12 +222,36 @@ class SectionTile extends StatelessWidget {
       child: title,
     );
 
-    final subtitleText = DefaultTextStyle(
-      style: context.textTheme.labelMedium!.copyWith(
-        color: enabled ? context.colors.secondary : context.theme.disabledColor,
-      ),
-      child: description ?? const SizedBox.shrink(),
-    );
+    Widget? subtitleText;
+
+    if (description != null) {
+      subtitleText = DefaultTextStyle(
+        style: context.textTheme.labelMedium!.copyWith(
+          color: enabled ? context.colors.secondary : context.theme.disabledColor,
+        ),
+        child: description!,
+      );
+    }
+
+    final defaultTileColor = context.theme.canvasColor;
+    final defaultSelectedTileColor = defaultTileColor.darken(8);
+
+    if (_variant == _SectionTileVariant.check) {
+      return CheckboxListTile(
+        key: key,
+        title: titleText,
+        subtitle: subtitleText,
+        secondary: icon,
+        value: _value,
+        tristate: false,
+        onChanged: (value) => _onChanged?.call(value ?? false),
+        tileColor: color ?? defaultTileColor,
+        selectedTileColor: selectedColor ?? defaultSelectedTileColor,
+        shape: _kBorderRadius,
+        enabled: enabled,
+        selected: selected,
+      );
+    }
 
     if (_variant == _SectionTileVariant.toggle) {
       return SwitchListTile(
@@ -154,8 +261,10 @@ class SectionTile extends StatelessWidget {
         secondary: icon,
         value: _value,
         onChanged: _onChanged,
-        tileColor: context.theme.canvasColor,
+        tileColor: color ?? defaultTileColor,
+        selectedTileColor: selectedColor ?? defaultSelectedTileColor,
         shape: _kBorderRadius,
+        selected: selected,
       );
     }
 
@@ -166,8 +275,10 @@ class SectionTile extends StatelessWidget {
       trailing: trailingIcon,
       onTap: _onTap,
       enabled: enabled,
-      tileColor: context.theme.canvasColor,
+      tileColor: color ?? defaultTileColor,
+      selectedTileColor: selectedColor ?? defaultSelectedTileColor,
       shape: _kBorderRadius,
+      selected: selected,
     );
   }
 }

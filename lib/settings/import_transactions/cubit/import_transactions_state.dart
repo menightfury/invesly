@@ -51,3 +51,9 @@ final class ImportTransactionsErrorState extends ImportTransactionsState {
   @override
   List<Object> get props => [errorMsg];
 }
+
+extension ImportTransactionsStateX on ImportTransactionsState {
+  bool get isLoading => this is ImportTransactionsInitialState || this is ImportTransactionsLoadingState;
+  bool get isLoaded => this is ImportTransactionsLoadedState;
+  bool get isError => this is ImportTransactionsErrorState;
+}

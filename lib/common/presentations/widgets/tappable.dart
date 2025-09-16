@@ -68,7 +68,7 @@ class Tappable extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               spacing: spacing,
               children: <Widget>[
-                // ?leading,
+                ?leading,
                 Flexible(
                   child: Align(alignment: childAlignment, child: this.content),
                 ),
