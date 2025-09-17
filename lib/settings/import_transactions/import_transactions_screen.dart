@@ -37,7 +37,8 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         title: Text('Select CSV file'),
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state is ImportTransactionsLoadedState) {
+            // if (state is ImportTransactionsLoadedState) {
+            if (state.status == ImportTransactionsStatus.loaded) {
               return Text('${state.csvData.length} rows loaded');
             }
 
@@ -47,15 +48,18 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         description: Text('Make sure it has a first row that describes the name of each column'),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state is ImportTransactionsLoadingState) {
+            // if (state is ImportTransactionsLoadingState) {
+            if (state.status == ImportTransactionsStatus.loading) {
               return LoadingAnimationWidget.staggeredDotsWave(color: context.colors.primary, size: 48.0);
             }
 
-            if (state is ImportTransactionsErrorState) {
-              return Text(state.errorMsg, style: TextStyle(color: Colors.redAccent));
+            // if (state is ImportTransactionsErrorState) {
+            if (state.status == ImportTransactionsStatus.error) {
+              return Text(state.errorMsg!, style: TextStyle(color: Colors.redAccent));
             }
 
-            if (state is ImportTransactionsLoadedState) {
+            // if (state is ImportTransactionsLoadedState) {
+            if (state.status == ImportTransactionsStatus.loaded) {
               return AnimatedExpanded(
                 axis: Axis.vertical,
                 expand: true,
@@ -84,7 +88,7 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
             if (state is ImportTransactionsLoadedState) {
-              return Text(state.columns[CsvColumn.amount]);
+              return Text(state.csvHeaders);
             }
             return SizedBox();
           },

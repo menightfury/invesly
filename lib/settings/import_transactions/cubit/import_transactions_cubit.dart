@@ -6,17 +6,20 @@ import 'package:invesly/database/backup/backup_service.dart';
 part 'import_transactions_state.dart';
 
 class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
-  ImportTransactionsCubit() : super(ImportTransactionsInitialState());
+  // ImportTransactionsCubit() : super(ImportTransactionsInitialState());
+  ImportTransactionsCubit() : super(ImportTransactionsState());
 
   void readFile() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
     if (result == null || result.files.isEmpty) {
-      emit(const ImportTransactionsErrorState('No file selected'));
+      // emit(const ImportTransactionsErrorState('No file selected'));
+      emit(const ImportTransactionsState(status: ImportTransactionsStatus.error, errorMsg: 'No file selected'));
 
       return;
     }
 
-    emit(const ImportTransactionsLoadingState());
+    // emit(const ImportTransactionsLoadingState());
+    emit(const ImportTransactionsState(status: ImportTransactionsStatus.loading));
 
     // ! testing // TODO: remove this line
     await Future.delayed(3.seconds);
@@ -40,47 +43,76 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
       final allRowsSameLength = parsedCSV.every((row) => row.length == firstRowLength);
 
       if (!allRowsSameLength) {
-        emit(ImportTransactionsErrorState('All rows in the CSV must have the same number of columns.'));
+        // emit(ImportTransactionsErrorState('All rows in the CSV must have the same number of columns.'));
+        emit(
+          ImportTransactionsState(
+            status: ImportTransactionsStatus.error,
+            errorMsg: 'All rows in the CSV must have the same number of columns.',
+          ),
+        );
         return;
       }
 
       emit(
-        ImportTransactionsLoadedState(
+        // ImportTransactionsLoadedState(
+        //   csvHeaders: parsedCSV.first.map((e) => e.toString()).toList(),
+        //   csvData: parsedCSV.sublist(1),
+        // ),
+        ImportTransactionsState(
+          status: ImportTransactionsStatus.loaded,
           csvHeaders: parsedCSV.first.map((e) => e.toString()).toList(),
           csvData: parsedCSV.sublist(1),
         ),
       );
     } catch (err) {
-      emit(ImportTransactionsErrorState(err.toString()));
+      // emit(ImportTransactionsErrorState(err.toString()));
+      emit(ImportTransactionsState(status: ImportTransactionsStatus.error, errorMsg: err.toString()));
     }
   }
 
-  void updateColumn(CsvColumn column, int? value) {
-    if (state is! ImportTransactionsLoadedState) return;
-    final st = state as ImportTransactionsLoadedState;
+  // void updateColumn(CsvColumn column, int? value) {
+  //   if (state is! ImportTransactionsLoadedState) return;
+  //   final st = state as ImportTransactionsLoadedState;
 
-    if (value != null && value < 0) {
-      emit(ImportTransactionsErrorState('Column index cannot be negative.'));
+  //   if (value != null && value < 0) {
+  //     emit(ImportTransactionsErrorState('Column index cannot be negative.'));
+  //     return;
+  //   }
+  //   if (value != null && value >= st.csvHeaders.length) {
+  //     emit(ImportTransactionsErrorState('Column index exceeds the number of headers.'));
+  //     return;
+  //   }
+
+  //   final columns = Map.of(st.columns);
+  //   if (value != null) {
+  //     // find out keys (i.e. column names) that has this new value and set those column values to null
+  //     final keysAlreadyHasThisValue = columns.where((_, v) => v == value).keys;
+  //     if (keysAlreadyHasThisValue.isNotEmpty) {
+  //       for (final key in keysAlreadyHasThisValue) {
+  //         columns[key] = null;
+  //       }
+  //     }
+  //   }
+  //   columns[column] = value;
+  //   $logger.i(columns);
+  //   emit(st.copyWith(columns: columns));
+  // }
+
+  void updateAmountColumn(int columnIndex) {
+    if (state.status != ImportTransactionsStatus.loaded) return;
+
+    if (columnIndex < 0) {
+      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: 'Column index cannot be negative.'));
       return;
     }
-    if (value != null && value >= st.csvHeaders.length) {
-      emit(ImportTransactionsErrorState('Column index exceeds the number of headers.'));
+    if (columnIndex >= state.csvHeaders.length) {
+      emit(
+        state.copyWith(status: ImportTransactionsStatus.error, errorMsg: 'Column index exceeds the number of headers.'),
+      );
       return;
     }
 
-    final columns = Map.of(st.columns);
-    if (value != null) {
-      // find out keys (i.e. column names) that has this new value and set those column values to null
-      final keysAlreadyHasThisValue = columns.where((_, v) => v == value).keys;
-      if (keysAlreadyHasThisValue.isNotEmpty) {
-        for (final key in keysAlreadyHasThisValue) {
-          columns[key] = null;
-        }
-      }
-    }
-    columns[column] = value;
-    $logger.i(columns);
-    emit(st.copyWith(columns: columns));
+    emit(state.copyWith(status: ImportTransactionsStatus.loaded, amountColumn: columnIndex));
   }
 
   Future<void> addTransactions() async {
