@@ -6,23 +6,18 @@ import 'package:invesly/database/backup/backup_service.dart';
 part 'import_transactions_state.dart';
 
 class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
-  // ImportTransactionsCubit() : super(ImportTransactionsInitialState());
   ImportTransactionsCubit() : super(ImportTransactionsState());
 
   void readFile() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
     if (result == null || result.files.isEmpty) {
-      // emit(const ImportTransactionsErrorState('No file selected'));
       emit(const ImportTransactionsState(status: ImportTransactionsStatus.error, errorMsg: 'No file selected'));
-
       return;
     }
 
-    // emit(const ImportTransactionsLoadingState());
     emit(const ImportTransactionsState(status: ImportTransactionsStatus.loading));
 
-    // ! testing // TODO: remove this line
-    await Future.delayed(3.seconds);
+    await Future.delayed(3.seconds); // ! TODO: remove this line
 
     try {
       final csvString = await File(result.files.first.path!).readAsString();
@@ -43,7 +38,6 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
       final allRowsSameLength = parsedCSV.every((row) => row.length == firstRowLength);
 
       if (!allRowsSameLength) {
-        // emit(ImportTransactionsErrorState('All rows in the CSV must have the same number of columns.'));
         emit(
           ImportTransactionsState(
             status: ImportTransactionsStatus.error,
@@ -54,10 +48,6 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
       }
 
       emit(
-        // ImportTransactionsLoadedState(
-        //   csvHeaders: parsedCSV.first.map((e) => e.toString()).toList(),
-        //   csvData: parsedCSV.sublist(1),
-        // ),
         ImportTransactionsState(
           status: ImportTransactionsStatus.loaded,
           csvHeaders: parsedCSV.first.map((e) => e.toString()).toList(),
@@ -65,23 +55,18 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
         ),
       );
     } catch (err) {
-      // emit(ImportTransactionsErrorState(err.toString()));
       emit(ImportTransactionsState(status: ImportTransactionsStatus.error, errorMsg: err.toString()));
     }
   }
 
   // void updateColumn(CsvColumn column, int? value) {
-  //   if (state is! ImportTransactionsLoadedState) return;
-  //   final st = state as ImportTransactionsLoadedState;
+  // if (state.status != ImportTransactionsStatus.loaded) return;
 
-  //   if (value != null && value < 0) {
-  //     emit(ImportTransactionsErrorState('Column index cannot be negative.'));
-  //     return;
-  //   }
-  //   if (value != null && value >= st.csvHeaders.length) {
-  //     emit(ImportTransactionsErrorState('Column index exceeds the number of headers.'));
-  //     return;
-  //   }
+  // final err = _validateColumnIndex(columnIndex);
+  // if (err != null) {
+  //   emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+  //   return;
+  // }
 
   //   final columns = Map.of(st.columns);
   //   if (value != null) {
@@ -95,24 +80,89 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
   //   }
   //   columns[column] = value;
   //   $logger.i(columns);
-  //   emit(st.copyWith(columns: columns));
+  //   emit(state.copyWith(columns: columns));
   // }
+
+  String? _validateColumnIndex(int columnIndex) {
+    if (columnIndex < 0) {
+      return 'Column index cannot be negative.';
+    }
+    if (columnIndex >= state.csvHeaders.length) {
+      return 'Column index exceeds the number of headers.';
+    }
+    return null;
+  }
 
   void updateAmountColumn(int columnIndex) {
     if (state.status != ImportTransactionsStatus.loaded) return;
 
-    if (columnIndex < 0) {
-      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: 'Column index cannot be negative.'));
-      return;
-    }
-    if (columnIndex >= state.csvHeaders.length) {
-      emit(
-        state.copyWith(status: ImportTransactionsStatus.error, errorMsg: 'Column index exceeds the number of headers.'),
-      );
+    final err = _validateColumnIndex(columnIndex);
+    if (err != null) {
+      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
       return;
     }
 
     emit(state.copyWith(status: ImportTransactionsStatus.loaded, amountColumn: columnIndex));
+  }
+
+  void updateAccountColumn(int columnIndex) {
+    if (state.status != ImportTransactionsStatus.loaded) return;
+
+    final err = _validateColumnIndex(columnIndex);
+    if (err != null) {
+      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+      return;
+    }
+
+    emit(state.copyWith(status: ImportTransactionsStatus.loaded, accountColumn: columnIndex));
+  }
+
+  void updateCategoryColumn(int columnIndex) {
+    if (state.status != ImportTransactionsStatus.loaded) return;
+
+    final err = _validateColumnIndex(columnIndex);
+    if (err != null) {
+      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+      return;
+    }
+
+    emit(state.copyWith(status: ImportTransactionsStatus.loaded, categoryColumn: columnIndex));
+  }
+
+  void updateDateColumn(int columnIndex) {
+    if (state.status != ImportTransactionsStatus.loaded) return;
+
+    final err = _validateColumnIndex(columnIndex);
+    if (err != null) {
+      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+      return;
+    }
+
+    emit(state.copyWith(status: ImportTransactionsStatus.loaded, dateColumn: columnIndex));
+  }
+
+  void updateNotesColumn(int columnIndex) {
+    if (state.status != ImportTransactionsStatus.loaded) return;
+
+    final err = _validateColumnIndex(columnIndex);
+    if (err != null) {
+      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+      return;
+    }
+
+    emit(state.copyWith(status: ImportTransactionsStatus.loaded, notesColumn: columnIndex));
+  }
+
+  void updateTitleColumn(int columnIndex) {
+    if (state.status != ImportTransactionsStatus.loaded) return;
+
+    final err = _validateColumnIndex(columnIndex);
+    if (err != null) {
+      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+      return;
+    }
+
+    emit(state.copyWith(status: ImportTransactionsStatus.loaded, titleColumn: columnIndex));
   }
 
   Future<void> addTransactions() async {

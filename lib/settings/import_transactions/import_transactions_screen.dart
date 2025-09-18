@@ -37,7 +37,6 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         title: Text('Select CSV file'),
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            // if (state is ImportTransactionsLoadedState) {
             if (state.status == ImportTransactionsStatus.loaded) {
               return Text('${state.csvData.length} rows loaded');
             }
@@ -48,17 +47,12 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         description: Text('Make sure it has a first row that describes the name of each column'),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            // if (state is ImportTransactionsLoadingState) {
             if (state.status == ImportTransactionsStatus.loading) {
               return LoadingAnimationWidget.staggeredDotsWave(color: context.colors.primary, size: 48.0);
             }
-
-            // if (state is ImportTransactionsErrorState) {
             if (state.status == ImportTransactionsStatus.error) {
               return Text(state.errorMsg!, style: TextStyle(color: Colors.redAccent));
             }
-
-            // if (state is ImportTransactionsLoadedState) {
             if (state.status == ImportTransactionsStatus.loaded) {
               return AnimatedExpanded(
                 axis: Axis.vertical,
@@ -85,14 +79,15 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
       _Step(
         index: 1,
         title: Text('Select column for amount'),
-        subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-          builder: (context, state) {
-            if (state is ImportTransactionsLoadedState) {
-              return Text(state.csvHeaders);
-            }
-            return SizedBox();
-          },
-        ),
+        // subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+        //   builder: (context, state) {
+        //     // if (state.status == ImportTransactionsStatus.loaded) {
+        //     if (state.status == ImportTransactionsStatus.loaded) {
+        //       return Text(state.csvHeaders);
+        //     }
+        //     return SizedBox();
+        //   },
+        // ),
         description: Text(
           'Select the column where the total value of each transaction is specified.'
           ' Use positive values for investment and negative values for redemption or dividends.'
@@ -100,12 +95,14 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         ),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state is ImportTransactionsLoadedState) {
-              return _ColumnSelector<int?>(
-                value: state.columns[CsvColumn.amount],
+            if (state.status == ImportTransactionsStatus.loaded) {
+              return _ColumnSelector(
+                // value: state.columns[CsvColumn.amount],
+                value: state.amountColumn,
                 allColumns: state.csvHeaders.asMap(),
                 onChanged: (value) {
-                  context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.amount, value);
+                  // context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.amount, value);
+                  context.read<ImportTransactionsCubit>().updateAmountColumn(value);
                 },
               );
             }
@@ -123,15 +120,18 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         ),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state is ImportTransactionsLoadedState) {
+            if (state.status == ImportTransactionsStatus.loaded) {
               return Column(
                 children: <Widget>[
-                  _ColumnSelector<int?>(
-                    value: state.columns[CsvColumn.account],
+                  _ColumnSelector(
+                    // value: state.columns[CsvColumn.account],
+                    value: state.accountColumn,
                     allColumns: state.csvHeaders.asMap(),
-                    columnsToExclude: [state.columns[CsvColumn.amount]],
+                    // columnsToExclude: [state.columns[CsvColumn.amount]],
+                    columnsToExclude: [state.amountColumn],
                     onChanged: (value) {
-                      context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.account, value);
+                      // context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.account, value);
+                      context.read<ImportTransactionsCubit>().updateAccountColumn(value);
                     },
                   ),
                   const SizedBox(height: 12),
@@ -174,15 +174,18 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         ),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state is ImportTransactionsLoadedState) {
+            if (state.status == ImportTransactionsStatus.loaded) {
               return Column(
                 children: <Widget>[
-                  _ColumnSelector<int?>(
-                    value: state.columns[CsvColumn.category],
+                  _ColumnSelector(
+                    // value: state.columns[CsvColumn.category],
+                    value: state.categoryColumn,
                     allColumns: state.csvHeaders.asMap(),
-                    columnsToExclude: [state.columns[CsvColumn.amount], state.columns[CsvColumn.account]],
+                    // columnsToExclude: [state.columns[CsvColumn.amount], state.columns[CsvColumn.account]],
+                    columnsToExclude: [state.amountColumn, state.accountColumn],
                     onChanged: (value) {
-                      context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.category, value);
+                      // context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.category, value);
+                      context.read<ImportTransactionsCubit>().updateCategoryColumn(value);
                     },
                   ),
                   const SizedBox(height: 12),
@@ -221,25 +224,27 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         ),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state is ImportTransactionsLoadedState) {
+            if (state.status == ImportTransactionsStatus.loaded) {
               return Column(
                 children: <Widget>[
-                  _ColumnSelector<int?>(
-                    value: state.columns[CsvColumn.date],
+                  _ColumnSelector(
+                    // value: state.columns[CsvColumn.date],
+                    value: state.dateColumn,
                     allColumns: state.csvHeaders.asMap(),
                     columnsToExclude: [
-                      state.columns[CsvColumn.amount],
-                      state.columns[CsvColumn.account],
-                      state.columns[CsvColumn.category],
+                      // state.columns[CsvColumn.amount], state.columns[CsvColumn.account], state.columns[CsvColumn.category],
+                      state.amountColumn, state.accountColumn, state.categoryColumn,
                     ],
                     onChanged: (value) {
-                      context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.date, value);
+                      // context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.date, value);
+                      context.read<ImportTransactionsCubit>().updateDateColumn(value);
                     },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _dateFormatController,
-                    enabled: state.columns[CsvColumn.date] != null,
+                    // enabled: state.columns[CsvColumn.date] != null,
+                    enabled: state.dateColumn != null,
                     decoration: const InputDecoration(labelText: 'Date format'),
                     // validator: (value) => fieldValidator(value),
                     autovalidateMode: AutovalidateMode.always,
@@ -257,38 +262,52 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         description: Text('Specifies the columns for other optional transaction attributes'),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state is ImportTransactionsLoadedState) {
+            if (state.status == ImportTransactionsStatus.loaded) {
               return Column(
                 children: <Widget>[
-                  _ColumnSelector<int?>(
-                    value: state.columns[CsvColumn.notes],
+                  _ColumnSelector(
+                    // value: state.columns[CsvColumn.notes],
+                    value: state.notesColumn,
                     labelText: 'Note column',
                     allColumns: state.csvHeaders.asMap(),
                     columnsToExclude: [
-                      state.columns[CsvColumn.amount],
-                      state.columns[CsvColumn.account],
-                      state.columns[CsvColumn.category],
-                      state.columns[CsvColumn.date],
-                      state.columns[CsvColumn.title],
+                      // state.columns[CsvColumn.amount],
+                      // state.columns[CsvColumn.account],
+                      // state.columns[CsvColumn.category],
+                      // state.columns[CsvColumn.date],
+                      // state.columns[CsvColumn.title],
+                      state.amountColumn,
+                      state.accountColumn,
+                      state.categoryColumn,
+                      state.dateColumn,
+                      state.titleColumn,
                     ],
                     onChanged: (value) {
-                      context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.notes, value);
+                      // context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.notes, value);
+                      context.read<ImportTransactionsCubit>().updateNotesColumn(value);
                     },
                   ),
                   const SizedBox(height: 16),
-                  _ColumnSelector<int?>(
-                    value: state.columns[CsvColumn.title],
+                  _ColumnSelector(
+                    // value: state.columns[CsvColumn.title],
+                    value: state.titleColumn,
                     labelText: 'Title column',
                     allColumns: state.csvHeaders.asMap(),
                     columnsToExclude: [
-                      state.columns[CsvColumn.amount],
-                      state.columns[CsvColumn.account],
-                      state.columns[CsvColumn.category],
-                      state.columns[CsvColumn.date],
-                      state.columns[CsvColumn.notes],
+                      // state.columns[CsvColumn.amount],
+                      // state.columns[CsvColumn.account],
+                      // state.columns[CsvColumn.category],
+                      // state.columns[CsvColumn.date],
+                      // state.columns[CsvColumn.notes],
+                      state.amountColumn,
+                      state.accountColumn,
+                      state.categoryColumn,
+                      state.dateColumn,
+                      state.notesColumn,
                     ],
                     onChanged: (value) {
-                      context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.title, value);
+                      // context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.title, value);
+                      context.read<ImportTransactionsCubit>().updateTitleColumn(value);
                     },
                   ),
                 ],
@@ -301,7 +320,7 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         buttons: <Widget>[
           BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
             builder: (context, state) {
-              if (state is ImportTransactionsLoadedState) {
+              if (state.status == ImportTransactionsStatus.loaded) {
                 return Flexible(
                   fit: FlexFit.tight,
                   child: FilledButton.icon(
@@ -401,7 +420,7 @@ class _Step {
   });
 }
 
-class _ColumnSelector<T> extends StatelessWidget {
+class _ColumnSelector extends StatelessWidget {
   const _ColumnSelector({
     required this.value,
     required this.allColumns,
@@ -410,21 +429,21 @@ class _ColumnSelector<T> extends StatelessWidget {
     required this.onChanged,
   });
 
-  final T? value;
-  final Map<T, String> allColumns;
-  final List<T> columnsToExclude;
+  final int? value;
+  final Map<int, String> allColumns;
+  final List<int?> columnsToExclude;
   final String? labelText;
-  final ValueChanged<T?> onChanged;
+  final ValueChanged<int> onChanged;
 
-  List<DropdownMenuEntry<T?>> get _entries => [
+  List<DropdownMenuEntry<int>> get _entries => [
     // DropdownMenuEntry(value: null, label: '~~ UNSPECIFIED ~'),
     ...allColumns.entries
-        .whereNot((entry) => columnsToExclude.contains(entry.key))
-        .map((entry) => DropdownMenuEntry(value: entry.key, label: entry.value)),
+    // .whereNot((entry) => columnsToExclude.contains(entry.key))
+    .map((entry) => DropdownMenuEntry(value: entry.key, label: entry.value)),
   ];
 
-  Future<DropdownMenuEntry<T?>?> _showModal(BuildContext context) async {
-    return await showModalBottomSheet<DropdownMenuEntry<T?>?>(
+  Future<DropdownMenuEntry<int>?> _showModal(BuildContext context) async {
+    return await showModalBottomSheet<DropdownMenuEntry<int>>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
@@ -442,6 +461,7 @@ class _ColumnSelector<T> extends StatelessWidget {
                     title: Text(entry.label.trim()),
                     onTap: () => context.pop(entry),
                     trailingIcon: entry.value == value ? const Icon(Icons.check_rounded) : null,
+                    enabled: columnsToExclude.contains(entry.value),
                     selected: entry.value == value,
                   );
                 }).toList(),
@@ -459,8 +479,9 @@ class _ColumnSelector<T> extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       trailing: const Icon(Icons.arrow_drop_down_rounded),
       onTap: () async {
-        final value = await _showModal(context);
-        onChanged(value?.value);
+        final entry = await _showModal(context);
+        if (entry == null) return;
+        onChanged(entry.value);
       },
       content: Text(allColumns[value] ?? '~~ UNSPECIFIED ~~'),
     );
