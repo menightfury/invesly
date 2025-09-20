@@ -15,6 +15,7 @@ class ImportTransactionsState extends Equatable {
     this.categoryColumn,
     this.notesColumn,
     this.titleColumn,
+    this.defaultAccount,
     this.errorMsg,
   });
 
@@ -23,6 +24,7 @@ class ImportTransactionsState extends Equatable {
   final List<List<dynamic>> csvData;
   // final Map<CsvColumn, int?> columns;
   final int? amountColumn, accountColumn, dateColumn, categoryColumn, notesColumn, titleColumn;
+  final InveslyAccount? defaultAccount;
   final String? errorMsg;
 
   ImportTransactionsState copyWith({
@@ -35,6 +37,7 @@ class ImportTransactionsState extends Equatable {
     int? categoryColumn,
     int? notesColumn,
     int? titleColumn,
+    InveslyAccount? defaultAccount,
     String? errorMsg,
   }) {
     return ImportTransactionsState(
@@ -47,6 +50,7 @@ class ImportTransactionsState extends Equatable {
       categoryColumn: categoryColumn ?? this.categoryColumn,
       notesColumn: notesColumn ?? this.notesColumn,
       titleColumn: titleColumn ?? this.titleColumn,
+      defaultAccount: defaultAccount ?? this.defaultAccount,
       errorMsg: errorMsg ?? this.errorMsg,
     );
   }
@@ -61,6 +65,7 @@ class ImportTransactionsState extends Equatable {
     categoryColumn,
     notesColumn,
     titleColumn,
+    defaultAccount,
     errorMsg,
   ];
 

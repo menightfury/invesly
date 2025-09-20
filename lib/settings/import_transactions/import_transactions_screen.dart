@@ -1,4 +1,8 @@
+import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/accounts/widget/account_picker_widget.dart';
+import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
+import 'package:invesly/common/presentations/widgets/async_form_field.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/import_transactions/cubit/import_transactions_cubit.dart';
@@ -31,6 +35,8 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
   @override
   void initState() {
     super.initState();
+    final cubit = context.read<ImportTransactionsCubit>();
+
     _steps = [
       _Step(
         index: 0,
@@ -68,7 +74,7 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
           BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
             builder: (context, state) {
               return FilledButton.tonalIcon(
-                onPressed: () => context.read<ImportTransactionsCubit>().readFile(),
+                onPressed: () => cubit.readFile(),
                 icon: state.isLoaded ? const Icon(Icons.restore_rounded) : const Icon(Icons.upload_file_rounded),
                 label: state.isLoaded ? const Text('Select again') : const Text('Select file'),
               );
@@ -101,8 +107,8 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                 value: state.amountColumn,
                 allColumns: state.csvHeaders.asMap(),
                 onChanged: (value) {
-                  // context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.amount, value);
-                  context.read<ImportTransactionsCubit>().updateAmountColumn(value);
+                  // cubit.updateColumn(CsvColumn.amount, value);
+                  cubit.updateAmountColumn(value);
                 },
               );
             }
@@ -122,6 +128,7 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
           builder: (context, state) {
             if (state.status == ImportTransactionsStatus.loaded) {
               return Column(
+                spacing: 12.0,
                 children: <Widget>[
                   _ColumnSelector(
                     // value: state.columns[CsvColumn.account],
@@ -130,33 +137,45 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                     // columnsToExclude: [state.columns[CsvColumn.amount]],
                     columnsToExclude: [state.amountColumn],
                     onChanged: (value) {
-                      // context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.account, value);
-                      context.read<ImportTransactionsCubit>().updateAccountColumn(value);
+                      // cubit.updateColumn(CsvColumn.account, value);
+                      cubit.updateAccountColumn(value);
                     },
                   ),
-                  const SizedBox(height: 12),
-                  _Selector(
-                    title: 'Default account',
-                    // inputValue: defaultAccount?.name,
-                    // icon: defaultAccount?.icon,
-                    iconColor: null,
-                    onClick: () async {
-                      // final modalRes = await showAccountSelectorBottomSheet(
-                      //   context,
-                      //   AccountSelectorModal(
-                      //     allowMultiSelection: false,
-                      //     filterSavingAccounts: true,
-                      //     selectedAccounts: [if (defaultAccount != null) defaultAccount!],
-                      //   ),
-                      // );
 
-                      // if (modalRes != null && modalRes.isNotEmpty) {
-                      //   setState(() {
-                      //     defaultAccount = modalRes.first;
-                      //   });
-                      // }
+                  AsyncFormField<InveslyAccount>(
+                    initialValue: cubit.state.defaultAccount,
+                    validator: (value) {
+                      if (value == null) {
+                        return 'Can\'t be empty';
+                      }
+                      return null;
                     },
-                  ),
+                    onTapCallback: () async {
+                      final value = await InveslyAccountPickerWidget.showModal(context, cubit.state.defaultAccount?.id);
+                      if (value == null) return null;
+                      return value;
+                    },
+                    onChanged: (value) {
+                      if (value == null) return;
+                      cubit.updateDefaultAccount(value);
+                    },
+                    childBuilder: (value) {
+                      if (value == null) {
+                        return Text(
+                          'Select an account',
+                          style: TextStyle(color: context.theme.disabledColor),
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      }
+                      return Row(
+                        spacing: 16.0,
+                        children: <Widget>[
+                          CircleAvatar(foregroundImage: AssetImage(value.avatar)),
+                          Text(value.name, textAlign: TextAlign.right, overflow: TextOverflow.ellipsis),
+                        ],
+                      );
+                    },
+                  ).withLabel('Default account'),
                 ],
               );
             }
@@ -184,8 +203,8 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                     // columnsToExclude: [state.columns[CsvColumn.amount], state.columns[CsvColumn.account]],
                     columnsToExclude: [state.amountColumn, state.accountColumn],
                     onChanged: (value) {
-                      // context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.category, value);
-                      context.read<ImportTransactionsCubit>().updateCategoryColumn(value);
+                      // cubit.updateColumn(CsvColumn.category, value);
+                      cubit.updateCategoryColumn(value);
                     },
                   ),
                   const SizedBox(height: 12),
@@ -236,8 +255,8 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                       state.amountColumn, state.accountColumn, state.categoryColumn,
                     ],
                     onChanged: (value) {
-                      // context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.date, value);
-                      context.read<ImportTransactionsCubit>().updateDateColumn(value);
+                      // cubit.updateColumn(CsvColumn.date, value);
+                      cubit.updateDateColumn(value);
                     },
                   ),
                   const SizedBox(height: 16),
@@ -283,8 +302,8 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                       state.titleColumn,
                     ],
                     onChanged: (value) {
-                      // context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.notes, value);
-                      context.read<ImportTransactionsCubit>().updateNotesColumn(value);
+                      // cubit.updateColumn(CsvColumn.notes, value);
+                      cubit.updateNotesColumn(value);
                     },
                   ),
                   const SizedBox(height: 16),
@@ -306,8 +325,8 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                       state.notesColumn,
                     ],
                     onChanged: (value) {
-                      // context.read<ImportTransactionsCubit>().updateColumn(CsvColumn.title, value);
-                      context.read<ImportTransactionsCubit>().updateTitleColumn(value);
+                      // cubit.updateColumn(CsvColumn.title, value);
+                      cubit.updateTitleColumn(value);
                     },
                   ),
                 ],
@@ -435,15 +454,15 @@ class _ColumnSelector extends StatelessWidget {
   final String? labelText;
   final ValueChanged<int> onChanged;
 
-  List<DropdownMenuEntry<int>> get _entries => [
-    // DropdownMenuEntry(value: null, label: '~~ UNSPECIFIED ~'),
-    ...allColumns.entries
-    // .whereNot((entry) => columnsToExclude.contains(entry.key))
-    .map((entry) => DropdownMenuEntry(value: entry.key, label: entry.value)),
-  ];
+  // List<DropdownMenuEntry<int>> get _entries => [
+  //   // DropdownMenuEntry(value: null, label: '~~ UNSPECIFIED ~'),
+  //   ...allColumns.entries
+  //   .whereNot((entry) => columnsToExclude.contains(entry.key))
+  //   .map((entry) => DropdownMenuEntry(value: entry.key, label: entry.value)),
+  // ];
 
-  Future<DropdownMenuEntry<int>?> _showModal(BuildContext context) async {
-    return await showModalBottomSheet<DropdownMenuEntry<int>>(
+  Future<int?> _showModal(BuildContext context) async {
+    return await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
@@ -456,13 +475,18 @@ class _ColumnSelector extends StatelessWidget {
                 child: Text('Select a column', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
               ),
               Section(
-                tiles: _entries.map((entry) {
+                tiles: allColumns.entries.map((entry) {
+                  final isSelectionAllowed = !columnsToExclude.contains(entry.key);
                   return SectionTile(
-                    title: Text(entry.label.trim()),
-                    onTap: () => context.pop(entry),
-                    trailingIcon: entry.value == value ? const Icon(Icons.check_rounded) : null,
-                    enabled: columnsToExclude.contains(entry.value),
-                    selected: entry.value == value,
+                    title: Text(entry.value.trim()),
+                    onTap: () => context.pop(entry.key),
+                    trailingIcon: entry.key == value
+                        ? const Icon(Icons.check_rounded)
+                        : isSelectionAllowed
+                        ? null
+                        : const Icon(Icons.cancel_rounded),
+                    enabled: isSelectionAllowed,
+                    selected: entry.key == value,
                   );
                 }).toList(),
               ),
@@ -479,9 +503,9 @@ class _ColumnSelector extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       trailing: const Icon(Icons.arrow_drop_down_rounded),
       onTap: () async {
-        final entry = await _showModal(context);
-        if (entry == null) return;
-        onChanged(entry.value);
+        final columnIndex = await _showModal(context);
+        if (columnIndex == null) return;
+        onChanged(columnIndex);
       },
       content: Text(allColumns[value] ?? '~~ UNSPECIFIED ~~'),
     );

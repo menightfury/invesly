@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
 
@@ -59,6 +60,16 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     }
   }
 
+  String? _validateColumnIndex(int columnIndex) {
+    if (columnIndex < 0) {
+      return 'Column index cannot be negative.';
+    }
+    if (columnIndex >= state.csvHeaders.length) {
+      return 'Column index exceeds the number of headers.';
+    }
+    return null;
+  }
+
   // void updateColumn(CsvColumn column, int? value) {
   // if (state.status != ImportTransactionsStatus.loaded) return;
 
@@ -82,16 +93,6 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
   //   $logger.i(columns);
   //   emit(state.copyWith(columns: columns));
   // }
-
-  String? _validateColumnIndex(int columnIndex) {
-    if (columnIndex < 0) {
-      return 'Column index cannot be negative.';
-    }
-    if (columnIndex >= state.csvHeaders.length) {
-      return 'Column index exceeds the number of headers.';
-    }
-    return null;
-  }
 
   void updateAmountColumn(int columnIndex) {
     if (state.status != ImportTransactionsStatus.loaded) return;
@@ -163,6 +164,11 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     }
 
     emit(state.copyWith(status: ImportTransactionsStatus.loaded, titleColumn: columnIndex));
+  }
+
+  void updateDefaultAccount(InveslyAccount account) {
+    if (state.status != ImportTransactionsStatus.loaded) return;
+    emit(state.copyWith(status: ImportTransactionsStatus.loaded, defaultAccount: account));
   }
 
   Future<void> addTransactions() async {

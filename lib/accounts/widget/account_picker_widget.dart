@@ -4,7 +4,7 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 
-class InveslyAccountPickerWidget extends StatelessWidget {
+class InveslyAccountPickerWidget extends StatefulWidget {
   const InveslyAccountPickerWidget({super.key, this.accountId, this.onPickup});
 
   final String? accountId;
@@ -21,6 +21,20 @@ class InveslyAccountPickerWidget extends StatelessWidget {
         );
       },
     );
+  }
+
+  @override
+  State<InveslyAccountPickerWidget> createState() => _InveslyAccountPickerWidgetState();
+}
+
+class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget> {
+  @override
+  void initState() {
+    super.initState();
+    final cubit = context.read<AccountsCubit>();
+    if (cubit.state is! AccountsLoadedState) {
+      cubit.fetchAccounts();
+    }
   }
 
   @override
@@ -56,8 +70,8 @@ class InveslyAccountPickerWidget extends StatelessWidget {
                       title: isLoading || isError
                           ? Skeleton(height: 24.0, color: isError ? context.colors.error : null)
                           : Text(account?.name ?? ''),
-                      trailing: account?.id == accountId ? const Icon(Icons.check_rounded) : null,
-                      onTap: account != null ? () => onPickup?.call(account) : null,
+                      trailing: account?.id == widget.accountId ? const Icon(Icons.check_rounded) : null,
+                      onTap: account != null ? () => widget.onPickup?.call(account) : null,
                     ),
                   );
                 },
