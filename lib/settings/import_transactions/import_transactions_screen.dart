@@ -51,24 +51,64 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
           },
         ),
         description: Text('Make sure it has a first row that describes the name of each column'),
-        content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-          builder: (context, state) {
-            if (state.status == ImportTransactionsStatus.loading) {
-              return LoadingAnimationWidget.staggeredDotsWave(color: context.colors.primary, size: 48.0);
-            }
-            if (state.status == ImportTransactionsStatus.error) {
-              return Text(state.errorMsg!, style: TextStyle(color: Colors.redAccent));
-            }
-            if (state.status == ImportTransactionsStatus.loaded) {
-              return AnimatedExpanded(
-                axis: Axis.vertical,
-                expand: true,
-                child: _CsvPreviewTable(state.csvHeaders, state.csvData),
-              ); // TODO: Animation not working
-            }
+        content: Column(
+          spacing: 12.0,
+          children: [
+            AsyncFormField<InveslyAccount>(
+              initialValue: cubit.state.defaultAccount,
+              validator: (value) {
+                if (value == null) {
+                  return 'Can\'t be empty';
+                }
+                return null;
+              },
+              onTapCallback: () async {
+                final value = await InveslyAccountPickerWidget.showModal(context, cubit.state.defaultAccount?.id);
+                if (value == null) return null;
+                return value;
+              },
+              onChanged: (value) {
+                if (value == null) return;
+                cubit.updateDefaultAccount(value);
+              },
+              childBuilder: (value) {
+                if (value == null) {
+                  return Text(
+                    'Select an account',
+                    style: TextStyle(color: context.theme.disabledColor),
+                    overflow: TextOverflow.ellipsis,
+                  );
+                }
+                return Row(
+                  spacing: 16.0,
+                  children: <Widget>[
+                    CircleAvatar(foregroundImage: AssetImage(value.avatar), radius: 10.0),
+                    Text(value.name, textAlign: TextAlign.right, overflow: TextOverflow.ellipsis),
+                  ],
+                );
+              },
+            ).withLabel('Default account'),
 
-            return SizedBox();
-          },
+            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+              builder: (context, state) {
+                if (state.status == ImportTransactionsStatus.loading) {
+                  return LoadingAnimationWidget.staggeredDotsWave(color: context.colors.primary, size: 48.0);
+                }
+                if (state.status == ImportTransactionsStatus.error) {
+                  return Text(state.errorMsg!, style: TextStyle(color: context.colors.error));
+                }
+                if (state.status == ImportTransactionsStatus.loaded) {
+                  return AnimatedExpanded(
+                    axis: Axis.vertical,
+                    expand: true,
+                    child: _CsvPreviewTable(state.csvHeaders, state.csvData),
+                  ); // TODO: Animation not working
+                }
+
+                return SizedBox();
+              },
+            ),
+          ],
         ),
         buttons: [
           BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
