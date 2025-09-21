@@ -4,6 +4,7 @@
 import 'package:google_sign_in/google_sign_in.dart' show GoogleUserCircleAvatar;
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
 import 'package:invesly/common/presentations/animations/shimmer.dart';
+import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:path/path.dart';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
@@ -68,7 +69,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               delegate: SliverChildListDelegate.fixed([
                 // ~~~ User Profile Section ~~~
                 BlocSelector<AppCubit, AppState, InveslyUser?>(
-                  selector: (state) => state.currentUser,
+                  selector: (state) => state.user,
                   builder: (context, currentUser) {
                     // final user = currentUser ?? InveslyUser.empty();
                     return Section(
@@ -99,7 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             final accounts = state.isLoaded ? (state as AccountsLoadedState).accounts : null;
 
                             return BlocSelector<AppCubit, AppState, String?>(
-                              selector: (state) => state.currentAccountId,
+                              selector: (state) => state.primaryAccountId,
                               builder: (context, currentAccountId) {
                                 return ColumnBuilder(
                                   spacing: 2.0,
@@ -107,7 +108,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     final account = accounts?.elementAt(index);
 
                                     return BlocSelector<AppCubit, AppState, bool>(
-                                      selector: (state) => state.currentAccountId == account?.id,
+                                      selector: (state) => state.primaryAccountId == account?.id,
                                       builder: (context, isCurrentAccount) {
                                         $logger.i('rebuilding $account');
                                         return Shimmer(
@@ -168,6 +169,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       description: Text('English'),
                     ),
                     SectionTile(
+                      title: Text('Date format'),
+                      // title: Text(context.watch<SettingsRepository>().currentLocale.name),
+                      icon: const Icon(Icons.language_rounded),
+                      description: Text('English'),
+                      onTap: () async {
+                        final value = await InveslyDateFormatPicker.showModal(context);
+                        $logger.d(value);
+                      },
+                    ),
+                    SectionTile(
                       title: Text('Currency'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       icon: const Icon(Icons.attach_money_rounded),
@@ -181,7 +192,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: Text('Private mode'),
                           description: Text('Hide all monetary values'),
                           value: isPrivateMode,
-                          onChanged: (value) => context.read<AppCubit>().setPrivateMode(value),
+                          onChanged: (value) => context.read<AppCubit>().updatePrivateMode(value),
                         );
                       },
                     ),
@@ -211,7 +222,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           icon: const Icon(Icons.format_color_fill_rounded),
                           description: Text('Choose the accent color to emphasize certain elements'),
                           value: isDynamic,
-                          onChanged: (value) => context.read<AppCubit>().setDynamicColorMode(value),
+                          onChanged: (value) => context.read<AppCubit>().updateDynamicColorMode(value),
                         );
                       },
                     ),
@@ -231,7 +242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           onTap: () async {
                             final color = await InveslyColorPickerWidget.showModal(context, selectedColor: accentColor);
                             if (context.mounted && color != null) {
-                              context.read<AppCubit>().setAccentColor(color.toARGB32());
+                              context.read<AppCubit>().updateAccentColor(color.toARGB32());
                             }
                           },
                           enabled: !isDynamic,
@@ -246,7 +257,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: Text('Dark mode'),
                           icon: const Icon(Icons.format_paint),
                           value: isDarkMode,
-                          onChanged: (value) => context.read<AppCubit>().setDarkTheme(value),
+                          onChanged: (value) => context.read<AppCubit>().updateThemeMode(value),
                         );
                       },
                     ),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
+import 'package:invesly/transactions/model/transaction_model.dart';
 
 part 'import_transactions_state.dart';
 
@@ -106,6 +107,18 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     emit(state.copyWith(status: ImportTransactionsStatus.loaded, amountColumn: columnIndex));
   }
 
+  void updateQuantityColumn(int columnIndex) {
+    if (state.status != ImportTransactionsStatus.loaded) return;
+
+    final err = _validateColumnIndex(columnIndex);
+    if (err != null) {
+      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+      return;
+    }
+
+    emit(state.copyWith(status: ImportTransactionsStatus.loaded, quantityColumn: columnIndex));
+  }
+
   void updateAccountColumn(int columnIndex) {
     if (state.status != ImportTransactionsStatus.loaded) return;
 
@@ -118,7 +131,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     emit(state.copyWith(status: ImportTransactionsStatus.loaded, accountColumn: columnIndex));
   }
 
-  void updateCategoryColumn(int columnIndex) {
+  void updateTypeColumn(int columnIndex) {
     if (state.status != ImportTransactionsStatus.loaded) return;
 
     final err = _validateColumnIndex(columnIndex);
@@ -127,7 +140,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
       return;
     }
 
-    emit(state.copyWith(status: ImportTransactionsStatus.loaded, categoryColumn: columnIndex));
+    emit(state.copyWith(status: ImportTransactionsStatus.loaded, typeColumn: columnIndex));
   }
 
   void updateDateColumn(int columnIndex) {
@@ -168,7 +181,12 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
   void updateDefaultAccount(InveslyAccount account) {
     if (state.status != ImportTransactionsStatus.loaded) return;
-    emit(state.copyWith(status: ImportTransactionsStatus.loaded, defaultAccount: account));
+    emit(state.copyWith(defaultAccount: account));
+  }
+
+  void updateDefaultType(TransactionType type) {
+    if (state.status != ImportTransactionsStatus.loaded) return;
+    emit(state.copyWith(defaultType: type));
   }
 
   Future<void> addTransactions() async {

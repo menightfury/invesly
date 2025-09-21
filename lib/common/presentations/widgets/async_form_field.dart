@@ -8,7 +8,7 @@ class AsyncFormField<T> extends FormField<T> {
   AsyncFormField({
     super.key,
     super.initialValue,
-    FutureOr<T?> Function()? onTapCallback,
+    FutureOr<T?> Function(T? value)? onTapCallback,
     super.forceErrorText,
     super.onSaved,
     this.onChanged,
@@ -17,6 +17,8 @@ class AsyncFormField<T> extends FormField<T> {
     AutovalidateMode? autovalidateMode,
     super.errorBuilder,
     required Widget Function(T? value) childBuilder,
+    Widget? leading,
+    Widget? trailing,
     EdgeInsetsGeometry padding = AppConstants.formFieldContentPadding,
     AlignmentGeometry contentAlignment = Alignment.centerLeft,
     Color? color,
@@ -56,7 +58,7 @@ class AsyncFormField<T> extends FormField<T> {
                    onTap: () {
                      if (onTapCallback == null) return;
 
-                     final result = onTapCallback.call();
+                     final result = onTapCallback.call(field.value);
                      if (result is Future<T?>) {
                        result.then((value) => field.didChange(value));
                      } else {
@@ -65,6 +67,8 @@ class AsyncFormField<T> extends FormField<T> {
                    },
                    childAlignment: contentAlignment,
                    padding: padding,
+                   leading: leading,
+                   trailing: trailing,
                    color: hasError ? errorColor ?? colors.errorContainer : color ?? colors.primaryContainer,
                    content: childBuilder(field.value),
                  ),

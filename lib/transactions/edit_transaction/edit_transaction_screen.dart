@@ -154,10 +154,10 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                               }
                               return null;
                             },
-                            onTapCallback: () async {
-                              final value = await InveslyCalculatorWidget.showModal(context);
-                              if (value == null) return null;
-                              return value;
+                            onTapCallback: (value) async {
+                              final newValue = await InveslyCalculatorWidget.showModal(context, value);
+                              if (newValue == null) return null;
+                              return newValue;
                             },
                             onChanged: (value) {
                               if (value == null) return;
@@ -196,10 +196,10 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                     }
                                     return null;
                                   },
-                                  onTapCallback: () async {
-                                    final value = await InveslyCalculatorWidget.showModal(context);
-                                    if (value == null) return null;
-                                    return value;
+                                  onTapCallback: (value) async {
+                                    final newValue = await InveslyCalculatorWidget.showModal(context, value);
+                                    if (newValue == null) return null;
+                                    return newValue;
                                   },
                                   onChanged: (value) {
                                     if (value == null) return;
@@ -233,10 +233,10 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                               }
                               return null;
                             },
-                            onTapCallback: () async {
-                              final value = await InveslyAmcPickerWidget.showModal(context);
-                              if (value == null) return null;
-                              return value;
+                            onTapCallback: (value) async {
+                              final newAmc = await InveslyAmcPickerWidget.showModal(context, value?.id);
+                              if (newAmc == null) return null;
+                              return newAmc;
                             },
                             onChanged: (value) {
                               if (value == null) return;
@@ -277,7 +277,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                     }
                                     return null;
                                   },
-                                  onTapCallback: () {
+                                  onTapCallback: (_) {
                                     int index = _types.indexOf(cubit.state.type);
                                     if (index < 0) {
                                       index = 0;
@@ -313,16 +313,16 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                     }
                                     return null;
                                   },
-                                  onTapCallback: () async {
-                                    final value = await showDatePicker(
+                                  onTapCallback: (value) async {
+                                    final newDate = await showDatePicker(
                                       context: context,
-                                      initialDate: cubit.state.date ?? _dateNow,
+                                      initialDate: value ?? _dateNow,
                                       firstDate: DateTime(1990),
                                       lastDate: _dateNow,
                                     );
-                                    if (value == null) return null;
-                                    cubit.updateDate(value);
-                                    return value;
+                                    if (newDate == null) return null;
+                                    cubit.updateDate(newDate);
+                                    return newDate;
                                   },
                                   childBuilder: (date) {
                                     if (date == null) {

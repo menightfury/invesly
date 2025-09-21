@@ -46,7 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 GestureDetector(
                   onTap: () => context.push(const SettingsScreen()),
                   child: BlocSelector<AppCubit, AppState, InveslyUser?>(
-                    selector: (state) => state.currentUser,
+                    selector: (state) => state.user,
                     builder: (context, currentUser) {
                       return currentUser.isNotNullOrEmpty
                           ? GoogleUserCircleAvatar(identity: currentUser!) // TODO: Implement cached network image
@@ -73,7 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: textTheme.headlineSmall,
                       ),
                       BlocSelector<AppCubit, AppState, InveslyUser?>(
-                        selector: (state) => state.currentUser,
+                        selector: (state) => state.user,
                         builder: (context, currentUser) {
                           return Text(
                             currentUser.isNotNullOrEmpty ? currentUser!.name : 'Investor',
@@ -210,7 +210,7 @@ class _AccountsList extends StatelessWidget {
                           final account = accounts?.elementAt(index);
 
                           return BlocSelector<AppCubit, AppState, bool>(
-                            selector: (state) => state.currentAccountId == account?.id,
+                            selector: (state) => state.primaryAccountId == account?.id,
                             builder: (context, isCurrentAccount) {
                               $logger.i('rebuilding $account');
                               return Tappable(

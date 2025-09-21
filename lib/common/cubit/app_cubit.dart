@@ -16,31 +16,35 @@ class AppCubit extends HydratedCubit<AppState> {
   }
 
   void saveCurrentUser(InveslyUser user) {
-    emit(state.copyWith(currentUser: user));
+    emit(state.copyWith(user: user));
   }
 
-  void saveCurrentAccount(String accountId) {
-    emit(state.copyWith(currentAccountId: accountId));
+  void updatePrimaryAccount(String accountId) {
+    emit(state.copyWith(primaryAccountId: accountId));
   }
 
-  void setDarkTheme(bool isDarkMode) async {
+  void updateThemeMode(bool isDarkMode) async {
     emit(state.copyWith(isDarkMode: isDarkMode));
   }
 
-  void setDynamicColorMode(bool isDynamic) async {
+  void updateDynamicColorMode(bool isDynamic) async {
     emit(state.copyWith(isDynamicColor: isDynamic));
   }
 
-  void setAccentColor(int color) async {
+  void updateAccentColor(int color) async {
     emit(state.copyWith(accentColor: color));
   }
 
-  void setPrivateMode(bool value) {
+  void updatePrivateMode(bool value) {
     emit(state.copyWith(isPrivateMode: value));
   }
 
   void saveGapiAccessToken(AccessToken accessToken) {
     emit(state.copyWith(gapiAccessToken: accessToken));
+  }
+
+  void updateDateFormat(String dateFormat) {
+    emit(state.copyWith(dateFormat: dateFormat));
   }
 
   @override

@@ -10,12 +10,14 @@ class ImportTransactionsState extends Equatable {
     this.csvData = const [],
     // this.columns = const {},
     this.amountColumn,
+    this.quantityColumn,
     this.accountColumn,
     this.dateColumn,
-    this.categoryColumn,
+    this.typeColumn,
     this.notesColumn,
     this.titleColumn,
     this.defaultAccount,
+    this.defaultType = TransactionType.invested,
     this.errorMsg,
   });
 
@@ -23,8 +25,9 @@ class ImportTransactionsState extends Equatable {
   final List<String> csvHeaders;
   final List<List<dynamic>> csvData;
   // final Map<CsvColumn, int?> columns;
-  final int? amountColumn, accountColumn, dateColumn, categoryColumn, notesColumn, titleColumn;
+  final int? amountColumn, quantityColumn, accountColumn, dateColumn, typeColumn, notesColumn, titleColumn;
   final InveslyAccount? defaultAccount;
+  final TransactionType defaultType;
   final String? errorMsg;
 
   ImportTransactionsState copyWith({
@@ -32,12 +35,14 @@ class ImportTransactionsState extends Equatable {
     List<String>? csvHeaders,
     List<List<dynamic>>? csvData,
     int? amountColumn,
+    int? quantityColumn,
     int? accountColumn,
     int? dateColumn,
-    int? categoryColumn,
+    int? typeColumn,
     int? notesColumn,
     int? titleColumn,
     InveslyAccount? defaultAccount,
+    TransactionType? defaultType,
     String? errorMsg,
   }) {
     return ImportTransactionsState(
@@ -45,12 +50,14 @@ class ImportTransactionsState extends Equatable {
       csvHeaders: csvHeaders ?? this.csvHeaders,
       csvData: csvData ?? this.csvData,
       amountColumn: amountColumn ?? this.amountColumn,
+      quantityColumn: quantityColumn ?? this.quantityColumn,
       accountColumn: accountColumn ?? this.accountColumn,
       dateColumn: dateColumn ?? this.dateColumn,
-      categoryColumn: categoryColumn ?? this.categoryColumn,
+      typeColumn: typeColumn ?? this.typeColumn,
       notesColumn: notesColumn ?? this.notesColumn,
       titleColumn: titleColumn ?? this.titleColumn,
       defaultAccount: defaultAccount ?? this.defaultAccount,
+      defaultType: defaultType ?? this.defaultType,
       errorMsg: errorMsg ?? this.errorMsg,
     );
   }
@@ -60,9 +67,10 @@ class ImportTransactionsState extends Equatable {
     csvHeaders,
     csvData,
     amountColumn,
+    quantityColumn,
     accountColumn,
     dateColumn,
-    categoryColumn,
+    typeColumn,
     notesColumn,
     titleColumn,
     defaultAccount,

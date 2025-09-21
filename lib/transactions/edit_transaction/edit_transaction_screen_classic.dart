@@ -5,7 +5,6 @@ import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
-import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/presentations/widgets/async_form_field.dart';
 import 'package:invesly/common/utils/keyboard.dart';
@@ -18,6 +17,7 @@ import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/widget/account_picker_widget.dart';
+import 'package:invesly/transactions/widgets/transaction_type_selector_form_field.dart';
 
 import 'cubit/edit_transaction_cubit.dart';
 
@@ -49,8 +49,6 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   late final ValueNotifier<AutovalidateMode> _validateMode;
   late final DateTime _dateNow;
-
-  final _types = TransactionType.values;
 
   @override
   void initState() {
@@ -163,13 +161,10 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                     }
                                     return null;
                                   },
-                                  onTapCallback: () async {
-                                    final value = await InveslyCalculatorWidget.showModal(
-                                      context,
-                                      cubit.state.quantity,
-                                    );
-                                    if (value == null) return null;
-                                    return value;
+                                  onTapCallback: (value) async {
+                                    final newValue = await InveslyCalculatorWidget.showModal(context, value);
+                                    if (newValue == null) return null;
+                                    return newValue;
                                   },
                                   onChanged: (value) {
                                     if (value == null) return;
@@ -202,10 +197,10 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                     }
                                     return null;
                                   },
-                                  onTapCallback: () async {
-                                    final value = await InveslyCalculatorWidget.showModal(context, cubit.state.amount);
-                                    if (value == null) return null;
-                                    return value;
+                                  onTapCallback: (value) async {
+                                    final newValue = await InveslyCalculatorWidget.showModal(context, value);
+                                    if (newValue == null) return null;
+                                    return newValue;
                                   },
 
                                   onChanged: (value) {
@@ -240,10 +235,10 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                               }
                               return null;
                             },
-                            onTapCallback: () async {
-                              final value = await InveslyAmcPickerWidget.showModal(context);
-                              if (value == null) return null;
-                              return value;
+                            onTapCallback: (value) async {
+                              final newAmc = await InveslyAmcPickerWidget.showModal(context, value?.id);
+                              if (newAmc == null) return null;
+                              return newAmc;
                             },
                             onChanged: (value) {
                               if (value == null) return;
@@ -275,39 +270,46 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                             children: <Widget>[
                               // ~ Type ~
                               Expanded(
-                                child: AsyncFormField<TransactionType>(
-                                  contentAlignment: Alignment.center,
+                                // child: AsyncFormField<TransactionType>(
+                                //   contentAlignment: Alignment.center,
+                                //   initialValue: cubit.state.type,
+                                //   validator: (value) {
+                                //     if (value == null) {
+                                //       return 'Can\'t be empty';
+                                //     }
+                                //     return null;
+                                //   },
+                                //   onTapCallback: () {
+                                //     int index = _types.indexOf(cubit.state.type);
+                                //     if (index < 0) {
+                                //       index = 0;
+                                //     }
+                                //     final nextIndex = index < (_types.length - 1) ? index + 1 : 0;
+                                //     return _types.elementAt(nextIndex);
+                                //   },
+                                //   onChanged: (value) {
+                                //     if (value == null) return;
+                                //     cubit.updateTransactionType(value);
+                                //   },
+                                //   childBuilder: (value) {
+                                //     if (value == null) {
+                                //       return const Text(
+                                //         'Select type',
+                                //         style: TextStyle(color: Colors.grey),
+                                //         overflow: TextOverflow.ellipsis,
+                                //       );
+                                //     }
+
+                                //     return TransactionTypeSelectorFormField(type: value);
+                                //   },
+                                // ).withLabel('Transaction type'),
+                                child: TransactionTypeSelectorFormField(
                                   initialValue: cubit.state.type,
-                                  validator: (value) {
-                                    if (value == null) {
-                                      return 'Can\'t be empty';
-                                    }
-                                    return null;
-                                  },
-                                  onTapCallback: () {
-                                    int index = _types.indexOf(cubit.state.type);
-                                    if (index < 0) {
-                                      index = 0;
-                                    }
-                                    final nextIndex = index < (_types.length - 1) ? index + 1 : 0;
-                                    return _types.elementAt(nextIndex);
-                                  },
                                   onChanged: (value) {
                                     if (value == null) return;
                                     cubit.updateTransactionType(value);
                                   },
-                                  childBuilder: (value) {
-                                    if (value == null) {
-                                      return const Text(
-                                        'Select type',
-                                        style: TextStyle(color: Colors.grey),
-                                        overflow: TextOverflow.ellipsis,
-                                      );
-                                    }
-
-                                    return _TransactionTypeViewer(type: value);
-                                  },
-                                ).withLabel('Type'),
+                                ).withLabel('Transaction type'),
                               ),
 
                               // ~ Date ~
@@ -320,16 +322,16 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                     }
                                     return null;
                                   },
-                                  onTapCallback: () async {
-                                    final value = await showDatePicker(
+                                  onTapCallback: (value) async {
+                                    final newDate = await showDatePicker(
                                       context: context,
-                                      initialDate: cubit.state.date ?? _dateNow,
+                                      initialDate: value ?? _dateNow,
                                       firstDate: DateTime(1990),
                                       lastDate: _dateNow,
                                     );
-                                    if (value == null) return null;
-                                    cubit.updateDate(value);
-                                    return value;
+                                    if (newDate == null) return null;
+                                    cubit.updateDate(newDate);
+                                    return newDate;
                                   },
                                   childBuilder: (date) {
                                     if (date == null) {
@@ -401,7 +403,7 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
       final accounts = (accountsState as AccountsLoadedState).accounts;
       if (accounts.isEmpty) return;
 
-      final currentAccountId = cubit.state.accountId ?? context.read<AppCubit>().state.currentAccountId;
+      final currentAccountId = cubit.state.accountId ?? context.read<AppCubit>().state.primaryAccountId;
 
       if (cubit.state.isNewTransaction) {
         initialAccount = accounts.firstWhere((acc) => acc.id == currentAccountId, orElse: () => accounts.first);
@@ -443,64 +445,6 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
         }
         return null;
       },
-    );
-  }
-}
-
-class _TransactionTypeViewer extends StatefulWidget {
-  const _TransactionTypeViewer({super.key, required this.type});
-
-  final TransactionType type;
-
-  @override
-  State<_TransactionTypeViewer> createState() => __TransactionTypeViewerState();
-}
-
-class __TransactionTypeViewerState extends State<_TransactionTypeViewer> {
-  late TransactionType _prevType;
-  // AnimationController? _fadeOutController;
-  AnimationController? _fadeInController;
-
-  @override
-  void initState() {
-    super.initState();
-    _prevType = widget.type;
-    // _fadeOutController?.value = 1.0;
-    // _fadeInController?.value = 1.0;
-  }
-
-  @override
-  void didUpdateWidget(_TransactionTypeViewer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _prevType = oldWidget.type;
-    if (_prevType != widget.type) {
-      // _fadeOutController
-      //   ?..reset()
-      //   ..forward();
-      _fadeInController
-        ?..reset()
-        ..forward();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: <Widget>[
-        // FadeOut(
-        //   fadeOut: false,
-        //   to: Offset(0.0, -0.4),
-        //   controller: (ctrl) => _fadeOutController = ctrl,
-        //   child: Text(_prevType.name.toSentenceCase()),
-        // ),
-        FadeIn(
-          // fadeIn: false,
-          from: Offset(0.0, 0.4),
-          controller: (ctrl) => _fadeInController = ctrl,
-          child: Text(widget.type.name.toUpperCase()),
-        ),
-      ],
     );
   }
 }

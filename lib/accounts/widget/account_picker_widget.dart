@@ -54,7 +54,7 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
                 padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
                 child: Text(
                   'Select an account',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

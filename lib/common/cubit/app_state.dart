@@ -4,21 +4,23 @@ class AppState extends Equatable {
   const AppState({
     this.isOnboarded = false,
     this.isDarkMode = false,
-    this.currentUser,
-    this.currentAccountId,
+    this.user,
+    this.primaryAccountId,
     this.isDynamicColor = true,
     this.accentColor,
     this.isPrivateMode = false,
     this.gapiAccessToken,
+    this.dateFormat,
   });
 
   final bool isOnboarded;
   final bool isDarkMode;
-  final InveslyUser? currentUser;
-  final String? currentAccountId;
+  final InveslyUser? user;
+  final String? primaryAccountId;
   final int? accentColor;
   final bool isDynamicColor;
   final AccessToken? gapiAccessToken;
+  final String? dateFormat;
 
   /// Hide all currency values
   final bool isPrivateMode;
@@ -26,22 +28,24 @@ class AppState extends Equatable {
   AppState copyWith({
     bool? isOnboarded,
     bool? isDarkMode,
-    InveslyUser? currentUser,
-    String? currentAccountId,
+    InveslyUser? user,
+    String? primaryAccountId,
     bool? isDynamicColor,
     int? accentColor,
     bool? isPrivateMode,
     AccessToken? gapiAccessToken,
+    String? dateFormat,
   }) {
     return AppState(
       isOnboarded: isOnboarded ?? this.isOnboarded,
       isDarkMode: isDarkMode ?? this.isDarkMode,
-      currentUser: currentUser ?? this.currentUser,
-      currentAccountId: currentAccountId ?? this.currentAccountId,
+      user: user ?? this.user,
+      primaryAccountId: primaryAccountId ?? this.primaryAccountId,
       isDynamicColor: isDynamicColor ?? this.isDynamicColor,
       accentColor: accentColor ?? this.accentColor,
       isPrivateMode: isPrivateMode ?? this.isPrivateMode,
       gapiAccessToken: gapiAccessToken ?? this.gapiAccessToken,
+      dateFormat: dateFormat ?? this.dateFormat,
     );
   }
 
@@ -49,24 +53,26 @@ class AppState extends Equatable {
   List<Object?> get props => [
     isOnboarded,
     isDarkMode,
-    currentUser,
-    currentAccountId,
+    user,
+    primaryAccountId,
     isDynamicColor,
     accentColor,
     isPrivateMode,
     gapiAccessToken,
+    dateFormat,
   ];
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'isOnboarded': isOnboarded,
       'isDarkMode': isDarkMode,
-      'currentUser': currentUser?.toJson(),
-      'currentAccountId': currentAccountId,
+      'user': user?.toJson(),
+      'primaryAccountId': primaryAccountId,
       'isDynamicColor': isDynamicColor,
       'accentColor': accentColor,
       'isPrivateMode': isPrivateMode,
       'gapiAccessToken': gapiAccessToken?.toJson(),
+      'dateFormat': dateFormat,
     };
   }
 
@@ -74,20 +80,21 @@ class AppState extends Equatable {
     return AppState(
       isOnboarded: map['isOnboarded'] as bool,
       isDarkMode: map['isDarkMode'] as bool,
-      currentUser: map['currentUser'] != null ? InveslyUser.fromJson(map['currentUser'] as String) : null,
-      currentAccountId: map['currentAccountId'] as String?,
+      user: map['user'] != null ? InveslyUser.fromJson(map['user'] as String) : null,
+      primaryAccountId: map['primaryAccountId'] as String?,
       isDynamicColor: map['isDynamicColor'] as bool,
       accentColor: map['accentColor'] as int?,
       isPrivateMode: map['isPrivateMode'] as bool,
       gapiAccessToken: map['gapiAccessToken'] != null
           ? AccessToken.fromJson(map['gapiAccessToken'] as Map<String, dynamic>)
           : null,
+      dateFormat: map['dateFormat'] as String?,
     );
   }
 
   @override
   String toString() =>
-      '''SettingsState(isOnboarded: $isOnboarded, isDarkMode: $isDarkMode, currentUser: $currentUser,
-      currentAccountId: $currentAccountId, isDynamicColor: $isDynamicColor, accentColor: $accentColor,
-      isPrivateMode: $isPrivateMode, gapiAccessToken: $gapiAccessToken)''';
+      'SettingsState(isOnboarded: $isOnboarded, isDarkMode: $isDarkMode, user: $user, '
+      'primaryAccountId: $primaryAccountId, isDynamicColor: $isDynamicColor, accentColor: $accentColor, '
+      'isPrivateMode: $isPrivateMode, gapiAccessToken: $gapiAccessToken), dateFormat: $dateFormat, ';
 }

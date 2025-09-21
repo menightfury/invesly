@@ -95,7 +95,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
     if (_currentPage.value != _pageData.length - 1) return;
 
     final settingsState = context.read<AppCubit>().state;
-    if (settingsState.currentUser == null) {
+    if (settingsState.user == null) {
       final user = await LoginPage.showModal(context);
 
       if (!context.mounted || user == null) {
