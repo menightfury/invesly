@@ -1,17 +1,27 @@
 import 'package:intl/intl.dart';
+import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 
 class InveslyDateFormatPicker extends StatelessWidget {
   const InveslyDateFormatPicker({super.key, this.value, this.onPickup});
 
+  static const dateFormats = <String>[
+    'd-M-yy',
+    'd.M.yy',
+    'dd-MM-yy',
+    'dd-MM-yyyy',
+    'dd MMM yyyy',
+    'dd MMMM yyyy',
+    'yyyy-MM-dd',
+  ];
+
   final String? value;
   final ValueChanged<String>? onPickup;
-  final _dateFormats = const ['d-M-yy', 'd.M.yy', 'dd-MM-yy', 'dd-MM-yyyy', 'dd MMMM yyyy', 'yyyy-MM-dd'];
 
   static Future<String?> showModal(BuildContext context, [String? dateFormat]) async {
     return await showModalBottomSheet<String>(
       context: context,
-      // isScrollControlled: true,
+      isScrollControlled: true,
       builder: (context) {
         return InveslyDateFormatPicker(value: dateFormat, onPickup: (value) => Navigator.maybePop(context, value));
       },
@@ -22,31 +32,30 @@ class InveslyDateFormatPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateNow = DateTime.now();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
-            child: Text(
-              'Select a date format',
-              style: TextStyle(fontWeight: FontWeight.bold),
-              overflow: TextOverflow.ellipsis,
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+              child: Text('Select a date format', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
             ),
-          ),
-          ...List.generate(_dateFormats.length, (index) {
-            final dateFormat = _dateFormats.elementAt(index);
-
-            return ListTile(
-              // leading: CircleAvatar(foregroundImage: dateFormat != null ? AssetImage(dateFormat.avatar) : null),
-              title: Text(dateFormat),
-              subtitle: Text(DateFormat(dateFormat).format(dateNow)),
-              trailing: dateFormat == value ? const Icon(Icons.check_rounded) : null,
-              onTap: () => onPickup?.call(dateFormat),
-            );
-          }),
-        ],
+            Section(
+              tiles: dateFormats.map((data) {
+                // final isSelectionAllowed = !columnsToExclude.contains(data.key);
+                return SectionTile(
+                  title: Text(data),
+                  description: Text(DateFormat(data).format(dateNow)),
+                  onTap: () => context.pop(data),
+                  trailingIcon: data == value ? const Icon(Icons.check_rounded) : null,
+                  // enabled: isSelectionAllowed,
+                  selected: data == value,
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }

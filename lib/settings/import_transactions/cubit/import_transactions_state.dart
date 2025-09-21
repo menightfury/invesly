@@ -18,6 +18,7 @@ class ImportTransactionsState extends Equatable {
     this.titleColumn,
     this.defaultAccount,
     this.defaultType = TransactionType.invested,
+    this.defaultDateFormat,
     this.errorMsg,
   });
 
@@ -28,6 +29,7 @@ class ImportTransactionsState extends Equatable {
   final int? amountColumn, quantityColumn, accountColumn, dateColumn, typeColumn, notesColumn, titleColumn;
   final InveslyAccount? defaultAccount;
   final TransactionType defaultType;
+  final String? defaultDateFormat;
   final String? errorMsg;
 
   ImportTransactionsState copyWith({
@@ -43,6 +45,7 @@ class ImportTransactionsState extends Equatable {
     int? titleColumn,
     InveslyAccount? defaultAccount,
     TransactionType? defaultType,
+    String? defaultDateFormat,
     String? errorMsg,
   }) {
     return ImportTransactionsState(
@@ -58,6 +61,7 @@ class ImportTransactionsState extends Equatable {
       titleColumn: titleColumn ?? this.titleColumn,
       defaultAccount: defaultAccount ?? this.defaultAccount,
       defaultType: defaultType ?? this.defaultType,
+      defaultDateFormat: defaultDateFormat ?? this.defaultDateFormat,
       errorMsg: errorMsg ?? this.errorMsg,
     );
   }
@@ -74,6 +78,8 @@ class ImportTransactionsState extends Equatable {
     notesColumn,
     titleColumn,
     defaultAccount,
+    defaultType,
+    defaultDateFormat,
     errorMsg,
   ];
 

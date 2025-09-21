@@ -3,6 +3,7 @@ import 'package:invesly/accounts/widget/account_picker_widget.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common/presentations/widgets/async_form_field.dart';
+import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/import_transactions/cubit/import_transactions_cubit.dart';
@@ -397,14 +398,34 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                     // onChanged: (value) => cubit.updateColumn(CsvColumn.date, value);
                   ),
 
-                  TextFormField(
-                    controller: _dateFormatController,
-                    // enabled: state.columns[CsvColumn.date] != null,
-                    enabled: state.dateColumn != null,
-                    decoration: const InputDecoration(labelText: 'Date format'),
-                    // validator: (value) => fieldValidator(value),
-                    autovalidateMode: AutovalidateMode.always,
-                  ),
+                  AsyncFormField<String>(
+                    initialValue: cubit.state.defaultDateFormat,
+                    onTapCallback: (value) async {
+                      final newDateFormat = await InveslyDateFormatPicker.showModal(context, value);
+                      return newDateFormat;
+                    },
+                    onChanged: (value) {
+                      if (value == null) return;
+                      cubit.updateDefaultDateFormat(value);
+                    },
+                    childBuilder: (value) {
+                      if (value == null) {
+                        return Text(
+                          'Select a date format',
+                          style: TextStyle(color: context.theme.disabledColor),
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      }
+                      return Text(value, overflow: TextOverflow.ellipsis);
+                    },
+                    validator: (value) {
+                      if (value == null) {
+                        return 'Can\'t be empty';
+                      }
+                      return null;
+                    },
+                    trailing: const Icon(Icons.arrow_drop_down_rounded),
+                  ).withLabel('Default date format'),
                 ],
               );
             }
@@ -574,44 +595,50 @@ class _ColumnSelector extends StatelessWidget {
   // ];
 
   Future<int?> _showModal(BuildContext context) async {
-    return await showModalBottomSheet<int>(
+    final columnIndex = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
-                child: Text('Select a column', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
-              ),
-              Section(
-                tiles: allColumns.entries.map((entry) {
-                  final isSelectionAllowed = !columnsToExclude.contains(entry.key);
-                  return SectionTile(
-                    title: Text(entry.value.trim()),
-                    onTap: () => context.pop(entry.key),
-                    trailingIcon: entry.key == value
-                        ? const Icon(Icons.check_rounded)
-                        : isSelectionAllowed
-                        ? null
-                        : const Icon(Icons.cancel_rounded),
-                    enabled: isSelectionAllowed,
-                    selected: entry.key == value,
-                  );
-                }).toList(),
-              ),
-            ],
+        return SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+                  child: Text('Select a column', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
+                ),
+                Section(
+                  tiles: allColumns.entries.map((entry) {
+                    final isSelectionAllowed = !columnsToExclude.contains(entry.key);
+                    return SectionTile(
+                      title: Text(entry.value.trim()),
+                      onTap: () => context.pop(entry.key),
+                      trailingIcon: entry.key == value
+                          ? const Icon(Icons.check_rounded)
+                          : isSelectionAllowed
+                          ? null
+                          : const Icon(Icons.cancel_rounded),
+                      enabled: isSelectionAllowed,
+                      selected: entry.key == value,
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
+
+    if (columnIndex == null) return value;
+    return columnIndex;
   }
 
   @override
   Widget build(BuildContext context) {
     return AsyncFormField<int>(
+      initialValue: value,
       onTapCallback: (_) async {
         final columnIndex = await _showModal(context);
         return columnIndex;
@@ -621,6 +648,7 @@ class _ColumnSelector extends StatelessWidget {
         onChanged(value);
       },
       childBuilder: (value) {
+        $logger.d(value);
         return Text(allColumns[value] ?? '~~ UNSPECIFIED ~~');
       },
       trailing: const Icon(Icons.arrow_drop_down_rounded),

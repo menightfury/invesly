@@ -189,6 +189,11 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     emit(state.copyWith(defaultType: type));
   }
 
+  void updateDefaultDateFormat(String dateFormat) {
+    if (state.status != ImportTransactionsStatus.loaded) return;
+    emit(state.copyWith(defaultDateFormat: dateFormat));
+  }
+
   Future<void> addTransactions() async {
     // final snackbarDisplayer = ScaffoldMessenger.of(context).showSnackBar;
 
