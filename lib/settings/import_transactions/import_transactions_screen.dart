@@ -129,12 +129,8 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         title: const Text('Select column for amount'),
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state.status == ImportTransactionsStatus.loaded) {
-              return Text(
-                '\'${state.amountColumn != null ? state.csvHeaders[state.amountColumn!] : '~~ UNSPECIFIED ~~'}\' column is selected',
-              );
-            }
-            return SizedBox();
+            final i = state.fields[TransactionField.amount];
+            return Text('\'${i != null ? state.csvHeaders[i] : '~~ UNSPECIFIED ~~'}\' column is selected');
           },
         ),
         description: const Text(
@@ -146,11 +142,11 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
             return _ColumnSelector(
               enabled: state.status == ImportTransactionsStatus.loaded,
               modalTitle: const Text('Select column for amount'),
-              // value: state.columns[CsvColumn.amount],
-              value: state.amountColumn,
+              value: state.fields[TransactionField.amount],
+              // value: state.amountColumn,
               allColumns: state.csvHeaders.asMap(),
-              onChanged: cubit.updateAmountColumn,
-              // onChanged: (value) => cubit.updateColumn(CsvColumn.amount, value);
+              // onChanged: cubit.updateAmountColumn,
+              onChanged: (value) => cubit.updateField(TransactionField.amount, value),
             );
           },
         ),
@@ -159,7 +155,8 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
             BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
               builder: (context, state) {
                 return _buildNextButton(
-                  enabled: state.isLoaded && state.amountColumn != null,
+                  // enabled: state.isLoaded && state.amountColumn != null,
+                  enabled: state.isLoaded && state.fields[TransactionField.amount] != null,
                   onTap: details.onStepContinue,
                 );
               },
@@ -189,12 +186,12 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
             return _ColumnSelector(
               enabled: state.status == ImportTransactionsStatus.loaded,
               modalTitle: const Text('Select column for quantity'),
-              // value: state.columns[CsvColumn.amount],
-              value: state.quantityColumn,
+              value: state.fields[TransactionField.quantity],
+              // value: state.quantityColumn,
               allColumns: state.csvHeaders.asMap(),
-              columnsToExclude: [state.amountColumn],
+              columnIndicesToExclude: [state.amountColumn],
               onChanged: cubit.updateQuantityColumn,
-              // onChanged: (value) => cubit.updateColumn(CsvColumn.quantity, value);
+              // onChanged: (value) => cubit.updateColumn(TransactionField.quantity, value);
             );
           },
         ),
@@ -237,13 +234,13 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                 _ColumnSelector(
                   enabled: state.status == ImportTransactionsStatus.loaded,
                   modalTitle: const Text('Select column for account'),
-                  // value: state.columns[CsvColumn.account],
+                  // value: state.fields[TransactionField.account],
                   value: state.accountColumn,
                   allColumns: state.csvHeaders.asMap(),
-                  // columnsToExclude: [state.columns[CsvColumn.amount]],
-                  columnsToExclude: [state.amountColumn, state.quantityColumn],
+                  // columnsToExclude: [state.fields[TransactionField.amount]],
+                  columnIndicesToExclude: [state.amountColumn, state.quantityColumn],
                   onChanged: cubit.updateAccountColumn,
-                  // onChanged: (value) => cubit.updateColumn(CsvColumn.account, value),
+                  // onChanged: (value) => cubit.updateColumn(TransactionField.account, value),
                 ),
 
                 AsyncFormField<InveslyAccount>(
@@ -321,13 +318,13 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
             return _ColumnSelector(
               enabled: state.status == ImportTransactionsStatus.loaded,
               modalTitle: const Text('Select column for AMC'),
-              // value: state.columns[CsvColumn.account],
+              // value: state.fields[TransactionField.account],
               value: state.amcColumn,
               allColumns: state.csvHeaders.asMap(),
-              // columnsToExclude: [state.columns[CsvColumn.amount]],
-              columnsToExclude: [state.amountColumn, state.quantityColumn],
+              // columnsToExclude: [state.fields[TransactionField.amount]],
+              columnIndicesToExclude: [state.amountColumn, state.quantityColumn],
               onChanged: cubit.updateAmcColumn,
-              // onChanged: (value) => cubit.updateColumn(CsvColumn.account, value),
+              // onChanged: (value) => cubit.updateColumn(TransactionField.account, value),
             );
           },
         ),
@@ -370,13 +367,13 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                 _ColumnSelector(
                   enabled: state.status == ImportTransactionsStatus.loaded,
                   modalTitle: const Text('Select column for transaction type'),
-                  // value: state.columns[CsvColumn.type],
+                  // value: state.fields[TransactionField.type],
                   value: state.typeColumn,
                   allColumns: state.csvHeaders.asMap(),
-                  // columnsToExclude: [state.columns[CsvColumn.amount], state.columns[CsvColumn.account]],
-                  columnsToExclude: [state.amountColumn, state.quantityColumn, state.accountColumn],
+                  // columnsToExclude: [state.fields[TransactionField.amount], state.fields[TransactionField.account]],
+                  columnIndicesToExclude: [state.amountColumn, state.quantityColumn, state.accountColumn],
                   onChanged: cubit.updateTypeColumn,
-                  // onChanged: (value) => cubit.updateColumn(CsvColumn.type, value),
+                  // onChanged: (value) => cubit.updateColumn(TransactionField.type, value),
                 ),
 
                 TransactionTypeSelectorFormField(
@@ -427,15 +424,15 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
               children: <Widget>[
                 _ColumnSelector(
                   enabled: state.status == ImportTransactionsStatus.loaded,
-                  // value: state.columns[CsvColumn.date],
+                  // value: state.fields[TransactionField.date],
                   value: state.dateColumn,
                   allColumns: state.csvHeaders.asMap(),
-                  columnsToExclude: [
-                    // state.columns[CsvColumn.amount], state.columns[CsvColumn.account], state.columns[CsvColumn.category],
+                  columnIndicesToExclude: [
+                    // state.fields[TransactionField.amount], state.fields[TransactionField.account], state.fields[TransactionField.category],
                     state.amountColumn, state.quantityColumn, state.accountColumn, state.typeColumn,
                   ],
                   onChanged: cubit.updateDateColumn,
-                  // onChanged: (value) => cubit.updateColumn(CsvColumn.date, value);
+                  // onChanged: (value) => cubit.updateColumn(TransactionField.date, value);
                 ),
 
                 AsyncFormField<String>(
@@ -492,16 +489,16 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
           builder: (context, state) {
             return _ColumnSelector(
               enabled: state.status == ImportTransactionsStatus.loaded,
-              // value: state.columns[CsvColumn.notes],
+              // value: state.fields[TransactionField.notes],
               modalTitle: Text('Select column for notes'),
               value: state.notesColumn,
               allColumns: state.csvHeaders.asMap(),
-              columnsToExclude: [
-                // state.columns[CsvColumn.amount],
-                // state.columns[CsvColumn.account],
-                // state.columns[CsvColumn.category],
-                // state.columns[CsvColumn.date],
-                // state.columns[CsvColumn.title],
+              columnIndicesToExclude: [
+                // state.fields[TransactionField.amount],
+                // state.fields[TransactionField.account],
+                // state.fields[TransactionField.category],
+                // state.fields[TransactionField.date],
+                // state.fields[TransactionField.title],
                 state.amountColumn,
                 state.quantityColumn,
                 state.accountColumn,
@@ -510,7 +507,7 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                 state.dateColumn,
               ],
               onChanged: cubit.updateNotesColumn,
-              // onChanged: (value) => cubit.updateColumn(CsvColumn.notes, value);
+              // onChanged: (value) => cubit.updateColumn(TransactionField.notes, value);
             ).withLabel('Notes column');
           },
         ),
@@ -584,20 +581,22 @@ class _Step {
 class _ColumnSelector extends StatelessWidget {
   const _ColumnSelector({
     super.key,
-    this.modalTitle,
+    required this.field,
     required this.value,
-    required this.allColumns,
-    this.columnsToExclude = const [],
+    this.modalTitle,
+    // required this.allColumns,
+    // this.columnIndicesToExclude = const [],
     required this.onChanged,
-    this.enabled = true,
+    // this.enabled = true,
   });
 
+  final TransactionField field;
   final Widget? modalTitle;
   final int? value;
-  final Map<int, String> allColumns;
-  final List<int?> columnsToExclude;
+  // final Map<int, String> allColumns;
+  // final List<int?> columnIndicesToExclude;
   final ValueChanged<int> onChanged;
-  final bool enabled;
+  // final bool enabled;
 
   // List<DropdownMenuEntry<int>> get _entries => [
   //   // DropdownMenuEntry(value: null, label: '~~ UNSPECIFIED ~'),
@@ -606,7 +605,9 @@ class _ColumnSelector extends StatelessWidget {
   //   .map((entry) => DropdownMenuEntry(value: entry.key, label: entry.value)),
   // ];
 
-  Future<int?> _showModal(BuildContext context) async {
+  Future<int?> _showModal(BuildContext context, List<String> fields) async {
+    final state = context.read<ImportTransactionsCubit>().state;
+
     return await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
@@ -622,8 +623,8 @@ class _ColumnSelector extends StatelessWidget {
               children: <Widget>[
                 Padding(padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0), child: titleWidget),
                 Section(
-                  tiles: allColumns.entries.map((entry) {
-                    final isSelectionAllowed = !columnsToExclude.contains(entry.key);
+                  tiles: state.csvHeaders.asMap().entries.map((entry) {
+                    final isSelectionAllowed = !state.fields.values.contains(entry.key);
                     return SectionTile(
                       title: Text(entry.value.trim()),
                       onTap: () => context.pop(entry.key),
@@ -647,21 +648,25 @@ class _ColumnSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AsyncFormField<int>(
-      enabled: enabled,
-      initialValue: value,
-      onTapCallback: (value) async {
-        final columnIndex = await _showModal(context);
-        return columnIndex ?? value;
+    return BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+      builder: (context, state) {
+        return AsyncFormField<int>(
+          enabled: state.status == ImportTransactionsStatus.loaded,
+          initialValue: value,
+          onTapCallback: (value) async {
+            final columnIndex = await _showModal(context, state.csvHeaders);
+            return columnIndex ?? value;
+          },
+          onChanged: (value) {
+            if (value == null) return;
+            onChanged(value);
+          },
+          childBuilder: (value) {
+            return Text(allColumns[value] ?? '~~ UNSPECIFIED ~~');
+          },
+          trailing: const Icon(Icons.arrow_drop_down_rounded),
+        );
       },
-      onChanged: (value) {
-        if (value == null) return;
-        onChanged(value);
-      },
-      childBuilder: (value) {
-        return Text(allColumns[value] ?? '~~ UNSPECIFIED ~~');
-      },
-      trailing: const Icon(Icons.arrow_drop_down_rounded),
     );
   }
 }

@@ -1,6 +1,7 @@
 part of 'import_transactions_cubit.dart';
 
-// enum CsvColumn { amount, account, date, category, notes, title }
+enum TransactionField { amount, quantity, account, amc, type, date, notes }
+
 enum ImportTransactionsStatus { initial, loading, loaded, error }
 
 class ImportTransactionsState extends Equatable {
@@ -8,14 +9,14 @@ class ImportTransactionsState extends Equatable {
     this.status = ImportTransactionsStatus.initial,
     this.csvHeaders = const [],
     this.csvData = const [],
-    // this.columns = const {},
-    this.amountColumn,
-    this.quantityColumn,
-    this.accountColumn,
-    this.amcColumn,
-    this.dateColumn,
-    this.typeColumn,
-    this.notesColumn,
+    this.fields = const {},
+    // this.amountColumn,
+    // this.quantityColumn,
+    // this.accountColumn,
+    // this.amcColumn,
+    // this.dateColumn,
+    // this.typeColumn,
+    // this.notesColumn,
     this.defaultAccount,
     this.defaultType = TransactionType.invested,
     this.defaultDateFormat,
@@ -25,8 +26,8 @@ class ImportTransactionsState extends Equatable {
   final ImportTransactionsStatus status;
   final List<String> csvHeaders;
   final List<List<dynamic>> csvData;
-  // final Map<CsvColumn, int?> columns;
-  final int? amountColumn, quantityColumn, accountColumn, amcColumn, dateColumn, typeColumn, notesColumn;
+  final Map<TransactionField, int?> fields;
+  // final int? amountColumn, quantityColumn, accountColumn, amcColumn, dateColumn, typeColumn, notesColumn;
   final InveslyAccount? defaultAccount;
   final TransactionType defaultType;
   final String? defaultDateFormat;
@@ -36,13 +37,14 @@ class ImportTransactionsState extends Equatable {
     ImportTransactionsStatus? status,
     List<String>? csvHeaders,
     List<List<dynamic>>? csvData,
-    int? amountColumn,
-    int? quantityColumn,
-    int? accountColumn,
-    int? amcColumn,
-    int? dateColumn,
-    int? typeColumn,
-    int? notesColumn,
+    Map<TransactionField, int?>? fields,
+    // int? amountColumn,
+    // int? quantityColumn,
+    // int? accountColumn,
+    // int? amcColumn,
+    // int? dateColumn,
+    // int? typeColumn,
+    // int? notesColumn,
     InveslyAccount? defaultAccount,
     TransactionType? defaultType,
     String? defaultDateFormat,
@@ -52,13 +54,14 @@ class ImportTransactionsState extends Equatable {
       status: status ?? this.status,
       csvHeaders: csvHeaders ?? this.csvHeaders,
       csvData: csvData ?? this.csvData,
-      amountColumn: amountColumn ?? this.amountColumn,
-      quantityColumn: quantityColumn ?? this.quantityColumn,
-      accountColumn: accountColumn ?? this.accountColumn,
-      amcColumn: amcColumn ?? this.amcColumn,
-      dateColumn: dateColumn ?? this.dateColumn,
-      typeColumn: typeColumn ?? this.typeColumn,
-      notesColumn: notesColumn ?? this.notesColumn,
+      fields: fields ?? this.fields,
+      // amountColumn: amountColumn ?? this.amountColumn,
+      // quantityColumn: quantityColumn ?? this.quantityColumn,
+      // accountColumn: accountColumn ?? this.accountColumn,
+      // amcColumn: amcColumn ?? this.amcColumn,
+      // dateColumn: dateColumn ?? this.dateColumn,
+      // typeColumn: typeColumn ?? this.typeColumn,
+      // notesColumn: notesColumn ?? this.notesColumn,
       defaultAccount: defaultAccount ?? this.defaultAccount,
       defaultType: defaultType ?? this.defaultType,
       defaultDateFormat: defaultDateFormat ?? this.defaultDateFormat,
@@ -70,13 +73,14 @@ class ImportTransactionsState extends Equatable {
   List<Object?> get props => [
     csvHeaders,
     csvData,
-    amountColumn,
-    quantityColumn,
-    accountColumn,
-    amcColumn,
-    dateColumn,
-    typeColumn,
-    notesColumn,
+    fields,
+    // amountColumn,
+    // quantityColumn,
+    // accountColumn,
+    // amcColumn,
+    // dateColumn,
+    // typeColumn,
+    // notesColumn,
     defaultAccount,
     defaultType,
     defaultDateFormat,
@@ -88,10 +92,7 @@ class ImportTransactionsState extends Equatable {
 }
 
 extension ImportTransactionsStateX on ImportTransactionsState {
-  //   bool get isLoading => this is ImportTransactionsInitialState || this is ImportTransactionsLoadingState;
   bool get isLoading => status == ImportTransactionsStatus.initial || status == ImportTransactionsStatus.loading;
-  //   bool get isLoaded => this is ImportTransactionsLoadedState;
   bool get isLoaded => status == ImportTransactionsStatus.loaded;
-  //   bool get isError => this is ImportTransactionsErrorState;
   bool get isError => status == ImportTransactionsStatus.error;
 }
