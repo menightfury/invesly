@@ -12,10 +12,10 @@ class ImportTransactionsState extends Equatable {
     this.amountColumn,
     this.quantityColumn,
     this.accountColumn,
+    this.amcColumn,
     this.dateColumn,
     this.typeColumn,
     this.notesColumn,
-    this.titleColumn,
     this.defaultAccount,
     this.defaultType = TransactionType.invested,
     this.defaultDateFormat,
@@ -26,7 +26,7 @@ class ImportTransactionsState extends Equatable {
   final List<String> csvHeaders;
   final List<List<dynamic>> csvData;
   // final Map<CsvColumn, int?> columns;
-  final int? amountColumn, quantityColumn, accountColumn, dateColumn, typeColumn, notesColumn, titleColumn;
+  final int? amountColumn, quantityColumn, accountColumn, amcColumn, dateColumn, typeColumn, notesColumn;
   final InveslyAccount? defaultAccount;
   final TransactionType defaultType;
   final String? defaultDateFormat;
@@ -39,10 +39,10 @@ class ImportTransactionsState extends Equatable {
     int? amountColumn,
     int? quantityColumn,
     int? accountColumn,
+    int? amcColumn,
     int? dateColumn,
     int? typeColumn,
     int? notesColumn,
-    int? titleColumn,
     InveslyAccount? defaultAccount,
     TransactionType? defaultType,
     String? defaultDateFormat,
@@ -55,10 +55,10 @@ class ImportTransactionsState extends Equatable {
       amountColumn: amountColumn ?? this.amountColumn,
       quantityColumn: quantityColumn ?? this.quantityColumn,
       accountColumn: accountColumn ?? this.accountColumn,
+      amcColumn: amcColumn ?? this.amcColumn,
       dateColumn: dateColumn ?? this.dateColumn,
       typeColumn: typeColumn ?? this.typeColumn,
       notesColumn: notesColumn ?? this.notesColumn,
-      titleColumn: titleColumn ?? this.titleColumn,
       defaultAccount: defaultAccount ?? this.defaultAccount,
       defaultType: defaultType ?? this.defaultType,
       defaultDateFormat: defaultDateFormat ?? this.defaultDateFormat,
@@ -73,10 +73,10 @@ class ImportTransactionsState extends Equatable {
     amountColumn,
     quantityColumn,
     accountColumn,
+    amcColumn,
     dateColumn,
     typeColumn,
     notesColumn,
-    titleColumn,
     defaultAccount,
     defaultType,
     defaultDateFormat,

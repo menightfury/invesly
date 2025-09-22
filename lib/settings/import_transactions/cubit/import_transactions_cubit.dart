@@ -131,6 +131,18 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     emit(state.copyWith(status: ImportTransactionsStatus.loaded, accountColumn: columnIndex));
   }
 
+  void updateAmcColumn(int columnIndex) {
+    if (state.status != ImportTransactionsStatus.loaded) return;
+
+    final err = _validateColumnIndex(columnIndex);
+    if (err != null) {
+      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+      return;
+    }
+
+    emit(state.copyWith(status: ImportTransactionsStatus.loaded, amcColumn: columnIndex));
+  }
+
   void updateTypeColumn(int columnIndex) {
     if (state.status != ImportTransactionsStatus.loaded) return;
 
@@ -165,18 +177,6 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     }
 
     emit(state.copyWith(status: ImportTransactionsStatus.loaded, notesColumn: columnIndex));
-  }
-
-  void updateTitleColumn(int columnIndex) {
-    if (state.status != ImportTransactionsStatus.loaded) return;
-
-    final err = _validateColumnIndex(columnIndex);
-    if (err != null) {
-      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-      return;
-    }
-
-    emit(state.copyWith(status: ImportTransactionsStatus.loaded, titleColumn: columnIndex));
   }
 
   void updateDefaultAccount(InveslyAccount account) {

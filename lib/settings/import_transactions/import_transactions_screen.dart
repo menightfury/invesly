@@ -7,7 +7,6 @@ import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/import_transactions/cubit/import_transactions_cubit.dart';
-import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/widgets/transaction_type_selector_form_field.dart';
 
 class ImportTransactionsScreen extends StatelessWidget {
@@ -39,8 +38,6 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
   void initState() {
     super.initState();
   }
-
-  final TextEditingController _dateFormatController = TextEditingController(text: 'yyyy-MM-dd HH:mm:ss');
 
   Step buildStep(BuildContext context, _Step step) {
     Widget? description;
@@ -146,16 +143,15 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         ),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state.status == ImportTransactionsStatus.loaded) {
-              return _ColumnSelector(
-                // value: state.columns[CsvColumn.amount],
-                value: state.amountColumn,
-                allColumns: state.csvHeaders.asMap(),
-                onChanged: cubit.updateAmountColumn,
-                // onChanged: (value) => cubit.updateColumn(CsvColumn.amount, value);
-              );
-            }
-            return SizedBox();
+            return _ColumnSelector(
+              enabled: state.status == ImportTransactionsStatus.loaded,
+              modalTitle: const Text('Select column for amount'),
+              // value: state.columns[CsvColumn.amount],
+              value: state.amountColumn,
+              allColumns: state.csvHeaders.asMap(),
+              onChanged: cubit.updateAmountColumn,
+              // onChanged: (value) => cubit.updateColumn(CsvColumn.amount, value);
+            );
           },
         ),
         controlsBuilder: (context, details) {
@@ -190,17 +186,16 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         ),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state.status == ImportTransactionsStatus.loaded) {
-              return _ColumnSelector(
-                // value: state.columns[CsvColumn.amount],
-                value: state.quantityColumn,
-                allColumns: state.csvHeaders.asMap(),
-                columnsToExclude: [state.amountColumn],
-                onChanged: cubit.updateQuantityColumn,
-                // onChanged: (value) => cubit.updateColumn(CsvColumn.quantity, value);
-              );
-            }
-            return SizedBox();
+            return _ColumnSelector(
+              enabled: state.status == ImportTransactionsStatus.loaded,
+              modalTitle: const Text('Select column for quantity'),
+              // value: state.columns[CsvColumn.amount],
+              value: state.quantityColumn,
+              allColumns: state.csvHeaders.asMap(),
+              columnsToExclude: [state.amountColumn],
+              onChanged: cubit.updateQuantityColumn,
+              // onChanged: (value) => cubit.updateColumn(CsvColumn.quantity, value);
+            );
           },
         ),
         controlsBuilder: (context, details) {
@@ -236,58 +231,58 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         ),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state.status == ImportTransactionsStatus.loaded) {
-              return Column(
-                spacing: 12.0,
-                children: <Widget>[
-                  _ColumnSelector(
-                    // value: state.columns[CsvColumn.account],
-                    value: state.accountColumn,
-                    allColumns: state.csvHeaders.asMap(),
-                    // columnsToExclude: [state.columns[CsvColumn.amount]],
-                    columnsToExclude: [state.amountColumn, state.quantityColumn],
-                    onChanged: cubit.updateAccountColumn,
-                    // onChanged: (value) => cubit.updateColumn(CsvColumn.account, value),
-                  ),
+            return Column(
+              spacing: 12.0,
+              children: <Widget>[
+                _ColumnSelector(
+                  enabled: state.status == ImportTransactionsStatus.loaded,
+                  modalTitle: const Text('Select column for account'),
+                  // value: state.columns[CsvColumn.account],
+                  value: state.accountColumn,
+                  allColumns: state.csvHeaders.asMap(),
+                  // columnsToExclude: [state.columns[CsvColumn.amount]],
+                  columnsToExclude: [state.amountColumn, state.quantityColumn],
+                  onChanged: cubit.updateAccountColumn,
+                  // onChanged: (value) => cubit.updateColumn(CsvColumn.account, value),
+                ),
 
-                  AsyncFormField<InveslyAccount>(
-                    initialValue: cubit.state.defaultAccount,
-                    validator: (value) {
-                      if (value == null) {
-                        return 'Can\'t be empty';
-                      }
-                      return null;
-                    },
-                    onTapCallback: (value) async {
-                      final newAccount = await InveslyAccountPickerWidget.showModal(context, value?.id);
-                      return newAccount;
-                    },
-                    onChanged: (value) {
-                      if (value == null) return;
-                      cubit.updateDefaultAccount(value);
-                    },
-                    childBuilder: (value) {
-                      if (value == null) {
-                        return Text(
-                          'Select an account',
-                          style: TextStyle(color: context.theme.disabledColor),
-                          overflow: TextOverflow.ellipsis,
-                        );
-                      }
-                      return Row(
-                        spacing: 16.0,
-                        children: <Widget>[
-                          CircleAvatar(foregroundImage: AssetImage(value.avatar), radius: 10.0),
-                          Text(value.name, textAlign: TextAlign.right, overflow: TextOverflow.ellipsis),
-                        ],
+                AsyncFormField<InveslyAccount>(
+                  enabled: state.status == ImportTransactionsStatus.loaded,
+                  initialValue: cubit.state.defaultAccount,
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Can\'t be empty';
+                    }
+                    return null;
+                  },
+                  onTapCallback: (value) async {
+                    final newAccount = await InveslyAccountPickerWidget.showModal(context, value?.id);
+                    return newAccount ?? value;
+                  },
+                  onChanged: (value) {
+                    if (value == null) return;
+                    cubit.updateDefaultAccount(value);
+                  },
+                  childBuilder: (value) {
+                    if (value == null) {
+                      return Text(
+                        'Select an account',
+                        style: TextStyle(color: context.theme.disabledColor),
+                        overflow: TextOverflow.ellipsis,
                       );
-                    },
-                    trailing: const Icon(Icons.arrow_drop_down_rounded),
-                  ).withLabel('Default account'),
-                ],
-              );
-            }
-            return SizedBox();
+                    }
+                    return Row(
+                      spacing: 16.0,
+                      children: <Widget>[
+                        CircleAvatar(foregroundImage: AssetImage(value.avatar), radius: 10.0),
+                        Text(value.name, textAlign: TextAlign.right, overflow: TextOverflow.ellipsis),
+                      ],
+                    );
+                  },
+                  trailing: const Icon(Icons.arrow_drop_down_rounded),
+                ).withLabel('Default account'),
+              ],
+            );
           },
         ),
         controlsBuilder: (context, details) {
@@ -305,6 +300,52 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
       ),
       _Step(
         index: 4,
+        title: const Text('Select column for AMC'),
+        subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+          builder: (context, state) {
+            if (state.status == ImportTransactionsStatus.loaded) {
+              return Text(
+                '\'${state.accountColumn != null ? state.csvHeaders[state.accountColumn!] : '~~ UNSPECIFIED ~~'}\' column is selected',
+              );
+            }
+            return SizedBox();
+          },
+        ),
+        description: const Text(
+          'Select the column where the account to which each transaction belongs is specified.'
+          ' You can also select a default account in case we cannot find the account you want.'
+          ' If a default account is not specified, we will create one with the same name.',
+        ),
+        content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+          builder: (context, state) {
+            return _ColumnSelector(
+              enabled: state.status == ImportTransactionsStatus.loaded,
+              modalTitle: const Text('Select column for AMC'),
+              // value: state.columns[CsvColumn.account],
+              value: state.amcColumn,
+              allColumns: state.csvHeaders.asMap(),
+              // columnsToExclude: [state.columns[CsvColumn.amount]],
+              columnsToExclude: [state.amountColumn, state.quantityColumn],
+              onChanged: cubit.updateAmcColumn,
+              // onChanged: (value) => cubit.updateColumn(CsvColumn.account, value),
+            );
+          },
+        ),
+        controlsBuilder: (context, details) {
+          return <Widget>[
+            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+              builder: (context, state) {
+                return _buildNextButton(
+                  enabled: state.isLoaded && state.accountColumn != null && state.defaultAccount != null,
+                  onTap: details.onStepContinue,
+                );
+              },
+            ),
+          ];
+        },
+      ),
+      _Step(
+        index: 5,
         title: const Text('Select column for transaction type'),
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
@@ -323,31 +364,30 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         ),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state.status == ImportTransactionsStatus.loaded) {
-              return Column(
-                spacing: 12.0,
-                children: <Widget>[
-                  _ColumnSelector(
-                    // value: state.columns[CsvColumn.type],
-                    value: state.typeColumn,
-                    allColumns: state.csvHeaders.asMap(),
-                    // columnsToExclude: [state.columns[CsvColumn.amount], state.columns[CsvColumn.account]],
-                    columnsToExclude: [state.amountColumn, state.quantityColumn, state.accountColumn],
-                    onChanged: cubit.updateTypeColumn,
-                    // onChanged: (value) => cubit.updateColumn(CsvColumn.type, value),
-                  ),
+            return Column(
+              spacing: 12.0,
+              children: <Widget>[
+                _ColumnSelector(
+                  enabled: state.status == ImportTransactionsStatus.loaded,
+                  modalTitle: const Text('Select column for transaction type'),
+                  // value: state.columns[CsvColumn.type],
+                  value: state.typeColumn,
+                  allColumns: state.csvHeaders.asMap(),
+                  // columnsToExclude: [state.columns[CsvColumn.amount], state.columns[CsvColumn.account]],
+                  columnsToExclude: [state.amountColumn, state.quantityColumn, state.accountColumn],
+                  onChanged: cubit.updateTypeColumn,
+                  // onChanged: (value) => cubit.updateColumn(CsvColumn.type, value),
+                ),
 
-                  TransactionTypeSelectorFormField(
-                    initialValue: cubit.state.defaultType,
-                    onChanged: (value) {
-                      if (value == null) return;
-                      cubit.updateDefaultType(value);
-                    },
-                  ).withLabel('Default transaction type'),
-                ],
-              );
-            }
-            return SizedBox();
+                TransactionTypeSelectorFormField(
+                  initialValue: cubit.state.defaultType,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    cubit.updateDefaultType(value);
+                  },
+                ).withLabel('Default transaction type'),
+              ],
+            );
           },
         ),
         controlsBuilder: (context, details) {
@@ -364,7 +404,7 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         },
       ),
       _Step(
-        index: 5,
+        index: 6,
         title: const Text('Select column for date'),
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
@@ -382,54 +422,53 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         ),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state.status == ImportTransactionsStatus.loaded) {
-              return Column(
-                spacing: 12.0,
-                children: <Widget>[
-                  _ColumnSelector(
-                    // value: state.columns[CsvColumn.date],
-                    value: state.dateColumn,
-                    allColumns: state.csvHeaders.asMap(),
-                    columnsToExclude: [
-                      // state.columns[CsvColumn.amount], state.columns[CsvColumn.account], state.columns[CsvColumn.category],
-                      state.amountColumn, state.quantityColumn, state.accountColumn, state.typeColumn,
-                    ],
-                    onChanged: cubit.updateDateColumn,
-                    // onChanged: (value) => cubit.updateColumn(CsvColumn.date, value);
-                  ),
+            return Column(
+              spacing: 12.0,
+              children: <Widget>[
+                _ColumnSelector(
+                  enabled: state.status == ImportTransactionsStatus.loaded,
+                  // value: state.columns[CsvColumn.date],
+                  value: state.dateColumn,
+                  allColumns: state.csvHeaders.asMap(),
+                  columnsToExclude: [
+                    // state.columns[CsvColumn.amount], state.columns[CsvColumn.account], state.columns[CsvColumn.category],
+                    state.amountColumn, state.quantityColumn, state.accountColumn, state.typeColumn,
+                  ],
+                  onChanged: cubit.updateDateColumn,
+                  // onChanged: (value) => cubit.updateColumn(CsvColumn.date, value);
+                ),
 
-                  AsyncFormField<String>(
-                    initialValue: cubit.state.defaultDateFormat,
-                    onTapCallback: (value) async {
-                      final newDateFormat = await InveslyDateFormatPicker.showModal(context, value);
-                      return newDateFormat;
-                    },
-                    onChanged: (value) {
-                      if (value == null) return;
-                      cubit.updateDefaultDateFormat(value);
-                    },
-                    childBuilder: (value) {
-                      if (value == null) {
-                        return Text(
-                          'Select a date format',
-                          style: TextStyle(color: context.theme.disabledColor),
-                          overflow: TextOverflow.ellipsis,
-                        );
-                      }
-                      return Text(value, overflow: TextOverflow.ellipsis);
-                    },
-                    validator: (value) {
-                      if (value == null) {
-                        return 'Can\'t be empty';
-                      }
-                      return null;
-                    },
-                    trailing: const Icon(Icons.arrow_drop_down_rounded),
-                  ).withLabel('Default date format'),
-                ],
-              );
-            }
-            return SizedBox();
+                AsyncFormField<String>(
+                  enabled: state.status == ImportTransactionsStatus.loaded,
+                  initialValue: cubit.state.defaultDateFormat,
+                  onTapCallback: (value) async {
+                    final newDateFormat = await InveslyDateFormatPicker.showModal(context, value);
+                    return newDateFormat ?? value;
+                  },
+                  onChanged: (value) {
+                    if (value == null) return;
+                    cubit.updateDefaultDateFormat(value);
+                  },
+                  childBuilder: (value) {
+                    if (value == null) {
+                      return Text(
+                        'Select a date format',
+                        style: TextStyle(color: context.theme.disabledColor),
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    }
+                    return Text(value, overflow: TextOverflow.ellipsis);
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Can\'t be empty';
+                    }
+                    return null;
+                  },
+                  trailing: const Icon(Icons.arrow_drop_down_rounded),
+                ).withLabel('Default date format'),
+              ],
+            );
           },
         ),
         controlsBuilder: (context, details) {
@@ -446,63 +485,33 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         },
       ),
       _Step(
-        index: 6,
-        title: const Text('Other columns'),
+        index: 7,
+        title: const Text('Select other columns'),
         description: const Text('Specifies the columns for other optional transaction attributes'),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state.status == ImportTransactionsStatus.loaded) {
-              return Column(
-                children: <Widget>[
-                  _ColumnSelector(
-                    // value: state.columns[CsvColumn.notes],
-                    value: state.notesColumn,
-                    labelText: 'Note column',
-                    allColumns: state.csvHeaders.asMap(),
-                    columnsToExclude: [
-                      // state.columns[CsvColumn.amount],
-                      // state.columns[CsvColumn.account],
-                      // state.columns[CsvColumn.category],
-                      // state.columns[CsvColumn.date],
-                      // state.columns[CsvColumn.title],
-                      state.amountColumn,
-                      state.accountColumn,
-                      state.typeColumn,
-                      state.dateColumn,
-                      state.titleColumn,
-                    ],
-                    onChanged: (value) {
-                      // cubit.updateColumn(CsvColumn.notes, value);
-                      cubit.updateNotesColumn(value);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _ColumnSelector(
-                    // value: state.columns[CsvColumn.title],
-                    value: state.titleColumn,
-                    labelText: 'Title column',
-                    allColumns: state.csvHeaders.asMap(),
-                    columnsToExclude: [
-                      // state.columns[CsvColumn.amount],
-                      // state.columns[CsvColumn.account],
-                      // state.columns[CsvColumn.category],
-                      // state.columns[CsvColumn.date],
-                      // state.columns[CsvColumn.notes],
-                      state.amountColumn,
-                      state.accountColumn,
-                      state.typeColumn,
-                      state.dateColumn,
-                      state.notesColumn,
-                    ],
-                    onChanged: (value) {
-                      // cubit.updateColumn(CsvColumn.title, value);
-                      cubit.updateTitleColumn(value);
-                    },
-                  ),
-                ],
-              );
-            }
-            return SizedBox();
+            return _ColumnSelector(
+              enabled: state.status == ImportTransactionsStatus.loaded,
+              // value: state.columns[CsvColumn.notes],
+              modalTitle: Text('Select column for notes'),
+              value: state.notesColumn,
+              allColumns: state.csvHeaders.asMap(),
+              columnsToExclude: [
+                // state.columns[CsvColumn.amount],
+                // state.columns[CsvColumn.account],
+                // state.columns[CsvColumn.category],
+                // state.columns[CsvColumn.date],
+                // state.columns[CsvColumn.title],
+                state.amountColumn,
+                state.quantityColumn,
+                state.accountColumn,
+                state.amcColumn,
+                state.typeColumn,
+                state.dateColumn,
+              ],
+              onChanged: cubit.updateNotesColumn,
+              // onChanged: (value) => cubit.updateColumn(CsvColumn.notes, value);
+            ).withLabel('Notes column');
           },
         ),
         controlsBuilder: (context, details) {
@@ -574,18 +583,21 @@ class _Step {
 
 class _ColumnSelector extends StatelessWidget {
   const _ColumnSelector({
+    super.key,
+    this.modalTitle,
     required this.value,
     required this.allColumns,
     this.columnsToExclude = const [],
-    this.labelText,
     required this.onChanged,
+    this.enabled = true,
   });
 
+  final Widget? modalTitle;
   final int? value;
   final Map<int, String> allColumns;
   final List<int?> columnsToExclude;
-  final String? labelText;
   final ValueChanged<int> onChanged;
+  final bool enabled;
 
   // List<DropdownMenuEntry<int>> get _entries => [
   //   // DropdownMenuEntry(value: null, label: '~~ UNSPECIFIED ~'),
@@ -595,19 +607,20 @@ class _ColumnSelector extends StatelessWidget {
   // ];
 
   Future<int?> _showModal(BuildContext context) async {
-    final columnIndex = await showModalBottomSheet<int>(
+    return await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
+        final titleWidget = DefaultTextStyle(
+          style: context.textTheme.labelLarge!,
+          child: modalTitle ?? Text('Select a column', overflow: TextOverflow.ellipsis),
+        );
         return SafeArea(
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
-                  child: Text('Select a column', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
-                ),
+                Padding(padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0), child: titleWidget),
                 Section(
                   tiles: allColumns.entries.map((entry) {
                     final isSelectionAllowed = !columnsToExclude.contains(entry.key);
@@ -630,25 +643,22 @@ class _ColumnSelector extends StatelessWidget {
         );
       },
     );
-
-    if (columnIndex == null) return value;
-    return columnIndex;
   }
 
   @override
   Widget build(BuildContext context) {
     return AsyncFormField<int>(
+      enabled: enabled,
       initialValue: value,
-      onTapCallback: (_) async {
+      onTapCallback: (value) async {
         final columnIndex = await _showModal(context);
-        return columnIndex;
+        return columnIndex ?? value;
       },
       onChanged: (value) {
         if (value == null) return;
         onChanged(value);
       },
       childBuilder: (value) {
-        $logger.d(value);
         return Text(allColumns[value] ?? '~~ UNSPECIFIED ~~');
       },
       trailing: const Icon(Icons.arrow_drop_down_rounded),
@@ -702,44 +712,6 @@ class _CsvPreviewTable extends StatelessWidget {
           ),
         const SizedBox(height: 12.0),
       ],
-    );
-  }
-}
-
-class _Selector extends StatelessWidget {
-  const _Selector({
-    super.key,
-    required this.title,
-    this.inputValue,
-    // required this.icon,
-    this.iconColor,
-    required this.onClick,
-    this.isRequired = false,
-  });
-
-  final String title;
-  final String? inputValue;
-  // final SupportedIcon? icon;
-  final Color? iconColor;
-  final Function onClick;
-  final bool isRequired;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: TextEditingController(text: inputValue ?? 'Unspecified'),
-      readOnly: true,
-      // validator: (_) => fieldValidator(inputValue, isRequired: isRequired),
-      onTap: () => onClick(),
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      decoration: InputDecoration(
-        labelText: title,
-        suffixIcon: const Icon(Icons.arrow_drop_down_rounded),
-        prefixIcon: Container(
-          margin: const EdgeInsets.fromLTRB(14, 8, 8, 8),
-          // child: IconDisplayer(mainColor: iconColor ?? context.color.primary, supportedIcon: icon),
-        ),
-      ),
     );
   }
 }
