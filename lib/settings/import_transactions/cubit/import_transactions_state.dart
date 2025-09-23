@@ -10,13 +10,6 @@ class ImportTransactionsState extends Equatable {
     this.csvHeaders = const [],
     this.csvData = const [],
     this.fields = const {},
-    // this.amountColumn,
-    // this.quantityColumn,
-    // this.accountColumn,
-    // this.amcColumn,
-    // this.dateColumn,
-    // this.typeColumn,
-    // this.notesColumn,
     this.defaultAccount,
     this.defaultType = TransactionType.invested,
     this.defaultDateFormat,
@@ -27,7 +20,6 @@ class ImportTransactionsState extends Equatable {
   final List<String> csvHeaders;
   final List<List<dynamic>> csvData;
   final Map<TransactionField, int?> fields;
-  // final int? amountColumn, quantityColumn, accountColumn, amcColumn, dateColumn, typeColumn, notesColumn;
   final InveslyAccount? defaultAccount;
   final TransactionType defaultType;
   final String? defaultDateFormat;
@@ -38,14 +30,7 @@ class ImportTransactionsState extends Equatable {
     List<String>? csvHeaders,
     List<List<dynamic>>? csvData,
     Map<TransactionField, int?>? fields,
-    // int? amountColumn,
-    // int? quantityColumn,
-    // int? accountColumn,
-    // int? amcColumn,
-    // int? dateColumn,
-    // int? typeColumn,
-    // int? notesColumn,
-    InveslyAccount? defaultAccount,
+    InveslyAccount? Function()? defaultAccount,
     TransactionType? defaultType,
     String? defaultDateFormat,
     String? errorMsg,
@@ -55,14 +40,8 @@ class ImportTransactionsState extends Equatable {
       csvHeaders: csvHeaders ?? this.csvHeaders,
       csvData: csvData ?? this.csvData,
       fields: fields ?? this.fields,
-      // amountColumn: amountColumn ?? this.amountColumn,
-      // quantityColumn: quantityColumn ?? this.quantityColumn,
-      // accountColumn: accountColumn ?? this.accountColumn,
-      // amcColumn: amcColumn ?? this.amcColumn,
-      // dateColumn: dateColumn ?? this.dateColumn,
-      // typeColumn: typeColumn ?? this.typeColumn,
-      // notesColumn: notesColumn ?? this.notesColumn,
-      defaultAccount: defaultAccount ?? this.defaultAccount,
+      // defaultAccount: defaultAccount ?? this.defaultAccount,
+      defaultAccount: defaultAccount?.call() ?? this.defaultAccount,
       defaultType: defaultType ?? this.defaultType,
       defaultDateFormat: defaultDateFormat ?? this.defaultDateFormat,
       errorMsg: errorMsg ?? this.errorMsg,
@@ -70,22 +49,7 @@ class ImportTransactionsState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-    csvHeaders,
-    csvData,
-    fields,
-    // amountColumn,
-    // quantityColumn,
-    // accountColumn,
-    // amcColumn,
-    // dateColumn,
-    // typeColumn,
-    // notesColumn,
-    defaultAccount,
-    defaultType,
-    defaultDateFormat,
-    errorMsg,
-  ];
+  List<Object?> get props => [csvHeaders, csvData, fields, defaultAccount, defaultType, defaultDateFormat, errorMsg];
 
   @override
   bool? get stringify => true;

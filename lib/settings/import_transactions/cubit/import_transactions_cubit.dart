@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
@@ -8,7 +9,7 @@ import 'package:invesly/transactions/model/transaction_model.dart';
 part 'import_transactions_state.dart';
 
 class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
-  ImportTransactionsCubit() : super(ImportTransactionsState());
+  ImportTransactionsCubit() : super(const ImportTransactionsState());
 
   void readFile() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
@@ -54,6 +55,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
           status: ImportTransactionsStatus.loaded,
           csvHeaders: parsedCSV.first.map((e) => e.toString()).toList(),
           csvData: parsedCSV.sublist(1),
+          defaultDateFormat: InveslyDateFormatPicker.dateFormats.first,
         ),
       );
     } catch (err) {
@@ -96,102 +98,33 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     emit(state.copyWith(fields: fields));
   }
 
-  // void updateAmountColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, amountColumn: columnIndex));
-  // }
-
-  // void updateQuantityColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, quantityColumn: columnIndex));
-  // }
-
-  // void updateAccountColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, accountColumn: columnIndex));
-  // }
-
-  // void updateAmcColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, amcColumn: columnIndex));
-  // }
-
-  // void updateTypeColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, typeColumn: columnIndex));
-  // }
-
-  // void updateDateColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, dateColumn: columnIndex));
-  // }
-
-  // void updateNotesColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, notesColumn: columnIndex));
-  // }
-
-  void updateDefaultAccount(InveslyAccount account) {
+  void updateDefaultAccount(InveslyAccount? account) {
     if (state.status != ImportTransactionsStatus.loaded) return;
-    emit(state.copyWith(defaultAccount: account));
+    if (account == null) {
+      // emit(state.copyWith(defaultAccount: InveslyAccount.empty()));
+      emit(state.copyWith(defaultAccount: () => null));
+      return;
+    }
+    emit(state.copyWith(defaultAccount: () => account));
   }
 
-  void updateDefaultType(TransactionType type) {
+  void updateDefaultType(TransactionType? type) {
     if (state.status != ImportTransactionsStatus.loaded) return;
+    if (type == null) {
+      emit(state.copyWith(defaultType: TransactionType.invested));
+      return;
+    }
+
     emit(state.copyWith(defaultType: type));
   }
 
-  void updateDefaultDateFormat(String dateFormat) {
+  void updateDefaultDateFormat(String? dateFormat) {
     if (state.status != ImportTransactionsStatus.loaded) return;
+    if (dateFormat == null) {
+      emit(state.copyWith(defaultDateFormat: InveslyDateFormatPicker.dateFormats.first));
+      return;
+    }
+
     emit(state.copyWith(defaultDateFormat: dateFormat));
   }
 

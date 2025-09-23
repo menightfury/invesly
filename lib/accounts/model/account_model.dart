@@ -16,6 +16,8 @@ class InveslyAccount extends AccountInDb {
   InveslyAccount({required super.id, required super.name, required this.avatar})
     : super(avatarIndex: InveslyAccountAvatar.values.indexWhere((el) => el.imgSrc == avatar));
 
+  // const InveslyAccount.empty() : avatar = '', super(id: '', name: '', avatarIndex: 0);
+
   final String avatar;
 
   factory InveslyAccount.fromDb(AccountInDb account) {
