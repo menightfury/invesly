@@ -99,4 +99,12 @@ class _AsyncFormFieldState<T> extends FormFieldState<T> {
     // Call the onChanged callback if provided
     _formField.onChanged?.call(value);
   }
+
+  @override
+  void didUpdateWidget(AsyncFormField<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialValue != widget.initialValue) {
+      setValue(widget.initialValue);
+    }
+  }
 }

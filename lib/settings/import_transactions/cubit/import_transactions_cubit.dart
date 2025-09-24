@@ -63,8 +63,8 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     }
   }
 
-  String? _validateColumnIndex(int columnIndex) {
-    // if (columnIndex == null) return null;
+  String? _validateColumnIndex(int? columnIndex) {
+    if (columnIndex == null) return null;
     if (columnIndex < 0) {
       return 'Column index cannot be negative.';
     }
@@ -74,7 +74,32 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     return null;
   }
 
-  // void updateField(TransactionField field, int? columnIndex) {
+  void updateField(TransactionField field, int? columnIndex) {
+    if (state.status != ImportTransactionsStatus.loaded) return;
+
+    final err = _validateColumnIndex(columnIndex);
+    if (err != null) {
+      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+      return;
+    }
+
+    final fields = Map.of(state.fields);
+    if (columnIndex != null) {
+      // find out keys (i.e. field names) that has this new value and set those fields to null
+      final fieldsAlreadyHasThisIndex = fields.where((_, v) => v == columnIndex).keys;
+      if (fieldsAlreadyHasThisIndex.isNotEmpty) {
+        for (final i in fieldsAlreadyHasThisIndex) {
+          fields[i] = null;
+        }
+      }
+    }
+    fields[field] = columnIndex;
+
+    emit(state.copyWith(fields: fields));
+    $logger.w(state.fields);
+  }
+
+  // void updateAmountColumn(int columnIndex) {
   //   if (state.status != ImportTransactionsStatus.loaded) return;
 
   //   final err = _validateColumnIndex(columnIndex);
@@ -83,103 +108,80 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
   //     return;
   //   }
 
-  //   final fields = Map.of(state.fields);
-  //   if (columnIndex != null) {
-  //     // find out keys (i.e. field names) that has this new value and set those fields to null
-  //     final fieldsAlreadyHasThisIndex = fields.where((_, v) => v == columnIndex).keys;
-  //     if (fieldsAlreadyHasThisIndex.isNotEmpty) {
-  //       for (final i in fieldsAlreadyHasThisIndex) {
-  //         fields[i] = null;
-  //       }
-  //     }
-  //   }
-  //   fields[field] = columnIndex;
-
-  //   emit(state.copyWith(fields: fields));
+  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, amountColumn: columnIndex));
   // }
-  void updateAmountColumn(int columnIndex) {
-    if (state.status != ImportTransactionsStatus.loaded) return;
 
-    final err = _validateColumnIndex(columnIndex);
-    if (err != null) {
-      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-      return;
-    }
+  // void updateQuantityColumn(int columnIndex) {
+  //   if (state.status != ImportTransactionsStatus.loaded) return;
 
-    emit(state.copyWith(status: ImportTransactionsStatus.loaded, amountColumn: columnIndex));
-  }
+  //   final err = _validateColumnIndex(columnIndex);
+  //   if (err != null) {
+  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+  //     return;
+  //   }
 
-  void updateQuantityColumn(int columnIndex) {
-    if (state.status != ImportTransactionsStatus.loaded) return;
+  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, quantityColumn: columnIndex));
+  // }
 
-    final err = _validateColumnIndex(columnIndex);
-    if (err != null) {
-      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-      return;
-    }
+  // void updateAccountColumn(int columnIndex) {
+  //   if (state.status != ImportTransactionsStatus.loaded) return;
 
-    emit(state.copyWith(status: ImportTransactionsStatus.loaded, quantityColumn: columnIndex));
-  }
+  //   final err = _validateColumnIndex(columnIndex);
+  //   if (err != null) {
+  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+  //     return;
+  //   }
 
-  void updateAccountColumn(int columnIndex) {
-    if (state.status != ImportTransactionsStatus.loaded) return;
+  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, accountColumn: columnIndex));
+  // }
 
-    final err = _validateColumnIndex(columnIndex);
-    if (err != null) {
-      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-      return;
-    }
+  // void updateAmcColumn(int columnIndex) {
+  //   if (state.status != ImportTransactionsStatus.loaded) return;
 
-    emit(state.copyWith(status: ImportTransactionsStatus.loaded, accountColumn: columnIndex));
-  }
+  //   final err = _validateColumnIndex(columnIndex);
+  //   if (err != null) {
+  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+  //     return;
+  //   }
 
-  void updateAmcColumn(int columnIndex) {
-    if (state.status != ImportTransactionsStatus.loaded) return;
+  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, amcColumn: columnIndex));
+  // }
 
-    final err = _validateColumnIndex(columnIndex);
-    if (err != null) {
-      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-      return;
-    }
+  // void updateTypeColumn(int columnIndex) {
+  //   if (state.status != ImportTransactionsStatus.loaded) return;
 
-    emit(state.copyWith(status: ImportTransactionsStatus.loaded, amcColumn: columnIndex));
-  }
+  //   final err = _validateColumnIndex(columnIndex);
+  //   if (err != null) {
+  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+  //     return;
+  //   }
 
-  void updateTypeColumn(int columnIndex) {
-    if (state.status != ImportTransactionsStatus.loaded) return;
+  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, typeColumn: columnIndex));
+  // }
 
-    final err = _validateColumnIndex(columnIndex);
-    if (err != null) {
-      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-      return;
-    }
+  // void updateDateColumn(int columnIndex) {
+  //   if (state.status != ImportTransactionsStatus.loaded) return;
 
-    emit(state.copyWith(status: ImportTransactionsStatus.loaded, typeColumn: columnIndex));
-  }
+  //   final err = _validateColumnIndex(columnIndex);
+  //   if (err != null) {
+  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+  //     return;
+  //   }
 
-  void updateDateColumn(int columnIndex) {
-    if (state.status != ImportTransactionsStatus.loaded) return;
+  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, dateColumn: columnIndex));
+  // }
 
-    final err = _validateColumnIndex(columnIndex);
-    if (err != null) {
-      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-      return;
-    }
+  // void updateNotesColumn(int columnIndex) {
+  //   if (state.status != ImportTransactionsStatus.loaded) return;
 
-    emit(state.copyWith(status: ImportTransactionsStatus.loaded, dateColumn: columnIndex));
-  }
+  //   final err = _validateColumnIndex(columnIndex);
+  //   if (err != null) {
+  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
+  //     return;
+  //   }
 
-  void updateNotesColumn(int columnIndex) {
-    if (state.status != ImportTransactionsStatus.loaded) return;
-
-    final err = _validateColumnIndex(columnIndex);
-    if (err != null) {
-      emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-      return;
-    }
-
-    emit(state.copyWith(status: ImportTransactionsStatus.loaded, notesColumn: columnIndex));
-  }
+  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, notesColumn: columnIndex));
+  // }
 
   void updateDefaultAccount(InveslyAccount? account) {
     if (state.status != ImportTransactionsStatus.loaded) return;
