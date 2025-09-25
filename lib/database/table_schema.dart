@@ -20,13 +20,14 @@ enum TableColumnType {
 enum TableChangeEventType { insertion, updation, deletion }
 
 abstract class TableFilter<T extends Object> {
-  const TableFilter() : assert(T is String || T is num || T is bool, 'Value must be of type String, num or bool');
+  const TableFilter();
 
   (String, List<T>) toSql();
 }
 
 class SingleValueTableFilter<T extends Object> implements TableFilter<T> {
-  const SingleValueTableFilter(this.column, this.value);
+  const SingleValueTableFilter(this.column, this.value)
+    : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool');
 
   final TableColumn column;
   final T value;
@@ -38,7 +39,9 @@ class SingleValueTableFilter<T extends Object> implements TableFilter<T> {
 }
 
 class MultipleValueTableFilter<T extends Object> implements TableFilter<T> {
-  MultipleValueTableFilter(this.column, this.values) : assert(values.isNotEmpty, 'Values list must not be empty');
+  MultipleValueTableFilter(this.column, this.values)
+    : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool'),
+      assert(values.isNotEmpty, 'Values list must not be empty');
 
   final TableColumn column;
   final List<T> values;
@@ -51,7 +54,8 @@ class MultipleValueTableFilter<T extends Object> implements TableFilter<T> {
 }
 
 class RangeValueTableFilter<T extends Object> implements TableFilter<T> {
-  const RangeValueTableFilter(this.column, this.start, this.end);
+  const RangeValueTableFilter(this.column, this.start, this.end)
+    : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool');
 
   final TableColumn column;
   final T start;
@@ -63,24 +67,24 @@ class RangeValueTableFilter<T extends Object> implements TableFilter<T> {
   }
 }
 
-class TableFilterGroup<T extends Object> extends TableFilter<T> {
+class TableFilterGroup extends TableFilter {
   const TableFilterGroup(this.filters, {this.isAnd = true});
 
-  final List<TableFilter<T>> filters;
+  final List<TableFilter<Object>> filters;
   final bool isAnd;
 
   @override
-  (String, List<T>) toSql() {
+  (String, List<Object>) toSql() {
     final sqlParts = <String>[];
-    final args = <T>[];
+    final args = <Object>[];
 
     for (final filter in filters) {
       final (sql, filterArgs) = filter.toSql();
-      sqlParts.add('($sql)');
+      sqlParts.add(sql);
       args.addAll(filterArgs);
     }
 
-    final combinedSql = sqlParts.join(isAnd ? ' AND ' : ' OR ');
+    final combinedSql = '(${sqlParts.join(isAnd ? ' AND ' : ' OR ')})';
     return (combinedSql, args);
   }
 }
