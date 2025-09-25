@@ -663,8 +663,7 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
             BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
               builder: (context, state) {
                 if (state.status == ImportTransactionsStatus.loaded) {
-                  return Flexible(
-                    fit: FlexFit.tight,
+                  return Expanded(
                     child: FilledButton.icon(
                       onPressed: () {},
                       icon: const Icon(Icons.upload_file_rounded),

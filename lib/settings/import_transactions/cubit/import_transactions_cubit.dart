@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:intl/intl.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common_libs.dart';
@@ -213,7 +214,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     emit(state.copyWith(defaultDateFormat: dateFormat));
   }
 
-  Future<void> addTransactions() async {
+  Future<void> importTransactions() async {
     // final snackbarDisplayer = ScaffoldMessenger.of(context).showSnackBar;
 
     // onSuccess() {
@@ -228,107 +229,109 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     //   return;
     // }
 
-    // // final loadingOverlay = LoadingOverlay.of(context);
-    // // loadingOverlay.show();
+    // final loadingOverlay = LoadingOverlay.of(context);
+    // loadingOverlay.show();
 
-    // try {
-    //   // final csvRows = csvData!.slice(1).toList();
-    //   // final db = AppDB.instance;
-    //   // const unknownAccountName = 'Account imported';
+    try {
+      // final csvRows = state.csvData.slice(1).toList();
+      final csvRows = state.csvData;
+      final db = AppDB.instance;
+      const unknownAccountName = 'Account imported';
 
-    //   // // Cache of known accounts by lowercase name
-    //   // final existingAccounts = {for (final acc in await db.select(db.accounts).get()) acc.name.toLowerCase(): acc};
+      // Cache of known accounts by lowercase name
+      final existingAccounts = {for (final acc in await db.select(db.accounts).get()) acc.name.toLowerCase(): acc};
 
-    //   // // Cache preferred currency once
-    //   // final preferredCurrency = await CurrencyService.instance.getUserPreferredCurrency().first;
+      // Cache preferred currency once
+      final preferredCurrency = await CurrencyService.instance.getUserPreferredCurrency().first;
 
-    //   // final List<TransactionInDB> transactionsToInsert = [];
+      final List<TransactionInDb> transactionsToInsert = [];
 
-    //   // for (final row in csvRows) {
-    //   //   // Resolve account
-    //   //   final accountName = accountColumn == null ? unknownAccountName : row[accountColumn!].toString();
-    //   //   final lowerAccountName = accountName.toLowerCase();
+      for (final row in csvRows) {
+        // Resolve account
+        final accountName = accountColumn == null ? unknownAccountName : row[accountColumn!].toString();
+        final lowerAccountName = accountName.toLowerCase();
 
-    //   //   AccountInDB? account = existingAccounts[lowerAccountName];
+        AccountInDB? account = existingAccounts[lowerAccountName];
 
-    //   //   // If not found, insert and add to cache (unless default is used)
-    //   //   String accountID;
-    //   //   if (account != null) {
-    //   //     accountID = account.id;
-    //   //   } else if (defaultAccount != null) {
-    //   //     accountID = defaultAccount!.id;
-    //   //   } else {
-    //   //     accountID = generateUUID();
-    //   //     account = AccountInDB(
-    //   //       id: accountID,
-    //   //       name: accountName,
-    //   //       iniValue: 0,
-    //   //       displayOrder: 10,
-    //   //       date: DateTime.now(),
-    //   //       type: AccountType.normal,
-    //   //       iconId: SupportedIconService.instance.defaultSupportedIcon.id,
-    //   //       currencyId: preferredCurrency.code,
-    //   //     );
-    //   //     await AccountService.instance.insertAccount(account);
-    //   //     existingAccounts[lowerAccountName] = account;
-    //   //   }
+        // If not found, insert and add to cache (unless default is used)
+        String accountID;
+        if (account != null) {
+          accountID = account.id;
+        } else if (defaultAccount != null) {
+          accountID = defaultAccount!.id;
+        } else {
+          accountID = generateUUID();
+          account = AccountInDb(
+            id: accountID,
+            name: accountName,
+            iniValue: 0,
+            displayOrder: 10,
+            date: DateTime.now(),
+            type: AccountType.normal,
+            iconId: SupportedIconService.instance.defaultSupportedIcon.id,
+            currencyId: preferredCurrency.code,
+          );
+          await AccountService.instance.insertAccount(account);
+          existingAccounts[lowerAccountName] = account;
+        }
 
-    //   //   // Resolve category
-    //   //   final categoryToFind = categoryColumn == null ? null : row[categoryColumn!].toString().toLowerCase().trim();
+        // Resolve category
+        final categoryToFind = categoryColumn == null ? null : row[categoryColumn!].toString().toLowerCase().trim();
 
-    //   //   String categoryID;
+        String categoryID;
 
-    //   //   if (categoryToFind == null) {
-    //   //     categoryID = defaultCategory!.id;
-    //   //   } else {
-    //   //     final category =
-    //   //         (await CategoryService.instance
-    //   //                 .getCategories(
-    //   //                   limit: 1,
-    //   //                   predicate:
-    //   //                       (catTable, pCatTable) =>
-    //   //                           catTable.name.lower().trim().isValue(categoryToFind) |
-    //   //                           pCatTable.name.lower().trim().isValue(categoryToFind),
-    //   //                 )
-    //   //                 .first)
-    //   //             .firstOrNull;
-    //   //     categoryID = category?.id ?? defaultCategory!.id;
-    //   //   }
+        if (categoryToFind == null) {
+          categoryID = defaultCategory!.id;
+        } else {
+          final category =
+              (await CategoryService.instance
+                      .getCategories(
+                        limit: 1,
+                        predicate: (catTable, pCatTable) =>
+                            catTable.name.lower().trim().isValue(categoryToFind) |
+                            pCatTable.name.lower().trim().isValue(categoryToFind),
+                      )
+                      .first)
+                  .firstOrNull;
+          categoryID = category?.id ?? defaultCategory!.id;
+        }
 
-    //   //   final trValue = double.parse(row[amountColumn!].toString());
+        final rawTotalAmount = row[state.fields[TransactionField.amount]!];
+        final totalAmount = double.tryParse(rawAmount.toString());
 
-    //   //   transactionsToInsert.add(
-    //   //     TransactionInDB(
-    //   //       id: generateUUID(),
-    //   //       date:
-    //   //           dateColumn == null
-    //   //               ? DateTime.now()
-    //   //               : DateFormat(_dateFormatController.text, 'en_US').parse(row[dateColumn!].toString()),
-    //   //       type: trValue < 0 ? TransactionType.E : TransactionType.I,
-    //   //       accountID: accountID,
-    //   //       value: trValue,
-    //   //       isHidden: false,
-    //   //       categoryID: categoryID,
-    //   //       notes: notesColumn == null || row[notesColumn!].toString().isEmpty ? null : row[notesColumn!].toString(),
-    //   //       title: titleColumn == null || row[titleColumn!].toString().isEmpty ? null : row[titleColumn!].toString(),
-    //   //     ),
-    //   //   );
-    //   // }
+        final rawDate = row[state.fields[TransactionField.date]!];
+        final date = DateFormat(_dateFormatController.text, 'en_US').parse(rawDate.toString());
 
-    //   // // Batch insert
-    //   // const batchSize = 10;
+        transactionsToInsert.add(
+          TransactionInDb(
+            id: $uuid.v1(),
+            date: dateColumn == null
+                ? DateTime.now()
+                : DateFormat(_dateFormatController.text, 'en_US').parse(row[dateColumn!].toString()),
+            typeIndex: totalAmount < 0 ? TransactionType.E : TransactionType.I,
+            accountId: accountID,
+            totalAmount: totalAmount,
+            isHidden: false,
+            categoryId: categoryID,
+            notes: notesColumn == null || row[notesColumn!].toString().isEmpty ? null : row[notesColumn!].toString(),
+          ),
+        );
+      }
 
-    //   // for (var i = 0; i < transactionsToInsert.length; i += batchSize) {
-    //   //   final batch = transactionsToInsert.skip(i).take(batchSize);
-    //   //   await Future.wait(batch.map((e) => TransactionService.instance.insertTransaction(e)));
-    //   // }
+      // Batch insert
+      const batchSize = 10;
 
-    //   // loadingOverlay.hide();
-    //   // onSuccess();
-    // } catch (e) {
-    //   $logger.e(e);
-    //   // loadingOverlay.hide();
-    //   snackbarDisplayer(SnackBar(content: Text(e.toString())));
-    // }
+      for (var i = 0; i < transactionsToInsert.length; i += batchSize) {
+        final batch = transactionsToInsert.skip(i).take(batchSize);
+        await Future.wait(batch.map((e) => TransactionService.instance.insertTransaction(e)));
+      }
+
+      // loadingOverlay.hide();
+      // onSuccess();
+    } catch (e) {
+      $logger.e(e);
+      // loadingOverlay.hide();
+      // snackbarDisplayer(SnackBar(content: Text(e.toString())));
+    }
   }
 }
