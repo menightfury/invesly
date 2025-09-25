@@ -1,5 +1,7 @@
 import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/accounts/model/account_repository.dart';
 import 'package:invesly/accounts/widget/account_picker_widget.dart';
+import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common/presentations/widgets/async_form_field.dart';
@@ -7,6 +9,7 @@ import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/import_transactions/cubit/import_transactions_cubit.dart';
+import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/widgets/transaction_type_selector_form_field.dart';
 
 class ImportTransactionsScreen extends StatelessWidget {
@@ -17,7 +20,14 @@ class ImportTransactionsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('Import transactions from CSV')),
       body: SafeArea(
-        child: BlocProvider(create: (context) => ImportTransactionsCubit(), child: _ImportTransactionsScreen()),
+        child: BlocProvider(
+          create: (context) => ImportTransactionsCubit(
+            accountRepository: context.read<AccountRepository>(),
+            amcRepository: context.read<AmcRepository>(),
+            transactionRepository: context.read<TransactionRepository>(),
+          ),
+          child: _ImportTransactionsScreen(),
+        ),
       ),
     );
   }
@@ -665,7 +675,9 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                 if (state.status == ImportTransactionsStatus.loaded) {
                   return Expanded(
                     child: FilledButton.icon(
-                      onPressed: () {},
+                      onPressed: () async {
+                        await cubit.importTransactions();
+                      },
                       icon: const Icon(Icons.upload_file_rounded),
                       label: const Text('Import CSV'),
                     ),

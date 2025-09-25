@@ -16,10 +16,22 @@ class AmcRepository {
     return list.map<InveslyAmc>((el) => InveslyAmc.fromDb(_amcTable.encode(el))).toList();
   }
 
-  /// Get amc by Id
+  /// Get amc by id
   Future<InveslyAmc?> getAmc(String id) async {
-    // return _api.getAmc(id);
-    final list = await _api.select(_amcTable).where([SingleValueTableFilter(_amcTable.idColumn, id)]).toList();
+    final list = await _api
+        .select(_amcTable)
+        .where([SingleValueTableFilter(_amcTable.idColumn, id)])
+        .where(condition)
+        .toList();
+
+    if (list.isEmpty) return null;
+
+    return InveslyAmc.fromDb(_amcTable.encode(list.first));
+  }
+
+  /// Get amc by name
+  Future<InveslyAmc?> getAmcByName(String name) async {
+    final list = await _api.select(_amcTable).where([SingleValueTableFilter(_amcTable.nameColumn, name)]).toList();
 
     if (list.isEmpty) return null;
 

@@ -16,6 +16,7 @@ enum TableColumnType {
   }
 }
 
+// enum TableFilterOperator { equal, notEqual, greaterThan, lessThan, greaterThanOrEqual, lessThanOrEqual, like, inList, between }
 enum TableChangeEventType { insertion, updation, deletion }
 
 abstract class TableFilter<T extends Object> {
@@ -62,6 +63,28 @@ class RangeValueTableFilter<T extends Object> implements TableFilter<T> {
   }
 }
 
+class TableFilterGroup<T extends Object> extends TableFilter<T> {
+  const TableFilterGroup(this.filters, {this.isAnd = true});
+
+  final List<TableFilter<T>> filters;
+  final bool isAnd;
+
+  @override
+  (String, List<T>) toSql() {
+    final sqlParts = <String>[];
+    final args = <T>[];
+
+    for (final filter in filters) {
+      final (sql, filterArgs) = filter.toSql();
+      sqlParts.add('($sql)');
+      args.addAll(filterArgs);
+    }
+
+    final combinedSql = sqlParts.join(isAnd ? ' AND ' : ' OR ');
+    return (combinedSql, args);
+  }
+}
+
 class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilder<T> {
   TableQueryBuilder({required Database db, required TableSchema table, List<TableColumnBase>? columns})
     : _db = db,
@@ -73,7 +96,8 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
   final List<TableColumnBase> _columns;
 
   final List<TableSchema> _joinTables = [];
-  final List<TableFilter> _where = [];
+  // final List<TableFilter> _where = [];
+  TableFilter? _where;
   final List<TableColumnBase> _group = [];
 
   String get effectiveTableName {
@@ -125,9 +149,10 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
   }
 
   @override
-  TableFilterBuilder where(List<TableFilter> condition) {
-    if (condition.isNotEmpty) {
-      _where.addAll(condition);
+  TableFilterBuilder where(List<TableFilter> filters, {bool isAnd = true}) {
+    if (filters.isNotEmpty) {
+      //   _where.addAll(filters);
+      _where = TableFilterGroup(filters, isAnd: isAnd);
     }
     return this;
   }
@@ -147,9 +172,10 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
     // final where = _where.isEmpty ? null : _where.keys.map<String>((key) => '${key.fullTitle} = ?').join(' AND ');
     // final whereArgs = _where.isEmpty ? null : _where.values.toList();
 
-    final whereMap = _where.isEmpty ? null : _where.map((fv) => fv.toSql());
-    final where = whereMap?.map<String>((fv) => fv.$1).join(' AND ');
-    final whereArgs = whereMap?.map((fv) => fv.$2).expand((el) => el).toList();
+    // final whereMap = _where.isEmpty ? null : _where.map((fv) => fv.toSql());
+    final whereMap = _where?.toSql();
+    // final where = whereMap?.map<String>((fv) => fv.$1).join(' AND ');
+    // final whereArgs = whereMap?.map((fv) => fv.$2).expand((el) => el).toList();
 
     final groupBy = _group.isEmpty ? null : _group.map<String>((col) => col.fullTitle).join(', ');
 
@@ -157,8 +183,8 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
       final list = await _db.query(
         effectiveTableName,
         columns: effectiveTableColumns,
-        where: where,
-        whereArgs: whereArgs,
+        where: whereMap?.$1,
+        whereArgs: whereMap?.$2,
         // orderBy: orderBy,
         // limit: limit,
         groupBy: groupBy,
@@ -187,7 +213,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
 }
 
 abstract class TableFilterBuilder<T extends InveslyDataModel> {
-  TableFilterBuilder where(List<TableFilter> condition);
+  TableFilterBuilder where(List<TableFilter> filters);
 
   TableFilterBuilder groupBy(List<TableColumn> columns);
 

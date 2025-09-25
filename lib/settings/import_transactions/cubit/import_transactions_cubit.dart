@@ -2,15 +2,29 @@ import 'dart:io';
 
 import 'package:intl/intl.dart';
 import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/accounts/model/account_repository.dart';
+import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
+import 'package:invesly/transactions/model/transaction_repository.dart';
 
 part 'import_transactions_state.dart';
 
 class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
-  ImportTransactionsCubit() : super(const ImportTransactionsState());
+  ImportTransactionsCubit({
+    required AccountRepository accountRepository,
+    required AmcRepository amcRepository,
+    required TransactionRepository transactionRepository,
+  }) : _accountRepository = accountRepository,
+       _amcRepository = amcRepository,
+       _transactionRepository = transactionRepository,
+       super(const ImportTransactionsState());
+
+  final AccountRepository _accountRepository;
+  final AmcRepository _amcRepository;
+  final TransactionRepository _transactionRepository;
 
   void readFile() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
@@ -251,7 +265,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
         final accountName = accountColumn == null ? unknownAccountName : row[accountColumn!].toString();
         final lowerAccountName = accountName.toLowerCase();
 
-        AccountInDB? account = existingAccounts[lowerAccountName];
+        AccountInDb? account = existingAccounts[lowerAccountName];
 
         // If not found, insert and add to cache (unless default is used)
         String accountID;
@@ -260,10 +274,11 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
         } else if (defaultAccount != null) {
           accountID = defaultAccount!.id;
         } else {
-          accountID = generateUUID();
+          accountID = $uuid.v1();
           account = AccountInDb(
             id: accountID,
             name: accountName,
+            avatarIndex: 0,
             iniValue: 0,
             displayOrder: 10,
             date: DateTime.now(),
@@ -276,43 +291,44 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
         }
 
         // Resolve category
-        final categoryToFind = categoryColumn == null ? null : row[categoryColumn!].toString().toLowerCase().trim();
+        final amcColumnIndex = state.fields[TransactionField.amc];
+        final amcToFind = amcColumnIndex == null
+            ? null
+            : row[amcColumnIndex].toString().trim().toLowerCase(); // it will be either amc id or amc name
 
-        String categoryID;
+        String? amcId;
 
-        if (categoryToFind == null) {
-          categoryID = defaultCategory!.id;
-        } else {
-          final category =
-              (await CategoryService.instance
-                      .getCategories(
-                        limit: 1,
-                        predicate: (catTable, pCatTable) =>
-                            catTable.name.lower().trim().isValue(categoryToFind) |
-                            pCatTable.name.lower().trim().isValue(categoryToFind),
-                      )
-                      .first)
-                  .firstOrNull;
-          categoryID = category?.id ?? defaultCategory!.id;
-        }
+        final amc =
+            (await _amcRepository
+                    .getCategories(
+                      limit: 1,
+                      predicate: (catTable, pCatTable) =>
+                          catTable.name.lower().trim().isValue(amcToFind) |
+                          pCatTable.name.lower().trim().isValue(amcToFind),
+                    )
+                    .first)
+                .firstOrNull;
+        amcId = amc?.id;
 
         final rawTotalAmount = row[state.fields[TransactionField.amount]!];
         final totalAmount = double.tryParse(rawAmount.toString());
 
-        final rawDate = row[state.fields[TransactionField.date]!];
-        final date = DateFormat(_dateFormatController.text, 'en_US').parse(rawDate.toString());
-
+        final dateNow = DateTime.now();
+        late final DateTime date;
+        if (state.fields[TransactionField.date] != null && state.defaultDateFormat != null) {
+          final rawDate = row[state.fields[TransactionField.date]!];
+          date = DateFormat(state.defaultDateFormat, 'en_IN').tryParse(rawDate.toString()) ?? dateNow;
+        } else {
+          date = dateNow;
+        }
         transactionsToInsert.add(
           TransactionInDb(
             id: $uuid.v1(),
-            date: dateColumn == null
-                ? DateTime.now()
-                : DateFormat(_dateFormatController.text, 'en_US').parse(row[dateColumn!].toString()),
+            date: date.millisecondsSinceEpoch,
             typeIndex: totalAmount < 0 ? TransactionType.E : TransactionType.I,
             accountId: accountID,
             totalAmount: totalAmount,
-            isHidden: false,
-            categoryId: categoryID,
+            amcId: amcId,
             notes: notesColumn == null || row[notesColumn!].toString().isEmpty ? null : row[notesColumn!].toString(),
           ),
         );
