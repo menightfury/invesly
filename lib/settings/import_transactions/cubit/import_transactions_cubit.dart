@@ -249,8 +249,6 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     try {
       // final csvRows = state.csvData.slice(1).toList();
       final csvRows = state.csvData;
-      final db = AppDB.instance;
-      const unknownAccountName = 'Account imported';
 
       // Cache of known accounts by lowercase name
       final existingAccounts = {for (final acc in await db.select(db.accounts).get()) acc.name.toLowerCase(): acc};
@@ -290,46 +288,65 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
           existingAccounts[lowerAccountName] = account;
         }
 
-        // Resolve category
+        // Resolve amc
         final amcColumnIndex = state.fields[TransactionField.amc];
-        final amcToFind = amcColumnIndex == null
+        final amcIdOrName = amcColumnIndex == null
             ? null
-            : row[amcColumnIndex].toString().trim().toLowerCase(); // it will be either amc id or amc name
+            : row[amcColumnIndex].toString().trim(); // it will be either amc id or amc name
 
         String? amcId;
+        if (amcIdOrName != null && amcIdOrName.isNotEmpty) {
+          final amc = await _amcRepository.getAmc(amcIdOrName);
+          amcId = amc?.id;
+        }
 
-        final amc =
-            (await _amcRepository
-                    .getCategories(
-                      limit: 1,
-                      predicate: (catTable, pCatTable) =>
-                          catTable.name.lower().trim().isValue(amcToFind) |
-                          pCatTable.name.lower().trim().isValue(amcToFind),
-                    )
-                    .first)
-                .firstOrNull;
-        amcId = amc?.id;
+        // Resolve type
+        TransactionType? type;
+        final typeColumnIndex = state.fields[TransactionField.amount];
+        final rawType = typeColumnIndex == null ? null : row[typeColumnIndex];
+        // The type can be integer (i.e. 0 for investment and 1 for redemption, 2 for dividend) or
+        // can be one character (like I, R, D) or can be string (Investment, Redemption or Divident)
 
-        final rawTotalAmount = row[state.fields[TransactionField.amount]!];
-        final totalAmount = double.tryParse(rawAmount.toString());
+        if (rawType is int) {
+          type = TransactionType.fromInt(rawType);
+        } else if (rawType is String) {
+          type = rawType.length == 1 ? TransactionType.fromChar(rawType) : TransactionType.fromString(rawType);
+        }
 
+        // Resolve amount
+        final amountColumnIndex = state.fields[TransactionField.amount];
+        final totalAmount = amountColumnIndex == null ? null : double.tryParse(row[amountColumnIndex].toString());
+        if (totalAmount != null && totalAmount < 0) {
+          type ??= TransactionType.invested;
+        } else {
+          type = TransactionType.invested;
+        }
+
+        // if(totalAmount == null) throw Exception();
+
+        // Resolve date
         final dateNow = DateTime.now();
         late final DateTime date;
-        if (state.fields[TransactionField.date] != null && state.defaultDateFormat != null) {
-          final rawDate = row[state.fields[TransactionField.date]!];
-          date = DateFormat(state.defaultDateFormat, 'en_IN').tryParse(rawDate.toString()) ?? dateNow;
+        final dateColumnIndex = state.fields[TransactionField.date];
+        if (dateColumnIndex != null && state.defaultDateFormat != null) {
+          date = DateFormat(state.defaultDateFormat, 'en_IN').tryParse(row[dateColumnIndex].toString()) ?? dateNow;
         } else {
           date = dateNow;
         }
+
+        // Resolve note
+        final noteColumnIndex = state.fields[TransactionField.notes];
+        final note = noteColumnIndex == null ? null : row[noteColumnIndex].toString();
+
         transactionsToInsert.add(
           TransactionInDb(
             id: $uuid.v1(),
             date: date.millisecondsSinceEpoch,
-            typeIndex: totalAmount < 0 ? TransactionType.E : TransactionType.I,
+            // typeIndex: totalAmount < 0 ? TransactionType.E : TransactionType.I,
             accountId: accountID,
-            totalAmount: totalAmount,
+            totalAmount: totalAmount ?? 0.0,
             amcId: amcId,
-            notes: notesColumn == null || row[notesColumn!].toString().isEmpty ? null : row[notesColumn!].toString(),
+            note: (note?.isEmpty ?? true) ? null : note,
           ),
         );
       }

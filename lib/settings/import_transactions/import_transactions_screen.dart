@@ -434,92 +434,9 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         },
       ),
 
-      // ~ Type
-      _Step(
-        index: 5,
-        title: const Text('Select column for transaction type'),
-        subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-          builder: (context, state) {
-            final i = state.fields[TransactionField.type];
-            // final i = state.typeColumn;
-            return Text('${i != null ? '\'${state.csvHeaders[i]}\'' : 'No'} column is selected');
-          },
-        ),
-        description: const Text(
-          'Specify the column where the transaction type name is specified.'
-          ' The types can be integer (0 for investment and 1 for redemption or dividend) or'
-          ' can be one character (like I, R, D) or can be string.',
-        ),
-        content: Column(
-          spacing: 12.0,
-          children: <Widget>[
-            _ColumnSelector(field: TransactionField.type),
-
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
-                return TransactionTypeSelectorFormField(
-                  initialValue: cubit.state.defaultType,
-                  onChanged: (value) {
-                    if (value == null) return;
-                    cubit.updateDefaultType(value);
-                  },
-                );
-              },
-            ).withLabel('Default transaction type'),
-          ],
-        ),
-        // content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-        //   builder: (context, state) {
-        //     return Column(
-        //       spacing: 12.0,
-        //       children: <Widget>[
-        //         _ColumnSelector(
-        //           enabled: state.status == ImportTransactionsStatus.loaded,
-        //           modalTitle: const Text('Select column for transaction type'),
-        //           value: state.typeColumn,
-        //           allColumns: state.csvHeaders.asMap(),
-        //           columnsToExclude: [state.amountColumn, state.quantityColumn, state.accountColumn],
-        //           onChanged: cubit.updateTypeColumn,
-        //         ),
-
-        //         TransactionTypeSelectorFormField(
-        //           initialValue: cubit.state.defaultType,
-        //           onChanged: (value) {
-        //             if (value == null) return;
-        //             cubit.updateDefaultType(value);
-        //           },
-        //         ).withLabel('Default transaction type'),
-        //       ],
-        //     );
-        //   },
-        // ),
-        controlsBuilder: (context, details) {
-          return <Widget>[
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
-                return _buildNextButton(
-                  enabled: state.isLoaded && state.fields[TransactionField.type] != null,
-                  // enabled: state.isLoaded && state.typeColumn != null,
-                  onTap: details.onStepContinue,
-                );
-              },
-            ),
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
-                return _buildResetButton(
-                  enabled: state.isLoaded && state.fields[TransactionField.type] != null,
-                  // enabled: state.isLoaded && state.typeColumn != null,
-                  onTap: () => cubit.updateField(TransactionField.type, null),
-                );
-              },
-            ),
-          ];
-        },
-      ),
-
       // ~ Date
       _Step(
-        index: 6,
+        index: 5,
         title: const Text('Select column for date'),
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
@@ -581,7 +498,7 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         //           enabled: state.status == ImportTransactionsStatus.loaded,
         //           value: state.dateColumn,
         //           allColumns: state.csvHeaders.asMap(),
-        //           columnsToExclude: [state.amountColumn, state.quantityColumn, state.accountColumn, state.typeColumn],
+        //           columnsToExclude: [state.amountColumn, state.quantityColumn, state.accountColumn],
         //           onChanged: cubit.updateDateColumn,
         //         ),
 
@@ -645,10 +562,66 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
 
       // ~ Others - Note
       _Step(
-        index: 7,
+        index: 6,
         title: const Text('Select other columns'),
         description: const Text('Specifies the columns for other optional transaction attributes'),
-        content: _ColumnSelector(field: TransactionField.notes).withLabel('Notes column'),
+        content: Column(
+          spacing: 12.0,
+          children: <Widget>[
+            // ~ Type
+            Column(
+              children: <Widget>[
+                Text(
+                  'Specify the column where the transaction type name is specified.'
+                  ' The types can be integer (0 for investment and 1 for redemption or dividend) or'
+                  ' can be one character (like I, R, D) or can be string.',
+                  style: context.textTheme.bodySmall,
+                ),
+                _ColumnSelector(field: TransactionField.type),
+
+                BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+                  builder: (context, state) {
+                    return TransactionTypeSelectorFormField(
+                      initialValue: cubit.state.defaultType,
+                      onChanged: (value) {
+                        if (value == null) return;
+                        cubit.updateDefaultType(value);
+                      },
+                    );
+                  },
+                ).withLabel('Default transaction type'),
+
+                // content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+                //   builder: (context, state) {
+                //     return Column(
+                //       spacing: 12.0,
+                //       children: <Widget>[
+                //         _ColumnSelector(
+                //           enabled: state.status == ImportTransactionsStatus.loaded,
+                //           modalTitle: const Text('Select column for transaction type'),
+                //           value: state.typeColumn,
+                //           allColumns: state.csvHeaders.asMap(),
+                //           columnsToExclude: [state.amountColumn, state.quantityColumn, state.accountColumn],
+                //           onChanged: cubit.updateTypeColumn,
+                //         ),
+
+                //         TransactionTypeSelectorFormField(
+                //           initialValue: cubit.state.defaultType,
+                //           onChanged: (value) {
+                //             if (value == null) return;
+                //             cubit.updateDefaultType(value);
+                //           },
+                //         ).withLabel('Default transaction type'),
+                //       ],
+                //     );
+                //   },
+                // ),
+              ],
+            ),
+
+            _ColumnSelector(field: TransactionField.notes).withLabel('Notes column'),
+          ],
+        ),
         // content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
         //   builder: (context, state) {
         //     return _ColumnSelector(

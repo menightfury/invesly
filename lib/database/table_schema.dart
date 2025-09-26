@@ -8,10 +8,10 @@ enum TableColumnType {
 
   String toSqlType() {
     return switch (this) {
-      TableColumnType.integer => 'INTEGER',
-      TableColumnType.string => 'TEXT',
-      TableColumnType.real => 'REAL',
-      TableColumnType.boolean => 'BOOLEAN',
+      integer => 'INTEGER',
+      string => 'TEXT',
+      real => 'REAL',
+      boolean => 'BOOLEAN',
     };
   }
 }
@@ -54,8 +54,7 @@ class MultipleValueTableFilter<T extends Object> implements TableFilter<T> {
 }
 
 class RangeValueTableFilter<T extends Object> implements TableFilter<T> {
-  const RangeValueTableFilter(this.column, this.start, this.end)
-    : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool');
+  const RangeValueTableFilter(this.column, this.start, this.end) : assert(T == num, 'Value must be of type num');
 
   final TableColumn column;
   final T start;

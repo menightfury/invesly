@@ -33,31 +33,22 @@ enum CalculatorOperator {
   String toString() => symbol;
 
   static CalculatorOperator? fromString(String symbol) {
-    switch (symbol) {
-      case '+':
-        return CalculatorOperator.add;
-      case '-':
-        return CalculatorOperator.subtract;
-      case '*' || 'x' || 'X':
-        return CalculatorOperator.multiply;
-      case '/' || '÷':
-        return CalculatorOperator.divide;
-      default:
-        return null;
-    }
+    return switch (symbol) {
+      '+' => CalculatorOperator.add,
+      '-' => CalculatorOperator.subtract,
+      '*' || 'x' || 'X' => CalculatorOperator.multiply,
+      '/' || '÷' => CalculatorOperator.divide,
+      _ => null,
+    };
   }
 
   double apply(double a, double b) {
-    switch (this) {
-      case CalculatorOperator.add:
-        return a + b;
-      case CalculatorOperator.subtract:
-        return a - b;
-      case CalculatorOperator.multiply:
-        return a * b;
-      case CalculatorOperator.divide:
-        return a / b;
-    }
+    return switch (this) {
+      add => a + b,
+      subtract => a - b,
+      multiply => a * b,
+      divide => a / b,
+    };
   }
 }
 

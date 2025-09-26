@@ -24,16 +24,12 @@ enum AmcGenre {
   }
 
   IconData get icon {
-    switch (this) {
-      case AmcGenre.mf:
-        return Icons.pie_chart;
-      case AmcGenre.stock:
-        return Icons.show_chart;
-      case AmcGenre.insurance:
-        return Icons.security;
-      case AmcGenre.misc:
-        return Icons.category;
-    }
+    return switch (this) {
+      mf => Icons.pie_chart,
+      stock => Icons.show_chart,
+      insurance => Icons.security,
+      misc => Icons.category,
+    };
   }
 }
 

@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -6,24 +7,52 @@ import 'package:invesly/database/table_schema.dart';
 
 enum TransactionType {
   invested,
-  redeemed;
+  redeemed,
+  divident;
 
   IconData get icon {
-    switch (this) {
-      case invested:
-        return Icons.north_east_rounded;
-      case redeemed:
-        return Icons.south_west_rounded;
-    }
+    return switch (this) {
+      invested => Icons.north_east_rounded,
+      _ => Icons.south_west_rounded,
+    };
+  }
+
+  static TransactionType? fromInt(int value) {
+    return switch (value) {
+      0 => invested,
+      1 => redeemed,
+      2 => divident,
+      _ => null,
+    };
+  }
+
+  static TransactionType? fromChar(String value) {
+    final $value = value.trim();
+    if ($value.isEmpty) return null;
+
+    final $char = $value.toLowerCase();
+    return switch ($char) {
+      'i' => invested,
+      'r' => redeemed,
+      'd' => divident,
+      _ => null,
+    };
+  }
+
+  static TransactionType? fromString(String value) {
+    final $value = value.trim();
+    if ($value.isEmpty) return null;
+
+    final $string = $value.toLowerCase();
+    return values.firstWhereOrNull((type) => type.name == $string);
   }
 
   Color color(BuildContext context) {
-    switch (this) {
-      case invested:
-        return Colors.deepOrange;
-      case redeemed:
-        return Colors.teal;
-    }
+    return switch (this) {
+      invested => Colors.deepOrange,
+      redeemed => Colors.teal,
+      divident => Colors.blueAccent,
+    };
   }
 }
 
@@ -31,27 +60,33 @@ class InveslyTransaction extends TransactionInDb {
   InveslyTransaction({
     required super.id,
     required super.accountId,
-    this.transactionType = TransactionType.invested,
+    // this.transactionType = TransactionType.invested,
     this.amc,
     super.quantity = 0.0,
     super.totalAmount = 0.0,
     required this.investedOn,
     super.note,
-  }) : super(typeIndex: transactionType.index, amcId: amc?.id, date: investedOn.millisecondsSinceEpoch);
+    // }) : super(typeIndex: transactionType.index, amcId: amc?.id, date: investedOn.millisecondsSinceEpoch);
+  }) : transactionType = totalAmount > 0
+           ? TransactionType.invested
+           : quantity > 0
+           ? TransactionType.redeemed
+           : TransactionType.divident,
+       super(amcId: amc?.id, date: investedOn.millisecondsSinceEpoch);
 
   final TransactionType transactionType;
   final InveslyAmc? amc;
   final DateTime investedOn;
 
   factory InveslyTransaction.fromDb(TransactionInDb trn, AmcInDb amc) {
-    int typeIndex = trn.typeIndex;
-    if (typeIndex < 0 || typeIndex > TransactionType.values.length - 1) {
-      typeIndex = 0;
-    }
+    // int typeIndex = trn.typeIndex;
+    // if (typeIndex < 0 || typeIndex > TransactionType.values.length - 1) {
+    //   typeIndex = 0;
+    // }
     return InveslyTransaction(
       id: trn.id,
       accountId: trn.accountId,
-      transactionType: TransactionType.values.elementAt(typeIndex),
+      // transactionType: TransactionType.values.elementAt(typeIndex),
       amc: InveslyAmc.fromDb(amc),
       quantity: trn.quantity,
       totalAmount: trn.totalAmount,
@@ -89,7 +124,7 @@ class TransactionInDb extends InveslyDataModel {
   const TransactionInDb({
     required super.id,
     required this.accountId,
-    this.typeIndex = 0, // 0: invested, 1: redeemed
+    // this.typeIndex = 0, // 0: invested, 1: redeemed
     this.amcId,
     this.quantity = 0.0,
     this.totalAmount = 0.0,
@@ -98,7 +133,7 @@ class TransactionInDb extends InveslyDataModel {
   });
 
   final String accountId;
-  final int typeIndex;
+  // final int typeIndex;
   final String? amcId;
   final double quantity;
   // use totalAmount instead of unitRate,
@@ -108,7 +143,7 @@ class TransactionInDb extends InveslyDataModel {
   final String? note;
 
   @override
-  List<Object?> get props => super.props..addAll([accountId, typeIndex, amcId, quantity, totalAmount, date, note]);
+  List<Object?> get props => super.props..addAll([accountId, amcId, quantity, totalAmount, date, note]);
 
   // TransactionInDb copyWith({
   //   String? userId,
@@ -140,7 +175,7 @@ class TransactionTable extends TableSchema<TransactionInDb> {
 
   TableColumn<String> get accountIdColumn =>
       TableColumn('account_id', name, foreignReference: ForeignReference('accounts', 'id'));
-  TableColumn<int> get typeColumn => TableColumn('type', name, type: TableColumnType.integer); // invested or redeemed
+  // TableColumn<int> get typeColumn => TableColumn('type', name, type: TableColumnType.integer); // invested or redeemed
   TableColumn<String> get amcIdColumn =>
       TableColumn('amc_id', name, foreignReference: ForeignReference('amcs', 'id'), isNullable: true);
   TableColumn<double> get quantityColumn => TableColumn('quantity', name, type: TableColumnType.real);
@@ -150,15 +185,14 @@ class TransactionTable extends TableSchema<TransactionInDb> {
 
   @override
   Set<TableColumn> get columns =>
-      super.columns
-        ..addAll([accountIdColumn, amcIdColumn, quantityColumn, amountColumn, typeColumn, dateColumn, noteColumn]);
+      super.columns..addAll([accountIdColumn, amcIdColumn, quantityColumn, amountColumn, dateColumn, noteColumn]);
 
   @override
   Map<String, dynamic> decode(TransactionInDb data) {
     return <String, dynamic>{
       idColumn.title: data.id,
       accountIdColumn.title: data.accountId,
-      typeColumn.title: data.typeIndex,
+      // typeColumn.title: data.typeIndex,
       amcIdColumn.title: data.amcId,
       quantityColumn.title: data.quantity,
       amountColumn.title: data.totalAmount,
@@ -172,7 +206,7 @@ class TransactionTable extends TableSchema<TransactionInDb> {
     return TransactionInDb(
       id: map[idColumn.title] as String,
       accountId: map[accountIdColumn.title] as String,
-      typeIndex: map[typeColumn.title] as int,
+      // typeIndex: map[typeColumn.title] as int,
       amcId: map[amcIdColumn.title] as String?,
       quantity: (map[quantityColumn.title] as num).toDouble(),
       totalAmount: (map[amountColumn.title] as num).toDouble(),
