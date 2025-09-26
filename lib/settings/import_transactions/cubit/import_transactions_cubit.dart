@@ -247,21 +247,27 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     // loadingOverlay.show();
 
     try {
-      // final csvRows = state.csvData.slice(1).toList();
       final csvRows = state.csvData;
 
       // Cache of known accounts by lowercase name
       final existingAccounts = {for (final acc in await db.select(db.accounts).get()) acc.name.toLowerCase(): acc};
 
-      // Cache preferred currency once
-      final preferredCurrency = await CurrencyService.instance.getUserPreferredCurrency().first;
-
       final List<TransactionInDb> transactionsToInsert = [];
 
       for (final row in csvRows) {
         // Resolve account
-        final accountName = accountColumn == null ? unknownAccountName : row[accountColumn!].toString();
-        final lowerAccountName = accountName.toLowerCase();
+        final accountColumnIndex = state.fields[TransactionField.amc];
+        final accountIdOrName = accountColumnIndex == null
+            ? null
+            : row[accountColumnIndex].toString().trim(); // it will be either account name or account id
+
+        String? accountId;
+        if (accountIdOrName != null && accountIdOrName.isNotEmpty) {
+          final account = await _amcRepository.getAmc(accountIdOrName);
+          accountId = account?.id;
+        }
+        // final accountName = accountColumn == null ? unknownAccountName : row[accountColumn!].toString();
+        // final lowerAccountName = accountName.toLowerCase();
 
         AccountInDb? account = existingAccounts[lowerAccountName];
 
@@ -316,11 +322,6 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
         // Resolve amount
         final amountColumnIndex = state.fields[TransactionField.amount];
         final totalAmount = amountColumnIndex == null ? null : double.tryParse(row[amountColumnIndex].toString());
-        if (totalAmount != null && totalAmount < 0) {
-          type ??= TransactionType.invested;
-        } else {
-          type = TransactionType.invested;
-        }
 
         // if(totalAmount == null) throw Exception();
 
@@ -343,7 +344,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
             id: $uuid.v1(),
             date: date.millisecondsSinceEpoch,
             // typeIndex: totalAmount < 0 ? TransactionType.E : TransactionType.I,
-            accountId: accountID,
+            accountId: accountId,
             totalAmount: totalAmount ?? 0.0,
             amcId: amcId,
             note: (note?.isEmpty ?? true) ? null : note,
