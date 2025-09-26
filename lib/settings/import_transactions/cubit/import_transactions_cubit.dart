@@ -246,6 +246,13 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     // final loadingOverlay = LoadingOverlay.of(context);
     // loadingOverlay.show();
 
+    final amountColumnIndex = state.fields[TransactionField.amount];
+    final accountColumnIndex = state.fields[TransactionField.account];
+    final amcColumnIndex = state.fields[TransactionField.amc];
+    final typeColumnIndex = state.fields[TransactionField.amount];
+    final dateColumnIndex = state.fields[TransactionField.date];
+    final noteColumnIndex = state.fields[TransactionField.notes];
+
     try {
       final csvRows = state.csvData;
 
@@ -256,7 +263,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
       for (final row in csvRows) {
         // Resolve account
-        final accountColumnIndex = state.fields[TransactionField.amc];
+
         final accountIdOrName = accountColumnIndex == null
             ? null
             : row[accountColumnIndex].toString().trim(); // it will be either account name or account id
@@ -295,7 +302,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
         }
 
         // Resolve amc
-        final amcColumnIndex = state.fields[TransactionField.amc];
+
         final amcIdOrName = amcColumnIndex == null
             ? null
             : row[amcColumnIndex].toString().trim(); // it will be either amc id or amc name
@@ -308,7 +315,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
         // Resolve type
         TransactionType? type;
-        final typeColumnIndex = state.fields[TransactionField.amount];
+
         final rawType = typeColumnIndex == null ? null : row[typeColumnIndex];
         // The type can be integer (i.e. 0 for investment and 1 for redemption, 2 for dividend) or
         // can be one character (like I, R, D) or can be string (Investment, Redemption or Divident)
@@ -320,7 +327,6 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
         }
 
         // Resolve amount
-        final amountColumnIndex = state.fields[TransactionField.amount];
         final totalAmount = amountColumnIndex == null ? null : double.tryParse(row[amountColumnIndex].toString());
 
         // if(totalAmount == null) throw Exception();
@@ -328,7 +334,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
         // Resolve date
         final dateNow = DateTime.now();
         late final DateTime date;
-        final dateColumnIndex = state.fields[TransactionField.date];
+
         if (dateColumnIndex != null && state.defaultDateFormat != null) {
           date = DateFormat(state.defaultDateFormat, 'en_IN').tryParse(row[dateColumnIndex].toString()) ?? dateNow;
         } else {
@@ -336,7 +342,6 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
         }
 
         // Resolve note
-        final noteColumnIndex = state.fields[TransactionField.notes];
         final note = noteColumnIndex == null ? null : row[noteColumnIndex].toString();
 
         transactionsToInsert.add(
