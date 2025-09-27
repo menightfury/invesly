@@ -8,7 +8,7 @@ import 'package:invesly/database/table_schema.dart';
 enum TransactionType {
   invested,
   redeemed,
-  divident;
+  dividend;
 
   IconData get icon {
     return switch (this) {
@@ -21,7 +21,7 @@ enum TransactionType {
     return switch (value) {
       0 => invested,
       1 => redeemed,
-      2 => divident,
+      2 => dividend,
       _ => null,
     };
   }
@@ -34,7 +34,7 @@ enum TransactionType {
     return switch ($char) {
       'i' => invested,
       'r' => redeemed,
-      'd' => divident,
+      'd' => dividend,
       _ => null,
     };
   }
@@ -51,7 +51,7 @@ enum TransactionType {
     return switch (this) {
       invested => Colors.deepOrange,
       redeemed => Colors.teal,
-      divident => Colors.blueAccent,
+      dividend => Colors.blueAccent,
     };
   }
 }
@@ -71,7 +71,7 @@ class InveslyTransaction extends TransactionInDb {
            ? TransactionType.invested
            : quantity > 0
            ? TransactionType.redeemed
-           : TransactionType.divident,
+           : TransactionType.dividend,
        super(amcId: amc?.id, date: investedOn.millisecondsSinceEpoch);
 
   final TransactionType transactionType;

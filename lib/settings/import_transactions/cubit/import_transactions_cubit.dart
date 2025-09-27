@@ -263,21 +263,16 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
       for (final row in csvRows) {
         // Resolve account
-
-        final accountIdOrName = accountColumnIndex == null
-            ? null
-            : row[accountColumnIndex].toString().trim(); // it will be either account name or account id
-
+        final accountIdOrName = accountColumnIndex == null ? null : row[accountColumnIndex].toString().trim();
         String? accountId;
         if (accountIdOrName != null && accountIdOrName.isNotEmpty) {
-          final account = await _amcRepository.getAmc(accountIdOrName);
+          final account = await _accountRepository.getAccounts(accountIdOrName);
           accountId = account?.id;
         }
         // final accountName = accountColumn == null ? unknownAccountName : row[accountColumn!].toString();
         // final lowerAccountName = accountName.toLowerCase();
 
         AccountInDb? account = existingAccounts[lowerAccountName];
-
         // If not found, insert and add to cache (unless default is used)
         String accountID;
         if (account != null) {
