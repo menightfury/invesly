@@ -27,6 +27,40 @@ class AccountRepository {
     return list.map<InveslyAccount>((el) => InveslyAccount.fromDb(_accountTable.encode(el))).toList();
   }
 
+  /// Get account by id
+  Future<InveslyAccount?> getAccountById(String id) async {
+    final list = await _api.select(_accountTable).where([
+      SingleValueTableFilter<String>(_accountTable.idColumn, id),
+    ]).toList();
+
+    if (list.isEmpty) return null;
+
+    return InveslyAccount.fromDb(_accountTable.encode(list.first));
+  }
+
+  /// Get account by name
+  Future<InveslyAccount?> getAccountByName(String name) async {
+    final list = await _api.select(_accountTable).where([
+      SingleValueTableFilter<String>(_accountTable.nameColumn, name),
+    ]).toList();
+
+    if (list.isEmpty) return null;
+
+    return InveslyAccount.fromDb(_accountTable.encode(list.first));
+  }
+
+  /// Get account by id or name
+  Future<InveslyAccount?> getAccount(String value) async {
+    final list = await _api.select(_accountTable).where([
+      SingleValueTableFilter<String>(_accountTable.idColumn, value),
+      SingleValueTableFilter<String>(_accountTable.nameColumn, value),
+    ], isAnd: false).toList();
+
+    if (list.isEmpty) return null;
+
+    return InveslyAccount.fromDb(_accountTable.encode(list.first));
+  }
+
   /// Add or update account to database
   Future<void> saveAccount(AccountInDb account, [bool isNew = true]) async {
     if (isNew) {

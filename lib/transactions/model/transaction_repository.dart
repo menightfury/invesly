@@ -99,12 +99,21 @@ class TransactionRepository {
   }
 
   /// Add or update a transaction
-  Future<void> saveTransaction(InveslyTransaction transaction, [bool isNew = true]) async {
+  Future<void> saveTransaction(TransactionInDb transaction, [bool isNew = true]) async {
     if (isNew) {
       await _api.insert(_trnTable, transaction);
     } else {
       await _api.update(_trnTable, transaction);
     }
+  }
+
+  /// Insert multiple transaction at once
+  Future<void> insertTransactions(List<TransactionInDb> transactions) async {
+    final batch = _api.db.batch();
+    // ignore: avoid_function_literals_in_foreach_calls
+    transactions.forEach((trn) => batch.insert(_trnTable.name, _trnTable.decode(trn)));
+
+    await batch.commit(noResult: true, continueOnError: true);
   }
 
   Future<String> transactionsToCsv([String separator = ',']) async {

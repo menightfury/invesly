@@ -54,7 +54,7 @@ class InveslyApi {
         // ignore: avoid_function_literals_in_foreach_calls
         initialAmcs.forEach((amc) => batch.insert(_amcTable.name, _amcTable.decode(amc)));
         batch.execute(_trnTable.createTable());
-        await batch.commit(noResult: true);
+        await batch.commit(noResult: true, continueOnError: true);
       },
     );
 

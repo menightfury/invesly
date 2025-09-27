@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/model/account_repository.dart';
+import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common_libs.dart';
@@ -245,76 +246,30 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
     // final loadingOverlay = LoadingOverlay.of(context);
     // loadingOverlay.show();
-
+    final dateNow = DateTime.now();
     final amountColumnIndex = state.fields[TransactionField.amount];
+    final qntyColumnIndex = state.fields[TransactionField.quantity];
     final accountColumnIndex = state.fields[TransactionField.account];
     final amcColumnIndex = state.fields[TransactionField.amc];
     final typeColumnIndex = state.fields[TransactionField.amount];
     final dateColumnIndex = state.fields[TransactionField.date];
     final noteColumnIndex = state.fields[TransactionField.notes];
 
+    // Cache of known accounts and amcs
+    final existingAccounts = <String, InveslyAccount>{};
+    final existingAmcs = <String, InveslyAmc>{};
+
     try {
       final csvRows = state.csvData;
 
-      // Cache of known accounts by lowercase name
-      final existingAccounts = {for (final acc in await db.select(db.accounts).get()) acc.name.toLowerCase(): acc};
-
-      final List<TransactionInDb> transactionsToInsert = [];
+      final transactionsToInsert = <TransactionInDb>[];
 
       for (final row in csvRows) {
-        // Resolve account
-        final accountIdOrName = accountColumnIndex == null ? null : row[accountColumnIndex].toString().trim();
-        String? accountId;
-        if (accountIdOrName != null && accountIdOrName.isNotEmpty) {
-          final account = await _accountRepository.getAccounts(accountIdOrName);
-          accountId = account?.id;
-        }
-        // final accountName = accountColumn == null ? unknownAccountName : row[accountColumn!].toString();
-        // final lowerAccountName = accountName.toLowerCase();
-
-        AccountInDb? account = existingAccounts[lowerAccountName];
-        // If not found, insert and add to cache (unless default is used)
-        String accountID;
-        if (account != null) {
-          accountID = account.id;
-        } else if (defaultAccount != null) {
-          accountID = defaultAccount!.id;
-        } else {
-          accountID = $uuid.v1();
-          account = AccountInDb(
-            id: accountID,
-            name: accountName,
-            avatarIndex: 0,
-            iniValue: 0,
-            displayOrder: 10,
-            date: DateTime.now(),
-            type: AccountType.normal,
-            iconId: SupportedIconService.instance.defaultSupportedIcon.id,
-            currencyId: preferredCurrency.code,
-          );
-          await AccountService.instance.insertAccount(account);
-          existingAccounts[lowerAccountName] = account;
-        }
-
-        // Resolve amc
-
-        final amcIdOrName = amcColumnIndex == null
-            ? null
-            : row[amcColumnIndex].toString().trim(); // it will be either amc id or amc name
-
-        String? amcId;
-        if (amcIdOrName != null && amcIdOrName.isNotEmpty) {
-          final amc = await _amcRepository.getAmc(amcIdOrName);
-          amcId = amc?.id;
-        }
-
         // Resolve type
-        TransactionType? type;
-
-        final rawType = typeColumnIndex == null ? null : row[typeColumnIndex];
         // The type can be integer (i.e. 0 for investment and 1 for redemption, 2 for dividend) or
         // can be one character (like I, R, D) or can be string (Investment, Redemption or Divident)
-
+        TransactionType? type = state.defaultType;
+        final rawType = typeColumnIndex == null ? null : row[typeColumnIndex];
         if (rawType is int) {
           type = TransactionType.fromInt(rawType);
         } else if (rawType is String) {
@@ -323,13 +278,59 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
         // Resolve amount
         final totalAmount = amountColumnIndex == null ? null : double.tryParse(row[amountColumnIndex].toString());
-
         // if(totalAmount == null) throw Exception();
 
-        // Resolve date
-        final dateNow = DateTime.now();
-        late final DateTime date;
+        // Resolve quantity
+        final quantity = qntyColumnIndex == null ? null : double.tryParse(row[qntyColumnIndex].toString());
 
+        // Resolve account
+        // distinguish between accountIdOrName = null and account = null (i.e. accountIdOrName is provided but account not exists)
+        final accountIdOrName = accountColumnIndex == null ? null : row[accountColumnIndex].toString().trim();
+        String? accountId = state.defaultAccount?.id;
+        if (accountIdOrName != null && accountIdOrName.isNotEmpty) {
+          // Look for account in cache first
+          if (existingAccounts.containsKey(accountIdOrName)) {
+            accountId = existingAccounts[accountIdOrName]!.id;
+          } else {
+            // Look for account in database
+            final account = await _accountRepository.getAccount(accountIdOrName);
+            if (account == null) {
+              // accountIdOrName is provided but account not exists
+              // show modal to select one of the default account or to add a new account with that name
+              // emit(
+              //   state.copyWith(
+              //     status: ImportTransactionsStatus.needsAccountResolution,
+              //     unresolvedAccountName: accountIdOrName,
+              //   ),
+              // );
+            } else {
+              // add fetched account to `existingAccounts` cache for future
+              existingAccounts[account.id] = account;
+              accountId = account.id;
+            }
+          }
+        }
+
+        // Resolve amc
+        final amcIdOrName = amcColumnIndex == null ? null : row[amcColumnIndex].toString().trim();
+        String? amcId;
+        if (amcIdOrName != null && amcIdOrName.isNotEmpty) {
+          // Look for amc in cache first
+          if (existingAmcs.containsKey(amcIdOrName)) {
+            amcId = existingAmcs[amcIdOrName]!.id;
+          } else {
+            // Look for amc in database
+            final amc = await _amcRepository.getAmc(amcIdOrName);
+            if (amc != null) {
+              // add fetched amc to `existingAmcs` cache for future
+              existingAmcs[amc.id] = amc;
+              amcId = amc.id;
+            }
+          }
+        }
+
+        // Resolve date
+        late final DateTime date;
         if (dateColumnIndex != null && state.defaultDateFormat != null) {
           date = DateFormat(state.defaultDateFormat, 'en_IN').tryParse(row[dateColumnIndex].toString()) ?? dateNow;
         } else {
@@ -342,9 +343,9 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
         transactionsToInsert.add(
           TransactionInDb(
             id: $uuid.v1(),
-            date: date.millisecondsSinceEpoch,
-            // typeIndex: totalAmount < 0 ? TransactionType.E : TransactionType.I,
             accountId: accountId,
+            date: date.millisecondsSinceEpoch,
+            quantity: quantity ?? 0.0,
             totalAmount: totalAmount ?? 0.0,
             amcId: amcId,
             note: (note?.isEmpty ?? true) ? null : note,
@@ -352,13 +353,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
         );
       }
 
-      // Batch insert
-      const batchSize = 10;
-
-      for (var i = 0; i < transactionsToInsert.length; i += batchSize) {
-        final batch = transactionsToInsert.skip(i).take(batchSize);
-        await Future.wait(batch.map((e) => TransactionService.instance.insertTransaction(e)));
-      }
+      await _transactionRepository.insertTransactions(transactionsToInsert);
 
       // loadingOverlay.hide();
       // onSuccess();
