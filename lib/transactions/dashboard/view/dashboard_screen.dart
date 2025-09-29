@@ -129,18 +129,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
     if (accountsState is AccountsLoadedState) {
       if (accountsState.accounts.isEmpty) {
-        final confirmed = await showConfirmDialog(
+        await showConfirmDialog(
           context,
           title: 'Oops!',
-          icon: Icon(Icons.warning_amber_rounded),
-          content: Text('You must have at least one no-archived account before you can start creating transactions'),
-          confirmationText: 'Continue',
+          icon: const Icon(Icons.warning_amber_rounded),
+          content: const Text(
+            'You must have at least one no-archived account before you can start creating transactions',
+          ),
+          confirmText: 'Continue',
+          onConfirm: () => context.push(const EditAccountScreen()),
         );
 
-        if (!context.mounted) return;
-        if (confirmed ?? false) {
-          context.push(const EditAccountScreen());
-        }
+        // if (!context.mounted) return;
+        // if (confirmed ?? false) {
+        //   context.push(const EditAccountScreen());
+        // }
         return;
       }
 

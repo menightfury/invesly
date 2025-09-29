@@ -85,7 +85,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocListener<EditTransactionCubit, EditTransactionState>(
-      listenWhen: (prevState, state) => prevState.status != state.status && state.status.isFailureOrSuccess,
+      listenWhen: (prevState, state) => prevState.status != state.status && state.isFailureOrSuccess,
       listener: (context, state) {
         late final SnackBar message;
 

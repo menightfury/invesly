@@ -6,6 +6,7 @@ import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common/presentations/widgets/async_form_field.dart';
 import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
+import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/import_transactions/cubit/import_transactions_cubit.dart';
@@ -37,58 +38,26 @@ class _ImportTransactionsScreen extends StatefulWidget {
   const _ImportTransactionsScreen({super.key});
 
   @override
-  State<_ImportTransactionsScreen> createState() => __ImportTransactionsScreenState();
+  State<_ImportTransactionsScreen> createState() => _ImportTransactionsScreenState();
 }
 
-class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
-  // late final List<_Step> _steps;
+class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
+  late final List<_Step> _steps;
   int currentStep = 0;
 
   @override
   void initState() {
     super.initState();
-  }
-
-  Step buildStep(BuildContext context, _Step step) {
-    Widget? description;
-
-    if (step.description != null) {
-      description = DefaultTextStyle(style: context.textTheme.bodySmall!, child: step.description!);
-    }
-
-    return Step(
-      title: step.title,
-      subtitle: step.subtitle,
-      isActive: currentStep >= step.index,
-      state: currentStep > step.index
-          ? StepState.complete
-          : currentStep == step.index
-          ? StepState.editing
-          : StepState.disabled,
-      content: Padding(
-        padding: const EdgeInsets.only(bottom: 8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16.0,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[?description, step.content],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // TODO: Move the steps initialization to initState
     final cubit = context.read<ImportTransactionsCubit>();
 
-    final _steps = [
+    _steps = [
       _Step(
         index: 0,
         title: const Text('Select CSV file'),
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+          buildWhen: (prevState, state) => prevState.status != state.status || prevState.csvData != state.csvData,
           builder: (context, state) {
-            if (state.status == ImportTransactionsStatus.loaded) {
+            if (state.isLoaded) {
               return Text('${state.csvData.length} rows loaded');
             }
 
@@ -98,13 +67,13 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         description: const Text('Make sure it has a first row that describes the name of each column'),
         content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
-            if (state.status == ImportTransactionsStatus.loading) {
+            if (state.isLoading) {
               return LoadingAnimationWidget.staggeredDotsWave(color: context.colors.primary, size: 48.0);
             }
-            if (state.status == ImportTransactionsStatus.error) {
+            if (state.isError) {
               return Text(state.errorMsg!, style: TextStyle(color: context.colors.error));
             }
-            if (state.status == ImportTransactionsStatus.loaded) {
+            if (state.isLoaded) {
               return AnimatedExpanded(
                 axis: Axis.vertical,
                 expand: true,
@@ -117,17 +86,19 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         ),
         controlsBuilder: (context, details) {
           return <Widget>[
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
-                return _buildNextButton(enabled: state.isLoaded, onTap: details.onStepContinue);
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, bool>(
+              selector: (state) => state.isLoaded,
+              builder: (context, isLoaded) {
+                return _buildNextButton(enabled: isLoaded, onTap: details.onStepContinue);
               },
             ),
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, bool>(
+              selector: (state) => state.isLoaded,
+              builder: (context, isLoaded) {
                 return FilledButton.tonalIcon(
                   onPressed: () => cubit.readFile(),
-                  icon: state.isLoaded ? const Icon(Icons.restore_rounded) : const Icon(Icons.upload_file_rounded),
-                  label: state.isLoaded ? const Text('Select again') : const Text('Select file'),
+                  icon: isLoaded ? const Icon(Icons.restore_rounded) : const Icon(Icons.upload_file_rounded),
+                  label: isLoaded ? const Text('Select again') : const Text('Select file'),
                 );
               },
             ),
@@ -140,9 +111,11 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         index: 1,
         title: const Text('Select column for amount'),
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+          buildWhen: (prevState, state) {
+            return prevState.fields[TransactionField.amount] != state.fields[TransactionField.amount];
+          },
           builder: (context, state) {
             final i = state.fields[TransactionField.amount];
-            // final i = state.amountColumn;
             return Text('${i != null ? '\'${state.csvHeaders[i]}\'' : 'No'} column is selected');
           },
         ),
@@ -151,33 +124,19 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
           ' Use a point as a decimal separator.',
         ),
         content: _ColumnSelector(field: TransactionField.amount),
-        // content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-        //   builder: (context, state) {
-        //     return _ColumnSelector(
-        //       enabled: state.status == ImportTransactionsStatus.loaded,
-        //       modalTitle: const Text('Select column for amount'),
-        //       value: state.amountColumn,
-        //       allColumns: state.csvHeaders.asMap(),
-        //       onChanged: cubit.updateAmountColumn,
-        //     );
-        //   },
-        // ),
         controlsBuilder: (context, details) {
           return <Widget>[
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
-                return _buildNextButton(
-                  enabled: state.isLoaded && state.fields[TransactionField.amount] != null,
-                  // enabled: state.isLoaded && state.amountColumn != null,
-                  onTap: details.onStepContinue,
-                );
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, bool>(
+              selector: (state) => state.isLoaded && state.fields[TransactionField.amount] != null,
+              builder: (context, isLoaded) {
+                return _buildNextButton(enabled: isLoaded, onTap: details.onStepContinue);
               },
             ),
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, bool>(
+              selector: (state) => state.isLoaded && state.fields[TransactionField.amount] != null,
+              builder: (context, isLoaded) {
                 return _buildResetButton(
-                  enabled: state.isLoaded && state.fields[TransactionField.amount] != null,
-                  // enabled: state.isLoaded && state.amountColumn != null,
+                  enabled: isLoaded,
                   onTap: () => cubit.updateField(TransactionField.amount, null),
                 );
               },
@@ -193,7 +152,6 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
           builder: (context, state) {
             final i = state.fields[TransactionField.quantity];
-            // final i = state.quantityColumn;
             return Text('${i != null ? '\'${state.csvHeaders[i]}\'' : 'No'} column is selected');
           },
         ),
@@ -202,34 +160,19 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
           ' Use a point as a decimal separator.',
         ),
         content: _ColumnSelector(field: TransactionField.quantity),
-        // content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-        //   builder: (context, state) {
-        //     return _ColumnSelector(
-        //       enabled: state.status == ImportTransactionsStatus.loaded,
-        //       modalTitle: const Text('Select column for quantity'),
-        //       value: state.quantityColumn,
-        //       allColumns: state.csvHeaders.asMap(),
-        //       columnsToExclude: [state.amountColumn],
-        //       onChanged: cubit.updateQuantityColumn,
-        //     );
-        //   },
-        // ),
         controlsBuilder: (context, details) {
           return <Widget>[
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
-                return _buildNextButton(
-                  enabled: state.isLoaded && state.fields[TransactionField.quantity] != null,
-                  // enabled: state.isLoaded && state.quantityColumn != null,
-                  onTap: details.onStepContinue,
-                );
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, bool>(
+              selector: (state) => state.isLoaded && state.fields[TransactionField.quantity] != null,
+              builder: (context, isLoaded) {
+                return _buildNextButton(enabled: isLoaded, onTap: details.onStepContinue);
               },
             ),
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, bool>(
+              selector: (state) => state.isLoaded && state.fields[TransactionField.amount] != null,
+              builder: (context, isLoaded) {
                 return _buildResetButton(
-                  enabled: state.isLoaded && state.fields[TransactionField.quantity] != null,
-                  // enabled: state.isLoaded && state.quantityColumn != null,
+                  enabled: isLoaded,
                   onTap: () => cubit.updateField(TransactionField.quantity, null),
                 );
               },
@@ -243,9 +186,11 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         index: 3,
         title: const Text('Select column for account'),
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+          buildWhen: (prevState, state) {
+            return prevState.fields[TransactionField.account] != state.fields[TransactionField.account];
+          },
           builder: (context, state) {
             final i = state.fields[TransactionField.account];
-            // final i = state.accountColumn;
             return Text('${i != null ? '\'${state.csvHeaders[i]}\'' : 'No'} column is selected');
           },
         ),
@@ -259,10 +204,11 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
           children: <Widget>[
             _ColumnSelector(field: TransactionField.account),
 
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, ImportTransactionsStatus>(
+              selector: (state) => state.status,
+              builder: (context, status) {
                 return AsyncFormField<InveslyAccount>(
-                  enabled: state.status == ImportTransactionsStatus.loaded,
+                  enabled: status == ImportTransactionsStatus.loaded,
                   initialValue: cubit.state.defaultAccount,
                   validator: (value) {
                     if (value == null) {
@@ -300,76 +246,21 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
             ).withLabel('Default account'),
           ],
         ),
-        // content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-        //   builder: (context, state) {
-        //     return Column(
-        //       spacing: 12.0,
-        //       children: <Widget>[
-        //         _ColumnSelector(
-        //           enabled: state.status == ImportTransactionsStatus.loaded,
-        //           modalTitle: const Text('Select column for account'),
-        //           value: state.accountColumn,
-        //           allColumns: state.csvHeaders.asMap(),
-        //           columnsToExclude: [state.amountColumn, state.quantityColumn],
-        //           onChanged: cubit.updateAccountColumn,
-        //         ),
-
-        //         AsyncFormField<InveslyAccount>(
-        //           enabled: state.status == ImportTransactionsStatus.loaded,
-        //           initialValue: cubit.state.defaultAccount,
-        //           validator: (value) {
-        //             if (value == null) {
-        //               return 'Can\'t be empty';
-        //             }
-        //             return null;
-        //           },
-        //           onTapCallback: (value) async {
-        //             final newAccount = await InveslyAccountPickerWidget.showModal(context, value?.id);
-        //             return newAccount ?? value;
-        //           },
-        //           onChanged: (value) {
-        //             if (value == null) return;
-        //             cubit.updateDefaultAccount(value);
-        //           },
-        //           childBuilder: (value) {
-        //             if (value == null) {
-        //               return Text(
-        //                 'Select an account',
-        //                 style: TextStyle(color: context.theme.disabledColor),
-        //                 overflow: TextOverflow.ellipsis,
-        //               );
-        //             }
-        //             return Row(
-        //               spacing: 16.0,
-        //               children: <Widget>[
-        //                 CircleAvatar(foregroundImage: AssetImage(value.avatar), radius: 10.0),
-        //                 Text(value.name, textAlign: TextAlign.right, overflow: TextOverflow.ellipsis),
-        //               ],
-        //             );
-        //           },
-        //           trailing: const Icon(Icons.arrow_drop_down_rounded),
-        //         ).withLabel('Default account'),
-        //       ],
-        //     );
-        //   },
-        // ),
         controlsBuilder: (context, details) {
           return <Widget>[
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
-                return _buildNextButton(
-                  enabled:
-                      state.isLoaded && state.fields[TransactionField.account] != null && state.defaultAccount != null,
-                  // enabled: state.isLoaded && state.accountColumn != null && state.defaultAccount != null,
-                  onTap: details.onStepContinue,
-                );
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, bool>(
+              selector: (state) {
+                return state.isLoaded && state.fields[TransactionField.account] != null && state.defaultAccount != null;
+              },
+              builder: (context, isLoaded) {
+                return _buildNextButton(enabled: isLoaded, onTap: details.onStepContinue);
               },
             ),
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, bool>(
+              selector: (state) => state.isLoaded && state.fields[TransactionField.account] != null,
+              builder: (context, isLoaded) {
                 return _buildResetButton(
-                  enabled: state.isLoaded && state.fields[TransactionField.account] != null,
-                  // enabled: state.isLoaded && state.accountColumn != null,
+                  enabled: isLoaded,
                   onTap: () {
                     cubit.updateField(TransactionField.account, null);
                     cubit.updateDefaultAccount(null);
@@ -386,9 +277,11 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         index: 4,
         title: const Text('Select column for AMC'),
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+          buildWhen: (prevState, state) {
+            return prevState.fields[TransactionField.amc] != state.fields[TransactionField.amc];
+          },
           builder: (context, state) {
             final i = state.fields[TransactionField.amc];
-            // final i = state.amcColumn;
             return Text('${i != null ? '\'${state.csvHeaders[i]}\'' : 'No'} column is selected');
           },
         ),
@@ -398,36 +291,20 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
           ' If a default account is not specified, we will create one with the same name.',
         ),
         content: _ColumnSelector(field: TransactionField.amc),
-        // content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-        //   builder: (context, state) {
-        //     return _ColumnSelector(
-        //       enabled: state.status == ImportTransactionsStatus.loaded,
-        //       modalTitle: const Text('Select column for AMC'),
-        //       value: state.amcColumn,
-        //       allColumns: state.csvHeaders.asMap(),
-        //       columnsToExclude: [state.amountColumn, state.quantityColumn],
-        //       onChanged: cubit.updateAmcColumn,
-        //     );
-        //   },
-        // ),
         controlsBuilder: (context, details) {
           return <Widget>[
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
-                return _buildNextButton(
-                  enabled: state.isLoaded && state.fields[TransactionField.amc] != null && state.defaultAccount != null,
-                  // enabled: state.isLoaded && state.amcColumn != null && state.defaultAccount != null,
-                  onTap: details.onStepContinue,
-                );
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, bool>(
+              selector: (state) {
+                return state.isLoaded && state.fields[TransactionField.amc] != null && state.defaultAccount != null;
+              },
+              builder: (context, isLoaded) {
+                return _buildNextButton(enabled: isLoaded, onTap: details.onStepContinue);
               },
             ),
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
-                return _buildResetButton(
-                  enabled: state.isLoaded && state.fields[TransactionField.amc] != null,
-                  // enabled: state.isLoaded && state.amcColumn != null,
-                  onTap: () => cubit.updateField(TransactionField.amc, null),
-                );
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, bool>(
+              selector: (state) => state.isLoaded && state.fields[TransactionField.amc] != null,
+              builder: (context, isLoaded) {
+                return _buildResetButton(enabled: isLoaded, onTap: () => cubit.updateField(TransactionField.amc, null));
               },
             ),
           ];
@@ -439,9 +316,11 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         index: 5,
         title: const Text('Select column for date'),
         subtitle: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+          buildWhen: (prevState, state) {
+            return prevState.fields[TransactionField.date] != state.fields[TransactionField.date];
+          },
           builder: (context, state) {
             final i = state.fields[TransactionField.date];
-            // final i = state.dateColumn;
             return Text('${i != null ? '\'${state.csvHeaders[i]}\'' : 'No'} column is selected');
           },
         ),
@@ -454,10 +333,11 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
           children: <Widget>[
             _ColumnSelector(field: TransactionField.date),
 
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, ImportTransactionsStatus>(
+              selector: (state) => state.status,
+              builder: (context, status) {
                 return AsyncFormField<String>(
-                  enabled: state.status == ImportTransactionsStatus.loaded,
+                  enabled: status == ImportTransactionsStatus.loaded,
                   initialValue: cubit.state.defaultDateFormat,
                   onTapCallback: (value) async {
                     final newDateFormat = await InveslyDateFormatPicker.showModal(context, value);
@@ -489,69 +369,21 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
             ).withLabel('Default date format'),
           ],
         ),
-        // content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-        //   builder: (context, state) {
-        //     return Column(
-        //       spacing: 12.0,
-        //       children: <Widget>[
-        //         _ColumnSelector(
-        //           enabled: state.status == ImportTransactionsStatus.loaded,
-        //           value: state.dateColumn,
-        //           allColumns: state.csvHeaders.asMap(),
-        //           columnsToExclude: [state.amountColumn, state.quantityColumn, state.accountColumn],
-        //           onChanged: cubit.updateDateColumn,
-        //         ),
-
-        //         AsyncFormField<String>(
-        //           enabled: state.status == ImportTransactionsStatus.loaded,
-        //           initialValue: cubit.state.defaultDateFormat,
-        //           onTapCallback: (value) async {
-        //             final newDateFormat = await InveslyDateFormatPicker.showModal(context, value);
-        //             return newDateFormat ?? value;
-        //           },
-        //           onChanged: (value) {
-        //             if (value == null) return;
-        //             cubit.updateDefaultDateFormat(value);
-        //           },
-        //           childBuilder: (value) {
-        //             if (value == null) {
-        //               return Text(
-        //                 'Select a date format',
-        //                 style: TextStyle(color: context.theme.disabledColor),
-        //                 overflow: TextOverflow.ellipsis,
-        //               );
-        //             }
-        //             return Text(value, overflow: TextOverflow.ellipsis);
-        //           },
-        //           validator: (value) {
-        //             if (value == null) {
-        //               return 'Can\'t be empty';
-        //             }
-        //             return null;
-        //           },
-        //           trailing: const Icon(Icons.arrow_drop_down_rounded),
-        //         ).withLabel('Default date format'),
-        //       ],
-        //     );
-        //   },
-        // ),
         controlsBuilder: (context, details) {
           return <Widget>[
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
-                return _buildNextButton(
-                  enabled:
-                      state.isLoaded && state.fields[TransactionField.date] != null && state.defaultDateFormat != null,
-                  // enabled: state.isLoaded && state.dateColumn != null && state.defaultDateFormat != null,
-                  onTap: details.onStepContinue,
-                );
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, bool>(
+              selector: (state) {
+                return state.isLoaded && state.fields[TransactionField.date] != null && state.defaultDateFormat != null;
+              },
+              builder: (context, isLoaded) {
+                return _buildNextButton(enabled: isLoaded, onTap: details.onStepContinue);
               },
             ),
-            BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-              builder: (context, state) {
+            BlocSelector<ImportTransactionsCubit, ImportTransactionsState, bool>(
+              selector: (state) => state.isLoaded && state.fields[TransactionField.date] != null,
+              builder: (context, isLoaded) {
                 return _buildResetButton(
-                  enabled: state.isLoaded && state.fields[TransactionField.date] != null,
-                  // enabled: state.isLoaded && state.dateColumn != null,
+                  enabled: isLoaded,
                   onTap: () => cubit.updateField(TransactionField.date, null),
                 );
               },
@@ -560,7 +392,7 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         },
       ),
 
-      // ~ Others - Note
+      // ~ Others - Type, Note
       _Step(
         index: 6,
         title: const Text('Select other columns'),
@@ -579,77 +411,40 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                 ),
                 _ColumnSelector(field: TransactionField.type),
 
-                BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-                  builder: (context, state) {
-                    return TransactionTypeSelectorFormField(
-                      initialValue: cubit.state.defaultType,
-                      onChanged: (value) {
-                        if (value == null) return;
-                        cubit.updateDefaultType(value);
-                      },
-                    );
+                TransactionTypeSelectorFormField(
+                  initialValue: cubit.state.defaultType,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    cubit.updateDefaultType(value);
                   },
                 ).withLabel('Default transaction type'),
-
-                // content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-                //   builder: (context, state) {
-                //     return Column(
-                //       spacing: 12.0,
-                //       children: <Widget>[
-                //         _ColumnSelector(
-                //           enabled: state.status == ImportTransactionsStatus.loaded,
-                //           modalTitle: const Text('Select column for transaction type'),
-                //           value: state.typeColumn,
-                //           allColumns: state.csvHeaders.asMap(),
-                //           columnsToExclude: [state.amountColumn, state.quantityColumn, state.accountColumn],
-                //           onChanged: cubit.updateTypeColumn,
-                //         ),
-
-                //         TransactionTypeSelectorFormField(
-                //           initialValue: cubit.state.defaultType,
-                //           onChanged: (value) {
-                //             if (value == null) return;
-                //             cubit.updateDefaultType(value);
-                //           },
-                //         ).withLabel('Default transaction type'),
-                //       ],
-                //     );
-                //   },
-                // ),
               ],
             ),
 
             _ColumnSelector(field: TransactionField.notes).withLabel('Notes column'),
           ],
         ),
-        // content: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
-        //   builder: (context, state) {
-        //     return _ColumnSelector(
-        //       enabled: state.status == ImportTransactionsStatus.loaded,
-        //       modalTitle: Text('Select column for notes'),
-        //       value: state.notesColumn,
-        //       allColumns: state.csvHeaders.asMap(),
-        //       columnsToExclude: [
-        //         state.amountColumn,
-        //         state.quantityColumn,
-        //         state.accountColumn,
-        //         state.amcColumn,
-        //         state.typeColumn,
-        //         state.dateColumn,
-        //       ],
-        //       onChanged: cubit.updateNotesColumn,
-        //     ).withLabel('Notes column');
-        //   },
-        // ),
         controlsBuilder: (context, details) {
           return <Widget>[
             BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
               builder: (context, state) {
-                if (state.status == ImportTransactionsStatus.loaded) {
+                if (state.isLoaded) {
                   return Expanded(
                     child: FilledButton.icon(
                       onPressed: () async {
-                        await cubit.importTransactions();
+                        showLoadingDialog(context, () async {
+                          try {
+                            await cubit.importTransactions();
+                          } catch (err) {
+                            if (!context.mounted) return;
+                            _showErrorSheet(context);
+                            await cubit.importTransactions();
+                          } finally {
+                            // show success message
+                            // snackbarDisplayer(SnackBar(content: Text('Successfully imported ${csvData!.slice(1).length} transactions.')));
+                            if (context.mounted && context.canPop) context.pop();
+                          }
+                        });
                       },
                       icon: const Icon(Icons.upload_file_rounded),
                       label: const Text('Import CSV'),
@@ -664,7 +459,38 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         },
       ),
     ];
+  }
 
+  Step buildStep(BuildContext context, _Step step) {
+    Widget? description;
+
+    if (step.description != null) {
+      description = DefaultTextStyle(style: context.textTheme.bodySmall!, child: step.description!);
+    }
+
+    return Step(
+      title: step.title,
+      subtitle: step.subtitle,
+      isActive: currentStep >= step.index,
+      state: currentStep > step.index
+          ? StepState.complete
+          : currentStep == step.index
+          ? StepState.editing
+          : StepState.disabled,
+      content: Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 16.0,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[?description, step.content],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Stepper(
       type: StepperType.vertical,
       currentStep: currentStep,
@@ -697,6 +523,16 @@ class __ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
       label: const Text('Reset'),
     );
   }
+
+  Future _showErrorSheet(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      useSafeArea: true,
+      builder: (context) {
+        return Text('Error...');
+      },
+    );
+  }
 }
 
 class _Step {
@@ -718,27 +554,12 @@ class _Step {
 }
 
 class _ColumnSelector extends StatelessWidget {
-  const _ColumnSelector({
-    super.key,
-    required this.field,
-    //   this.modalTitle,
-    //   required this.value,
-    //   required this.allColumns,
-    //   this.columnsToExclude = const [],
-    //   required this.onChanged,
-    //   this.enabled = true,
-  });
+  const _ColumnSelector({super.key, required this.field});
 
-  // final Widget? modalTitle;
-  // final int? value;
-  // final Map<int, String> allColumns;
-  // final List<int?> columnsToExclude;
-  // final ValueChanged<int> onChanged;
-  // final bool enabled;
   final TransactionField field;
 
   // List<DropdownMenuEntry<int>> get _entries => [
-  //   // DropdownMenuEntry(value: null, label: '~~ UNSPECIFIED ~'),
+  //   DropdownMenuEntry(value: null, label: '~~ UNSPECIFIED ~'),
   //   ...allColumns.entries
   //   .whereNot((entry) => columnsToExclude.contains(entry.key))
   //   .map((entry) => DropdownMenuEntry(value: entry.key, label: entry.value)),
@@ -751,10 +572,6 @@ class _ColumnSelector extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        // final titleWidget = DefaultTextStyle(
-        //   style: context.textTheme.labelLarge!,
-        //   child: modalTitle ?? Text('Select a column', overflow: TextOverflow.ellipsis),
-        // );
         return SafeArea(
           child: SingleChildScrollView(
             child: Column(
@@ -767,15 +584,11 @@ class _ColumnSelector extends StatelessWidget {
                     style: context.textTheme.labelLarge,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  // child: titleWidget,
                 ),
                 Section(
                   tiles: state.csvHeaders.asMap().entries.map((entry) {
-                    // tiles: allColumns.entries.map((entry) {
                     final isSelected = entry.key == state.fields[field];
-                    // final isSelected = entry.key == value;
                     final isSelectionAllowed = !state.fields.values.contains(entry.key) || isSelected;
-                    // final isSelectionAllowed = !columnsToExclude.contains(entry.key);
                     return SectionTile(
                       title: Text(entry.value.trim()),
                       onTap: () => context.pop(entry.key),
@@ -799,6 +612,7 @@ class _ColumnSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.read<ImportTransactionsCubit>();
     return BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
       buildWhen: (prevState, state) {
         return prevState.status != state.status || prevState.fields[field] != state.fields[field];
@@ -807,9 +621,7 @@ class _ColumnSelector extends StatelessWidget {
         $logger.i('Rebuilding ColumnSelector for field $field');
         return AsyncFormField<int>(
           enabled: state.status == ImportTransactionsStatus.loaded,
-          // enabled: enabled,
-          initialValue: state.fields[field],
-          // initialValue: value,
+          initialValue: cubit.state.fields[field],
           onTapCallback: (value) async {
             final columnIndex = await _showModal(context);
             return columnIndex ?? value;
@@ -817,7 +629,6 @@ class _ColumnSelector extends StatelessWidget {
           onChanged: (value) {
             if (value == null) return;
             context.read<ImportTransactionsCubit>().updateField(field, value);
-            // onChanged(value);
           },
           childBuilder: (value) {
             if (value == null) {
@@ -828,7 +639,6 @@ class _ColumnSelector extends StatelessWidget {
               );
             }
             return Text(state.csvHeaders[value], overflow: TextOverflow.ellipsis);
-            // return Text(allColumns[value] ?? '~~ UNSPECIFIED ~~', overflow: TextOverflow.ellipsis);
           },
           trailing: const Icon(Icons.arrow_drop_down_rounded),
         );

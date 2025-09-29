@@ -4,7 +4,7 @@ part of 'import_transactions_cubit.dart';
 // Consider using more granular state management or separating state into smaller parts.
 enum TransactionField { amount, quantity, account, amc, type, date, notes }
 
-enum ImportTransactionsStatus { initial, loading, loaded, error }
+enum ImportTransactionsStatus { initial, loading, loaded, error, success }
 
 class ImportTransactionsState extends Equatable {
   const ImportTransactionsState({
@@ -12,13 +12,6 @@ class ImportTransactionsState extends Equatable {
     this.csvHeaders = const [],
     this.csvData = const [],
     this.fields = const {},
-    // this.amountColumn,
-    // this.quantityColumn,
-    // this.accountColumn,
-    // this.amcColumn,
-    // this.dateColumn,
-    // this.typeColumn,
-    // this.notesColumn,
     this.defaultAccount,
     this.defaultType = TransactionType.invested,
     this.defaultDateFormat,
@@ -29,7 +22,6 @@ class ImportTransactionsState extends Equatable {
   final List<String> csvHeaders;
   final List<List<dynamic>> csvData;
   final Map<TransactionField, int?> fields;
-  // final int? amountColumn, quantityColumn, accountColumn, amcColumn, dateColumn, typeColumn, notesColumn;
   final InveslyAccount? defaultAccount;
   final TransactionType defaultType;
   final String? defaultDateFormat;
@@ -40,13 +32,6 @@ class ImportTransactionsState extends Equatable {
     List<String>? csvHeaders,
     List<List<dynamic>>? csvData,
     Map<TransactionField, int?>? fields,
-    // int? amountColumn,
-    // int? quantityColumn,
-    // int? accountColumn,
-    // int? amcColumn,
-    // int? dateColumn,
-    // int? typeColumn,
-    // int? notesColumn,
     InveslyAccount? Function()? defaultAccount,
     TransactionType? defaultType,
     String? defaultDateFormat,
@@ -57,14 +42,6 @@ class ImportTransactionsState extends Equatable {
       csvHeaders: csvHeaders ?? this.csvHeaders,
       csvData: csvData ?? this.csvData,
       fields: fields ?? this.fields,
-      // amountColumn: amountColumn ?? this.amountColumn,
-      // quantityColumn: quantityColumn ?? this.quantityColumn,
-      // accountColumn: accountColumn ?? this.accountColumn,
-      // amcColumn: amcColumn ?? this.amcColumn,
-      // dateColumn: dateColumn ?? this.dateColumn,
-      // typeColumn: typeColumn ?? this.typeColumn,
-      // notesColumn: notesColumn ?? this.notesColumn,
-      // defaultAccount: defaultAccount ?? this.defaultAccount,
       defaultAccount: defaultAccount?.call() ?? this.defaultAccount,
       defaultType: defaultType ?? this.defaultType,
       defaultDateFormat: defaultDateFormat ?? this.defaultDateFormat,
@@ -73,22 +50,7 @@ class ImportTransactionsState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-    csvHeaders,
-    csvData,
-    fields,
-    // amountColumn,
-    // quantityColumn,
-    // accountColumn,
-    // amcColumn,
-    // dateColumn,
-    // typeColumn,
-    // notesColumn,
-    defaultAccount,
-    defaultType,
-    defaultDateFormat,
-    errorMsg,
-  ];
+  List<Object?> get props => [csvHeaders, csvData, fields, defaultAccount, defaultType, defaultDateFormat, errorMsg];
 
   @override
   bool? get stringify => true;
@@ -101,7 +63,26 @@ class ImportTransactionsState extends Equatable {
 }
 
 extension ImportTransactionsStateX on ImportTransactionsState {
-  bool get isLoading => status == ImportTransactionsStatus.initial || status == ImportTransactionsStatus.loading;
+  bool get isLoading => [ImportTransactionsStatus.initial, ImportTransactionsStatus.loading].contains(status);
   bool get isLoaded => status == ImportTransactionsStatus.loaded;
   bool get isError => status == ImportTransactionsStatus.error;
+}
+
+class CsvImportException implements Exception {
+  final String message;
+  final Uri? uri;
+
+  const CsvImportException(this.message, {this.uri});
+
+  @override
+  String toString() {
+    var b = StringBuffer()
+      ..write('HttpException: ')
+      ..write(message);
+    var uri = this.uri;
+    if (uri != null) {
+      b.write(', uri = $uri');
+    }
+    return b.toString();
+  }
 }

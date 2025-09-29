@@ -1,15 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'edit_transaction_cubit.dart';
 
-enum EditTransactionStatus {
-  initial,
-  loading,
-  success,
-  failure;
-
-  bool get isLoadingOrSuccess => [EditTransactionStatus.loading, EditTransactionStatus.success].contains(this);
-  bool get isFailureOrSuccess => [EditTransactionStatus.failure, EditTransactionStatus.success].contains(this);
-}
+enum EditTransactionStatus { initial, loading, success, failure }
 
 class EditTransactionState extends Equatable {
   const EditTransactionState({
@@ -72,4 +64,9 @@ class EditTransactionState extends Equatable {
 
   @override
   List<Object?> get props => [status, id, accountId, quantity, amount, type, date, amc, notes];
+}
+
+extension EditTransactionStateX on EditTransactionState {
+  bool get isLoadingOrSuccess => [EditTransactionStatus.loading, EditTransactionStatus.success].contains(status);
+  bool get isFailureOrSuccess => [EditTransactionStatus.failure, EditTransactionStatus.success].contains(status);
 }

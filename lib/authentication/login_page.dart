@@ -22,6 +22,7 @@ class LoginPage extends StatelessWidget {
   static Future<InveslyUser?> showModal(BuildContext context, {Key? key}) async {
     return await showModalBottomSheet<InveslyUser>(
       context: context,
+      useSafeArea: true,
       builder: (context) {
         return _LoginPage(key: key, showInModal: true, onLoginComplete: (user) => context.pop(user));
       },
@@ -36,7 +37,7 @@ class LoginPage extends StatelessWidget {
 
     try {
       // ignore: prefer_conditional_assignment
-      final user = await openLoadingPopup<GoogleSignInAccount?>(context, () async {
+      final user = await showLoadingDialog<GoogleSignInAccount?>(context, () async {
         final user_ = await authRepository.signInWithGoogle();
         if (user_ == null) {
           throw Exception('Sign in failed');

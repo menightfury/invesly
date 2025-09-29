@@ -185,7 +185,7 @@ class AppStyle {
         elevation: 10.0,
         dragHandleSize: const Size(25.0, 4.0),
         // modalBackgroundColor: colorScheme.surface,
-        dragHandleColor: Colors.grey[300],
+        dragHandleColor: colorScheme.onSurface,
         clipBehavior: Clip.hardEdge,
         showDragHandle: true,
       ),

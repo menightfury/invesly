@@ -24,6 +24,7 @@ class ImportBackupPage extends StatelessWidget {
       context: context,
       isDismissible: false,
       enableDrag: false,
+      useSafeArea: true,
       builder: (context) {
         return _ImportBackupPage(key: key, showInModal: true, onRestoreComplete: () => context.pop());
       },

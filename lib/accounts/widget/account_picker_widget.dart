@@ -14,6 +14,7 @@ class InveslyAccountPickerWidget extends StatefulWidget {
     return await showModalBottomSheet<InveslyAccount>(
       context: context,
       // isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) {
         return InveslyAccountPickerWidget(
           accountId: accountId,

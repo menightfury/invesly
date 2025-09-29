@@ -74,13 +74,6 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
 
       Navigator.maybePop<bool>(context);
     } else {
-      // if (!(_quantityTextField.currentState?.isValid ?? false)) {
-      //   _quantityShakeKey.currentState?.shake();
-      // }
-
-      // if (!(_amountTextField.currentState?.isValid ?? false)) {
-      //   _amountShakeKey.currentState?.shake();
-      // }
       if (_validateMode.value != AutovalidateMode.onUserInteraction) {
         _validateMode.value = AutovalidateMode.onUserInteraction;
       }
@@ -92,7 +85,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocListener<EditTransactionCubit, EditTransactionState>(
-      listenWhen: (prevState, state) => prevState.status != state.status && state.status.isFailureOrSuccess,
+      listenWhen: (prevState, state) => prevState.status != state.status && state.isFailureOrSuccess,
       listener: (context, state) {
         late final SnackBar message;
 

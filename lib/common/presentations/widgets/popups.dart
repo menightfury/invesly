@@ -1,20 +1,60 @@
 import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
 
-/// Display a dialog with a title, a description and confirm/cancel buttons.
+/// Show a dialog with a loading spinner.
+/// A callback function must be provided. As long as the functions runs, loading spinner will be displayed.
+/// Return
 ///
-/// When the confirm dialogs is closed, it will return `true` or `false` when one of the actions
-/// button is pressed, and null if closed without tapping on any icon
-Future<bool?> showConfirmDialog(
+Future<T?> showLoadingDialog<T extends Object?>(BuildContext context, Future<T?> Function() callback) async {
+  return showDialog(
+    context: context,
+    useRootNavigator: false,
+    barrierDismissible: false,
+    // barrierColor: Colors.black.withOpacity(0.4),
+    useSafeArea: true,
+    // barrierLabel: '',
+    // transitionBuilder: (_, anim, _, child) {
+    //   final tween = Tween<double>(begin: 0.9, end: 1);
+    //   return ScaleTransition(
+    //     scale: tween.animate(CurvedAnimation(parent: anim, curve: Curves.easeInOutQuart)),
+    //     child: FadeTransition(opacity: anim, child: child),
+    //   );
+    // },
+    // transitionDuration: Duration(milliseconds: 200),
+    builder: (context) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        T? result;
+        try {
+          result = await callback.call();
+        } catch (err) {
+          $logger.e(err);
+        }
+        if (context.mounted && context.canPop) context.pop(result);
+      });
+      return Center(
+        child: Material(
+          borderRadius: BorderRadiusDirectional.circular(25.0),
+          color: context.colors.secondaryContainer,
+          child: Padding(padding: const EdgeInsets.all(20.0), child: CircularProgressIndicator()),
+        ),
+      );
+    },
+  );
+}
+
+/// Show a dialog with a title, a description and confirm/cancel buttons.
+Future<void> showConfirmDialog(
   BuildContext context, {
   required String title,
   Widget? icon,
   Widget? content,
   bool showCancelButton = false,
-  String? confirmationText,
+  String? confirmText,
   bool canPop = true,
+  VoidCallback? onConfirm,
+  VoidCallback? onCancel,
 }) {
-  return showDialog<bool>(
+  return showDialog(
     context: context,
     barrierDismissible: canPop,
     builder: (context) {
@@ -24,10 +64,20 @@ Future<bool?> showConfirmDialog(
         content: content,
         actions: <Widget>[
           if (showCancelButton)
-            TextButton(child: Text('Cancel'), onPressed: () => Navigator.of(context, rootNavigator: true).pop(false)),
-          TextButton(
-            child: Text(confirmationText ?? 't.general.understood'),
-            onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).pop();
+                onCancel?.call();
+              },
+            ),
+          FilledButton.tonalIcon(
+            icon: const Icon(Icons.check_rounded),
+            label: Text(confirmText ?? 'Confirm'),
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true).pop();
+              onConfirm?.call();
+            },
           ),
         ],
       );
@@ -364,69 +414,6 @@ enum RoutesToPopAfterDelete { none, one, all, preventDelete }
 //       );
 //     },
 //   );
-// }
-
-Future<T?> openLoadingPopup<T extends Object?>(BuildContext context, Future<T?> Function() callback) async {
-  return showDialog(
-    context: context,
-    useRootNavigator: false,
-    barrierDismissible: false,
-    barrierColor: Colors.black.withOpacity(0.4),
-    // barrierLabel: '',
-    // transitionBuilder: (_, anim, _, child) {
-    //   final tween = Tween<double>(begin: 0.9, end: 1);
-    //   return ScaleTransition(
-    //     scale: tween.animate(CurvedAnimation(parent: anim, curve: Curves.easeInOutQuart)),
-    //     child: FadeTransition(opacity: anim, child: child),
-    //   );
-    // },
-    // transitionDuration: Duration(milliseconds: 200),
-    builder: (context) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        T? result;
-        try {
-          result = await callback.call();
-        } catch (err) {
-          $logger.e(err);
-        }
-        if (context.mounted) context.pop(result);
-      });
-      return Center(
-        child: Material(
-          borderRadius: BorderRadiusDirectional.circular(25.0),
-          color: context.colors.secondaryContainer,
-          child: Padding(padding: const EdgeInsets.all(20.0), child: CircularProgressIndicator()),
-        ),
-      );
-    },
-  );
-
-  // return result;
-}
-
-// Future openLoadingPopupTryCatch(
-//   Future Function() function, {
-//   BuildContext? context,
-//   Function(dynamic error)? onError,
-//   Function(dynamic result)? onSuccess,
-// }) async {
-//   openLoadingPopup(context ?? navigatorKey.currentContext!);
-//   try {
-//     dynamic result = await function();
-//     popRoute(context ?? navigatorKey.currentContext!, result);
-//     if (onSuccess != null) onSuccess(result);
-//     return result;
-//   } catch (e) {
-//     $logger.e(e);
-//     popRoute(context ?? navigatorKey.currentContext!, null);
-//     if (onError != null) {
-//       onError(e);
-//     } else {
-//       $logger.e(e);
-//       // openSnackbar(SnackbarMessage(title: 'an-error-occurred', icon: Icons.warning_rounded, description: e.toString()));
-//     }
-//   }
-//   return null;
 // }
 
 // // TODO: Move this function to new file

@@ -48,6 +48,7 @@ class MonthYearPickerState extends State<MonthYearPicker> with SingleTickerProvi
     final year = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const Border(top: BorderSide()),
       builder: (context) {
         return const Padding(

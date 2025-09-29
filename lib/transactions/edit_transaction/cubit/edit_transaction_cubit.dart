@@ -53,7 +53,10 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
   }
 
   Future<void> save() async {
-    if (!state.canSave) return;
+    if (!state.canSave) {
+      emit(state.copyWith(status: EditTransactionStatus.failure));
+      return;
+    }
 
     final inv = InveslyTransaction(
       id: state.id ?? $uuid.v1(),
@@ -66,6 +69,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     );
     $logger.i(inv);
 
+    emit(state.copyWith(status: EditTransactionStatus.loading));
     try {
       await _repository.saveTransaction(inv);
       emit(state.copyWith(status: EditTransactionStatus.success));

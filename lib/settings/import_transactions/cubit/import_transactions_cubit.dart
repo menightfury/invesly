@@ -115,90 +115,6 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     $logger.w(state.fields);
   }
 
-  // void updateAmountColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, amountColumn: columnIndex));
-  // }
-
-  // void updateQuantityColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, quantityColumn: columnIndex));
-  // }
-
-  // void updateAccountColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, accountColumn: columnIndex));
-  // }
-
-  // void updateAmcColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, amcColumn: columnIndex));
-  // }
-
-  // void updateTypeColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, typeColumn: columnIndex));
-  // }
-
-  // void updateDateColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, dateColumn: columnIndex));
-  // }
-
-  // void updateNotesColumn(int columnIndex) {
-  //   if (state.status != ImportTransactionsStatus.loaded) return;
-
-  //   final err = _validateColumnIndex(columnIndex);
-  //   if (err != null) {
-  //     emit(state.copyWith(status: ImportTransactionsStatus.error, errorMsg: err));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: ImportTransactionsStatus.loaded, notesColumn: columnIndex));
-  // }
-
   void updateDefaultAccount(InveslyAccount? account) {
     if (state.status != ImportTransactionsStatus.loaded) return;
     if (account == null) {
@@ -230,22 +146,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
   }
 
   Future<void> importTransactions() async {
-    // final snackbarDisplayer = ScaffoldMessenger.of(context).showSnackBar;
-
-    // onSuccess() {
-    //   // RouteUtils.popAllRoutesExceptFirst();
-    //   // RouteUtils.pushRoute(context, const TabsPage());
-
-    //   snackbarDisplayer(SnackBar(content: Text('Successfully imported ${csvData!.slice(1).length} transactions.')));
-    // }
-
-    // if (amountColumn == null) {
-    //   snackbarDisplayer(const SnackBar(content: Text('Amount column can not be null')));
-    //   return;
-    // }
-
-    // final loadingOverlay = LoadingOverlay.of(context);
-    // loadingOverlay.show();
+    final csvRows = state.csvData;
     final dateNow = DateTime.now();
     final amountColumnIndex = state.fields[TransactionField.amount];
     final qntyColumnIndex = state.fields[TransactionField.quantity];
@@ -255,95 +156,97 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     final dateColumnIndex = state.fields[TransactionField.date];
     final noteColumnIndex = state.fields[TransactionField.notes];
 
-    // Cache of known accounts and amcs
+    // Cache of accounts and amcs
     final existingAccounts = <String, InveslyAccount>{};
     final existingAmcs = <String, InveslyAmc>{};
 
-    try {
-      final csvRows = state.csvData;
+    final errors = <int, List<TransactionField>>{}; // { rowNumber : [ Errors ] }
 
-      final transactionsToInsert = <TransactionInDb>[];
+    final transactionsToInsert = <TransactionInDb>[];
+    for (var i = 0; i < csvRows.length; i++) {
+      final row = csvRows[i];
+      // Resolve type
+      // The type can be integer (i.e. 0 for investment and 1 for redemption, 2 for dividend) or
+      // can be one character (like I, R, D) or can be string (Investment, Redemption or Divident)
+      TransactionType? type = state.defaultType;
+      final rawType = typeColumnIndex == null ? null : row[typeColumnIndex];
+      if (rawType is int) {
+        type = TransactionType.fromInt(rawType);
+      } else if (rawType is String) {
+        type = rawType.length == 1 ? TransactionType.fromChar(rawType) : TransactionType.fromString(rawType);
+      }
 
-      for (final row in csvRows) {
-        // Resolve type
-        // The type can be integer (i.e. 0 for investment and 1 for redemption, 2 for dividend) or
-        // can be one character (like I, R, D) or can be string (Investment, Redemption or Divident)
-        TransactionType? type = state.defaultType;
-        final rawType = typeColumnIndex == null ? null : row[typeColumnIndex];
-        if (rawType is int) {
-          type = TransactionType.fromInt(rawType);
-        } else if (rawType is String) {
-          type = rawType.length == 1 ? TransactionType.fromChar(rawType) : TransactionType.fromString(rawType);
-        }
+      // Resolve amount
+      final totalAmount = amountColumnIndex == null ? null : double.tryParse(row[amountColumnIndex].toString());
+      if (totalAmount == null) {
+        errors[i] = [...?errors[i], TransactionField.amount];
+      }
 
-        // Resolve amount
-        final totalAmount = amountColumnIndex == null ? null : double.tryParse(row[amountColumnIndex].toString());
-        // if(totalAmount == null) throw Exception();
+      // Resolve quantity
+      final quantity = qntyColumnIndex == null ? null : double.tryParse(row[qntyColumnIndex].toString());
 
-        // Resolve quantity
-        final quantity = qntyColumnIndex == null ? null : double.tryParse(row[qntyColumnIndex].toString());
-
-        // Resolve account
-        // distinguish between accountIdOrName = null and account = null (i.e. accountIdOrName is provided but account not exists)
-        final accountIdOrName = accountColumnIndex == null ? null : row[accountColumnIndex].toString().trim();
-        String? accountId = state.defaultAccount?.id;
-        if (accountIdOrName != null && accountIdOrName.isNotEmpty) {
-          // Look for account in cache first
-          if (existingAccounts.containsKey(accountIdOrName)) {
-            accountId = existingAccounts[accountIdOrName]!.id;
-          } else {
-            // Look for account in database
-            final account = await _accountRepository.getAccount(accountIdOrName);
-            if (account == null) {
-              // accountIdOrName is provided but account not exists
-              // show modal to select one of the default account or to add a new account with that name
-              // emit(
-              //   state.copyWith(
-              //     status: ImportTransactionsStatus.needsAccountResolution,
-              //     unresolvedAccountName: accountIdOrName,
-              //   ),
-              // );
-            } else {
-              // add fetched account to `existingAccounts` cache for future
-              existingAccounts[account.id] = account;
-              accountId = account.id;
-            }
-          }
-        }
-
-        // Resolve amc
-        final amcIdOrName = amcColumnIndex == null ? null : row[amcColumnIndex].toString().trim();
-        String? amcId;
-        if (amcIdOrName != null && amcIdOrName.isNotEmpty) {
-          // Look for amc in cache first
-          if (existingAmcs.containsKey(amcIdOrName)) {
-            amcId = existingAmcs[amcIdOrName]!.id;
-          } else {
-            // Look for amc in database
-            final amc = await _amcRepository.getAmc(amcIdOrName);
-            if (amc != null) {
-              // add fetched amc to `existingAmcs` cache for future
-              existingAmcs[amc.id] = amc;
-              amcId = amc.id;
-            }
-          }
-        }
-
-        // Resolve date
-        late final DateTime date;
-        if (dateColumnIndex != null && state.defaultDateFormat != null) {
-          date = DateFormat(state.defaultDateFormat, 'en_IN').tryParse(row[dateColumnIndex].toString()) ?? dateNow;
+      // Resolve account
+      // distinguish between accountIdOrName = null and account = null
+      // (i.e. accountIdOrName is provided but account not exists)
+      final accountIdOrName = accountColumnIndex == null ? null : row[accountColumnIndex].toString().trim();
+      String? accountId = state.defaultAccount?.id;
+      if (accountIdOrName != null && accountIdOrName.isNotEmpty) {
+        // Look for account in cache first
+        if (existingAccounts.containsKey(accountIdOrName)) {
+          accountId = existingAccounts[accountIdOrName]!.id;
         } else {
-          date = dateNow;
+          // Look for account in database
+          final account = await _accountRepository.getAccount(accountIdOrName);
+          if (account == null) {
+            // accountIdOrName is provided but account not exists
+            // show modal to select one of the accounts or to add a new account with that name
+            errors[i] = [...?errors[i], TransactionField.account];
+          } else {
+            // add fetched account to `existingAccounts` cache for future
+            existingAccounts[account.id] = account;
+            accountId = account.id;
+          }
         }
+      }
 
-        // Resolve note
-        final note = noteColumnIndex == null ? null : row[noteColumnIndex].toString();
+      // Resolve amc
+      final amcIdOrName = amcColumnIndex == null ? null : row[amcColumnIndex].toString().trim();
+      String? amcId;
+      if (amcIdOrName != null && amcIdOrName.isNotEmpty) {
+        // Look for amc in cache first
+        if (existingAmcs.containsKey(amcIdOrName)) {
+          amcId = existingAmcs[amcIdOrName]!.id;
+        } else {
+          // Look for amc in database
+          final amc = await _amcRepository.getAmc(amcIdOrName);
+          if (amc == null) {
+            // amcIdOrName is provided but amc not exists
+            // show modal to select one of the amcs or to add a new amc with that name
+            errors[i] = [...?errors[i], TransactionField.amc];
+          } else {
+            // add fetched amc to `existingAmcs` cache for future
+            existingAmcs[amc.id] = amc;
+            amcId = amc.id;
+          }
+        }
+      }
 
+      // Resolve date
+      late final DateTime date;
+      if (dateColumnIndex != null && state.defaultDateFormat != null) {
+        date = DateFormat(state.defaultDateFormat, 'en_IN').tryParse(row[dateColumnIndex].toString()) ?? dateNow;
+      } else {
+        date = dateNow;
+      }
+
+      // Resolve note
+      final note = noteColumnIndex == null ? null : row[noteColumnIndex].toString();
+
+      if (errors[i]?.isEmpty ?? true) {
         transactionsToInsert.add(
           TransactionInDb(
             id: $uuid.v1(),
-            accountId: accountId,
+            accountId: accountId!,
             date: date.millisecondsSinceEpoch,
             quantity: quantity ?? 0.0,
             totalAmount: totalAmount ?? 0.0,
@@ -352,15 +255,15 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
           ),
         );
       }
+    }
 
-      await _transactionRepository.insertTransactions(transactionsToInsert);
-
-      // loadingOverlay.hide();
-      // onSuccess();
+    try {
+      // await _transactionRepository.insertTransactions(transactionsToInsert);
+      $logger.d(transactionsToInsert);
+      emit(state.copyWith(status: ImportTransactionsStatus.success));
     } catch (e) {
       $logger.e(e);
-      // loadingOverlay.hide();
-      // snackbarDisplayer(SnackBar(content: Text(e.toString())));
+      emit(state.copyWith(status: ImportTransactionsStatus.error));
     }
   }
 }

@@ -20,6 +20,7 @@ class InveslyCalculatorWidget extends StatelessWidget {
       context: context,
       enableDrag: false,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) {
         return InveslyCalculatorWidget(
           initialAmount: initialAmount,

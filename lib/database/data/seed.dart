@@ -1,11 +1,11 @@
 // spell-checker: disable
+import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 
-// // delete accounts in production mode
-// final _account1 = AccountInDb(id: $uuid.v1(), name: 'Satyajyoti Biswas', avatarIndex: 2);
-// final _account2 = AccountInDb(id: $uuid.v1(), name: 'Jhuma Mondal', avatarIndex: 1);
-
-// final accounts = [_account1, _account2];
+// delete accounts in production mode
+final _account1 = AccountInDb(id: 'satyajyoti_biswas', name: 'Satyajyoti Biswas', avatarIndex: 2);
+final _account2 = AccountInDb(id: 'jhuma_mondal', name: 'Jhuma Mondal', avatarIndex: 1);
+final initialAccounts = [_account1, _account2];
 
 final initialAmcs = [
   // ~ Mutual funds

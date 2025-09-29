@@ -22,6 +22,7 @@ class InveslyDateFormatPicker extends StatelessWidget {
     return await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) {
         return InveslyDateFormatPicker(value: dateFormat, onPickup: (value) => Navigator.maybePop(context, value));
       },
