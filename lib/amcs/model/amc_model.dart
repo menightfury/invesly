@@ -67,9 +67,9 @@ class AmcTable extends TableSchema<AmcInDb> {
   static const _i = AmcTable._();
   factory AmcTable() => _i;
 
-  TableColumn<String> get nameColumn => TableColumn('name', name);
-  TableColumn<int> get genreColumn => TableColumn('genre', name, type: TableColumnType.integer, isNullable: true);
-  TableColumn<String> get tagsColumn => TableColumn('tags', name, isNullable: true);
+  TableColumn<String> get nameColumn => TableColumn('name', tableName);
+  TableColumn<int> get genreColumn => TableColumn('genre', tableName, type: TableColumnType.integer, isNullable: true);
+  TableColumn<String> get tagsColumn => TableColumn('tags', tableName, isNullable: true);
 
   @override
   Set<TableColumn> get columns => super.columns..addAll([nameColumn, genreColumn, tagsColumn]);

@@ -80,7 +80,8 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
                   Text('Size: 215 KB', style: context.textTheme.labelMedium?.copyWith(color: Colors.grey)),
                   Gap(16.0),
                   Text(
-                    'Restore your data from Google Drive. If you don\'t restore now, you won\'t be able to restore it later.',
+                    'Restore your data from Google Drive.'
+                    ' If you don\'t restore now, you won\'t be able to restore it later.',
                   ),
                   Spacer(),
 
@@ -89,7 +90,10 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
                     spacing: 8.0,
                     children: <Widget>[
                       Expanded(
-                        child: OutlinedButton(onPressed: () => widget.onRestoreComplete?.call(), child: Text('Skip')),
+                        child: OutlinedButton(
+                          onPressed: () => widget.onRestoreComplete?.call(),
+                          child: const Text('Skip'),
+                        ),
                       ),
                       Expanded(
                         child: ElevatedButton.icon(
@@ -100,7 +104,7 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
                             _onRestorePressed(context, snapshot.data!.first);
                           },
                           icon: Icon(Icons.restore_rounded),
-                          label: Text('Restore', textAlign: TextAlign.center),
+                          label: const Text('Restore', textAlign: TextAlign.center),
                         ),
                       ),
                     ],
@@ -118,13 +122,13 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
               spacing: 8.0,
               children: <Widget>[
                 Image.asset('assets/images/empty_1.png', height: 200),
-                Text('Sorry! No backup found.', textAlign: TextAlign.center),
+                const Text('Sorry! No backup found.', textAlign: TextAlign.center),
                 Spacer(),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () => widget.onRestoreComplete?.call(),
-                    child: Text('Go to dashboard'),
+                    child: const Text('Go to dashboard'),
                   ),
                 ),
               ],

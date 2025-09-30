@@ -7,7 +7,7 @@ import 'package:invesly/common/extensions/num_extension.dart';
 void main() async {
   print('importing starts ======');
   const _fields = {
-    TransactionField.amount: 2,
+    TransactionField.amount: 1,
     TransactionField.quantity: 6,
     TransactionField.account: 1,
     TransactionField.amc: 4,

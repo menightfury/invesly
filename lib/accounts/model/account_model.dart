@@ -59,8 +59,9 @@ class AccountTable extends TableSchema<AccountInDb> {
   static const i = AccountTable._();
   factory AccountTable() => i;
 
-  TableColumn<String> get nameColumn => TableColumn('name', name);
-  TableColumn<int> get avatarColumn => TableColumn('avatar', name, type: TableColumnType.integer, isNullable: true);
+  TableColumn<String> get nameColumn => TableColumn('name', tableName);
+  TableColumn<int> get avatarColumn =>
+      TableColumn('avatar', tableName, type: TableColumnType.integer, isNullable: true);
   // TableColumn<String> get panNumberColumn => TableColumn('pan_number', name, isNullable: true);
   // TableColumn<String> get aadhaarNumberColumn => TableColumn('aadhaar_number', name, isNullable: true);
 

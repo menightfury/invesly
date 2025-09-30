@@ -174,14 +174,14 @@ class TransactionTable extends TableSchema<TransactionInDb> {
   factory TransactionTable() => _i;
 
   TableColumn<String> get accountIdColumn =>
-      TableColumn('account_id', name, foreignReference: ForeignReference('accounts', 'id'));
+      TableColumn('account_id', tableName, foreignReference: ForeignReference('accounts', 'id'));
   // TableColumn<int> get typeColumn => TableColumn('type', name, type: TableColumnType.integer); // invested or redeemed
   TableColumn<String> get amcIdColumn =>
-      TableColumn('amc_id', name, foreignReference: ForeignReference('amcs', 'id'), isNullable: true);
-  TableColumn<double> get quantityColumn => TableColumn('quantity', name, type: TableColumnType.real);
-  TableColumn<double> get amountColumn => TableColumn('total_amount', name, type: TableColumnType.real);
-  TableColumn<int> get dateColumn => TableColumn('date', name, type: TableColumnType.integer);
-  TableColumn<String> get noteColumn => TableColumn('note', name, isNullable: true);
+      TableColumn('amc_id', tableName, foreignReference: ForeignReference('amcs', 'id'), isNullable: true);
+  TableColumn<double> get quantityColumn => TableColumn('quantity', tableName, type: TableColumnType.real);
+  TableColumn<double> get amountColumn => TableColumn('total_amount', tableName, type: TableColumnType.real);
+  TableColumn<int> get dateColumn => TableColumn('date', tableName, type: TableColumnType.integer);
+  TableColumn<String> get noteColumn => TableColumn('note', tableName, isNullable: true);
 
   @override
   Set<TableColumn> get columns =>

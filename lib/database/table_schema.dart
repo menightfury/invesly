@@ -16,7 +16,6 @@ enum TableColumnType {
   }
 }
 
-// enum TableFilterOperator { equal, notEqual, greaterThan, lessThan, greaterThanOrEqual, lessThanOrEqual, like, inList, between }
 enum TableChangeEventType { insertion, updation, deletion }
 
 abstract class TableFilter<T extends Object> {
@@ -26,43 +25,65 @@ abstract class TableFilter<T extends Object> {
 }
 
 class SingleValueTableFilter<T extends Object> implements TableFilter<T> {
-  const SingleValueTableFilter(this.column, this.value)
+  const SingleValueTableFilter(this.column, this.value, [this.operator = '=', this.negate = false])
     : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool');
 
   final TableColumn column;
   final T value;
+  final String operator;
+  final bool negate;
 
   @override
   (String, List<T>) toSql() {
-    return ('${column.fullTitle} = ?', [value]);
+    final buffer = StringBuffer();
+    if (negate) {
+      buffer.write('NOT ');
+    }
+    buffer.write(column.fullTitle);
+    buffer.write(' $operator ?');
+    return (buffer.toString(), [value]);
   }
 }
 
 class MultipleValueTableFilter<T extends Object> implements TableFilter<T> {
-  MultipleValueTableFilter(this.column, this.values)
+  MultipleValueTableFilter(this.column, this.values, [this.negate = false])
     : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool'),
       assert(values.isNotEmpty, 'Values list must not be empty');
 
   final TableColumn column;
   final List<T> values;
+  final bool negate;
 
   @override
   (String, List<T>) toSql() {
-    final placeholders = values.map((_) => '?').join(', ');
-    return ('${column.fullTitle} IN ($placeholders)', values);
+    final buffer = StringBuffer();
+    if (negate) {
+      buffer.write('NOT ');
+    }
+    buffer.write('${column.fullTitle} IN (');
+    buffer.writeAll(Iterable.generate(values.length, (_) => '?'), ', ');
+    buffer.write(')');
+    return (buffer.toString(), values);
   }
 }
 
 class RangeValueTableFilter<T extends Object> implements TableFilter<T> {
-  const RangeValueTableFilter(this.column, this.start, this.end) : assert(T == num, 'Value must be of type num');
+  const RangeValueTableFilter(this.column, this.start, this.end, [this.negate = false])
+    : assert(T == num, 'Value must be of type num');
 
   final TableColumn column;
   final T start;
   final T end;
+  final bool negate;
 
   @override
   (String, List<T>) toSql() {
-    return ('${column.fullTitle} BETWEEN ? AND ?', [start, end]);
+    final buffer = StringBuffer();
+    if (negate) {
+      buffer.write('NOT ');
+    }
+    buffer.write('${column.fullTitle} BETWEEN ? AND ?');
+    return (buffer.toString(), [start, end]);
   }
 }
 
@@ -105,20 +126,19 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
 
   String get effectiveTableName {
     // SELECT table1.*, table2.id as table2_id FROM table1 JOIN table2 ON table1.amc_id = table2.id
-    final tableName = StringBuffer(_table.name);
+    final buffer = StringBuffer(_table.tableName);
     if (_joinTables.isNotEmpty && _table.foreignKeys.isNotEmpty) {
       for (final joinTable in _joinTables) {
         // get foreignKey
-        final fkc = _table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == joinTable.name);
+        final fkc = _table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == joinTable.tableName);
 
         if (fkc == null) continue;
 
-        tableName.write(
-          ' JOIN ${joinTable.name} ON ${fkc.fullTitle} = ${joinTable.name}.${fkc.foreignReference!.columnName}',
-        );
+        buffer.write(' JOIN ${joinTable.tableName} ');
+        buffer.write('ON ${fkc.fullTitle} = ${joinTable.tableName}.${fkc.foreignReference!.columnName}');
       }
     }
-    return tableName.toString();
+    return buffer.toString();
   }
 
   List<String> get effectiveTableColumns {
@@ -128,7 +148,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
       if (_joinTables.isNotEmpty && _table.foreignKeys.isNotEmpty) {
         for (final joinTable in _joinTables) {
           // get foreignKey
-          final fkc = _table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == joinTable.name);
+          final fkc = _table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == joinTable.tableName);
 
           if (fkc == null) continue;
 
@@ -171,23 +191,15 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
   @override
   Future<List<Map<String, dynamic>>> toList() async {
     final List<Map<String, dynamic>> data = [];
-
-    // final where = _where.isEmpty ? null : _where.keys.map<String>((key) => '${key.fullTitle} = ?').join(' AND ');
-    // final whereArgs = _where.isEmpty ? null : _where.values.toList();
-
-    // final whereMap = _where.isEmpty ? null : _where.map((fv) => fv.toSql());
-    final whereMap = _where?.toSql();
-    // final where = whereMap?.map<String>((fv) => fv.$1).join(' AND ');
-    // final whereArgs = whereMap?.map((fv) => fv.$2).expand((el) => el).toList();
-
+    final $where = _where?.toSql();
     final groupBy = _group.isEmpty ? null : _group.map<String>((col) => col.fullTitle).join(', ');
 
     try {
       final list = await _db.query(
         effectiveTableName,
         columns: effectiveTableColumns,
-        where: whereMap?.$1,
-        whereArgs: whereMap?.$2,
+        where: $where?.$1,
+        whereArgs: $where?.$2,
         // orderBy: orderBy,
         // limit: limit,
         groupBy: groupBy,
@@ -198,7 +210,9 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
         final map = Map<String, dynamic>.from(el);
         if (_joinTables.isNotEmpty && _table.foreignKeys.isNotEmpty) {
           for (final joinTable in _joinTables) {
-            final fkc = _table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == joinTable.name);
+            final fkc = _table.foreignKeys.firstWhereOrNull(
+              (c) => c.foreignReference!.tableName == joinTable.tableName,
+            );
 
             if (fkc == null) continue;
 
@@ -240,11 +254,11 @@ abstract class InveslyDataModel extends Equatable {
 }
 
 abstract class TableSchema<T extends InveslyDataModel> extends Equatable {
-  final String name;
+  final String tableName;
 
-  const TableSchema(this.name);
+  const TableSchema(this.tableName);
 
-  TableColumn<String> get idColumn => TableColumn('id', name, isPrimary: true);
+  TableColumn<String> get idColumn => TableColumn('id', tableName, isPrimary: true);
 
   /// Get all columns
   Set<TableColumn> get columns => {idColumn};
@@ -264,7 +278,7 @@ abstract class TableSchema<T extends InveslyDataModel> extends Equatable {
   T encode(Map<String, dynamic> map);
 
   @override
-  List<Object?> get props => [name];
+  List<Object?> get props => [tableName];
 
   /// Create table SQL statement
   String createTable() {
@@ -292,7 +306,7 @@ abstract class TableSchema<T extends InveslyDataModel> extends Equatable {
         })
         .join(', ');
 
-    return 'CREATE TABLE IF NOT EXISTS $name ($columnDefs);';
+    return 'CREATE TABLE IF NOT EXISTS $tableName ($columnDefs);';
   }
 }
 

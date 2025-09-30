@@ -52,7 +52,7 @@ class InveslyApi {
         batch.execute(_amcTable.createTable());
         // insert default table values in amcTable
         // ignore: avoid_function_literals_in_foreach_calls
-        initialAmcs.forEach((amc) => batch.insert(_amcTable.name, _amcTable.decode(amc)));
+        initialAmcs.forEach((amc) => batch.insert(_amcTable.tableName, _amcTable.decode(amc)));
         batch.execute(_trnTable.createTable());
         await batch.commit(noResult: true, continueOnError: true);
       },
@@ -71,14 +71,14 @@ class InveslyApi {
   }
 
   Future<int> insert(TableSchema table, InveslyDataModel data) async {
-    final r = await db.insert(table.name, table.decode(data));
+    final r = await db.insert(table.tableName, table.decode(data));
     _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.insertion));
     return r;
   }
 
   Future<int> update(TableSchema table, InveslyDataModel data) async {
     final r = await db.update(
-      table.name,
+      table.tableName,
       table.decode(data),
       where: '${table.idColumn.fullTitle} = ?',
       whereArgs: [data.id],
