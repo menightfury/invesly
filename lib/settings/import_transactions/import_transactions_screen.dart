@@ -42,15 +42,47 @@ class _ImportTransactionsScreen extends StatefulWidget {
 }
 
 class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
-  late final List<_Step> _steps;
+  // late final List<_Step> _steps;
   int currentStep = 0;
 
   @override
   void initState() {
     super.initState();
-    final cubit = context.read<ImportTransactionsCubit>();
+  }
 
-    _steps = [
+  Step buildStep(BuildContext context, _Step step) {
+    Widget? description;
+
+    if (step.description != null) {
+      description = DefaultTextStyle(style: context.textTheme.bodySmall!, child: step.description!);
+    }
+
+    return Step(
+      title: step.title,
+      subtitle: step.subtitle,
+      isActive: currentStep >= step.index,
+      state: currentStep > step.index
+          ? StepState.complete
+          : currentStep == step.index
+          ? StepState.editing
+          : StepState.disabled,
+      content: Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 16.0,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[?description, step.content],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ImportTransactionsCubit>();
+    // TODO: Move steps to initState
+    final _steps = [
       _Step(
         index: 0,
         title: const Text('Select CSV file'),
@@ -396,18 +428,22 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
       _Step(
         index: 6,
         title: const Text('Select other columns'),
-        description: const Text('Specifies the columns for other optional transaction attributes'),
         content: Column(
           spacing: 12.0,
           children: <Widget>[
             // ~ Type
             Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  'Specify the column where the transaction type name is specified.'
-                  ' The types can be integer (0 for investment and 1 for redemption or dividend) or'
-                  ' can be one character (like I, R, D) or can be string.',
-                  style: context.textTheme.bodySmall,
+                const Padding(padding: EdgeInsets.symmetric(horizontal: 12.0), child: Text('Transaction type')),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Text(
+                    'Specify the column where the transaction type name is specified.'
+                    ' The types can be integer (0 for investment and 1 for redemption or dividend) or'
+                    ' can be one character (like I, R, D) or can be string.',
+                    style: TextStyle(fontSize: 14.0),
+                  ),
                 ),
                 _ColumnSelector(field: TransactionField.type),
 
@@ -432,19 +468,42 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                   return Expanded(
                     child: FilledButton.icon(
                       onPressed: () async {
-                        showLoadingDialog(context, () async {
-                          try {
+                        showLoadingDialog(
+                          context,
+                          () async {
                             await cubit.importTransactions();
-                          } catch (err) {
-                            if (!context.mounted) return;
-                            _showErrorSheet(context);
-                            await cubit.importTransactions();
-                          } finally {
-                            // show success message
-                            // snackbarDisplayer(SnackBar(content: Text('Successfully imported ${csvData!.slice(1).length} transactions.')));
-                            if (context.mounted && context.canPop) context.pop();
-                          }
-                        });
+                          },
+
+                          onError: (err) {
+                            if (err is CsvImportException) {
+                              if (!context.mounted) return;
+
+                              // showModalBottomSheet(
+                              //   context: context,
+                              //   useSafeArea: true,
+                              //   isScrollControlled: true,
+                              //   builder: (context) {
+                              //     return _showErrorSheet(context, err.errors);
+
+                              //     // await cubit.importTransactions();
+                              //   },
+                              // );
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return BlocProvider.value(
+                                      value: cubit,
+                                      child: Scaffold(
+                                        appBar: AppBar(title: Text('This is error screen which will be removed')),
+                                        body: _showErrorSheet(context, err.errors),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            }
+                          },
+                        );
                       },
                       icon: const Icon(Icons.upload_file_rounded),
                       label: const Text('Import CSV'),
@@ -459,38 +518,7 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
         },
       ),
     ];
-  }
 
-  Step buildStep(BuildContext context, _Step step) {
-    Widget? description;
-
-    if (step.description != null) {
-      description = DefaultTextStyle(style: context.textTheme.bodySmall!, child: step.description!);
-    }
-
-    return Step(
-      title: step.title,
-      subtitle: step.subtitle,
-      isActive: currentStep >= step.index,
-      state: currentStep > step.index
-          ? StepState.complete
-          : currentStep == step.index
-          ? StepState.editing
-          : StepState.disabled,
-      content: Padding(
-        padding: const EdgeInsets.only(bottom: 8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16.0,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[?description, step.content],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Stepper(
       type: StepperType.vertical,
       currentStep: currentStep,
@@ -524,13 +552,94 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
     );
   }
 
-  Future _showErrorSheet(BuildContext context) async {
-    showModalBottomSheet(
-      context: context,
-      useSafeArea: true,
-      builder: (context) {
-        return Text('Error...');
-      },
+  Widget _showErrorSheet(BuildContext context, Map<int, List<TransactionField>> errors) {
+    // final cubit = context.read<ImportTransactionsCubit>();
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+            child: Text(
+              'Errors have been found in the following rows',
+              style: context.textTheme.labelLarge?.copyWith(color: context.colors.error),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          ColumnBuilder(
+            spacing: 12.0,
+            itemBuilder: (context, index) {
+              final errorEntry = errors.entries.elementAt(index);
+              // return ListTile(title: Text('Row number ${errorEntry.key + 1}'));
+              return Section(
+                title: Text('Row number ${errorEntry.key + 1}'),
+                trailingIcon: Icon(Icons.delete_outline_rounded),
+                tiles: errorEntry.value.map((errorField) {
+                  return SectionTile(
+                    title: Text(errorField.name),
+
+                    description: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        spacing: 8.0,
+                        children: <Widget>[
+                          ActionChip(
+                            label: Text('Ignore'),
+                            avatar: const Icon(Icons.remove_circle_outline_rounded),
+                            labelStyle: context.textTheme.labelSmall,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          ActionChip(
+                            label: Text('Add AMC to Database'),
+                            avatar: const Icon(Icons.add_rounded),
+                            labelStyle: context.textTheme.labelSmall,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          ActionChip(
+                            label: Text('Select AMC from Database'),
+                            avatar: const Icon(Icons.edit_rounded),
+                            labelStyle: context.textTheme.labelSmall,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+            itemCount: errors.length,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () async {
+                  // showLoadingDialog(
+                  //   context,
+                  //   () async {
+                  //     await cubit.importTransactions();
+                  //   },
+
+                  //   onError: (err) {
+                  //     if (err is CsvImportException) {
+                  //       if (!context.mounted) return;
+                  //       _showErrorSheet(context, err.errors);
+
+                  //       // await cubit.importTransactions();
+                  //     }
+                  //   },
+                  // );
+                },
+                icon: const Icon(Icons.upload_file_rounded),
+                label: const Text('Import CSV'),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

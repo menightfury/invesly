@@ -3,9 +3,12 @@ import 'package:invesly/common_libs.dart';
 
 /// Show a dialog with a loading spinner.
 /// A callback function must be provided. As long as the functions runs, loading spinner will be displayed.
-/// Return
 ///
-Future<T?> showLoadingDialog<T extends Object?>(BuildContext context, Future<T?> Function() callback) async {
+Future<T?> showLoadingDialog<T extends Object?>(
+  BuildContext context,
+  Future<T?> Function() callback, {
+  ValueChanged<Object>? onError,
+}) async {
   return showDialog(
     context: context,
     useRootNavigator: false,
@@ -26,14 +29,16 @@ Future<T?> showLoadingDialog<T extends Object?>(BuildContext context, Future<T?>
         T? result;
         try {
           result = await callback.call();
+          if (context.mounted && context.canPop) context.pop(result);
         } catch (err) {
           $logger.e(err);
+          if (context.mounted && context.canPop) context.pop();
+          onError?.call(err);
         }
-        if (context.mounted && context.canPop) context.pop(result);
       });
       return Center(
         child: Material(
-          borderRadius: BorderRadiusDirectional.circular(25.0),
+          borderRadius: BorderRadiusDirectional.circular(16.0),
           color: context.colors.secondaryContainer,
           child: Padding(padding: const EdgeInsets.all(20.0), child: CircularProgressIndicator()),
         ),
@@ -41,6 +46,35 @@ Future<T?> showLoadingDialog<T extends Object?>(BuildContext context, Future<T?>
     },
   );
 }
+
+// Future openLoadingPopupTryCatch(
+//   Future Function() function, {
+//   BuildContext? context,
+//   Function(dynamic error)? onError,
+//   Function(dynamic result)? onSuccess,
+// }) async {
+//   openLoadingPopup(context ?? navigatorKey.currentContext!);
+//   try {
+//     dynamic result = await function();
+//     popRoute(context ?? navigatorKey.currentContext!, result);
+//     if (onSuccess != null) onSuccess(result);
+//     return result;
+//   } catch (e) {
+//     print("Error caught: " + e.toString());
+//     popRoute(context ?? navigatorKey.currentContext!, null);
+//     if (onError != null)
+//       onError(e);
+//     else
+//       openSnackbar(
+//         SnackbarMessage(
+//           title: "an-error-occured".tr(),
+//           icon: appStateSettings["outlinedIcons"] ? Icons.warning_outlined : Icons.warning_rounded,
+//           description: e.toString(),
+//         ),
+//       );
+//   }
+//   return null;
+// }
 
 /// Show a dialog with a title, a description and confirm/cancel buttons.
 Future<void> showConfirmDialog(
@@ -177,7 +211,7 @@ Future<T?> openPopup<T extends Object?>(
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 23.0,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w600,
                                       color: context.colors.onPrimaryContainer,
                                     ),
                                     maxLines: 5,
@@ -191,7 +225,7 @@ Future<T?> openPopup<T extends Object?>(
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 21,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w600,
                                       color: context.colors.onTertiaryContainer,
                                     ),
                                     maxLines: 5,
@@ -400,7 +434,7 @@ enum RoutesToPopAfterDelete { none, one, all, preventDelete }
 //                         child: TextFont(
 //                           text: title,
 //                           fontSize: 25,
-//                           fontWeight: FontWeight.bold,
+//                           fontWeight: FontWeight.w600,
 //                           maxLines: 5,
 //                           textAlign: TextAlign.center,
 //                         ),

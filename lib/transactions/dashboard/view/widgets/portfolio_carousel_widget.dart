@@ -53,7 +53,10 @@ class _PortfolioCarouselWidgetState extends State<_PortfolioCarouselWidget> {
               final num t = (1 - (itemOffset.abs() * 0.6)).clamp(0.7, 1.0);
               scale = Curves.easeOut.transform(t as double);
 
-              return Transform.scale(scale: scale, child: Opacity(opacity: scale, child: child));
+              return Transform.scale(
+                scale: scale,
+                child: Opacity(opacity: scale, child: child),
+              );
             },
             child: _CarouselPage(pageData: widget.pages[index]),
           ),
@@ -84,7 +87,7 @@ class _CarouselPage extends StatelessWidget {
             Text(
               pageData.title,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18.0),
+              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 18.0),
             ),
             const SizedBox(height: 8.0),
             Image.asset(pageData.imgSrc, height: 90.0, fit: BoxFit.cover),

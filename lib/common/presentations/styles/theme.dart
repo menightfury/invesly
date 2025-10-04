@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 // import 'package:google_fonts/google_fonts.dart';
 
 import '../../../constants.dart';
@@ -24,8 +25,8 @@ class AppStyle {
       canvasColor: colorScheme.secondaryContainer,
       cardColor: colorScheme.secondaryContainer,
       colorScheme: colorScheme,
-      // fontFamily: GoogleFonts.sourceSans3().fontFamily,
-      fontFamily: _primaryFont,
+      fontFamily: GoogleFonts.slabo27px().fontFamily,
+      // fontFamily: _primaryFont,
       dividerColor: colorScheme.primary.withAlpha(50),
       textTheme: const TextTheme(
         headlineLarge: TextStyle(fontFamily: _headerFont, fontSize: 32.0),
@@ -38,6 +39,7 @@ class AppStyle {
         bodySmall: TextStyle(fontSize: 14.0), // textfield helper
         labelLarge: TextStyle(fontSize: 18.0, height: 1.4, fontWeight: FontWeight.w600), // button, *-chip
         labelMedium: TextStyle(fontSize: 16.0, height: 1.4), // bottomNavBar
+        labelSmall: TextStyle(fontSize: 13.0),
       ),
       iconTheme: IconThemeData(color: colorScheme.onSurface),
       chipTheme: ChipThemeData(

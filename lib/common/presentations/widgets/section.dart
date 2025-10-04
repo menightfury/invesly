@@ -19,12 +19,12 @@ class Section extends StatelessWidget {
     // final tileCount = math.max(0, separatorBuilder == null ? itemCount : itemCount * 2 - 1);
 
     final titleText = DefaultTextStyle(
-      style: context.textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
+      style: context.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
       child: title ?? const SizedBox.shrink(),
     );
 
     final subtitleText = DefaultTextStyle(
-      style: context.textTheme.labelMedium!.copyWith(color: context.colors.secondary),
+      style: context.textTheme.bodySmall!.copyWith(color: context.colors.secondary),
       child: subTitle ?? const SizedBox.shrink(),
     );
 
@@ -44,7 +44,7 @@ class Section extends StatelessWidget {
                 leading: icon,
                 trailing: trailingIcon,
                 subtitle: subtitleText,
-                tileColor: context.colors.primaryContainer.darken(10),
+                tileColor: context.colors.primaryContainer.darken(5),
                 minVerticalPadding: 12.0,
                 // shape: const RoundedRectangleBorder(
                 //   borderRadius: BorderRadius.vertical(top: Radius.circular(20.0), bottom: Radius.circular(4.0)),
@@ -226,7 +226,7 @@ class SectionTile extends StatelessWidget {
 
     if (description != null) {
       subtitleText = DefaultTextStyle(
-        style: context.textTheme.labelMedium!.copyWith(
+        style: context.textTheme.bodySmall!.copyWith(
           color: enabled ? context.colors.secondary : context.theme.disabledColor,
         ),
         child: description!,

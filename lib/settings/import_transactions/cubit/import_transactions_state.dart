@@ -2,7 +2,23 @@ part of 'import_transactions_cubit.dart';
 
 // This approach leads to unnecessary rebuilds of widgets that depend on the state.
 // Consider using more granular state management or separating state into smaller parts.
-enum TransactionField { amount, quantity, account, amc, type, date, notes }
+enum TransactionField {
+  amount,
+  quantity,
+  account,
+  amc,
+  type,
+  date,
+  notes;
+
+  String? get validator {
+    if (this == amc) {
+      return 'AMC is provided as .... but AMC not found in database.';
+    }
+
+    return null;
+  }
+}
 
 enum ImportTransactionsStatus { initial, loading, loaded, error, success }
 
@@ -63,26 +79,27 @@ class ImportTransactionsState extends Equatable {
 }
 
 extension ImportTransactionsStateX on ImportTransactionsState {
-  bool get isLoading => [ImportTransactionsStatus.initial, ImportTransactionsStatus.loading].contains(status);
+  bool get isLoading => status == ImportTransactionsStatus.loading;
   bool get isLoaded => status == ImportTransactionsStatus.loaded;
   bool get isError => status == ImportTransactionsStatus.error;
 }
 
 class CsvImportException implements Exception {
-  final String message;
-  final Uri? uri;
+  // final String message;
+  // final Uri? uri;
+  final Map<int, List<TransactionField>> errors;
 
-  const CsvImportException(this.message, {this.uri});
+  const CsvImportException(this.errors);
 
-  @override
-  String toString() {
-    var b = StringBuffer()
-      ..write('HttpException: ')
-      ..write(message);
-    var uri = this.uri;
-    if (uri != null) {
-      b.write(', uri = $uri');
-    }
-    return b.toString();
-  }
+  // @override
+  // String toString() {
+  //   var b = StringBuffer()
+  //     ..write('HttpException: ')
+  //     ..write(message);
+  //   var uri = this.uri;
+  //   if (uri != null) {
+  //     b.write(', uri = $uri');
+  //   }
+  //   return b.toString();
+  // }
 }

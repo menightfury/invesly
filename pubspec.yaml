@@ -59,7 +59,7 @@ dependencies:
   gap: ^3.0.1
   googleapis: ^14.0.0
   googleapis_auth: ^2.0.0
-  # google_fonts: ^6.2.1
+  google_fonts: ^6.3.2
   google_sign_in: ^7.0.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0

@@ -88,7 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           'Add',
                           style: context.textTheme.labelMedium?.copyWith(
                             color: context.theme.primaryColor,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),

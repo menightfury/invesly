@@ -188,7 +188,9 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
       // Resolve account
       // distinguish between accountIdOrName = null and account = null
       // (i.e. accountIdOrName is provided but account not exists)
-      final accountIdOrName = accountColumnIndex == null ? null : row[accountColumnIndex].toString().trim();
+      final accountIdOrName = accountColumnIndex == null
+          ? null
+          : row[accountColumnIndex].toString().trim().toLowerCase();
       String? accountId = state.defaultAccount?.id;
       if (accountIdOrName != null && accountIdOrName.isNotEmpty) {
         // Look for account in cache first
@@ -234,7 +236,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
       // Resolve date
       late final DateTime date;
       if (dateColumnIndex != null && state.defaultDateFormat != null) {
-        date = DateFormat(state.defaultDateFormat, 'en_IN').tryParse(row[dateColumnIndex].toString()) ?? dateNow;
+        date = DateFormat(state.defaultDateFormat).tryParse(row[dateColumnIndex].toString()) ?? dateNow;
       } else {
         date = dateNow;
       }
@@ -255,6 +257,10 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
           ),
         );
       }
+    } // end of for loop
+
+    if (errors.isNotEmpty) {
+      throw CsvImportException(errors);
     }
 
     try {
