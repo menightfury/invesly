@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
+import 'package:invesly/common/extensions/widget_extension.dart';
+import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 
 class InveslyAmcPickerWidget extends StatefulWidget {
@@ -63,58 +65,65 @@ class _InveslyAmcPickerWidgetState extends State<InveslyAmcPickerWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: AppConstants.formFieldLabelSpacing,
-          children: <Widget>[
-            const Text('Asset Management Company (AMC)'),
-            TextFormField(controller: _searchController),
-            Expanded(
-              child: ValueListenableBuilder<TextEditingValue>(
-                valueListenable: _searchController,
-                builder: (context, searchQuery, _) {
-                  $logger.d(searchQuery.text);
+      appBar: AppBar(title: const Text('Select Asset Management Company')),
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: AppConstants.formFieldLabelSpacing,
+            children: <Widget>[
+              TextFormField(
+                decoration: const InputDecoration(hintText: 'Enter keyword', prefixIcon: Icon(Icons.search)),
+                controller: _searchController,
+                autofocus: true,
+              ).withLabel('Search Asset Management Company (AMC)'),
+              Flexible(
+                child: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _searchController,
+                  builder: (context, searchQuery, _) {
+                    $logger.d(searchQuery.text);
 
-                  return FutureBuilder<List<InveslyAmc>?>(
-                    future: _searchAmc(searchQuery.text),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        if (snapshot.hasError) {
-                          return const Center(child: Text('Error occurred while fetching AMCs'));
-                        }
-                        if (snapshot.hasData) {
-                          final amcs = snapshot.data;
-                          if (amcs == null || amcs.isEmpty) {
-                            return const Center(child: Text('Sorry! No results found 😞'));
+                    return FutureBuilder<List<InveslyAmc>?>(
+                      future: _searchAmc(searchQuery.text),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.hasError) {
+                            return const Center(child: Text('Error occurred while fetching AMCs'));
                           }
+                          if (snapshot.hasData) {
+                            final amcs = snapshot.data;
+                            if (amcs == null || amcs.isEmpty) {
+                              return const Center(child: Text('Sorry! No results found 😞'));
+                            }
 
-                          return ListView.separated(
-                            padding: EdgeInsets.zero,
-                            itemCount: amcs.length,
-                            // shrinkWrap: true,
-                            itemBuilder: (context, index) {
-                              final amc = amcs.elementAt(index);
+                            return ListView.separated(
+                              padding: EdgeInsets.zero,
+                              itemCount: amcs.length,
+                              shrinkWrap: true,
+                              itemBuilder: (context, index) {
+                                final amc = amcs.elementAt(index);
 
-                              return ListTile(
-                                onTap: () => widget.onPickup?.call(amc),
-                                dense: true,
-                                title: Text(amc.name),
-                                subtitle: Text((amc.genre ?? AmcGenre.misc).title),
-                              );
-                            },
-                            separatorBuilder: (_, _) => const InveslyDivider(),
-                          );
+                                return SectionTile(
+                                  onTap: () => widget.onPickup?.call(amc),
+                                  // dense: true,
+                                  title: Text(amc.name),
+                                  description: Text((amc.genre ?? AmcGenre.misc).title),
+                                );
+                              },
+                              separatorBuilder: (_, _) => const SizedBox(height: 2.0),
+                            );
+                          }
                         }
-                      }
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                  );
-                },
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

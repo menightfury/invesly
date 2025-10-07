@@ -227,9 +227,10 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                               return null;
                             },
                             onTapCallback: (value) async {
-                              final newAmc = await InveslyAmcPickerWidget.showModal(context, value?.id);
+                              // final newAmc = await InveslyAmcPickerWidget.showModal(context, value?.id);
+                              final newAmc = await context.push(InveslyAmcPickerWidget(amcId: value?.id));
                               if (newAmc == null) return null;
-                              return newAmc;
+                              // return newAmc;
                             },
                             onChanged: (value) {
                               if (value == null) return;
