@@ -318,7 +318,7 @@ class _AmcGenreList extends StatelessWidget {
   Widget _buildGenre(BuildContext context, AmcGenre genre) {
     return Tappable(
       onTap: () {},
-      borderRadius: const BorderRadius.all(Radius.circular(4.0)),
+      borderRadius: BorderRadius.zero,
       childAlignment: Alignment.centerLeft,
       padding: EdgeInsets.zero,
       color: context.colors.secondaryContainer,

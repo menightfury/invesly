@@ -3,21 +3,61 @@
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common_libs.dart';
 
-const _kBorderRadius = RoundedRectangleBorder(borderRadius: AppConstants.tileBorderRadius);
+// const _kBorderRadius = AppConstants.tileBorderRadius;
+const _kBigRadius = Radius.circular(16.0);
+const _kSmallRadius = Radius.circular(4.0);
+
+enum _SectionVariant { scrollable, fixed }
 
 class Section extends StatelessWidget {
-  const Section({super.key, this.title, this.subTitle, this.icon, this.trailingIcon, required this.tiles});
+  Section({super.key, this.title, this.subTitle, this.icon, this.trailingIcon, required List<Widget> tiles})
+    : assert(tiles.isNotEmpty),
+      tileCount = tiles.length,
+      _variant = _SectionVariant.fixed,
+      _tiles = tiles,
+      _tileBuilder = null;
+
+  const Section.builder({
+    super.key,
+    this.title,
+    this.subTitle,
+    this.icon,
+    this.trailingIcon,
+    required this.tileCount,
+    required IndexedWidgetBuilder tileBuilder,
+  }) : assert(tileCount > 0),
+       _variant = _SectionVariant.scrollable,
+       _tiles = null,
+       _tileBuilder = tileBuilder;
 
   final Widget? title;
   final Widget? subTitle;
   final Widget? icon;
   final Widget? trailingIcon;
-  final List<Widget> tiles;
+  final int tileCount;
+  final _SectionVariant _variant;
+  final List<Widget>? _tiles;
+  final IndexedWidgetBuilder? _tileBuilder;
+
+  bool get hasTiles => tileCount > 0;
+
+  BorderRadius effectiveTileRadius(int index) {
+    BorderRadius tileRadius = BorderRadius.all(_kSmallRadius);
+    // check if first tile
+    if (index == 0 && title == null) {
+      tileRadius = tileRadius.copyWith(topLeft: _kBigRadius, topRight: _kBigRadius);
+    }
+
+    // check if last tile
+    if (index == tileCount - 1) {
+      tileRadius = tileRadius.copyWith(bottomLeft: _kBigRadius, bottomRight: _kBigRadius);
+    }
+
+    return tileRadius;
+  }
 
   @override
   Widget build(BuildContext context) {
-    // final tileCount = math.max(0, separatorBuilder == null ? itemCount : itemCount * 2 - 1);
-
     final titleText = DefaultTextStyle(
       style: context.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
       child: title ?? const SizedBox.shrink(),
@@ -28,11 +68,50 @@ class Section extends StatelessWidget {
       child: subTitle ?? const SizedBox.shrink(),
     );
 
+    BorderRadius headerRadius = BorderRadius.all(_kBigRadius);
+    if (hasTiles) {
+      headerRadius = headerRadius.copyWith(bottomLeft: _kSmallRadius, bottomRight: _kSmallRadius);
+    }
+
+    late final Widget tileContainer;
+    if (_variant == _SectionVariant.scrollable) {
+      tileContainer = Expanded(
+        child: ListView.separated(
+          itemBuilder: (context, index) {
+            final tileRadius = effectiveTileRadius(index);
+            $logger.d('tileRadius: $tileRadius');
+            return ClipPath(
+              // clipBehavior: Clip.hardEdge,
+              clipper: ShapeBorderClipper(shape: RoundedRectangleBorder(borderRadius: tileRadius)),
+              child: _tileBuilder!(context, index),
+            );
+          },
+          separatorBuilder: (_, _) => const SizedBox(height: 2.0),
+          itemCount: tileCount,
+        ),
+      );
+    } else if (_variant == _SectionVariant.fixed) {
+      tileContainer = Column(
+        spacing: 2.0,
+        children: List.generate(tileCount, (index) {
+          final tileRadius = effectiveTileRadius(index);
+          $logger.d('tileRadius: $tileRadius');
+          return ClipPath(
+            clipBehavior: Clip.hardEdge,
+            clipper: ShapeBorderClipper(shape: RoundedRectangleBorder(borderRadius: tileRadius)),
+            child: _tiles![index],
+          );
+        }),
+      );
+    } else {
+      tileContainer = SizedBox.shrink();
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Material(
         type: MaterialType.transparency,
-        borderRadius: AppConstants.cardBorderRadius,
+        // borderRadius: AppConstants.cardBorderRadius,
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,85 +125,10 @@ class Section extends StatelessWidget {
                 subtitle: subtitleText,
                 tileColor: context.colors.primaryContainer.darken(5),
                 minVerticalPadding: 12.0,
-                // shape: const RoundedRectangleBorder(
-                //   borderRadius: BorderRadius.vertical(top: Radius.circular(20.0), bottom: Radius.circular(4.0)),
-                // ),
-                shape: _kBorderRadius,
+                shape: RoundedRectangleBorder(borderRadius: headerRadius),
+                // shape: _kBorderRadius,
               ),
-            // InveslyDivider.dashed(dashGap: 2.0, dashWidth: 2.0, colors: [Colors.grey]),
-
-            // ...tiles.asMap().entries.map((entry) {
-            //   final index = entry.key;
-            //   final tile = entry.value;
-            //   late final BorderRadius borderRadius;
-            //   if (index == 0 && title == null) {
-            //     borderRadius = BorderRadius.vertical(
-            //       top: AppConstants.cardBorderRadius.topLeft,
-            //       bottom: const Radius.circular(4.0),
-            //     );
-            //   } else if (index == tiles.length - 1) {
-            //     borderRadius = BorderRadius.vertical(
-            //       top: const Radius.circular(4.0),
-            //       bottom: AppConstants.cardBorderRadius.bottomLeft,
-            //     );
-            //   } else {
-            //     borderRadius = const BorderRadius.all(Radius.circular(4.0));
-            //   }
-            //   return Material(borderRadius: borderRadius, clipBehavior: Clip.antiAlias, child: tile);
-            // }),
-            ...tiles,
-
-            // ...List.generate(tileCount, (index) {
-            //   if (separatorBuilder == null) {
-            //     Widget item = itemBuilder(context, index);
-
-            //     // if (_firstChildShape != null && index == 0) {
-            //     //   item = ClipPath(
-            //     //     clipBehavior: Clip.hardEdge,
-            //     //     clipper: ShapeBorderClipper(shape: _firstChildShape),
-            //     //     child: item,
-            //     //   );
-            //     // } else if (_lastChildShape != null && index == childCount - 1) {
-            //     //   item = ClipPath(
-            //     //     clipper: ShapeBorderClipper(shape: _lastChildShape),
-            //     //     child: item,
-            //     //   );
-            //     // } else if (_childShape != null) {
-            //     //   item = ClipPath(
-            //     //     clipper: ShapeBorderClipper(shape: _childShape),
-            //     //     child: item,
-            //     //   );
-            //     // }
-
-            //     return item;
-            //   }
-
-            //   final int itemIndex = index ~/ 2;
-            //   if (index.isEven) {
-            //     Widget item = itemBuilder(context, itemIndex);
-
-            //     // if (_firstChildShape != null && index == 0) {
-            //     //   item = ClipPath(
-            //     //     clipBehavior: Clip.hardEdge,
-            //     //     clipper: ShapeBorderClipper(shape: _firstChildShape),
-            //     //     child: item,
-            //     //   );
-            //     // } else if (_lastChildShape != null && index == childCount - 1) {
-            //     //   item = ClipPath(
-            //     //     clipper: ShapeBorderClipper(shape: _lastChildShape),
-            //     //     child: item,
-            //     //   );
-            //     // } else if (_childShape != null) {
-            //     //   item = ClipPath(
-            //     //     clipper: ShapeBorderClipper(shape: _childShape),
-            //     //     child: item,
-            //     //   );
-            //     // }
-
-            //     return item;
-            //   }
-            //   return separatorBuilder!(context, itemIndex);
-            // }),
+            tileContainer,
           ],
         ),
       ),
@@ -247,7 +251,7 @@ class SectionTile extends StatelessWidget {
         onChanged: (value) => _onChanged?.call(value ?? false),
         tileColor: color ?? defaultTileColor,
         selectedTileColor: selectedColor ?? defaultSelectedTileColor,
-        shape: _kBorderRadius,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(_kSmallRadius)),
         enabled: enabled,
         selected: selected,
       );
@@ -263,7 +267,7 @@ class SectionTile extends StatelessWidget {
         onChanged: _onChanged,
         tileColor: color ?? defaultTileColor,
         selectedTileColor: selectedColor ?? defaultSelectedTileColor,
-        shape: _kBorderRadius,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(_kSmallRadius)),
         selected: selected,
       );
     }
@@ -277,7 +281,7 @@ class SectionTile extends StatelessWidget {
       enabled: enabled,
       tileColor: color ?? defaultTileColor,
       selectedTileColor: selectedColor ?? defaultSelectedTileColor,
-      shape: _kBorderRadius,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(_kSmallRadius)),
       selected: selected,
     );
   }

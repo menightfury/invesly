@@ -66,7 +66,6 @@ class _InveslyAmcPickerWidgetState extends State<InveslyAmcPickerWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Select Asset Management Company')),
-      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -98,11 +97,11 @@ class _InveslyAmcPickerWidgetState extends State<InveslyAmcPickerWidget> {
                               return const Center(child: Text('Sorry! No results found 😞'));
                             }
 
-                            return ListView.separated(
-                              padding: EdgeInsets.zero,
-                              itemCount: amcs.length,
-                              shrinkWrap: true,
-                              itemBuilder: (context, index) {
+                            return Section.builder(
+                              // padding: EdgeInsets.zero,
+                              tileCount: amcs.length,
+                              // shrinkWrap: true,
+                              tileBuilder: (context, index) {
                                 final amc = amcs.elementAt(index);
 
                                 return SectionTile(
@@ -112,7 +111,7 @@ class _InveslyAmcPickerWidgetState extends State<InveslyAmcPickerWidget> {
                                   description: Text((amc.genre ?? AmcGenre.misc).title),
                                 );
                               },
-                              separatorBuilder: (_, _) => const SizedBox(height: 2.0),
+                              // separatorBuilder: (_, _) => const SizedBox(height: 2.0),
                             );
                           }
                         }
