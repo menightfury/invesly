@@ -68,11 +68,6 @@ class Section extends StatelessWidget {
       child: subTitle ?? const SizedBox.shrink(),
     );
 
-    BorderRadius headerRadius = BorderRadius.all(_kBigRadius);
-    if (hasTiles) {
-      headerRadius = headerRadius.copyWith(bottomLeft: _kSmallRadius, bottomRight: _kSmallRadius);
-    }
-
     late final Widget tileContainer;
     if (_variant == _SectionVariant.scrollable) {
       tileContainer = Expanded(
@@ -80,9 +75,9 @@ class Section extends StatelessWidget {
           itemBuilder: (context, index) {
             final tileRadius = effectiveTileRadius(index);
             $logger.d('tileRadius: $tileRadius');
-            return ClipPath(
+            return ClipRRect(
               // clipBehavior: Clip.hardEdge,
-              clipper: ShapeBorderClipper(shape: RoundedRectangleBorder(borderRadius: tileRadius)),
+              borderRadius: tileRadius,
               child: _tileBuilder!(context, index),
             );
           },
@@ -96,9 +91,9 @@ class Section extends StatelessWidget {
         children: List.generate(tileCount, (index) {
           final tileRadius = effectiveTileRadius(index);
           $logger.d('tileRadius: $tileRadius');
-          return ClipPath(
-            clipBehavior: Clip.hardEdge,
-            clipper: ShapeBorderClipper(shape: RoundedRectangleBorder(borderRadius: tileRadius)),
+          return ClipRRect(
+            // clipBehavior: Clip.hardEdge,
+            borderRadius: tileRadius,
             child: _tiles![index],
           );
         }),
@@ -125,7 +120,9 @@ class Section extends StatelessWidget {
                 subtitle: subtitleText,
                 tileColor: context.colors.primaryContainer.darken(5),
                 minVerticalPadding: 12.0,
-                shape: RoundedRectangleBorder(borderRadius: headerRadius),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: _kBigRadius, bottom: _kSmallRadius),
+                ),
                 // shape: _kBorderRadius,
               ),
             tileContainer,
@@ -173,7 +170,7 @@ class SectionTile extends StatelessWidget {
     required this.title,
     this.description,
     this.icon,
-    Widget? trailingIcon,
+    this.trailingIcon,
     this.color,
     this.selectedColor,
     this.enabled = true,
@@ -182,8 +179,7 @@ class SectionTile extends StatelessWidget {
   }) : _onTap = onTap,
        _variant = _SectionTileVariant.navigation,
        _value = false,
-       _onChanged = null,
-       trailingIcon = trailingIcon ?? const Icon(Icons.keyboard_double_arrow_right_outlined);
+       _onChanged = null;
 
   const SectionTile.switchTile({
     super.key,
@@ -215,7 +211,7 @@ class SectionTile extends StatelessWidget {
     void Function(bool)? onChanged,
   }) : _onChanged = onChanged,
        _value = value,
-       _variant = _SectionTileVariant.toggle,
+       _variant = _SectionTileVariant.check,
        trailingIcon = null,
        _onTap = null;
 
@@ -223,66 +219,57 @@ class SectionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final titleText = DefaultTextStyle(
       style: context.textTheme.bodyMedium!.copyWith(color: enabled ? null : context.theme.disabledColor),
+      overflow: TextOverflow.ellipsis,
       child: title,
     );
 
     Widget? subtitleText;
-
     if (description != null) {
       subtitleText = DefaultTextStyle(
         style: context.textTheme.bodySmall!.copyWith(
           color: enabled ? context.colors.secondary : context.theme.disabledColor,
         ),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
         child: description!,
       );
     }
 
     final defaultTileColor = context.theme.canvasColor;
-    final defaultSelectedTileColor = defaultTileColor.darken(8);
 
-    if (_variant == _SectionTileVariant.check) {
-      return CheckboxListTile(
-        key: key,
-        title: titleText,
-        subtitle: subtitleText,
-        secondary: icon,
+    final effectiveTrailingIcon = switch (_variant) {
+      _SectionTileVariant.toggle => Switch(value: _value, onChanged: _onChanged),
+      _SectionTileVariant.navigation => trailingIcon ?? const Icon(Icons.keyboard_double_arrow_right_outlined),
+      _SectionTileVariant.check => Checkbox(
         value: _value,
-        tristate: false,
-        onChanged: (value) => _onChanged?.call(value ?? false),
-        tileColor: color ?? defaultTileColor,
-        selectedTileColor: selectedColor ?? defaultSelectedTileColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(_kSmallRadius)),
-        enabled: enabled,
-        selected: selected,
-      );
-    }
+        onChanged: _onChanged != null ? (value) => _onChanged.call(value ?? false) : null,
+      ),
+      _ => trailingIcon,
+    };
 
-    if (_variant == _SectionTileVariant.toggle) {
-      return SwitchListTile(
-        key: key,
-        title: titleText,
-        subtitle: subtitleText,
-        secondary: icon,
-        value: _value,
-        onChanged: _onChanged,
-        tileColor: color ?? defaultTileColor,
-        selectedTileColor: selectedColor ?? defaultSelectedTileColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(_kSmallRadius)),
-        selected: selected,
-      );
-    }
-
-    return ListTile(
-      title: titleText,
-      subtitle: subtitleText,
-      leading: icon,
-      trailing: trailingIcon,
-      onTap: _onTap,
-      enabled: enabled,
-      tileColor: color ?? defaultTileColor,
-      selectedTileColor: selectedColor ?? defaultSelectedTileColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(_kSmallRadius)),
-      selected: selected,
+    return GestureDetector(
+      onTap: _onChanged != null ? () => _onChanged.call(!_value) : _onTap,
+      child: ColoredBox(
+        color: color ?? defaultTileColor,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              spacing: 16.0,
+              children: <Widget>[
+                ?icon,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[titleText, ?subtitleText],
+                  ),
+                ),
+                ?effectiveTrailingIcon,
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

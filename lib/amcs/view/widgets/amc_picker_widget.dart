@@ -97,21 +97,21 @@ class _InveslyAmcPickerWidgetState extends State<InveslyAmcPickerWidget> {
                               return const Center(child: Text('Sorry! No results found 😞'));
                             }
 
-                            return Section.builder(
-                              // padding: EdgeInsets.zero,
-                              tileCount: amcs.length,
-                              // shrinkWrap: true,
-                              tileBuilder: (context, index) {
-                                final amc = amcs.elementAt(index);
-
-                                return SectionTile(
-                                  onTap: () => widget.onPickup?.call(amc),
-                                  // dense: true,
-                                  title: Text(amc.name),
-                                  description: Text((amc.genre ?? AmcGenre.misc).title),
-                                );
-                              },
-                              // separatorBuilder: (_, _) => const SizedBox(height: 2.0),
+                            return ColoredBox(
+                              color: Colors.redAccent,
+                              child: Section.builder(
+                                tileCount: amcs.length,
+                                tileBuilder: (context, index) {
+                                  final amc = amcs.elementAt(index);
+                                  return SectionTile(
+                                    onTap: () => widget.onPickup?.call(amc),
+                                    // dense: true,
+                                    title: Text(amc.name),
+                                    description: Text((amc.genre ?? AmcGenre.misc).title),
+                                  );
+                                },
+                                // separatorBuilder: (_, _) => const SizedBox(height: 2.0),
+                              ),
                             );
                           }
                         }

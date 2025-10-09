@@ -74,7 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     // final user = currentUser ?? InveslyUser.empty();
                     return Section(
                       title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
-                      subTitle: currentUser.isNotNullOrEmpty ? Text(currentUser!.email) : null,
+                      subTitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
                       // icon: CircleAvatar(
                       //   backgroundImage: user.photoUrl != null ? CachedNetworkImageProvider(user.photoUrl!) : null,
                       //   child: user.photoUrl == null ? const Icon(Icons.person_rounded) : null,
@@ -189,8 +189,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       builder: (context, isPrivateMode) {
                         return SectionTile.switchTile(
                           icon: const Icon(Icons.privacy_tip_outlined),
-                          title: Text('Private mode'),
-                          description: Text('Hide all monetary values'),
+                          title: const Text('Private mode'),
+                          description: const Text('Hide all monetary values'),
                           value: isPrivateMode,
                           onChanged: (value) => context.read<AppCubit>().updatePrivateMode(value),
                         );
@@ -426,11 +426,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       description: Text('Rate us on the Play Store'),
                       onTap: () {},
                     ),
-                    SectionTile(
+                    SectionTile.checkTile(
                       icon: const Icon(Icons.share_rounded),
                       title: Text('Share with friends'),
                       description: Text('Share Invesly with your friends and family'),
-                      onTap: () {},
+                      onChanged: (value) {
+                        $logger.i('Share with friends: $value');
+                      },
+                      value: true,
                     ),
                     SectionTile(
                       icon: const Icon(Icons.feedback_outlined),
@@ -446,6 +449,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
+
+                const Gap(32.0),
               ]),
             ),
           ],
