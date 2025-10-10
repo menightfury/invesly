@@ -170,7 +170,7 @@ class AppStyle {
       ),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
-          padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
+          // padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
           minimumSize: WidgetStatePropertyAll<Size>(Size.square(AppConstants.minButtonSize.shortestSide)),
           // backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
           //   if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);

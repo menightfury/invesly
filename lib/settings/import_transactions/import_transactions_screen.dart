@@ -579,7 +579,7 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                   return SectionTile(
                     title: Text(errorField.name),
 
-                    description: SingleChildScrollView(
+                    subtitle: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         spacing: 8.0,

@@ -437,7 +437,7 @@ class _RecentTransactions extends StatelessWidget {
                   return SectionTile(
                     icon: Icon(rt.transactionType.icon),
                     title: Text(rt.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
-                    description: Text(
+                    subtitle: Text(
                       rt.investedOn.toReadable(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

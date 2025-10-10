@@ -10,12 +10,19 @@ const _kSmallRadius = Radius.circular(4.0);
 enum _SectionVariant { scrollable, fixed }
 
 class Section extends StatelessWidget {
-  Section({super.key, this.title, this.subTitle, this.icon, this.trailingIcon, required List<Widget> tiles})
-    : assert(tiles.isNotEmpty),
-      tileCount = tiles.length,
-      _variant = _SectionVariant.fixed,
-      _tiles = tiles,
-      _tileBuilder = null;
+  Section({
+    super.key,
+    this.title,
+    this.subTitle,
+    this.icon,
+    this.trailingIcon,
+    required List<Widget> tiles,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16.0),
+  }) : assert(tiles.isNotEmpty),
+       tileCount = tiles.length,
+       _variant = _SectionVariant.fixed,
+       _tiles = tiles,
+       _tileBuilder = null;
 
   const Section.builder({
     super.key,
@@ -25,6 +32,7 @@ class Section extends StatelessWidget {
     this.trailingIcon,
     required this.tileCount,
     required IndexedWidgetBuilder tileBuilder,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16.0),
   }) : assert(tileCount > 0),
        _variant = _SectionVariant.scrollable,
        _tiles = null,
@@ -38,6 +46,7 @@ class Section extends StatelessWidget {
   final _SectionVariant _variant;
   final List<Widget>? _tiles;
   final IndexedWidgetBuilder? _tileBuilder;
+  final EdgeInsetsGeometry padding;
 
   bool get hasTiles => tileCount > 0;
 
@@ -74,7 +83,6 @@ class Section extends StatelessWidget {
         child: ListView.separated(
           itemBuilder: (context, index) {
             final tileRadius = effectiveTileRadius(index);
-            $logger.d('tileRadius: $tileRadius');
             return ClipRRect(
               // clipBehavior: Clip.hardEdge,
               borderRadius: tileRadius,
@@ -90,7 +98,6 @@ class Section extends StatelessWidget {
         spacing: 2.0,
         children: List.generate(tileCount, (index) {
           final tileRadius = effectiveTileRadius(index);
-          $logger.d('tileRadius: $tileRadius');
           return ClipRRect(
             // clipBehavior: Clip.hardEdge,
             borderRadius: tileRadius,
@@ -103,27 +110,39 @@ class Section extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: padding,
       child: Material(
         type: MaterialType.transparency,
-        // borderRadius: AppConstants.cardBorderRadius,
+        borderRadius: BorderRadius.all(_kSmallRadius),
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 2.0,
           children: <Widget>[
             if (title != null)
-              ListTile(
-                title: titleText,
-                leading: icon,
-                trailing: trailingIcon,
-                subtitle: subtitleText,
-                tileColor: context.colors.primaryContainer.darken(5),
-                minVerticalPadding: 12.0,
-                shape: RoundedRectangleBorder(
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: context.colors.primaryContainer.darken(5),
                   borderRadius: BorderRadius.vertical(top: _kBigRadius, bottom: _kSmallRadius),
                 ),
-                // shape: _kBorderRadius,
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Row(
+                      spacing: 16.0,
+                      children: <Widget>[
+                        ?icon,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[titleText, subtitleText],
+                          ),
+                        ),
+                        ?trailingIcon,
+                      ],
+                    ),
+                  ),
+                ),
               ),
             tileContainer,
           ],
@@ -137,7 +156,8 @@ enum _SectionTileVariant { normal, navigation, toggle, check }
 
 class SectionTile extends StatelessWidget {
   final Widget title;
-  final Widget? description;
+  final Widget? subtitle;
+  final double? titleSpacing;
   final Widget? icon;
   final Widget? trailingIcon;
   final Color? color;
@@ -152,7 +172,8 @@ class SectionTile extends StatelessWidget {
   const SectionTile({
     super.key,
     required this.title,
-    this.description,
+    this.subtitle,
+    this.titleSpacing,
     this.icon,
     this.trailingIcon,
     this.color,
@@ -168,7 +189,8 @@ class SectionTile extends StatelessWidget {
   const SectionTile.navigation({
     super.key,
     required this.title,
-    this.description,
+    this.subtitle,
+    this.titleSpacing,
     this.icon,
     this.trailingIcon,
     this.color,
@@ -184,7 +206,8 @@ class SectionTile extends StatelessWidget {
   const SectionTile.switchTile({
     super.key,
     required this.title,
-    this.description,
+    this.subtitle,
+    this.titleSpacing,
     this.icon,
     required bool value,
     this.color,
@@ -201,7 +224,8 @@ class SectionTile extends StatelessWidget {
   const SectionTile.checkTile({
     super.key,
     required this.title,
-    this.description,
+    this.subtitle,
+    this.titleSpacing,
     this.icon,
     required bool value,
     this.color,
@@ -224,14 +248,14 @@ class SectionTile extends StatelessWidget {
     );
 
     Widget? subtitleText;
-    if (description != null) {
+    if (subtitle != null) {
       subtitleText = DefaultTextStyle(
         style: context.textTheme.bodySmall!.copyWith(
           color: enabled ? context.colors.secondary : context.theme.disabledColor,
         ),
         overflow: TextOverflow.ellipsis,
         maxLines: 2,
-        child: description!,
+        child: subtitle!,
       );
     }
 
@@ -261,6 +285,7 @@ class SectionTile extends StatelessWidget {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: titleSpacing ?? 0.0,
                     children: <Widget>[titleText, ?subtitleText],
                   ),
                 ),

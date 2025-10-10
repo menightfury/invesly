@@ -97,21 +97,55 @@ class _InveslyAmcPickerWidgetState extends State<InveslyAmcPickerWidget> {
                               return const Center(child: Text('Sorry! No results found 😞'));
                             }
 
-                            return ColoredBox(
-                              color: Colors.redAccent,
-                              child: Section.builder(
-                                tileCount: amcs.length,
-                                tileBuilder: (context, index) {
-                                  final amc = amcs.elementAt(index);
-                                  return SectionTile(
-                                    onTap: () => widget.onPickup?.call(amc),
-                                    // dense: true,
-                                    title: Text(amc.name),
-                                    description: Text((amc.genre ?? AmcGenre.misc).title),
-                                  );
-                                },
-                                // separatorBuilder: (_, _) => const SizedBox(height: 2.0),
-                              ),
+                            return Section.builder(
+                              padding: EdgeInsets.zero,
+                              tileCount: amcs.length,
+                              tileBuilder: (context, index) {
+                                final amc = amcs.elementAt(index);
+                                return SectionTile(
+                                  onTap: () => widget.onPickup?.call(amc),
+                                  // dense: true,
+                                  title: Text(amc.name),
+                                  subtitle: Wrap(
+                                    spacing: 4.0,
+                                    runSpacing: 4.0,
+                                    children: <Widget>[
+                                      DecoratedBox(
+                                        decoration: ShapeDecoration(
+                                          shape: StadiumBorder(),
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                          child: Text(
+                                            (amc.genre ?? AmcGenre.misc).title,
+                                            style: context.textTheme.labelSmall?.copyWith(color: Colors.white),
+                                          ),
+                                        ),
+                                      ),
+
+                                      if (amc.tags != null && amc.tags!.isNotEmpty)
+                                        ...amc.tags!.map(
+                                          (tag) => DecoratedBox(
+                                            decoration: ShapeDecoration(
+                                              shape: StadiumBorder(),
+                                              color: Theme.of(context).colorScheme.primary,
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                              child: Text(
+                                                tag,
+                                                style: context.textTheme.labelSmall?.copyWith(color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  titleSpacing: 4.0,
+                                );
+                              },
+                              // separatorBuilder: (_, _) => const SizedBox(height: 2.0),
                             );
                           }
                         }

@@ -82,17 +82,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: currentUser.isNotNullOrEmpty
                           ? GoogleUserCircleAvatar(identity: currentUser!) // TODO: Implement cached network image
                           : CircleAvatar(child: const Icon(Icons.person_rounded)),
-                      trailingIcon: GestureDetector(
-                        onTap: () => context.push(const EditAccountScreen()),
-                        child: Text(
-                          'Add',
-                          style: context.textTheme.labelMedium?.copyWith(
-                            color: context.theme.primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                      trailingIcon: IconButton(
+                        onPressed: () => context.push(const EditAccountScreen()),
+                        icon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
+                        style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
                       ),
-                      tiles: [
+                      // trailingIcon: GestureDetector(
+                      //   onTap: () => context.push(const EditAccountScreen()),
+                      //   child: Text(
+                      //     'Add',
+                      //     style: context.textTheme.labelMedium?.copyWith(
+                      //       color: context.theme.primaryColor,
+                      //       fontWeight: FontWeight.w600,
+                      //     ),
+                      //   ),
+                      // ),
+                      tiles: <Widget>[
                         BlocBuilder<AccountsCubit, AccountsState>(
                           builder: (context, state) {
                             final isLoading = state.isLoading;
@@ -125,7 +130,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                             title: account == null
                                                 ? Skeleton(color: isError ? context.colors.error : null)
                                                 : Text(account.name.toSentenceCase(), overflow: TextOverflow.ellipsis),
-                                            description: account == null
+                                            subtitle: account == null
                                                 ? Skeleton(color: isError ? context.colors.error : null)
                                                 : isCurrentAccount
                                                 ? Text('Primary account')
@@ -166,13 +171,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: Text('App language'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       icon: const Icon(Icons.language_rounded),
-                      description: Text('English'),
+                      subtitle: Text('English'),
                     ),
                     SectionTile(
                       title: Text('Date format'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       icon: const Icon(Icons.language_rounded),
-                      description: Text('English'),
+                      subtitle: Text('English'),
                       onTap: () async {
                         final value = await InveslyDateFormatPicker.showModal(context);
                         $logger.d(value);
@@ -182,7 +187,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: Text('Currency'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       icon: const Icon(Icons.attach_money_rounded),
-                      description: Text('Choose your preferred currency'),
+                      subtitle: Text('Choose your preferred currency'),
                     ),
                     BlocSelector<AppCubit, AppState, bool>(
                       selector: (state) => state.isPrivateMode,
@@ -190,7 +195,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         return SectionTile.switchTile(
                           icon: const Icon(Icons.privacy_tip_outlined),
                           title: const Text('Private mode'),
-                          description: const Text('Hide all monetary values'),
+                          subtitle: const Text('Hide all monetary values'),
                           value: isPrivateMode,
                           onChanged: (value) => context.read<AppCubit>().updatePrivateMode(value),
                         );
@@ -200,7 +205,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: const Icon(Icons.account_balance_outlined),
                       title: Text('Add AMC'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
-                      description: Text('Add a new Asset Management Company to your list'),
+                      subtitle: Text('Add a new Asset Management Company to your list'),
                       onTap: () => context.push(const EditAmcScreen()),
                     ),
                   ],
@@ -220,7 +225,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: Text('Dynamic color'),
                           // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                           icon: const Icon(Icons.format_color_fill_rounded),
-                          description: Text('Choose the accent color to emphasize certain elements'),
+                          subtitle: Text('Choose the accent color to emphasize certain elements'),
                           value: isDynamic,
                           onChanged: (value) => context.read<AppCubit>().updateDynamicColorMode(value),
                         );
@@ -235,7 +240,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: Text('Accent color'),
                           // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                           icon: const Icon(Icons.color_lens_rounded),
-                          description: Text('Choose the accent color to emphasize certain elements'),
+                          subtitle: Text('Choose the accent color to emphasize certain elements'),
                           trailingIcon: CircleAvatar(
                             backgroundColor: isDynamic ? accentColor.withAlpha(120) : accentColor,
                           ),
@@ -275,13 +280,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: const Icon(Icons.login),
                       title: Text('Google Sign-in'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
-                      description: Text('NA'), // TODO:
+                      subtitle: Text('NA'), // TODO:
                       // onTap: () => context.push(const SignInDemo()),
                     ),
                     SectionTile(
                       icon: const Icon(Icons.restore_page_outlined),
                       title: Text('Restore'),
-                      description: Text(
+                      subtitle: Text(
                         'Restore your data from a previously saved backup. This action will overwrite your current data.',
                       ),
                       onTap: () {},
@@ -289,13 +294,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SectionTile.navigation(
                       icon: const Icon(Icons.restore_rounded),
                       title: Text('Manual import'),
-                      description: Text('Import transaction from a .csv file.'),
+                      subtitle: Text('Import transaction from a .csv file.'),
                       onTap: () => context.push(const ImportTransactionsScreen()),
                     ),
                     SectionTile(
                       title: Text('Export transactions'),
                       icon: const Icon(Icons.backup_outlined),
-                      description: Text('Export transactions locally to .csv file.'),
+                      subtitle: Text('Export transactions locally to .csv file.'),
                       onTap: () async {
                         late final SnackBar snackBar;
                         try {
@@ -329,7 +334,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SectionTile(
                       title: Text('Backup locally'),
                       icon: const Icon(Icons.import_export_rounded),
-                      description: Text('This will create a new backup file locally.'),
+                      subtitle: Text('This will create a new backup file locally.'),
                       onTap: () async {
                         late final SnackBar snackBar;
                         try {
@@ -366,13 +371,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SectionTile(
                       title: Text('Backup to Google Drive'),
                       icon: const Icon(Icons.backup_outlined),
-                      description: Text('Backup your data in a new backup file to Google Drive.'),
+                      subtitle: Text('Backup your data in a new backup file to Google Drive.'),
                       onTap: () => _onBackupToDrivePressed(context),
                     ),
                     SectionTile(
                       title: Text('Load drive files'),
                       icon: const Icon(Icons.backup_outlined),
-                      description: Text('Load your data from a backup file in Google Drive.'),
+                      subtitle: Text('Load your data from a backup file in Google Drive.'),
                       onTap: () async {
                         gapis.AccessToken? accessToken = context.read<AppCubit>().state.gapiAccessToken;
 
@@ -402,13 +407,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SectionTile.navigation(
                       icon: const Icon(Icons.policy_outlined),
                       title: Text('Privacy policy'),
-                      description: Text('Read our privacy policy'),
+                      subtitle: Text('Read our privacy policy'),
                       onTap: () {},
                     ),
                     SectionTile.navigation(
                       icon: const Icon(Icons.gavel_rounded),
                       title: Text('Terms of use'),
-                      description: Text('Read our terms of use'),
+                      subtitle: Text('Read our terms of use'),
                       onTap: () {},
                     ),
                   ],
@@ -423,13 +428,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SectionTile.navigation(
                       icon: const Icon(Icons.star_rate_rounded),
                       title: Text('Rate us'),
-                      description: Text('Rate us on the Play Store'),
+                      subtitle: Text('Rate us on the Play Store'),
                       onTap: () {},
                     ),
                     SectionTile.checkTile(
                       icon: const Icon(Icons.share_rounded),
                       title: Text('Share with friends'),
-                      description: Text('Share Invesly with your friends and family'),
+                      subtitle: Text('Share Invesly with your friends and family'),
                       onChanged: (value) {
                         $logger.i('Share with friends: $value');
                       },
@@ -438,13 +443,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SectionTile(
                       icon: const Icon(Icons.feedback_outlined),
                       title: Text('Feedback'),
-                      description: Text('Report bugs, request features, or just say hi!'),
+                      subtitle: Text('Report bugs, request features, or just say hi!'),
                       onTap: () {},
                     ),
                     SectionTile(
                       icon: const Icon(Icons.volunteer_activism_rounded),
                       title: Text('Donate'),
-                      description: Text('Support the development of Invesly'),
+                      subtitle: Text('Support the development of Invesly'),
                       onTap: () {},
                     ),
                   ],

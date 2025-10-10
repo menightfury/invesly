@@ -47,7 +47,7 @@ class InveslyDateFormatPicker extends StatelessWidget {
                 // final isSelectionAllowed = !columnsToExclude.contains(data.key);
                 return SectionTile(
                   title: Text(data),
-                  description: Text(DateFormat(data).format(dateNow)),
+                  subtitle: Text(DateFormat(data).format(dateNow)),
                   onTap: () => context.pop(data),
                   trailingIcon: data == value ? const Icon(Icons.check_rounded) : null,
                   // enabled: isSelectionAllowed,
