@@ -397,75 +397,53 @@ class _RecentTransactions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Section(
-      title: Text('Recent transactions'),
-      subTitle: Text('01 Sep, 2025 - 13 Sep, 2025'),
-      icon: const Icon(Icons.swap_vert_rounded),
-      tiles: [
-        BlocBuilder<DashboardCubit, DashboardState>(
-          builder: (context, state) {
-            if (state is DashboardLoadedState) {
-              final rts = state.recentTransactions;
-              if (rts.isEmpty) {
-                return ClipRRect(
-                  borderRadius: AppConstants.tileBorderRadius,
-                  child: ColoredBox(
-                    color: context.theme.canvasColor,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                      child: Center(
-                        child: Column(
-                          spacing: 16.0,
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Text('Oops! This is so empty', style: context.textTheme.titleLarge),
-                            Text(
-                              'No transactions have been found.\nAdd a few transactions.',
-                              textAlign: TextAlign.center,
-                              style: context.textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }
-              return ColumnBuilder(
-                itemBuilder: (context, index) {
-                  final rt = rts[index];
-                  return SectionTile(
-                    icon: Icon(rt.transactionType.icon),
-                    title: Text(rt.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
-                    subtitle: Text(
-                      rt.investedOn.toReadable(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.labelSmall,
-                    ),
-                    trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                      selector: (state) => state.isPrivateMode,
-                      builder: (context, isPrivateMode) {
-                        return CurrencyView(
-                          amount: rt.totalAmount,
-                          integerStyle: context.textTheme.headlineSmall?.copyWith(
-                            color: rt.transactionType.color(context),
-                          ),
-                          privateMode: isPrivateMode,
-                        );
-                      },
-                    ),
-                    onTap: () {},
-                  );
-                },
-                itemCount: rts.length,
+    return BlocBuilder<DashboardCubit, DashboardState>(
+      builder: (context, state) {
+        late final List<Widget> tiles;
+        if (state.isLoaded) {
+          final rts = (state as DashboardLoadedState).recentTransactions;
+          if (rts.isEmpty) {
+            tiles = [
+              SectionTile(
+                title: Text('Oops! This is so empty', style: context.textTheme.titleLarge),
+                subtitle: Text(
+                  'No transactions have been found.\nAdd a few transactions.',
+                  textAlign: TextAlign.center,
+                  style: context.textTheme.bodySmall,
+                ),
+              ),
+            ];
+          } else {
+            tiles = rts.map((rt) {
+              return SectionTile(
+                icon: Icon(rt.transactionType.icon),
+                title: Text(rt.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
+                subtitle: Text(rt.investedOn.toReadable()),
+                trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                  selector: (state) => state.isPrivateMode,
+                  builder: (context, isPrivateMode) {
+                    return CurrencyView(
+                      amount: rt.totalAmount,
+                      integerStyle: context.textTheme.headlineSmall?.copyWith(color: rt.transactionType.color(context)),
+                      privateMode: isPrivateMode,
+                    );
+                  },
+                ),
+                onTap: () {},
               );
-            }
+            }).toList();
+          }
+        } else {
+          tiles = [SectionTile(title: CircularProgressIndicator())];
+        }
 
-            return const Center(child: CircularProgressIndicator());
-          },
-        ),
-      ],
+        return Section(
+          title: const Text('Recent transactions'),
+          subTitle: Text('01 Sep, 2025 - 13 Sep, 2025'),
+          icon: const Icon(Icons.swap_vert_rounded),
+          tiles: tiles,
+        );
+      },
     );
   }
 }

@@ -1,9 +1,8 @@
 // import 'dart:math' as math;
 
+import 'package:flutter/material.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
-import 'package:invesly/common_libs.dart';
 
-// const _kBorderRadius = AppConstants.tileBorderRadius;
 const _kBigRadius = Radius.circular(16.0);
 const _kSmallRadius = Radius.circular(4.0);
 
@@ -67,13 +66,14 @@ class Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final titleText = DefaultTextStyle(
-      style: context.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
+      style: theme.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
       child: title ?? const SizedBox.shrink(),
     );
 
     final subtitleText = DefaultTextStyle(
-      style: context.textTheme.bodySmall!.copyWith(color: context.colors.secondary),
+      style: theme.textTheme.bodySmall!.copyWith(color: theme.colorScheme.secondary),
       child: subTitle ?? const SizedBox.shrink(),
     );
 
@@ -122,7 +122,7 @@ class Section extends StatelessWidget {
             if (title != null)
               DecoratedBox(
                 decoration: BoxDecoration(
-                  color: context.colors.primaryContainer.darken(5),
+                  color: theme.colorScheme.primaryContainer.darken(5),
                   borderRadius: BorderRadius.vertical(top: _kBigRadius, bottom: _kSmallRadius),
                 ),
                 child: SafeArea(
@@ -160,8 +160,8 @@ class SectionTile extends StatelessWidget {
   final double? titleSpacing;
   final Widget? icon;
   final Widget? trailingIcon;
-  final Color? color;
-  final Color? selectedColor;
+  final Color? tileColor;
+  final Color? selectedTileColor;
   final VoidCallback? _onTap; // for other than switch tile
   final ValueChanged<bool>? _onChanged; // for switch tile only
   final bool enabled;
@@ -176,8 +176,8 @@ class SectionTile extends StatelessWidget {
     this.titleSpacing,
     this.icon,
     this.trailingIcon,
-    this.color,
-    this.selectedColor,
+    this.tileColor,
+    this.selectedTileColor,
     VoidCallback? onTap,
     this.enabled = true,
     this.selected = false,
@@ -193,8 +193,8 @@ class SectionTile extends StatelessWidget {
     this.titleSpacing,
     this.icon,
     this.trailingIcon,
-    this.color,
-    this.selectedColor,
+    this.tileColor,
+    this.selectedTileColor,
     this.enabled = true,
     this.selected = false,
     VoidCallback? onTap,
@@ -210,8 +210,8 @@ class SectionTile extends StatelessWidget {
     this.titleSpacing,
     this.icon,
     required bool value,
-    this.color,
-    this.selectedColor,
+    this.tileColor,
+    this.selectedTileColor,
     this.enabled = true,
     this.selected = false,
     void Function(bool)? onChanged,
@@ -228,8 +228,8 @@ class SectionTile extends StatelessWidget {
     this.titleSpacing,
     this.icon,
     required bool value,
-    this.color,
-    this.selectedColor,
+    this.tileColor,
+    this.selectedTileColor,
     this.enabled = true,
     this.selected = false,
     void Function(bool)? onChanged,
@@ -239,10 +239,20 @@ class SectionTile extends StatelessWidget {
        trailingIcon = null,
        _onTap = null;
 
+  Color _tileColor(ThemeData theme, ListTileThemeData tileTheme) {
+    final Color? color = selected
+        ? selectedTileColor ?? tileTheme.selectedTileColor ?? theme.listTileTheme.selectedTileColor
+        : tileColor ?? tileTheme.tileColor ?? theme.listTileTheme.tileColor;
+    return color ?? theme.canvasColor;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tileTheme = ListTileTheme.of(context);
+
     final titleText = DefaultTextStyle(
-      style: context.textTheme.bodyMedium!.copyWith(color: enabled ? null : context.theme.disabledColor),
+      style: theme.textTheme.bodyMedium!.copyWith(color: enabled ? null : theme.disabledColor),
       overflow: TextOverflow.ellipsis,
       child: title,
     );
@@ -250,16 +260,12 @@ class SectionTile extends StatelessWidget {
     Widget? subtitleText;
     if (subtitle != null) {
       subtitleText = DefaultTextStyle(
-        style: context.textTheme.bodySmall!.copyWith(
-          color: enabled ? context.colors.secondary : context.theme.disabledColor,
-        ),
+        style: theme.textTheme.bodySmall!.copyWith(color: enabled ? theme.colorScheme.secondary : theme.disabledColor),
         overflow: TextOverflow.ellipsis,
         maxLines: 2,
         child: subtitle!,
       );
     }
-
-    final defaultTileColor = context.theme.canvasColor;
 
     final effectiveTrailingIcon = switch (_variant) {
       _SectionTileVariant.toggle => Switch(value: _value, onChanged: _onChanged),
@@ -272,25 +278,32 @@ class SectionTile extends StatelessWidget {
     };
 
     return GestureDetector(
-      onTap: _onChanged != null ? () => _onChanged.call(!_value) : _onTap,
-      child: ColoredBox(
-        color: color ?? defaultTileColor,
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              spacing: 16.0,
-              children: <Widget>[
-                ?icon,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: titleSpacing ?? 0.0,
-                    children: <Widget>[titleText, ?subtitleText],
+      onTap: enabled
+          ? _onChanged != null
+                ? () => _onChanged.call(!_value)
+                : _onTap
+          : null,
+      child: SafeArea(
+        child: ColoredBox(
+          color: _tileColor(theme, tileTheme),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48.0),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                spacing: 16.0,
+                children: <Widget>[
+                  ?icon,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: titleSpacing ?? 0.0,
+                      children: <Widget>[titleText, ?subtitleText],
+                    ),
                   ),
-                ),
-                ?effectiveTrailingIcon,
-              ],
+                  ?effectiveTrailingIcon,
+                ],
+              ),
             ),
           ),
         ),
