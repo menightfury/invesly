@@ -145,7 +145,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     emit(state.copyWith(defaultDateFormat: dateFormat));
   }
 
-  Future<void> importTransactions() async {
+  Future<void> reviewTransactions() async {
     final csvRows = state.csvData;
     final dateNow = DateTime.now();
     final amountColumnIndex = state.fields[TransactionField.amount];
@@ -271,5 +271,9 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
       $logger.e(e);
       emit(state.copyWith(status: ImportTransactionsStatus.error));
     }
+  }
+
+  Future<void> importTransactions() async {
+    return;
   }
 }

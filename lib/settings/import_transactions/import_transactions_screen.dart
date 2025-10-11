@@ -10,6 +10,7 @@ import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/import_transactions/cubit/import_transactions_cubit.dart';
+import 'package:invesly/settings/import_transactions/review_transactions_page.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/widgets/transaction_type_selector_form_field.dart';
 
@@ -464,54 +465,40 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
           return <Widget>[
             BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
               builder: (context, state) {
-                if (state.isLoaded) {
-                  return Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () async {
-                        showLoadingDialog(
-                          context,
-                          () async {
-                            await cubit.importTransactions();
-                          },
+                return Expanded(
+                  child: FilledButton.icon(
+                    onPressed: state.isLoaded
+                        ? () {
+                            //  async {
+                            //     showLoadingDialog(
+                            //       context,
+                            //       () async {
+                            //         await cubit.importTransactions();
+                            //       },
+                            //       onError: (err) {
+                            //         if (err is CsvImportException) {
+                            //           if (!context.mounted) return;
 
-                          onError: (err) {
-                            if (err is CsvImportException) {
-                              if (!context.mounted) return;
+                            //           // showModalBottomSheet(
+                            //           //   context: context,
+                            //           //   useSafeArea: true,
+                            //           //   isScrollControlled: true,
+                            //           //   builder: (context) {
+                            //           //     return _showErrorSheet(context, err.errors);
 
-                              // showModalBottomSheet(
-                              //   context: context,
-                              //   useSafeArea: true,
-                              //   isScrollControlled: true,
-                              //   builder: (context) {
-                              //     return _showErrorSheet(context, err.errors);
-
-                              //     // await cubit.importTransactions();
-                              //   },
-                              // );
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return BlocProvider.value(
-                                      value: cubit,
-                                      child: Scaffold(
-                                        appBar: AppBar(title: Text('This is error screen which will be removed')),
-                                        body: _showErrorSheet(context, err.errors),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              );
-                            }
-                          },
-                        );
-                      },
-                      icon: const Icon(Icons.upload_file_rounded),
-                      label: const Text('Import CSV'),
-                    ),
-                  );
-                }
-
-                return SizedBox.shrink();
+                            //           //     // await cubit.importTransactions();
+                            //           //   },
+                            //           // );
+                            context.push(BlocProvider.value(value: cubit, child: const ReviewTransactionsPage()));
+                            //         }
+                            //       },
+                            //     );
+                          }
+                        : null,
+                    icon: const Icon(Icons.upload_file_rounded),
+                    label: const Text('Import CSV'),
+                  ),
+                );
               },
             ),
           ];
@@ -549,97 +536,6 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
       onPressed: enabled ? onTap : null,
       icon: const Icon(Icons.refresh),
       label: const Text('Reset'),
-    );
-  }
-
-  Widget _showErrorSheet(BuildContext context, Map<int, List<TransactionField>> errors) {
-    // final cubit = context.read<ImportTransactionsCubit>();
-
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
-            child: Text(
-              'Errors have been found in the following rows',
-              style: context.textTheme.labelLarge?.copyWith(color: context.colors.error),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          ColumnBuilder(
-            spacing: 12.0,
-            itemBuilder: (context, index) {
-              final errorEntry = errors.entries.elementAt(index);
-              // return ListTile(title: Text('Row number ${errorEntry.key + 1}'));
-              return Section(
-                title: Text('Row number ${errorEntry.key + 1}'),
-                trailingIcon: Icon(Icons.delete_outline_rounded),
-                tiles: errorEntry.value.map((errorField) {
-                  return SectionTile(
-                    title: Text(errorField.name),
-
-                    subtitle: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        spacing: 8.0,
-                        children: <Widget>[
-                          ActionChip(
-                            label: Text('Ignore'),
-                            avatar: const Icon(Icons.remove_circle_outline_rounded),
-                            labelStyle: context.textTheme.labelSmall,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          ActionChip(
-                            label: Text('Add AMC to Database'),
-                            avatar: const Icon(Icons.add_rounded),
-                            labelStyle: context.textTheme.labelSmall,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          ActionChip(
-                            label: Text('Select AMC from Database'),
-                            avatar: const Icon(Icons.edit_rounded),
-                            labelStyle: context.textTheme.labelSmall,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              );
-            },
-            itemCount: errors.length,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () async {
-                  // showLoadingDialog(
-                  //   context,
-                  //   () async {
-                  //     await cubit.importTransactions();
-                  //   },
-
-                  //   onError: (err) {
-                  //     if (err is CsvImportException) {
-                  //       if (!context.mounted) return;
-                  //       _showErrorSheet(context, err.errors);
-
-                  //       // await cubit.importTransactions();
-                  //     }
-                  //   },
-                  // );
-                },
-                icon: const Icon(Icons.upload_file_rounded),
-                label: const Text('Import CSV'),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
