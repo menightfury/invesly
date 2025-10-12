@@ -36,7 +36,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
     emit(const ImportTransactionsState(status: ImportTransactionsStatus.loading));
 
-    await Future.delayed(3.seconds); // ! TODO: remove this line
+    await Future.delayed(2.seconds); // ! TODO: remove this line
 
     try {
       final csvString = await File(result.files.first.path!).readAsString();
@@ -162,12 +162,11 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
     final errors = <int, List<TransactionField>>{}; // { rowNumber : [ Errors ] }
 
-    final transactionsToInsert = <TransactionInDb>[];
     for (var i = 0; i < csvRows.length; i++) {
       final row = csvRows[i];
       // Resolve type
       // The type can be integer (i.e. 0 for investment and 1 for redemption, 2 for dividend) or
-      // can be one character (like I, R, D) or can be string (Investment, Redemption or Divident)
+      // can be one character (like I, R, D) or can be string (Investment, Redemption or Dividend)
       TransactionType? type = state.defaultType;
       final rawType = typeColumnIndex == null ? null : row[typeColumnIndex];
       if (rawType is int) {
@@ -243,37 +242,34 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
       // Resolve note
       final note = noteColumnIndex == null ? null : row[noteColumnIndex].toString();
-
-      if (errors[i]?.isEmpty ?? true) {
-        transactionsToInsert.add(
-          TransactionInDb(
-            id: $uuid.v1(),
-            accountId: accountId!,
-            date: date.millisecondsSinceEpoch,
-            quantity: quantity ?? 0.0,
-            totalAmount: totalAmount ?? 0.0,
-            amcId: amcId,
-            note: (note?.isEmpty ?? true) ? null : note,
-          ),
-        );
-      }
     } // end of for loop
 
     if (errors.isNotEmpty) {
       throw CsvImportException(errors);
     }
+  }
 
+  Future<void> importTransactions() async {
+    // if (errors[i]?.isEmpty ?? true) {
+    //   transactionsToInsert.add(
+    //     TransactionInDb(
+    //       id: $uuid.v1(),
+    //       accountId: accountId!,
+    //       date: date.millisecondsSinceEpoch,
+    //       quantity: quantity ?? 0.0,
+    //       totalAmount: totalAmount ?? 0.0,
+    //       amcId: amcId,
+    //       note: (note?.isEmpty ?? true) ? null : note,
+    //     ),
+    //   );
+    // }
     try {
       // await _transactionRepository.insertTransactions(transactionsToInsert);
-      $logger.d(transactionsToInsert);
+      $logger.d(state.transactionsToInsert);
       emit(state.copyWith(status: ImportTransactionsStatus.success));
     } catch (e) {
       $logger.e(e);
       emit(state.copyWith(status: ImportTransactionsStatus.error));
     }
-  }
-
-  Future<void> importTransactions() async {
-    return;
   }
 }

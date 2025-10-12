@@ -32,6 +32,7 @@ class ImportTransactionsState extends Equatable {
     this.defaultType = TransactionType.invested,
     this.defaultDateFormat,
     this.errorMsg,
+    this.transactionsToInsert = const [],
   });
 
   final ImportTransactionsStatus status;
@@ -42,6 +43,7 @@ class ImportTransactionsState extends Equatable {
   final TransactionType defaultType;
   final String? defaultDateFormat;
   final String? errorMsg;
+  final List<TransactionInDb> transactionsToInsert;
 
   ImportTransactionsState copyWith({
     ImportTransactionsStatus? status,
@@ -52,6 +54,7 @@ class ImportTransactionsState extends Equatable {
     TransactionType? defaultType,
     String? defaultDateFormat,
     String? errorMsg,
+    List<TransactionInDb>? transactionsToInsert,
   }) {
     return ImportTransactionsState(
       status: status ?? this.status,
@@ -62,11 +65,21 @@ class ImportTransactionsState extends Equatable {
       defaultType: defaultType ?? this.defaultType,
       defaultDateFormat: defaultDateFormat ?? this.defaultDateFormat,
       errorMsg: errorMsg ?? this.errorMsg,
+      transactionsToInsert: transactionsToInsert ?? this.transactionsToInsert,
     );
   }
 
   @override
-  List<Object?> get props => [csvHeaders, csvData, fields, defaultAccount, defaultType, defaultDateFormat, errorMsg];
+  List<Object?> get props => [
+    csvHeaders,
+    csvData,
+    fields,
+    defaultAccount,
+    defaultType,
+    defaultDateFormat,
+    errorMsg,
+    transactionsToInsert,
+  ];
 
   @override
   bool? get stringify => true;
@@ -74,7 +87,8 @@ class ImportTransactionsState extends Equatable {
   @override
   String toString() {
     return 'csvHeaders: $csvHeaders, csvData: $csvData, fields: $fields, defaultAccount: $defaultAccount,'
-        ' defaultType: $defaultType, $defaultDateFormat: $defaultDateFormat, errorMsg: $errorMsg';
+        ' defaultType: $defaultType, $defaultDateFormat: $defaultDateFormat, errorMsg: $errorMsg'
+        ' transactionsToInsert: $transactionsToInsert';
   }
 }
 
