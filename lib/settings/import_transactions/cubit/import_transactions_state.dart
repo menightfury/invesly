@@ -9,22 +9,25 @@ enum TransactionField {
   amc,
   type,
   date,
-  notes;
+  notes,
 
-  String? get validator {
-    if (this == amc) {
-      return 'AMC is provided as .... but AMC not found in database.';
-    }
+  // String? get validator {
+  //   if (this == amc) {
+  //     return 'AMC is provided as .... but AMC not found in database.';
+  //   }
 
-    return null;
-  }
+  //   return null;
+  // }
 }
 
-enum ImportTransactionsStatus { initial, loading, loaded, error, success }
+enum CsvStatus { initial, loading, loaded, error }
+
+enum ImportStatus { initial, loading, loaded, error, success }
 
 class ImportTransactionsState extends Equatable {
   const ImportTransactionsState({
-    this.status = ImportTransactionsStatus.initial,
+    this.csvStatus = CsvStatus.initial,
+    this.importStatus = ImportStatus.initial,
     this.csvHeaders = const [],
     this.csvData = const [],
     this.fields = const {},
@@ -33,9 +36,11 @@ class ImportTransactionsState extends Equatable {
     this.defaultDateFormat,
     this.errorMsg,
     this.transactionsToInsert = const [],
+    this.errorInRows = const {},
   });
 
-  final ImportTransactionsStatus status;
+  final CsvStatus csvStatus;
+  final ImportStatus importStatus;
   final List<String> csvHeaders;
   final List<List<dynamic>> csvData;
   final Map<TransactionField, int?> fields;
@@ -43,10 +48,12 @@ class ImportTransactionsState extends Equatable {
   final TransactionType defaultType;
   final String? defaultDateFormat;
   final String? errorMsg;
-  final List<TransactionInDb> transactionsToInsert;
+  final List<InveslyTransaction> transactionsToInsert;
+  final Map<int, List<TransactionField>> errorInRows; // { rowNumber : [ Errors ] }
 
   ImportTransactionsState copyWith({
-    ImportTransactionsStatus? status,
+    CsvStatus? csvStatus,
+    ImportStatus? importStatus,
     List<String>? csvHeaders,
     List<List<dynamic>>? csvData,
     Map<TransactionField, int?>? fields,
@@ -54,10 +61,12 @@ class ImportTransactionsState extends Equatable {
     TransactionType? defaultType,
     String? defaultDateFormat,
     String? errorMsg,
-    List<TransactionInDb>? transactionsToInsert,
+    List<InveslyTransaction>? transactionsToInsert,
+    Map<int, List<TransactionField>>? errorInRows,
   }) {
     return ImportTransactionsState(
-      status: status ?? this.status,
+      csvStatus: csvStatus ?? this.csvStatus,
+      importStatus: importStatus ?? this.importStatus,
       csvHeaders: csvHeaders ?? this.csvHeaders,
       csvData: csvData ?? this.csvData,
       fields: fields ?? this.fields,
@@ -66,11 +75,14 @@ class ImportTransactionsState extends Equatable {
       defaultDateFormat: defaultDateFormat ?? this.defaultDateFormat,
       errorMsg: errorMsg ?? this.errorMsg,
       transactionsToInsert: transactionsToInsert ?? this.transactionsToInsert,
+      errorInRows: errorInRows ?? this.errorInRows,
     );
   }
 
   @override
   List<Object?> get props => [
+    csvStatus,
+    importStatus,
     csvHeaders,
     csvData,
     fields,
@@ -79,6 +91,7 @@ class ImportTransactionsState extends Equatable {
     defaultDateFormat,
     errorMsg,
     transactionsToInsert,
+    errorInRows,
   ];
 
   @override
@@ -86,34 +99,19 @@ class ImportTransactionsState extends Equatable {
 
   @override
   String toString() {
-    return 'csvHeaders: $csvHeaders, csvData: $csvData, fields: $fields, defaultAccount: $defaultAccount,'
+    return 'csvStatus: $csvStatus, importStatus: $importStatus, csvHeaders: $csvHeaders, csvData: $csvData,'
+        ' fields: $fields, defaultAccount: $defaultAccount,'
         ' defaultType: $defaultType, $defaultDateFormat: $defaultDateFormat, errorMsg: $errorMsg'
-        ' transactionsToInsert: $transactionsToInsert';
+        ' transactionsToInsert: $transactionsToInsert, errorInRows: $errorInRows';
   }
 }
 
 extension ImportTransactionsStateX on ImportTransactionsState {
-  bool get isLoading => status == ImportTransactionsStatus.loading;
-  bool get isLoaded => status == ImportTransactionsStatus.loaded;
-  bool get isError => status == ImportTransactionsStatus.error;
-}
+  bool get isCsvLoading => csvStatus == CsvStatus.loading;
+  bool get isCsvLoaded => csvStatus == CsvStatus.loaded;
+  bool get isCsvError => csvStatus == CsvStatus.error;
 
-class CsvImportException implements Exception {
-  // final String message;
-  // final Uri? uri;
-  final Map<int, List<TransactionField>> errors;
-
-  const CsvImportException(this.errors);
-
-  // @override
-  // String toString() {
-  //   var b = StringBuffer()
-  //     ..write('HttpException: ')
-  //     ..write(message);
-  //   var uri = this.uri;
-  //   if (uri != null) {
-  //     b.write(', uri = $uri');
-  //   }
-  //   return b.toString();
-  // }
+  bool get isImporting => importStatus == ImportStatus.loading;
+  bool get isLoaded => importStatus == ImportStatus.loaded;
+  bool get isError => importStatus == ImportStatus.error;
 }

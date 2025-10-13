@@ -405,11 +405,11 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
       final accounts = (accountsState as AccountsLoadedState).accounts;
       if (accounts.isEmpty) return;
 
-      final currentAccountId = cubit.state.accountId ?? context.read<AppCubit>().state.primaryAccountId;
+      final currentAccountId = cubit.state.account ?? context.read<AppCubit>().state.primaryAccountId;
 
       if (cubit.state.isNewTransaction) {
         initialAccount = accounts.firstWhere((acc) => acc.id == currentAccountId, orElse: () => accounts.first);
-        cubit.updateAccount(initialAccount!.id);
+        cubit.updateAccount(initialAccount!);
       }
     }
   }
@@ -425,10 +425,10 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
           shake: formFieldState.hasError,
           child: GestureDetector(
             onTap: () async {
-              final newUser = await InveslyAccountPickerWidget.showModal(context, cubit.state.accountId);
+              final newUser = await InveslyAccountPickerWidget.showModal(context, cubit.state.account?.id);
               if (newUser == null) return;
 
-              cubit.updateAccount(newUser.id);
+              cubit.updateAccount(newUser);
               formFieldState.didChange(newUser);
             },
             child: CircleAvatar(

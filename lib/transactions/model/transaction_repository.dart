@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:csv/csv.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/invesly_api.dart';
@@ -12,6 +13,7 @@ class TransactionRepository {
 
   final InveslyApi _api;
 
+  AccountTable get _accountTable => _api.accountTable;
   AmcTable get _amcTable => _api.amcTable;
   TransactionTable get _trnTable => _api.trnTable;
 
@@ -43,7 +45,7 @@ class TransactionRepository {
 
     late final List<InveslyTransaction> transactions;
     try {
-      final result = await _api.select(_trnTable).join([_amcTable]).where(filter).toList();
+      final result = await _api.select(_trnTable).join([_accountTable, _amcTable]).where(filter).toList();
       // orderBy: '${_trnTable.dateColumn.title} DESC',
       // limit: showItems,
 
@@ -53,6 +55,7 @@ class TransactionRepository {
       transactions = result.map<InveslyTransaction>((map) {
         return InveslyTransaction.fromDb(
           _trnTable.encode(map),
+          _accountTable.encode(map[_accountTable.type.toString().toCamelCase()] as Map<String, dynamic>),
           _amcTable.encode(map[_amcTable.type.toString().toCamelCase()] as Map<String, dynamic>),
         );
       }).toList();

@@ -1,3 +1,4 @@
+import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
@@ -11,7 +12,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       super(
         EditTransactionState(
           id: initialInvestment?.id,
-          accountId: initialInvestment?.accountId,
+          account: initialInvestment?.account,
           quantity: initialInvestment?.quantity,
           amount: initialInvestment?.totalAmount,
           type: (initialInvestment?.totalAmount.isNegative ?? false)
@@ -24,8 +25,8 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
 
   final TransactionRepository _repository;
 
-  void updateAccount(String accountId) {
-    emit(state.copyWith(accountId: accountId));
+  void updateAccount(InveslyAccount account) {
+    emit(state.copyWith(account: account));
   }
 
   void updateQuantity(double result) {
@@ -60,7 +61,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
 
     final inv = InveslyTransaction(
       id: state.id ?? $uuid.v1(),
-      accountId: state.accountId!,
+      account: state.account!,
       amc: state.amc,
       quantity: state.quantity ?? 0.0,
       totalAmount: state.amount!,

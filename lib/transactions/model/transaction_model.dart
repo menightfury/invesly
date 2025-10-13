@@ -2,6 +2,7 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/database/table_schema.dart';
 
@@ -59,7 +60,8 @@ enum TransactionType {
 class InveslyTransaction extends TransactionInDb {
   InveslyTransaction({
     required super.id,
-    required super.accountId,
+    required this.account,
+    // required super.accountId,
     // this.transactionType = TransactionType.invested,
     this.amc,
     super.quantity = 0.0,
@@ -72,20 +74,22 @@ class InveslyTransaction extends TransactionInDb {
            : quantity > 0
            ? TransactionType.redeemed
            : TransactionType.dividend,
-       super(amcId: amc?.id, date: investedOn.millisecondsSinceEpoch);
+       super(accountId: account.id, amcId: amc?.id, date: investedOn.millisecondsSinceEpoch);
 
+  final InveslyAccount account;
   final TransactionType transactionType;
   final InveslyAmc? amc;
   final DateTime investedOn;
 
-  factory InveslyTransaction.fromDb(TransactionInDb trn, AmcInDb amc) {
+  factory InveslyTransaction.fromDb(TransactionInDb trn, AccountInDb account, AmcInDb amc) {
     // int typeIndex = trn.typeIndex;
     // if (typeIndex < 0 || typeIndex > TransactionType.values.length - 1) {
     //   typeIndex = 0;
     // }
     return InveslyTransaction(
       id: trn.id,
-      accountId: trn.accountId,
+      account: InveslyAccount.fromDb(account),
+      // accountId: trn.accountId,
       // transactionType: TransactionType.values.elementAt(typeIndex),
       amc: InveslyAmc.fromDb(amc),
       quantity: trn.quantity,

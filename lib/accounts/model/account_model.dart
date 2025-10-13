@@ -10,13 +10,22 @@ enum InveslyAccountAvatar {
   woman3;
 
   String get imgSrc => 'assets/images/avatar/$name.png';
+
+  static int indexOf(String? imgSrc) {
+    if (imgSrc == null) return 0;
+
+    final index = values.indexWhere((el) => el.imgSrc == imgSrc);
+    return index != -1 ? index : 0;
+  }
 }
 
 class InveslyAccount extends AccountInDb {
   InveslyAccount({required super.id, required super.name, required this.avatar})
-    : super(avatarIndex: InveslyAccountAvatar.values.indexWhere((el) => el.imgSrc == avatar));
+    : super(avatarIndex: InveslyAccountAvatar.indexOf(avatar));
 
-  // const InveslyAccount.empty() : avatar = '', super(id: '', name: '', avatarIndex: 0);
+  InveslyAccount.empty({String? id, String? name, String? avatar})
+    : avatar = avatar ?? '',
+      super(id: id ?? '', name: name ?? '', avatarIndex: InveslyAccountAvatar.indexOf(avatar));
 
   final String avatar;
 
