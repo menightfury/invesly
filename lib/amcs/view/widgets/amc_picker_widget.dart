@@ -31,7 +31,7 @@ class InveslyAmcPickerWidget extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: BlocProvider(
             create: (context) => AmcSearchCubit(amcRepository: context.read<AmcRepository>()),
-            child: _InveslyAmcPickerWidget(),
+            child: _InveslyAmcPickerWidget(onPickup: onPickup),
           ),
         ),
       ),
@@ -60,7 +60,9 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
 
   @override
   void dispose() {
-    _searchController.removeListener(textFieldChanged);
+    _searchController
+      ..removeListener(textFieldChanged)
+      ..dispose();
     super.dispose();
   }
 
@@ -79,17 +81,17 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
           controller: _searchController,
           autofocus: true,
         ).withLabel('Search Asset Management Company (AMC)'),
-        Flexible(
+        Expanded(
           child: BlocBuilder<AmcSearchCubit, AmcSearchState>(
             builder: (context, state) {
               return switch (state) {
-                AmcSearchStateEmpty() => const Text('Please enter a term to begin'),
-                AmcSearchStateLoading() => const CircularProgressIndicator.adaptive(),
-                AmcSearchStateError() => Text(state.error),
+                AmcSearchStateEmpty() => Center(child: const Text('Please enter a term to begin')),
+                AmcSearchStateLoading() => Center(child: const CircularProgressIndicator.adaptive()),
+                AmcSearchStateError() => Center(child: Text(state.error)),
                 AmcSearchStateSuccess() =>
                   state.items.isEmpty
                       ? const Text('Sorry! No results found 😞')
-                      : Expanded(child: _SearchResults(amcs: state.items)),
+                      : _SearchResults(amcs: state.items, onPickup: (amc) => widget.onPickup?.call(amc)),
               };
             },
           ),
@@ -100,9 +102,10 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
 }
 
 class _SearchResults extends StatelessWidget {
-  const _SearchResults({super.key, required this.amcs});
+  const _SearchResults({super.key, required this.amcs, this.onPickup});
 
   final List<InveslyAmc> amcs;
+  final ValueChanged<InveslyAmc>? onPickup;
 
   @override
   Widget build(BuildContext context) {
@@ -112,8 +115,7 @@ class _SearchResults extends StatelessWidget {
       tileBuilder: (context, index) {
         final amc = amcs.elementAt(index);
         return SectionTile(
-          // onTap: () => widget.onPickup?.call(amc),
-          // dense: true,
+          onTap: () => onPickup?.call(amc),
           title: Text(amc.name),
           subtitle: Wrap(
             spacing: 4.0,
@@ -122,7 +124,7 @@ class _SearchResults extends StatelessWidget {
               DecoratedBox(
                 decoration: ShapeDecoration(shape: StadiumBorder(), color: Theme.of(context).colorScheme.primary),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
                   child: Text(
                     (amc.genre ?? AmcGenre.misc).title,
                     style: context.textTheme.labelSmall?.copyWith(color: Colors.white),
@@ -133,10 +135,13 @@ class _SearchResults extends StatelessWidget {
               if (amc.tags != null && amc.tags!.isNotEmpty)
                 ...amc.tags!.map(
                   (tag) => DecoratedBox(
-                    decoration: ShapeDecoration(shape: StadiumBorder(), color: Theme.of(context).colorScheme.primary),
+                    decoration: ShapeDecoration(
+                      shape: StadiumBorder(),
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                    ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                      child: Text(tag, style: context.textTheme.labelSmall?.copyWith(color: Colors.white)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                      child: Text(tag, style: context.textTheme.labelSmall?.copyWith()),
                     ),
                   ),
                 ),

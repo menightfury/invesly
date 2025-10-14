@@ -14,7 +14,11 @@ class AmcRepository {
     final list = await _api
         .select(_amcTable)
         .where([
-          SingleValueTableFilter(_amcTable.nameColumn, searchQuery, operator: SingleValueTableFilterOperator.like),
+          SingleValueTableFilter<String>(
+            _amcTable.nameColumn,
+            searchQuery,
+            operator: SingleValueTableFilterOperator.like,
+          ),
         ])
         .toList(limit: limit);
 

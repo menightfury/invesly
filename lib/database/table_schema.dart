@@ -18,10 +18,10 @@ enum TableColumnType {
 
 enum TableChangeEventType { insertion, updation, deletion }
 
-abstract class TableFilter<T extends Object> {
+abstract class TableFilter {
   const TableFilter();
 
-  (String, List<T>) toSql();
+  (String, List<Object>) toSql();
 }
 
 enum SingleValueTableFilterOperator {
@@ -45,7 +45,7 @@ enum SingleValueTableFilterOperator {
   }
 }
 
-class SingleValueTableFilter<T extends Object> implements TableFilter<T> {
+class SingleValueTableFilter<T extends Object> implements TableFilter {
   const SingleValueTableFilter(
     this.column,
     this.value, {
@@ -59,18 +59,18 @@ class SingleValueTableFilter<T extends Object> implements TableFilter<T> {
   final bool negate;
 
   @override
-  (String, List<T>) toSql() {
+  (String, List<Object>) toSql() {
     final buffer = StringBuffer();
     if (negate) {
       buffer.write('NOT ');
     }
-    buffer.write(column.fullTitle);
-    buffer.write(' $operator ?');
-    return (buffer.toString(), [value]);
+    buffer.write('${column.fullTitle} $operator ?');
+    final arg = value is String && operator == SingleValueTableFilterOperator.like ? '%$value%' : value;
+    return (buffer.toString(), [arg]);
   }
 }
 
-class MultipleValueTableFilter<T extends Object> implements TableFilter<T> {
+class MultipleValueTableFilter<T extends Object> implements TableFilter {
   MultipleValueTableFilter(this.column, this.values, [this.negate = false])
     : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool'),
       assert(values.isNotEmpty, 'Values list must not be empty');
@@ -92,7 +92,7 @@ class MultipleValueTableFilter<T extends Object> implements TableFilter<T> {
   }
 }
 
-class RangeValueTableFilter<T extends Object> implements TableFilter<T> {
+class RangeValueTableFilter<T extends Object> implements TableFilter {
   const RangeValueTableFilter(this.column, this.start, this.end, [this.negate = false])
     : assert(T == num, 'Value must be of type num');
 
@@ -115,7 +115,7 @@ class RangeValueTableFilter<T extends Object> implements TableFilter<T> {
 class TableFilterGroup extends TableFilter {
   const TableFilterGroup(this.filters, {this.isAnd = true});
 
-  final List<TableFilter<Object>> filters;
+  final List<TableFilter> filters;
   final bool isAnd;
 
   @override
@@ -218,6 +218,12 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
     final List<Map<String, dynamic>> data = [];
     final $where = _where?.toSql();
     final groupBy = _group.isEmpty ? null : _group.map<String>((col) => col.fullTitle).join(', ');
+    debugPrint(
+      'Query: SELECT ${effectiveTableColumns.join(', ')} FROM $effectiveTableName'
+      '${$where != null ? ' WHERE ${$where.$1}: ${$where.$2}' : ''}'
+      '${groupBy != null ? ' GROUP BY $groupBy' : ''}'
+      '${limit != null ? ' LIMIT $limit' : ''}',
+    );
 
     try {
       final list = await _db.query(
@@ -283,7 +289,7 @@ abstract class TableSchema<T extends InveslyDataModel> extends Equatable {
 
   const TableSchema(this.tableName);
 
-  TableColumn<String> get idColumn => TableColumn('id', tableName, isPrimary: true);
+  TableColumn get idColumn => TableColumn('id', tableName, isPrimary: true);
 
   /// Get all columns
   Set<TableColumn> get columns => {idColumn};
@@ -368,7 +374,7 @@ class TableColumnBase extends Equatable {
   List<Object?> get props => [title, tableName, aggregateFunc, aliasTitle];
 }
 
-class TableColumn<T extends Object> extends TableColumnBase {
+class TableColumn<T> extends TableColumnBase {
   const TableColumn(
     super.title,
     super.tableName, {
@@ -381,7 +387,7 @@ class TableColumn<T extends Object> extends TableColumnBase {
   });
 
   final TableColumnType type;
-  final String? defaultValue;
+  final T? defaultValue;
   final bool isPrimary;
   final bool isNullable;
   final bool isUnique;

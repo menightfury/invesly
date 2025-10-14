@@ -10,15 +10,13 @@ class AmcSearchCubit extends Cubit<AmcSearchState> {
   AmcSearchCubit({required AmcRepository amcRepository})
     : _amcRepository = amcRepository,
       _debounce = _Debounce(1.seconds),
-      _amcCache = const {},
       super(AmcSearchStateEmpty());
 
   final AmcRepository _amcRepository;
-  final Map<String, List<InveslyAmc>> _amcCache;
+  final Map<String, List<InveslyAmc>> _amcCache = {};
   final _Debounce _debounce;
 
   Future<void> search(String query) async {
-    $logger.d('Searching AMC for query: $query');
     if (query.isEmpty) return emit(AmcSearchStateEmpty());
 
     final cachedResult = _amcCache[query];
@@ -70,19 +68,3 @@ class _Debounce {
     _timer?.cancel();
   }
 }
-
-// class AmcResultCache {
-//   final _cache = <String, InveslyAmc>{};
-
-//   InveslyAmc? get(String term) => _cache[term];
-
-//   void set(String term, InveslyAmc result) => _cache[term] = result;
-
-//   bool contains(String term) => _cache.containsKey(term);
-
-//   void remove(String term) => _cache.remove(term);
-
-//   void close() {
-//     _cache.clear();
-//   }
-// }
