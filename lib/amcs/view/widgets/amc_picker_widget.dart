@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
+import 'package:invesly/amcs/view/widgets/cubit/amc_search_cubit.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 
-class InveslyAmcPickerWidget extends StatefulWidget {
+class InveslyAmcPickerWidget extends StatelessWidget {
   const InveslyAmcPickerWidget({super.key, this.amcId, this.onPickup});
 
   final String? amcId;
@@ -22,140 +23,15 @@ class InveslyAmcPickerWidget extends StatefulWidget {
   }
 
   @override
-  State<InveslyAmcPickerWidget> createState() => _InveslyAmcPickerWidgetState();
-}
-
-class _InveslyAmcPickerWidgetState extends State<InveslyAmcPickerWidget> {
-  late final Debouncer _debouncer;
-  late final AmcRepository _amcRepository;
-  String? _currentQuery;
-  late final TextEditingController _searchController;
-  List<InveslyAmc> _queryResults = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _debouncer = Debouncer(1.seconds);
-    _amcRepository = context.read<AmcRepository>();
-    _searchController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _debouncer.dispose();
-    super.dispose();
-  }
-
-  Future<List<InveslyAmc>?> _searchAmc(String query) async {
-    if (query == _currentQuery) return _queryResults;
-
-    try {
-      await _debouncer.wait(); // wait for 1 second
-      final amcs = await _amcRepository.getAmcs(); // TODO: implement search from database
-
-      _queryResults = amcs;
-      _currentQuery = query;
-      return _queryResults;
-    } on Exception catch (error) {
-      $logger.e(error);
-    }
-    return null;
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Select Asset Management Company')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: AppConstants.formFieldLabelSpacing,
-            children: <Widget>[
-              TextFormField(
-                decoration: const InputDecoration(hintText: 'Enter keyword', prefixIcon: Icon(Icons.search)),
-                controller: _searchController,
-                autofocus: true,
-              ).withLabel('Search Asset Management Company (AMC)'),
-              Flexible(
-                child: ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: _searchController,
-                  builder: (context, searchQuery, _) {
-                    $logger.d(searchQuery.text);
-
-                    return FutureBuilder<List<InveslyAmc>?>(
-                      future: _searchAmc(searchQuery.text),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          if (snapshot.hasError) {
-                            return const Center(child: Text('Error occurred while fetching AMCs'));
-                          }
-                          if (snapshot.hasData) {
-                            final amcs = snapshot.data;
-                            if (amcs == null || amcs.isEmpty) {
-                              return const Center(child: Text('Sorry! No results found 😞'));
-                            }
-
-                            return Section.builder(
-                              padding: EdgeInsets.zero,
-                              tileCount: amcs.length,
-                              tileBuilder: (context, index) {
-                                final amc = amcs.elementAt(index);
-                                return SectionTile(
-                                  onTap: () => widget.onPickup?.call(amc),
-                                  // dense: true,
-                                  title: Text(amc.name),
-                                  subtitle: Wrap(
-                                    spacing: 4.0,
-                                    runSpacing: 4.0,
-                                    children: <Widget>[
-                                      DecoratedBox(
-                                        decoration: ShapeDecoration(
-                                          shape: StadiumBorder(),
-                                          color: Theme.of(context).colorScheme.primary,
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                          child: Text(
-                                            (amc.genre ?? AmcGenre.misc).title,
-                                            style: context.textTheme.labelSmall?.copyWith(color: Colors.white),
-                                          ),
-                                        ),
-                                      ),
-
-                                      if (amc.tags != null && amc.tags!.isNotEmpty)
-                                        ...amc.tags!.map(
-                                          (tag) => DecoratedBox(
-                                            decoration: ShapeDecoration(
-                                              shape: StadiumBorder(),
-                                              color: Theme.of(context).colorScheme.primary,
-                                            ),
-                                            child: Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                              child: Text(
-                                                tag,
-                                                style: context.textTheme.labelSmall?.copyWith(color: Colors.white),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  titleSpacing: 4.0,
-                                );
-                              },
-                              // separatorBuilder: (_, _) => const SizedBox(height: 2.0),
-                            );
-                          }
-                        }
-                        return const Center(child: CircularProgressIndicator());
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
+          child: BlocProvider(
+            create: (context) => AmcSearchCubit(amcRepository: context.read<AmcRepository>()),
+            child: _InveslyAmcPickerWidget(),
           ),
         ),
       ),
@@ -163,22 +39,112 @@ class _InveslyAmcPickerWidgetState extends State<InveslyAmcPickerWidget> {
   }
 }
 
-class Debouncer {
-  Debouncer(this.delay);
+class _InveslyAmcPickerWidget extends StatefulWidget {
+  const _InveslyAmcPickerWidget({super.key, this.amcId, this.onPickup});
 
-  final Duration delay;
-  Timer? _timer;
+  final String? amcId;
+  final ValueChanged<InveslyAmc>? onPickup;
 
-  Future<void> wait() async {
-    final completer = Completer<void>();
-    if (_timer?.isActive ?? false) {
-      _timer?.cancel();
-    }
-    _timer = Timer(delay, () => completer.complete());
-    return completer.future;
+  @override
+  State<_InveslyAmcPickerWidget> createState() => _InveslyAmcPickerWidgetState();
+}
+
+class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController()..addListener(textFieldChanged);
   }
 
+  @override
   void dispose() {
-    _timer?.cancel();
+    _searchController.removeListener(textFieldChanged);
+    super.dispose();
+  }
+
+  void textFieldChanged() {
+    context.read<AmcSearchCubit>().search(_searchController.text);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: AppConstants.formFieldLabelSpacing,
+      children: <Widget>[
+        TextFormField(
+          decoration: const InputDecoration(hintText: 'Enter keyword to search', prefixIcon: Icon(Icons.search)),
+          controller: _searchController,
+          autofocus: true,
+        ).withLabel('Search Asset Management Company (AMC)'),
+        Flexible(
+          child: BlocBuilder<AmcSearchCubit, AmcSearchState>(
+            builder: (context, state) {
+              return switch (state) {
+                AmcSearchStateEmpty() => const Text('Please enter a term to begin'),
+                AmcSearchStateLoading() => const CircularProgressIndicator.adaptive(),
+                AmcSearchStateError() => Text(state.error),
+                AmcSearchStateSuccess() =>
+                  state.items.isEmpty
+                      ? const Text('Sorry! No results found 😞')
+                      : Expanded(child: _SearchResults(amcs: state.items)),
+              };
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SearchResults extends StatelessWidget {
+  const _SearchResults({super.key, required this.amcs});
+
+  final List<InveslyAmc> amcs;
+
+  @override
+  Widget build(BuildContext context) {
+    return Section.builder(
+      padding: EdgeInsets.zero,
+      tileCount: amcs.length,
+      tileBuilder: (context, index) {
+        final amc = amcs.elementAt(index);
+        return SectionTile(
+          // onTap: () => widget.onPickup?.call(amc),
+          // dense: true,
+          title: Text(amc.name),
+          subtitle: Wrap(
+            spacing: 4.0,
+            runSpacing: 4.0,
+            children: <Widget>[
+              DecoratedBox(
+                decoration: ShapeDecoration(shape: StadiumBorder(), color: Theme.of(context).colorScheme.primary),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  child: Text(
+                    (amc.genre ?? AmcGenre.misc).title,
+                    style: context.textTheme.labelSmall?.copyWith(color: Colors.white),
+                  ),
+                ),
+              ),
+
+              if (amc.tags != null && amc.tags!.isNotEmpty)
+                ...amc.tags!.map(
+                  (tag) => DecoratedBox(
+                    decoration: ShapeDecoration(shape: StadiumBorder(), color: Theme.of(context).colorScheme.primary),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                      child: Text(tag, style: context.textTheme.labelSmall?.copyWith(color: Colors.white)),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          titleSpacing: 4.0,
+        );
+      },
+    );
   }
 }

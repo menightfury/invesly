@@ -10,8 +10,13 @@ class AmcRepository {
   AmcTable get _amcTable => _api.amcTable;
 
   /// Get all amcs matched by query
-  Future<List<InveslyAmc>> getAmcs() async {
-    final list = await _api.select(_amcTable).toList();
+  Future<List<InveslyAmc>> getAmcs(String searchQuery, [int limit = 10]) async {
+    final list = await _api
+        .select(_amcTable)
+        .where([
+          SingleValueTableFilter(_amcTable.nameColumn, searchQuery, operator: SingleValueTableFilterOperator.like),
+        ])
+        .toList(limit: limit);
 
     return list.map<InveslyAmc>((el) => InveslyAmc.fromDb(_amcTable.encode(el))).toList();
   }

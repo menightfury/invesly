@@ -24,13 +24,38 @@ abstract class TableFilter<T extends Object> {
   (String, List<T>) toSql();
 }
 
+enum SingleValueTableFilterOperator {
+  equal,
+  greaterThan,
+  lessThan,
+  greaterThanOrEqual,
+  lessThanOrEqual,
+  like;
+
+  @override
+  String toString() {
+    return switch (this) {
+      equal => '=',
+      greaterThan => '>',
+      lessThan => '<',
+      greaterThanOrEqual => '>=',
+      lessThanOrEqual => '<=',
+      like => 'LIKE',
+    };
+  }
+}
+
 class SingleValueTableFilter<T extends Object> implements TableFilter<T> {
-  const SingleValueTableFilter(this.column, this.value, [this.operator = '=', this.negate = false])
-    : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool');
+  const SingleValueTableFilter(
+    this.column,
+    this.value, {
+    this.operator = SingleValueTableFilterOperator.equal,
+    this.negate = false,
+  }) : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool');
 
   final TableColumn column;
   final T value;
-  final String operator;
+  final SingleValueTableFilterOperator operator;
   final bool negate;
 
   @override
@@ -189,7 +214,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
   }
 
   @override
-  Future<List<Map<String, dynamic>>> toList() async {
+  Future<List<Map<String, dynamic>>> toList({int? limit}) async {
     final List<Map<String, dynamic>> data = [];
     final $where = _where?.toSql();
     final groupBy = _group.isEmpty ? null : _group.map<String>((col) => col.fullTitle).join(', ');
@@ -201,7 +226,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
         where: $where?.$1,
         whereArgs: $where?.$2,
         // orderBy: orderBy,
-        // limit: limit,
+        limit: limit,
         groupBy: groupBy,
       );
       if (list.isEmpty) return List<Map<String, dynamic>>.empty();
@@ -234,7 +259,7 @@ abstract class TableFilterBuilder<T extends InveslyDataModel> {
 
   TableFilterBuilder groupBy(List<TableColumn> columns);
 
-  Future<List<Map<String, dynamic>>> toList();
+  Future<List<Map<String, dynamic>>> toList({int? limit});
 
   // InveslyApiFilterBuilder orderBy(String column) => InveslyApiFilterBuilder();
 
