@@ -10,7 +10,7 @@ class Tappable extends StatelessWidget {
     this.leading,
     this.trailing,
     this.color,
-    this.borderRadius,
+    this.borderRadius = AppConstants.buttonBorderRadius,
     this.border,
     this.shape,
     this.margin,
@@ -46,7 +46,7 @@ class Tappable extends StatelessWidget {
   Widget build(BuildContext context) {
     final defaultShape = RoundedRectangleBorder(
       side: border ?? BorderSide.none,
-      borderRadius: borderRadius ?? AppConstants.buttonBorderRadius,
+      borderRadius: borderRadius ?? BorderRadius.zero,
     );
 
     Widget content = Material(

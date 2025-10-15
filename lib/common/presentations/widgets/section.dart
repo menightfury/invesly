@@ -16,7 +16,7 @@ class Section extends StatelessWidget {
     this.icon,
     this.trailingIcon,
     required List<Widget> tiles,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16.0),
+    this.margin = const EdgeInsets.symmetric(horizontal: 16.0),
   }) : assert(tiles.isNotEmpty),
        tileCount = tiles.length,
        _variant = _SectionVariant.fixed,
@@ -31,7 +31,7 @@ class Section extends StatelessWidget {
     this.trailingIcon,
     required this.tileCount,
     required IndexedWidgetBuilder tileBuilder,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16.0),
+    this.margin = const EdgeInsets.symmetric(horizontal: 16.0),
   }) : assert(tileCount > 0),
        _variant = _SectionVariant.scrollable,
        _tiles = null,
@@ -45,7 +45,7 @@ class Section extends StatelessWidget {
   final _SectionVariant _variant;
   final List<Widget>? _tiles;
   final IndexedWidgetBuilder? _tileBuilder;
-  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? margin;
 
   bool get hasTiles => tileCount > 0;
 
@@ -77,9 +77,9 @@ class Section extends StatelessWidget {
       child: subTitle ?? const SizedBox.shrink(),
     );
 
-    late final Widget tileContainer;
+    late Widget child;
     if (_variant == _SectionVariant.scrollable) {
-      tileContainer = Expanded(
+      child = Expanded(
         child: ListView.separated(
           itemBuilder: (context, index) {
             final tileRadius = effectiveTileRadius(index);
@@ -94,7 +94,7 @@ class Section extends StatelessWidget {
         ),
       );
     } else if (_variant == _SectionVariant.fixed) {
-      tileContainer = Column(
+      child = Column(
         spacing: 2.0,
         children: List.generate(tileCount, (index) {
           final tileRadius = effectiveTileRadius(index);
@@ -106,49 +106,36 @@ class Section extends StatelessWidget {
         }),
       );
     } else {
-      tileContainer = SizedBox.shrink();
+      child = SizedBox.shrink();
     }
 
-    return Padding(
-      padding: padding,
-      child: Material(
-        type: MaterialType.transparency,
-        borderRadius: BorderRadius.all(_kSmallRadius),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 2.0,
-          children: <Widget>[
-            if (title != null)
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.darken(5),
-                  borderRadius: BorderRadius.vertical(top: _kBigRadius, bottom: _kSmallRadius),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Row(
-                      spacing: 16.0,
-                      children: <Widget>[
-                        ?icon,
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[titleText, subtitleText],
-                          ),
-                        ),
-                        ?trailingIcon,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            tileContainer,
-          ],
-        ),
+    child = Material(
+      type: MaterialType.transparency,
+      borderRadius: BorderRadius.all(_kSmallRadius),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 2.0,
+        children: <Widget>[
+          if (title != null)
+            SectionTile(
+              title: titleText,
+              subtitle: subtitleText,
+              icon: icon,
+              trailingIcon: trailingIcon,
+              tileColor: theme.colorScheme.primaryContainer.darken(5),
+              borderRadius: const BorderRadius.vertical(top: _kBigRadius, bottom: _kSmallRadius),
+            ),
+          child,
+        ],
       ),
     );
+
+    if (margin != null) {
+      return Padding(padding: margin!, child: child);
+    }
+
+    return child;
   }
 }
 
@@ -157,11 +144,12 @@ enum _SectionTileVariant { normal, navigation, toggle, check }
 class SectionTile extends StatelessWidget {
   final Widget title;
   final Widget? subtitle;
-  final double? titleSpacing;
+  final double? contentSpacing;
   final Widget? icon;
   final Widget? trailingIcon;
   final Color? tileColor;
   final Color? selectedTileColor;
+  final BorderRadiusGeometry? borderRadius;
   final VoidCallback? _onTap; // for other than switch tile
   final ValueChanged<bool>? _onChanged; // for switch tile only
   final bool enabled;
@@ -173,11 +161,12 @@ class SectionTile extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
-    this.titleSpacing,
+    this.contentSpacing,
     this.icon,
     this.trailingIcon,
     this.tileColor,
     this.selectedTileColor,
+    this.borderRadius = const BorderRadius.all(_kSmallRadius),
     VoidCallback? onTap,
     this.enabled = true,
     this.selected = false,
@@ -190,11 +179,12 @@ class SectionTile extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
-    this.titleSpacing,
+    this.contentSpacing,
     this.icon,
     this.trailingIcon,
     this.tileColor,
     this.selectedTileColor,
+    this.borderRadius = const BorderRadius.all(_kSmallRadius),
     this.enabled = true,
     this.selected = false,
     VoidCallback? onTap,
@@ -207,11 +197,12 @@ class SectionTile extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
-    this.titleSpacing,
+    this.contentSpacing,
     this.icon,
     required bool value,
     this.tileColor,
     this.selectedTileColor,
+    this.borderRadius = const BorderRadius.all(_kSmallRadius),
     this.enabled = true,
     this.selected = false,
     void Function(bool)? onChanged,
@@ -225,11 +216,12 @@ class SectionTile extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
-    this.titleSpacing,
+    this.contentSpacing,
     this.icon,
     required bool value,
     this.tileColor,
     this.selectedTileColor,
+    this.borderRadius = const BorderRadius.all(_kSmallRadius),
     this.enabled = true,
     this.selected = false,
     void Function(bool)? onChanged,
@@ -284,10 +276,10 @@ class SectionTile extends StatelessWidget {
                 : _onTap
           : null,
       child: SafeArea(
-        child: ColoredBox(
-          color: _tileColor(theme, tileTheme),
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: _tileColor(theme, tileTheme), borderRadius: borderRadius),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 48.0),
+            constraints: const BoxConstraints(minHeight: 52.0),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
@@ -297,7 +289,7 @@ class SectionTile extends StatelessWidget {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: titleSpacing ?? 0.0,
+                      spacing: contentSpacing ?? 0.0,
                       children: <Widget>[titleText, ?subtitleText],
                     ),
                   ),

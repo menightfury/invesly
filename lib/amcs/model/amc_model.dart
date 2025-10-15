@@ -31,6 +31,15 @@ enum AmcGenre {
       misc => Icons.category,
     };
   }
+
+  Color get color {
+    return switch (this) {
+      mf => Colors.blue,
+      stock => Colors.green,
+      insurance => Colors.orange,
+      misc => Colors.grey,
+    };
+  }
 }
 
 // ~ Mutual Fund specific enums

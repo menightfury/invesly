@@ -17,12 +17,17 @@ class DashboardCubit extends Cubit<DashboardState> {
   StreamSubscription<TableChangeEvent>? _subscription;
 
   /// Fetch transaction statistics (on initial load, on transactions change)
-  Future<void> fetchTransactionStats() async {
+  Future<void> fetchTransactionStats({DateTimeRange<DateTime>? dateRange, int? limit}) async {
+    // DateTimeRange? dateRange;
+    // if (start != null || end != null) {
+    //   dateRange = DateTimeRange(start: start ?? DateTime(1970), end: end ?? DateTime.now());
+    // }
+
     // Get initial transactions
     emit(const DashboardLoadingState());
     try {
       final transactionStats = await _repository.getTransactionStats();
-      final recentTransactions = await _repository.getTransactions();
+      final recentTransactions = await _repository.getTransactions(dateRange: dateRange, limit: limit);
 
       emit(DashboardLoadedState(stats: transactionStats, recentTransactions: recentTransactions));
     } on Exception catch (error) {
@@ -41,7 +46,7 @@ class DashboardCubit extends Cubit<DashboardState> {
 
       try {
         final transactionStats = await _repository.getTransactionStats();
-        final transactions = await _repository.getTransactions();
+        final transactions = await _repository.getTransactions(dateRange: dateRange, limit: limit);
 
         emit(DashboardLoadedState(stats: transactionStats, recentTransactions: transactions));
       } on Exception catch (error) {

@@ -1,5 +1,6 @@
 // ignore_for_file: unused_element
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
@@ -14,9 +15,16 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
+
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_classic.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
+
+part 'widgets/accounts.dart';
+part 'widgets/amc_genres_stat.dart';
+part 'widgets/recent_transaction_widget.dart';
+part 'widgets/transaction_stat.dart';
+part 'widgets/spending_pie_chart.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -109,7 +117,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         label: ScrollToHide(
           scrollController: _scrollController,
           hideAxis: Axis.horizontal,
-          child: Padding(padding: const EdgeInsets.only(left: 8.0), child: Text('New transaction')),
+          child: const Padding(padding: EdgeInsets.only(left: 8.0), child: Text('New transaction')),
         ),
       ),
     );
@@ -160,11 +168,17 @@ class _DashboardContents extends StatefulWidget {
 }
 
 class _DashboardContentsState extends State<_DashboardContents> {
+  late final DateTimeRange<DateTime> dateRange;
+
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    // final endOfMonth = DateTime(now.year, now.month + 1, 0);
+    dateRange = DateTimeRange(start: startOfMonth, end: now);
     context.read<AccountsCubit>().fetchAccounts();
-    context.read<DashboardCubit>().fetchTransactionStats();
+    context.read<DashboardCubit>().fetchTransactionStats(dateRange: dateRange);
   }
 
   @override
@@ -172,506 +186,7 @@ class _DashboardContentsState extends State<_DashboardContents> {
     return Column(
       spacing: 16.0,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[_AccountsList(), _AmcGenreList(), _RecentTransactions()],
-    );
-  }
-}
-
-class _AccountsList extends StatelessWidget {
-  const _AccountsList({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = context.textTheme;
-
-    return SizedBox(
-      height: 120.0,
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: BlocBuilder<AccountsCubit, AccountsState>(
-            builder: (context, accountState) {
-              return BlocBuilder<DashboardCubit, DashboardState>(
-                builder: (context, dashboardState) {
-                  final isError = accountState.isError || dashboardState.isError;
-                  final isLoading = accountState.isLoading || dashboardState.isLoading;
-                  final accounts = accountState.isLoaded ? (accountState as AccountsLoadedState).accounts : null;
-                  final totalAmount = dashboardState is DashboardLoadedState
-                      ? dashboardState.stats.fold<double>(0, (v, el) => v + el.totalAmount)
-                      : null;
-
-                  return Row(
-                    spacing: 8.0,
-                    children: <Widget>[
-                      // ~~~ Accounts ~~~
-                      ...List.generate(
-                        accounts?.length ?? 1, // dummy count for shimmer effect
-                        (index) {
-                          final account = accounts?.elementAt(index);
-
-                          return BlocSelector<AppCubit, AppState, bool>(
-                            selector: (state) => state.primaryAccountId == account?.id,
-                            builder: (context, isCurrentAccount) {
-                              $logger.i('rebuilding $account');
-                              return Tappable(
-                                // onTap: isLoading ? null : () => RouteUtils.pushRoute(
-                                //   context,
-                                //   AccountDetailsPage(
-                                //     account: account,
-                                //     accountIconHeroTag: 'dashboard-page__account-icon-${account.id}',
-                                //   ),
-                                // ),
-                                width: 160.0,
-                                childAlignment: Alignment.centerLeft,
-                                border: BorderSide(color: isCurrentAccount ? context.colors.primary : Colors.black),
-                                content: Shimmer(
-                                  isLoading: isLoading,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    spacing: 4.0,
-                                    children: <Widget>[
-                                      account == null
-                                          ? Skeleton(color: isError ? context.colors.error : null)
-                                          : Text(account.name, overflow: TextOverflow.ellipsis),
-
-                                      totalAmount == null
-                                          ? Skeleton(color: isError ? context.colors.error : null)
-                                          : BlocSelector<AppCubit, AppState, bool>(
-                                              selector: (state) => state.isPrivateMode,
-                                              builder: (context, isPrivateMode) {
-                                                return CurrencyView(
-                                                  amount: totalAmount,
-                                                  integerStyle: textTheme.headlineLarge,
-                                                  decimalsStyle: textTheme.headlineSmall,
-                                                  currencyStyle: textTheme.bodyMedium,
-                                                  privateMode: isPrivateMode,
-                                                  // compactView: snapshot.data! >= 1_00_00_000
-                                                );
-                                              },
-                                            ),
-                                      Spacer(),
-                                      Text('5 transactions', style: textTheme.labelMedium),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-
-                      // ~~~ Add account ~~~
-                      Tappable(
-                        onTap: () => context.push(const EditAccountScreen()),
-                        color: context.colors.secondaryContainer,
-                        width: 160.0,
-                        border: BorderSide(color: context.colors.onSecondaryContainer, width: 1.0),
-                        content: Shimmer(
-                          isLoading: isLoading,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            spacing: 4.0,
-                            children: <Widget>[
-                              isLoading
-                                  ? Skeleton(color: isError ? context.colors.error : null)
-                                  : Icon(Icons.format_list_bulleted_add, color: context.colors.onSecondaryContainer),
-                              isLoading
-                                  ? Skeleton(color: isError ? context.colors.error : null)
-                                  : Text(
-                                      'Create account',
-                                      style: TextStyle(color: context.colors.onSecondaryContainer),
-                                    ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AmcGenreList extends StatelessWidget {
-  const _AmcGenreList({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Section(
-      title: Text('Investment genres'),
-      subTitle: Text('01 Sep, 2025 - 13 Sep, 2025'),
-      icon: const Icon(Icons.swap_vert_rounded),
-      // InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
-      tiles: AmcGenre.values.map((genre) => _buildGenre(context, genre)).toList(),
-    );
-  }
-
-  Widget _buildGenre(BuildContext context, AmcGenre genre) {
-    return Tappable(
-      onTap: () {},
-      borderRadius: BorderRadius.zero,
-      childAlignment: Alignment.centerLeft,
-      padding: EdgeInsets.zero,
-      color: context.colors.secondaryContainer,
-      content: Stack(
-        children: <Widget>[
-          Positioned(
-            right: -12.0,
-            top: -12.0,
-            child: Icon(genre.icon, size: 64.0, color: context.colors.secondary.withAlpha(50)),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(genre.title, overflow: TextOverflow.ellipsis),
-                BlocBuilder<DashboardCubit, DashboardState>(
-                  builder: (context, dashboardState) {
-                    final isError = dashboardState.isError;
-                    final isLoading = dashboardState.isLoading;
-
-                    final stats = dashboardState is DashboardLoadedState
-                        ? dashboardState.stats.firstWhereOrNull((stat) => stat.amcGenre == genre)
-                        : null;
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      spacing: 4.0,
-                      children: <Widget>[
-                        isLoading
-                            ? Skeleton()
-                            : Text(
-                                '${stats?.numTransactions ?? 0} transactions',
-                                style: context.textTheme.labelSmall,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: isLoading
-                              ? Skeleton()
-                              : BlocSelector<AppCubit, AppState, bool>(
-                                  selector: (state) => state.isPrivateMode,
-                                  builder: (context, isPrivateMode) {
-                                    return CurrencyView(
-                                      amount: stats?.totalAmount ?? 0.0,
-                                      integerStyle: context.textTheme.headlineMedium,
-                                      decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0),
-                                      currencyStyle: context.textTheme.bodySmall,
-                                      privateMode: isPrivateMode,
-                                    );
-                                  },
-                                ),
-                          // child: Text(
-                          //   stats?.totalAmount.toCompact() ?? '0.0',
-                          //   style: context.textTheme.,
-                          //   overflow: TextOverflow.ellipsis,
-                          // ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RecentTransactions extends StatelessWidget {
-  const _RecentTransactions({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<DashboardCubit, DashboardState>(
-      builder: (context, state) {
-        late final List<Widget> tiles;
-        if (state.isLoaded) {
-          final rts = (state as DashboardLoadedState).recentTransactions;
-          if (rts.isEmpty) {
-            tiles = [
-              SectionTile(
-                title: Text('Oops! This is so empty', style: context.textTheme.titleLarge),
-                subtitle: Text(
-                  'No transactions have been found.\nAdd a few transactions.',
-                  textAlign: TextAlign.center,
-                  style: context.textTheme.bodySmall,
-                ),
-              ),
-            ];
-          } else {
-            tiles = rts.map((rt) {
-              return SectionTile(
-                icon: Icon(rt.transactionType.icon),
-                title: Text(rt.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
-                subtitle: Text(rt.investedOn.toReadable()),
-                trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                  selector: (state) => state.isPrivateMode,
-                  builder: (context, isPrivateMode) {
-                    return CurrencyView(
-                      amount: rt.totalAmount,
-                      integerStyle: context.textTheme.headlineSmall?.copyWith(color: rt.transactionType.color(context)),
-                      privateMode: isPrivateMode,
-                    );
-                  },
-                ),
-                onTap: () {},
-              );
-            }).toList();
-          }
-        } else {
-          tiles = [SectionTile(title: CircularProgressIndicator())];
-        }
-
-        return Section(
-          title: const Text('Recent transactions'),
-          subTitle: Text('01 Sep, 2025 - 13 Sep, 2025'),
-          icon: const Icon(Icons.swap_vert_rounded),
-          tiles: tiles,
-        );
-      },
-    );
-  }
-}
-
-class _TransactionSummeryWidget extends StatelessWidget {
-  const _TransactionSummeryWidget({
-    super.key,
-    required this.genre,
-    this.totalInvestedAmount = 0.0,
-    this.transactions = const [],
-  });
-
-  final AmcGenre genre;
-  final double totalInvestedAmount;
-  final List<TransactionStat> transactions;
-
-  @override
-  Widget build(BuildContext context) {
-    final totalGenreAmount = transactions.isEmpty ? 0.0 : transactions.fold<double>(0, (v, el) => v + el.totalAmount);
-    double share = 0.0;
-    if (totalGenreAmount > 0 && totalInvestedAmount > 0) {
-      share = totalGenreAmount / totalInvestedAmount;
-    }
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    // $logger.f(transactions);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        // ~ Heading
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            children: <Widget>[
-              const Icon(Icons.trending_up_rounded, color: Colors.lightBlue, size: 32.0),
-              const SizedBox(width: 16.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(genre.title, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 4.0),
-                    Text(totalGenreAmount.toCompact(), style: textTheme.headlineMedium),
-                  ],
-                ),
-              ),
-              if (share > 0)
-                CircularPercentIndicator(
-                  percent: share,
-                  radius: 40.0,
-                  lineWidth: 16.0,
-                  circularStrokeCap: CircularStrokeCap.round,
-                  animation: true,
-                  animateFromLastPercent: true,
-                  progressColor: colorScheme.primary,
-                  backgroundColor: colorScheme.secondary,
-                  center: Text('${(share * 100).toCompact()} %'),
-                ),
-            ],
-          ),
-        ),
-
-        // ~ Lists
-        buildTransactionList(context, totalGenreAmount),
-      ],
-    );
-  }
-
-  Widget buildTransactionList(BuildContext context, double totalClassAmount) {
-    if (transactions.isEmpty) {
-      return EmptyWidget(height: 160.0, label: 'No transactions in ${genre.title.toLowerCase()}');
-    }
-
-    final textTheme = Theme.of(context).textTheme;
-    return SizedBox(
-      height: 240.0,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        itemCount: transactions.length,
-        itemBuilder: (context, index) {
-          final transaction = transactions[index];
-          final genre = transaction.amcGenre;
-          final shareWithinClass = transaction.totalAmount / totalClassAmount;
-          final overallShare = transaction.totalAmount / totalInvestedAmount;
-
-          // final tags = [amc.plan, amc.sector, amc.subSector].whereNotNull().toList(growable: false);
-          // final tags = genre.tags?.toList() ?? <String>[];
-
-          return Material(
-            elevation: 1.0,
-            borderRadius: BorderRadius.circular(12.0),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () {},
-              child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomLeft,
-                    end: Alignment.topRight,
-                    colors: [Color(0xFFA8EDEA), Color(0xFFFED6E3)],
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24.0),
-                  child: SizedBox(
-                    width: 160.0,
-                    height: 192.0,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        // ~ Amc name
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(genre.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-                        ),
-                        const SizedBox(height: 4.0),
-
-                        // ~ Amc tags like plan, scheme, sector, sub_sector etc.
-                        // SizedBox(
-                        //   height: 24.0,
-                        //   child: ListView.separated(
-                        //     scrollDirection: Axis.horizontal,
-                        //     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        //     separatorBuilder: (_, __) => const SizedBox(width: 8.0),
-                        //     itemBuilder: (context, i) {
-                        //       final tag = tags[i];
-                        //       return Center(
-                        //         child: ConstrainedBox(
-                        //           constraints: const BoxConstraints(maxWidth: 96.0),
-                        //           child: Material(
-                        //             color: const Color.fromARGB(255, 5, 60, 141),
-                        //             shape: const StadiumBorder(),
-                        //             child: Padding(
-                        //               padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                        //               child: Text(
-                        //                 tag,
-                        //                 style: textTheme.labelSmall?.copyWith(color: Colors.white),
-                        //                 overflow: TextOverflow.ellipsis,
-                        //               ),
-                        //             ),
-                        //           ),
-                        //         ),
-                        //       );
-                        //     },
-                        //     itemCount: tags.length,
-                        //   ),
-                        // ),
-                        const SizedBox(height: 16.0),
-                        const Spacer(),
-
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
-                            children: <Widget>[
-                              // ~ Amount
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: Text(
-                                  transaction.totalAmount.toCompact(),
-                                  textAlign: TextAlign.right,
-                                  style: textTheme.headlineSmall,
-                                ),
-                              ),
-                              const SizedBox(height: 16.0),
-
-                              // ~ % Share within genre
-                              Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: <Widget>[
-                                      Text(transaction.amcGenre.title, style: textTheme.labelSmall),
-                                      Text('${(shareWithinClass * 100).toCompact()}%', style: textTheme.labelSmall),
-                                    ],
-                                  ),
-                                  LinearPercentIndicator(
-                                    percent: shareWithinClass.isNegative ? 0.0 : shareWithinClass,
-                                    backgroundColor: Colors.teal.withAlpha(50),
-                                    progressColor: Colors.teal,
-                                    lineHeight: 4.0,
-                                    padding: EdgeInsets.zero,
-                                    barRadius: const Radius.circular(8.0),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12.0),
-
-                              // ~ % Overall share
-                              Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: <Widget>[
-                                        Text('Total', style: textTheme.labelSmall),
-                                        Text('${(overallShare * 100).toCompact()}%', style: textTheme.labelSmall),
-                                      ],
-                                    ),
-                                  ),
-                                  LinearPercentIndicator(
-                                    percent: overallShare.isNegative ? 0.0 : overallShare,
-                                    backgroundColor: Colors.teal.withAlpha(50),
-                                    progressColor: Colors.teal,
-                                    lineHeight: 4.0,
-                                    padding: EdgeInsets.zero,
-                                    barRadius: const Radius.circular(8.0),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-        separatorBuilder: (_, _) => const SizedBox(width: 16.0),
-      ),
+      children: <Widget>[_AccountsList(), _SpendingPieChart(), _RecentTransactions(dateRange)],
     );
   }
 }

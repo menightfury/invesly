@@ -110,7 +110,7 @@ class _SearchResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Section.builder(
-      padding: EdgeInsets.zero,
+      margin: EdgeInsets.zero,
       tileCount: amcs.length,
       tileBuilder: (context, index) {
         final amc = amcs.elementAt(index);
@@ -147,7 +147,7 @@ class _SearchResults extends StatelessWidget {
                 ),
             ],
           ),
-          titleSpacing: 4.0,
+          contentSpacing: 4.0,
         );
       },
     );

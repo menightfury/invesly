@@ -1,71 +1,62 @@
-// ignore_for_file: unused_element
+part of '../dashboard_screen.dart';
 
-import 'package:invesly/transactions/model/transaction_model.dart';
-import 'package:invesly/common_libs.dart';
+class _RecentTransactions extends StatelessWidget {
+  const _RecentTransactions(this.dateRange, {super.key});
 
-class RecentTransactionsWidget extends StatefulWidget {
-  const RecentTransactionsWidget(this.transactions, {super.key});
-
-  final List<InveslyTransaction> transactions;
-
-  @override
-  State<RecentTransactionsWidget> createState() => _RecentTransactionsWidgetState();
-}
-
-class _RecentTransactionsWidgetState extends State<RecentTransactionsWidget> {
-  @override
-  void initState() {
-    super.initState();
-    // final bla =
-    //     List<String?>.generate(widget.investments.length, (index) => widget.investments[index].amcId, growable: false)
-    //         .toSet()
-    //         .toList();
-    // $logger.d(bla);
-    // Supabase.instance.client.from('amcs').select().inFilter('id', bla).then($logger.f);
-  }
+  final DateTimeRange dateRange;
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    if (widget.transactions.isEmpty) return const Center(child: Text('No transactions are found.'));
-
-    return ColumnBuilder(
-      itemBuilder: (context, index) {
-        final inv = widget.transactions[index];
-
-        return Material(
-          borderRadius: BorderRadius.circular(8.0),
-          child: ListTile(
-            leading: const Icon(Icons.face_2),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  // inv.amcId ?? 'NULL',
-                  'NULL',
-                  style: textTheme.bodyLarge,
-                  overflow: TextOverflow.ellipsis,
+    return BlocBuilder<DashboardCubit, DashboardState>(
+      builder: (context, state) {
+        late final List<Widget> tiles;
+        if (state.isLoaded) {
+          final rts = (state as DashboardLoadedState).recentTransactions;
+          if (rts.isEmpty) {
+            tiles = [
+              SectionTile(
+                title: Center(child: Text('Oops! This is so empty', style: context.textTheme.titleLarge)),
+                subtitle: Center(
+                  child: Text(
+                    'No transactions have been found for this month.\nAdd a few transactions.',
+                    textAlign: TextAlign.center,
+                    style: context.textTheme.bodySmall,
+                  ),
                 ),
-                //! TODO: For testing purpose only. Delete in production mode
-                Text(
-                  inv.accountId,
-                  style: const TextStyle(fontSize: 12.0, color: Colors.redAccent),
-                  overflow: TextOverflow.ellipsis,
+                contentSpacing: 12.0,
+              ),
+            ];
+          } else {
+            tiles = rts.map((rt) {
+              return SectionTile(
+                icon: Icon(rt.transactionType.icon),
+                title: Text(rt.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
+                subtitle: Text(rt.investedOn.toReadable()),
+                trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                  selector: (state) => state.isPrivateMode,
+                  builder: (context, isPrivateMode) {
+                    return CurrencyView(
+                      amount: rt.totalAmount,
+                      integerStyle: context.textTheme.headlineSmall?.copyWith(color: rt.transactionType.color(context)),
+                      privateMode: isPrivateMode,
+                    );
+                  },
                 ),
-              ],
-            ),
-            subtitle: Text(inv.investedOn.toReadable(), style: textTheme.labelMedium),
-            trailing: Text(
-              inv.totalAmount.toPrecision(2).toString(),
-              textAlign: TextAlign.end,
-              style: textTheme.bodyMedium?.copyWith(fontSize: 32.0),
-            ),
-          ),
+                onTap: () {},
+              );
+            }).toList();
+          }
+        } else {
+          tiles = [SectionTile(title: CircularProgressIndicator())];
+        }
+
+        return Section(
+          title: const Text('Recent transactions'),
+          subTitle: Text('${dateRange.start.toReadable()} - ${dateRange.end.toReadable()}'),
+          icon: const Icon(Icons.swap_vert_rounded),
+          tiles: tiles,
         );
       },
-      separatorBuilder: (_, _) => const SizedBox(height: 8.0),
-      itemCount: widget.transactions.length,
     );
   }
 }

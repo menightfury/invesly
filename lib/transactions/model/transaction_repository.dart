@@ -30,17 +30,21 @@ class TransactionRepository {
   }) async {
     final filter = <TableFilter>[];
     if (accountId != null) {
-      filter.add(SingleValueTableFilter(_trnTable.accountIdColumn, accountId));
+      filter.add(SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId));
     }
 
     if (amcId != null) {
-      filter.add(SingleValueTableFilter(_trnTable.amcIdColumn, amcId));
+      filter.add(SingleValueTableFilter<String>(_trnTable.amcIdColumn, amcId));
     }
 
-    // dateRange ??= DateTimeRange(start: DateTime.now().subtract(const Duration(days: 30)), end: DateTime.now());
-
     if (dateRange != null) {
-      filter.add(RangeValueTableFilter<DateTime>(_trnTable.dateColumn, dateRange.start, dateRange.end));
+      filter.add(
+        RangeValueTableFilter(
+          _trnTable.dateColumn,
+          dateRange.start.millisecondsSinceEpoch,
+          dateRange.end.millisecondsSinceEpoch,
+        ),
+      );
     }
 
     late final List<InveslyTransaction> transactions;

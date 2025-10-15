@@ -92,17 +92,16 @@ class MultipleValueTableFilter<T extends Object> implements TableFilter {
   }
 }
 
-class RangeValueTableFilter<T extends Object> implements TableFilter {
-  const RangeValueTableFilter(this.column, this.start, this.end, [this.negate = false])
-    : assert(T == num, 'Value must be of type num');
+class RangeValueTableFilter implements TableFilter {
+  const RangeValueTableFilter(this.column, this.start, this.end, [this.negate = false]);
 
   final TableColumn column;
-  final T start;
-  final T end;
+  final num start;
+  final num end;
   final bool negate;
 
   @override
-  (String, List<T>) toSql() {
+  (String, List<num>) toSql() {
     final buffer = StringBuffer();
     if (negate) {
       buffer.write('NOT ');
