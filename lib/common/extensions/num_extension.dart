@@ -41,6 +41,9 @@ extension EMDoubleExtension on num {
   }
 
   String toCompact() {
+    if (isInfinite || isNaN) {
+      return '';
+    }
     return NumberFormat.compact().format(this);
   }
 }

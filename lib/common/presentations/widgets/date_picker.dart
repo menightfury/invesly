@@ -54,7 +54,7 @@ class _InveslyDatePickerState extends State<InveslyDatePicker> {
       leading: widget.leadingIcon,
       color: widget.color,
       onTap: () => _selectDate(context),
-      content: ValueListenableBuilder<DateTime>(
+      child: ValueListenableBuilder<DateTime>(
         valueListenable: _dateNotifier,
         builder: (context, date, _) {
           final days = _dateNow.difference(date).inDays;

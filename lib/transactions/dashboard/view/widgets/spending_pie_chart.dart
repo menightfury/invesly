@@ -1,7 +1,9 @@
 part of '../dashboard_screen.dart';
 
 class _SpendingPieChart extends StatefulWidget {
-  const _SpendingPieChart({super.key});
+  const _SpendingPieChart(this.stats, {super.key});
+
+  final List<TransactionStat> stats;
 
   @override
   State<_SpendingPieChart> createState() => _SpendingPieChartState();
@@ -10,7 +12,7 @@ class _SpendingPieChart extends StatefulWidget {
 class _SpendingPieChartState extends State<_SpendingPieChart> {
   int touchedIndex = -1;
   bool scaleIn = false;
-  int showLabels = 0;
+  final centerRadius = 40.0;
   @override
   void initState() {
     super.initState();
@@ -58,133 +60,66 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return Section(
-      title: const Text('Categories'),
-      icon: const Icon(Icons.pie_chart_rounded),
-      tiles: [
-        BlocSelector<AppCubit, AppState, String?>(
-          selector: (state) => state.primaryAccountId,
-          builder: (context, accountId) {
-            return BlocBuilder<DashboardCubit, DashboardState>(
-              builder: (context, dashboardState) {
-                final isError = dashboardState.isError;
-                final isLoading = dashboardState.isLoading;
-                if (dashboardState is DashboardLoadedState) {
-                  $logger.i(dashboardState.stats);
-                }
-                // final stats = dashboardState is DashboardLoadedState
-                //     ? dashboardState.stats.firstWhereOrNull((stat) => stat.amcGenre == genre)
-                //     : null;
-                final stats = dashboardState is DashboardLoadedState
-                    ? dashboardState.stats.where((stat) => stat.accountId == accountId).toList()
-                    : null;
-                final totalAmount = stats?.fold<double>(0, (v, el) => v + el.totalAmount);
-                return SectionTile(
-                  title: SizedBox(
-                    height: 256.0,
-                    child: Stack(
-                      children: <Widget>[
-                        stats == null
-                            ? Skeleton(color: isError ? context.colors.error : null)
-                            : PieChart(
-                                PieChartData(
-                                  centerSpaceRadius: 0,
-                                  sections: _buildSections(stats),
-                                  borderData: FlBorderData(show: false),
-                                  // pieTouchData: PieTouchData(
-                                  //   touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                                  //     // print(event.runtimeType);
-                                  //     setState(() {
-                                  //       if (!event.isInterestedForInteractions ||
-                                  //           pieTouchResponse == null ||
-                                  //           pieTouchResponse.touchedSection == null) {
-                                  //         return;
-                                  //       }
-                                  //       if (event.runtimeType == FlTapDownEvent &&
-                                  //           touchedIndex != pieTouchResponse.touchedSection!.touchedSectionIndex) {
-                                  //         touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                                  //         // print("TOUCHED");
-                                  //         // print(touchedIndex);
-                                  //         // print(widget.data);
-                                  //         widget.setSelectedCategory(
-                                  //           widget.data[touchedIndex].category.categoryPk,
-                                  //           widget.data[touchedIndex].category,
-                                  //         );
-                                  //       } else if (event.runtimeType == FlTapDownEvent) {
-                                  //         touchedIndex = -1;
-                                  //         widget.setSelectedCategory("-1", null);
-                                  //       } else if (event.runtimeType == FlLongPressMoveUpdate) {
-                                  //         touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                                  //         widget.setSelectedCategory(
-                                  //           widget.data[touchedIndex].category.categoryPk,
-                                  //           widget.data[touchedIndex].category,
-                                  //         );
-                                  //       }
-                                  //     });
-                                  //   },
-                                  // ),
-                                ),
-                                duration: Duration(milliseconds: 1300),
-                                curve: ElasticOutCurve(0.6),
-                              ),
-                        Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text('Total investment'),
-                              totalAmount == null
-                                  ? Skeleton(color: isError ? context.colors.error : null)
-                                  : BlocSelector<AppCubit, AppState, bool>(
-                                      selector: (state) => state.isPrivateMode,
-                                      builder: (context, isPrivateMode) {
-                                        return CurrencyView(
-                                          amount: totalAmount,
-                                          integerStyle: textTheme.headlineLarge,
-                                          decimalsStyle: textTheme.headlineSmall,
-                                          currencyStyle: textTheme.bodyMedium,
-                                          privateMode: isPrivateMode,
-                                          // compactView: snapshot.data! >= 1_00_00_000
-                                        );
-                                      },
-                                    ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  subtitle: Center(
-                    child: Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 12.0,
-                      children: AmcGenre.values
-                          .map((genre) => _buildLegendItem(context, genre.title, genre.color))
-                          .toList(growable: false),
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLegendItem(BuildContext context, String label, Color color) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      spacing: 4.0,
+    return Stack(
+      alignment: AlignmentGeometry.center,
       children: <Widget>[
-        Container(
-          width: 12.0,
-          height: 12.0,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        PinWheelReveal(
+          delay: Duration(milliseconds: 0),
+          duration: Duration(milliseconds: 850),
+          child: PieChart(
+            PieChartData(
+              startDegreeOffset: -45.0,
+              centerSpaceRadius: centerRadius,
+              sections: _buildSections(widget.stats),
+              borderData: FlBorderData(show: false),
+              pieTouchData: PieTouchData(
+                touchCallback: (event, pieTouchResponse) {
+                  // print(event.runtimeType);
+                  setState(() {
+                    if (!event.isInterestedForInteractions ||
+                        pieTouchResponse == null ||
+                        pieTouchResponse.touchedSection == null) {
+                      return;
+                    }
+                    if (event.runtimeType == FlTapDownEvent &&
+                        touchedIndex != pieTouchResponse.touchedSection!.touchedSectionIndex) {
+                      touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+
+                      // widget.setSelectedCategory(
+                      //   widget.data[touchedIndex].category.categoryPk,
+                      //   widget.data[touchedIndex].category,
+                      // );
+                    } else if (event is FlTapDownEvent) {
+                      touchedIndex = -1;
+                      // widget.setSelectedCategory("-1", null);
+                    } else if (event is FlLongPressMoveUpdate) {
+                      touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                      // widget.setSelectedCategory(
+                      //   widget.data[touchedIndex].category.categoryPk,
+                      //   widget.data[touchedIndex].category,
+                      // );
+                    }
+                  });
+                },
+              ),
+            ),
+            duration: Duration(milliseconds: 1300),
+            curve: ElasticOutCurve(0.6),
+          ),
         ),
-        Text(label, style: context.textTheme.bodySmall?.copyWith(color: context.colors.onSurfaceVariant)),
+        IgnorePointer(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.white.withAlpha(50),
+                width: 15.0,
+                strokeAlign: BorderSide.strokeAlignOutside,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: SizedBox.square(dimension: centerRadius * 2),
+          ),
+        ),
       ],
     );
   }
@@ -204,7 +139,7 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
       final genre = AmcGenre.getByIndex(i);
       final stat = stats.singleWhereOrNull((stat) => stat.amcGenre == genre);
       final isTouched = i == touchedIndex;
-      final radius = isTouched ? 106.0 : 100.0;
+      final radius = isTouched ? 56.0 : 50.0;
       final widgetScale = isTouched ? 1.3 : 1.0;
 
       // bool isTouchingSameColorSection = false;
@@ -232,17 +167,15 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
         value: stat?.totalAmount,
         title: '',
         radius: radius,
-        // badgeWidget: _Badge(
-        //   totalPercentAccumulated: totalPercentAccumulated,
-        //   showLabels: i < showLabels,
-        //   scale: widgetScale,
-        //   color: genre.color,
-        //   iconName: genre.title,
-        //   categoryColor: genre.color,
-        //   // emojiIconName: stats[i].category.emojiIconName,
-        //   percent: percent,
-        //   isTouched: isTouched,
-        // ),
+        badgeWidget: _Badge(
+          genre,
+          totalPercentAccumulated: totalPercentAccumulated,
+          showLabels: false,
+          scale: widgetScale,
+          categoryColor: genre.color,
+          percent: percent,
+          isTouched: isTouched,
+        ),
         titlePositionPercentageOffset: 1.4,
         badgePositionPercentageOffset: .98,
       );
@@ -251,22 +184,18 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
 }
 
 class _Badge extends StatelessWidget {
+  final AmcGenre genre;
   final double scale;
-  final Color color;
-  final String iconName;
-  final String? emojiIconName;
   final double percent;
   final bool isTouched;
   final bool showLabels;
   final Color categoryColor;
   final double totalPercentAccumulated;
 
-  const _Badge({
+  const _Badge(
+    this.genre, {
     super.key,
     required this.scale,
-    required this.color,
-    required this.iconName,
-    this.emojiIconName,
     required this.percent,
     required this.isTouched,
     required this.showLabels,
@@ -281,65 +210,101 @@ class _Badge extends StatelessWidget {
       curve: showIcon ? Curves.easeInOutCubicEmphasized : ElasticOutCurve(0.6),
       duration: showIcon ? Duration(milliseconds: 700) : Duration(milliseconds: 1300),
       scale: showIcon && isTouched == false ? 0 : (showLabels || isTouched ? (showIcon ? 1 : scale) : 0),
-      child: AnimatedSwitcher(
-        duration: Duration(milliseconds: 500),
-        child: Container(
-          key: ValueKey(iconName),
-          height: 45,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: color, width: 2.5),
-          ),
-          child: Stack(
-            alignment: AlignmentDirectional.center,
-            children: [
-              AnimatedOpacity(
-                duration: Duration(milliseconds: 200),
-                opacity: scale == 1 ? 0 : 1,
-                child: Center(
-                  child: Transform.translate(
-                    offset: Offset(
-                      0.0,
-                      // Prevent overlapping labels when displayed on top
-                      // Divider percent by 2, because the label is in the middle
-                      // This means any label location that is past 50% will change orientation
-                      totalPercentAccumulated - percent / 2 < 50 ? -34 : 34,
-                    ),
-                    child: IntrinsicWidth(
-                      child: Container(
-                        height: 20,
-                        padding: EdgeInsetsDirectional.symmetric(horizontal: 5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadiusDirectional.circular(5),
-                          border: Border.all(color: color, width: 1.5),
-                          color: Theme.of(context).colorScheme.surface,
-                        ),
-                        child: Center(
-                          child: Text(
-                            // convertToPercent(percent),
-                            percent.toCompact(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // Container(
-              //   decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).colorScheme.surface),
-              //   child: Center(
-              //     child: Container(
-              //       decoration: BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
-              //       padding: EdgeInsetsDirectional.all(8),
-              //       child: emojiIconName != null ? Container() : CacheCategoryIcon(iconName: iconName, size: 34),
-              //     ),
-              //   ),
-              // ),
-              // emojiIconName != null ? EmojiIcon(emojiIconName: emojiIconName, size: 34 * 0.7) : SizedBox.shrink(),
-            ],
-          ),
+      child: Container(
+        height: 42.0,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: genre.color.lighten(20),
+          border: Border.all(color: genre.color, width: 2.0),
         ),
+        child: Center(child: Icon(genre.icon, size: 24.0, color: Colors.white)),
       ),
     );
   }
 }
+
+class PinWheelReveal extends StatefulWidget {
+  final Widget child;
+  final Duration duration;
+  final Duration delay;
+  final Curve curve;
+
+  const PinWheelReveal({
+    super.key,
+    required this.child,
+    required this.duration,
+    this.delay = Duration.zero,
+    this.curve = Curves.easeInOutCubic,
+  });
+
+  @override
+  _PinWheelRevealState createState() => _PinWheelRevealState();
+}
+
+class _PinWheelRevealState extends State<PinWheelReveal> with SingleTickerProviderStateMixin {
+  double? _fraction = 0.0;
+  late Animation<double> _animation;
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(duration: widget.duration, vsync: this);
+
+    _animation = Tween(begin: 0.0, end: 1.0).animate(new CurvedAnimation(parent: _controller, curve: widget.curve))
+      ..addListener(() {
+        setState(() {
+          _fraction = _animation.value;
+        });
+      });
+
+    Future.delayed(widget.delay, () {
+      _controller.forward();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipPath(
+      clipper: CirclePainter(fraction: _fraction!),
+      child: widget.child,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
+
+class CirclePainter extends CustomClipper<Path> {
+  final double? fraction;
+
+  CirclePainter({this.fraction});
+
+  @override
+  Path getClip(Size size) {
+    final Path path = Path();
+    path.addArc(
+      Rect.fromCircle(center: Offset(size.width / 2, size.height / 2), radius: size.width + 500),
+      _degreesToRadians(-90).toDouble(),
+      (_degreesToRadians(360 * fraction!).toDouble()),
+    );
+    path.arcTo(
+      Rect.fromCircle(center: Offset(size.width / 2, size.height / 2), radius: 0),
+      _degreesToRadians(269.999 * fraction!).toDouble(),
+      _degreesToRadians(-90).toDouble() - _degreesToRadians((269.999) * fraction!).toDouble(),
+      false,
+    );
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CirclePainter oldClipper) {
+    return oldClipper.fraction != fraction;
+  }
+}
+
+num _degreesToRadians(num deg) => deg * (math.pi / 180);

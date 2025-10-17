@@ -5,7 +5,7 @@ import 'package:invesly/constants.dart';
 class Tappable extends StatelessWidget {
   const Tappable({
     super.key,
-    required this.content,
+    required this.child,
     this.childAlignment = Alignment.center,
     this.leading,
     this.trailing,
@@ -37,7 +37,7 @@ class Tappable extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
-  final Widget content;
+  final Widget child;
   final AlignmentGeometry childAlignment;
   final Widget? leading;
   final Widget? trailing;
@@ -70,7 +70,7 @@ class Tappable extends StatelessWidget {
               children: <Widget>[
                 ?leading,
                 Flexible(
-                  child: Align(alignment: childAlignment, child: this.content),
+                  child: Align(alignment: childAlignment, child: this.child),
                 ),
                 ?trailing,
               ],

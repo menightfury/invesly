@@ -70,7 +70,7 @@ class AsyncFormField<T> extends FormField<T> {
                    leading: leading,
                    trailing: trailing,
                    color: hasError ? errorColor ?? colors.errorContainer : color ?? colors.primaryContainer,
-                   content: childBuilder(field.value),
+                   child: childBuilder(field.value),
                  ),
                ),
 

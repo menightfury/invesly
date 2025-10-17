@@ -1,14 +1,18 @@
 // ignore_for_file: unused_element
 
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/areainsights/v1.dart';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/authentication/user_model.dart';
+import 'package:invesly/common/extensions/color_extension.dart';
+import 'package:invesly/common/presentations/animations/animatedCircularProgress.dart';
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
 import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
@@ -17,13 +21,14 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
+import 'package:invesly/transactions/dashboard/view/widgets/category_entry.dart';
 
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_classic.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
 part 'widgets/accounts.dart';
-part 'widgets/amc_genres_stat.dart';
+part 'widgets/categories_widget.dart';
 part 'widgets/recent_transaction_widget.dart';
 part 'widgets/transaction_stat.dart';
 part 'widgets/spending_pie_chart.dart';
@@ -188,7 +193,7 @@ class _DashboardContentsState extends State<_DashboardContents> {
     return Column(
       spacing: 16.0,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[_AccountsList(), _SpendingPieChart(), _RecentTransactions(dateRange)],
+      children: <Widget>[_AccountsList(), _CategoriesWidget(), _RecentTransactions(dateRange)],
     );
   }
 }

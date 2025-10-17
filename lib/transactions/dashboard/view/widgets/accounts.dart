@@ -156,7 +156,7 @@ class _AccountsList extends StatelessWidget {
       width: 160.0,
       childAlignment: Alignment.centerLeft,
       border: BorderSide(color: isCurrentAccount ? context.colors.primary : Colors.black),
-      content: Shimmer(
+      child: Shimmer(
         isLoading: isLoading,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -25,10 +25,10 @@ enum AmcGenre {
 
   IconData get icon {
     return switch (this) {
-      mf => Icons.pie_chart,
-      stock => Icons.show_chart,
-      insurance => Icons.security,
-      misc => Icons.category,
+      mf => Icons.pie_chart_rounded,
+      stock => Icons.show_chart_rounded,
+      insurance => Icons.security_rounded,
+      misc => Icons.category_rounded,
     };
   }
 
