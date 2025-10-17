@@ -432,7 +432,7 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
               formFieldState.didChange(newUser);
             },
             child: CircleAvatar(
-              foregroundImage: formFieldState.value != null ? AssetImage(formFieldState.value!.avatar) : null,
+              foregroundImage: formFieldState.value != null ? AssetImage(formFieldState.value!.avatarSrc) : null,
               backgroundColor: formFieldState.hasError ? context.colors.errorContainer : null,
               child: formFieldState.value == null
                   ? Icon(Icons.person_rounded, color: formFieldState.hasError ? context.colors.error : null)

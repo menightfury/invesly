@@ -20,14 +20,14 @@ enum InveslyAccountAvatar {
 }
 
 class InveslyAccount extends AccountInDb {
-  InveslyAccount({required super.id, required super.name, required this.avatar})
-    : super(avatarIndex: InveslyAccountAvatar.indexOf(avatar));
+  InveslyAccount({required super.id, required super.name, required this.avatarSrc})
+    : super(avatarIndex: InveslyAccountAvatar.indexOf(avatarSrc));
 
   InveslyAccount.empty({String? id, String? name, String? avatar})
-    : avatar = avatar ?? '',
+    : avatarSrc = avatar ?? '',
       super(id: id ?? '', name: name ?? '', avatarIndex: InveslyAccountAvatar.indexOf(avatar));
 
-  final String avatar;
+  final String avatarSrc;
 
   factory InveslyAccount.fromDb(AccountInDb account) {
     int avatarIndex = account.avatarIndex;
@@ -37,7 +37,7 @@ class InveslyAccount extends AccountInDb {
     return InveslyAccount(
       id: account.id,
       name: account.name,
-      avatar: InveslyAccountAvatar.values[avatarIndex].imgSrc,
+      avatarSrc: InveslyAccountAvatar.values[avatarIndex].imgSrc,
       // panNumber: account.panNumber,
       // aadhaarNumber: account.aadhaarNumber,
     );

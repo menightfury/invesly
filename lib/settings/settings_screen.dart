@@ -125,7 +125,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                               backgroundColor: isError
                                                   ? context.colors.error
                                                   : context.theme.canvasColor,
-                                              backgroundImage: account != null ? AssetImage(account.avatar) : null,
+                                              backgroundImage: account != null ? AssetImage(account.avatarSrc) : null,
                                             ),
                                             title: account == null
                                                 ? Skeleton(color: isError ? context.colors.error : null)

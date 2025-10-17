@@ -383,7 +383,7 @@ class _UserPickerWidget extends StatelessWidget {
         if (state.hasError) {
           icon = Icon(Icons.person_2_rounded, color: context.colors.error);
         } else if (state.value != null) {
-          icon = CircleAvatar(foregroundImage: AssetImage(state.value!.avatar), radius: 20.0);
+          icon = CircleAvatar(foregroundImage: AssetImage(state.value!.avatarSrc), radius: 20.0);
         } else {
           icon = const Icon(Icons.person_2_rounded);
         }

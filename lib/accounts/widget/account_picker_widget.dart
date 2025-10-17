@@ -67,7 +67,7 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
                   return Shimmer(
                     isLoading: isLoading,
                     child: ListTile(
-                      leading: CircleAvatar(foregroundImage: account != null ? AssetImage(account.avatar) : null),
+                      leading: CircleAvatar(foregroundImage: account != null ? AssetImage(account.avatarSrc) : null),
                       title: isLoading || isError
                           ? Skeleton(height: 24.0, color: isError ? context.colors.error : null)
                           : Text(account?.name ?? ''),

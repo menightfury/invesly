@@ -268,7 +268,7 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                     return Row(
                       spacing: 16.0,
                       children: <Widget>[
-                        CircleAvatar(foregroundImage: AssetImage(value.avatar), radius: 10.0),
+                        CircleAvatar(foregroundImage: AssetImage(value.avatarSrc), radius: 10.0),
                         Text(value.name, textAlign: TextAlign.right, overflow: TextOverflow.ellipsis),
                       ],
                     );
