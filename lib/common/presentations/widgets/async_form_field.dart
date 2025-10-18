@@ -26,14 +26,14 @@ class AsyncFormField<T> extends FormField<T> {
     super.restorationId,
   }) : super(
          autovalidateMode: autovalidateMode ?? AutovalidateMode.disabled,
-         builder: (FormFieldState<T> field) {
+         builder: (FormFieldState<T> fieldState) {
            //  final state = field as _AsyncFormFieldState;
-           final theme = Theme.of(field.context);
+           final theme = Theme.of(fieldState.context);
 
            final colors = theme.colorScheme;
            final textTheme = theme.textTheme;
 
-           final errorText = field.errorText;
+           final errorText = fieldState.errorText;
 
            TextStyle errorStyle = textTheme.bodySmall ?? const TextStyle();
            errorStyle = errorStyle.copyWith(color: colors.error).merge(theme.inputDecorationTheme.errorStyle);
@@ -41,7 +41,7 @@ class AsyncFormField<T> extends FormField<T> {
            Widget? error;
            if (errorText != null) {
              error =
-                 errorBuilder?.call(field.context, errorText) ??
+                 errorBuilder?.call(fieldState.context, errorText) ??
                  Text(errorText, style: errorStyle, overflow: TextOverflow.ellipsis, maxLines: 1);
            }
 
@@ -58,11 +58,11 @@ class AsyncFormField<T> extends FormField<T> {
                    onTap: () {
                      if (onTapCallback == null) return;
 
-                     final result = onTapCallback.call(field.value);
+                     final result = onTapCallback.call(fieldState.value);
                      if (result is Future<T?>) {
-                       result.then((value) => field.didChange(value));
+                       result.then((value) => fieldState.didChange(value));
                      } else {
-                       field.didChange(result);
+                       fieldState.didChange(result);
                      }
                    },
                    childAlignment: contentAlignment,
@@ -70,7 +70,7 @@ class AsyncFormField<T> extends FormField<T> {
                    leading: leading,
                    trailing: trailing,
                    color: hasError ? errorColor ?? colors.errorContainer : color ?? colors.primaryContainer,
-                   child: childBuilder(field.value),
+                   child: childBuilder(fieldState.value),
                  ),
                ),
 
@@ -96,6 +96,7 @@ class _AsyncFormFieldState<T> extends FormFieldState<T> {
   @override
   void didChange(T? value) {
     super.didChange(value);
+    validate();
     // Call the onChanged callback if provided
     _formField.onChanged?.call(value);
   }

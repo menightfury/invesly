@@ -1,7 +1,20 @@
 part of '../dashboard_screen.dart';
 
-class _CategoriesWidget extends StatelessWidget {
+class _CategoriesWidget extends StatefulWidget {
   const _CategoriesWidget({super.key});
+
+  @override
+  State<_CategoriesWidget> createState() => _CategoriesWidgetState();
+}
+
+class _CategoriesWidgetState extends State<_CategoriesWidget> {
+  late final ValueNotifier<AmcGenre?> _selectedCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory = ValueNotifier<AmcGenre?>(null);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,69 +68,67 @@ class _CategoriesWidget extends StatelessWidget {
                         height: 256.0,
                         child: stats == null
                             ? Skeleton(color: isError ? context.colors.error : null)
-                            : _SpendingPieChart(stats),
+                            : ValueListenableBuilder(
+                                valueListenable: _selectedCategory,
+                                builder: (context, selectedCategory, _) {
+                                  return _SpendingPieChart(
+                                    stats,
+                                    selectedGenre: _selectedCategory.value,
+                                    onSelected: (genre) {
+                                      _selectedCategory.value = genre;
+                                    },
+                                  );
+                                },
+                              ),
                       ),
-                      // Center(
-                      //   child: Wrap(
-                      //     alignment: WrapAlignment.center,
-                      //     spacing: 12.0,
-                      //     children: AmcGenre.values
-                      //         .map((genre) => _buildLegendItem(context, genre.title, genre.color))
-                      //         .toList(growable: false),
-                      //   ),
-                      // ),
-                      Section(
-                        margin: null,
-                        tiles: List.generate(AmcGenre.values.length, (i) {
-                          final genre = AmcGenre.getByIndex(i);
-                          final stat = stats?.singleWhereOrNull((stat) => stat.amcGenre == genre);
+                      ValueListenableBuilder(
+                        valueListenable: _selectedCategory,
+                        builder: (context, selectedCategory, _) {
+                          return Section(
+                            margin: null,
+                            tiles: List.generate(AmcGenre.values.length, (i) {
+                              final genre = AmcGenre.getByIndex(i);
+                              final isSelected = selectedCategory == genre;
+                              final stat = stats?.singleWhereOrNull((stat) => stat.amcGenre == genre);
 
-                          return SectionTile(
-                            tileColor: Colors.white.withAlpha(100),
-                            icon: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Icon(genre.icon, color: genre.color),
-                                AnimatedSwitcher(
-                                  duration: Duration(milliseconds: 300),
-                                  child: SizedBox.square(
-                                    dimension: 40.0,
-                                    child: AnimatedCircularProgress(
-                                      // rotationOffsetPercent: percentage,
-                                      rotationOffsetPercent: 0,
-                                      // percent: ui.clampDouble(percent / 100, 0, 1),
-                                      percent: ui.clampDouble(30 / 100, 0, 1),
-                                      // backgroundColor: progressBackgroundColor,
-                                      backgroundColor: Colors.redAccent,
-                                      foregroundColor: Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
+                              return SectionTile(
+                                tileColor: isSelected ? genre.color : Colors.white.withAlpha(100),
+                                icon: CircleAvatar(
+                                  backgroundColor: genre.color.lighten(70),
+                                  child: Icon(genre.icon, color: genre.color),
                                 ),
-                              ],
-                            ),
-                            title: Text(genre.title, overflow: TextOverflow.ellipsis),
-                            subtitle: Text(
-                              '${stat?.numTransactions ?? 0} transactions',
-                              style: context.textTheme.labelSmall,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                              selector: (state) => state.isPrivateMode,
-                              builder: (context, isPrivateMode) {
-                                return CurrencyView(
-                                  amount: stat?.totalAmount ?? 0.0,
-                                  integerStyle: context.textTheme.headlineMedium?.copyWith(color: genre.color),
-                                  decimalsStyle: context.textTheme.headlineSmall?.copyWith(
-                                    fontSize: 13.0,
-                                    color: genre.color,
-                                  ),
-                                  currencyStyle: context.textTheme.bodySmall,
-                                  privateMode: isPrivateMode,
-                                );
-                              },
-                            ),
+                                title: Text(
+                                  genre.title,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(color: isSelected ? Colors.white : null),
+                                ),
+                                subtitle: Text(
+                                  '${stat?.numTransactions ?? 0} transactions',
+                                  style: TextStyle(color: isSelected ? Colors.white : null),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                                  selector: (state) => state.isPrivateMode,
+                                  builder: (context, isPrivateMode) {
+                                    return CurrencyView(
+                                      amount: stat?.totalAmount ?? 0.0,
+                                      integerStyle: context.textTheme.headlineMedium?.copyWith(
+                                        color: isSelected ? Colors.white : genre.color,
+                                      ),
+                                      decimalsStyle: context.textTheme.headlineSmall?.copyWith(
+                                        fontSize: 13.0,
+                                        color: isSelected ? Colors.white : genre.color,
+                                      ),
+                                      currencyStyle: context.textTheme.bodySmall,
+                                      privateMode: isPrivateMode,
+                                    );
+                                  },
+                                ),
+                                onTap: () => _selectedCategory.value = genre,
+                              );
+                            }),
                           );
-                        }),
+                        },
                       ),
                     ],
                   ),

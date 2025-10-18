@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
+import 'package:invesly/common/extensions/num_extension.dart';
 
 const _kBigRadius = Radius.circular(16.0);
 const _kSmallRadius = Radius.circular(4.0);
@@ -149,7 +150,7 @@ class SectionTile extends StatelessWidget {
   final Widget? trailingIcon;
   final Color? tileColor;
   final Color? selectedTileColor;
-  final BorderRadiusGeometry? borderRadius;
+  final BorderRadius? borderRadius;
   final VoidCallback? _onTap; // for other than switch tile
   final ValueChanged<bool>? _onChanged; // for switch tile only
   final bool enabled;
@@ -243,7 +244,8 @@ class SectionTile extends StatelessWidget {
     final theme = Theme.of(context);
     final tileTheme = ListTileTheme.of(context);
 
-    final titleText = DefaultTextStyle(
+    final titleText = AnimatedDefaultTextStyle(
+      duration: 850.ms,
       style: theme.textTheme.bodyMedium!.copyWith(color: enabled ? null : theme.disabledColor),
       overflow: TextOverflow.ellipsis,
       child: title,
@@ -251,7 +253,8 @@ class SectionTile extends StatelessWidget {
 
     Widget? subtitleText;
     if (subtitle != null) {
-      subtitleText = DefaultTextStyle(
+      subtitleText = AnimatedDefaultTextStyle(
+        duration: 850.ms,
         style: theme.textTheme.bodySmall!.copyWith(color: enabled ? theme.colorScheme.secondary : theme.disabledColor),
         overflow: TextOverflow.ellipsis,
         maxLines: 2,
@@ -270,18 +273,25 @@ class SectionTile extends StatelessWidget {
     };
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: enabled
           ? _onChanged != null
                 ? () => _onChanged.call(!_value)
                 : _onTap
           : null,
       child: SafeArea(
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: _tileColor(theme, tileTheme), borderRadius: borderRadius),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 52.0),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: AnimatedPhysicalModel(
+          curve: Curves.fastOutSlowIn,
+          duration: 600.ms,
+          clipBehavior: Clip.antiAlias,
+          elevation: 0.0,
+          color: _tileColor(theme, tileTheme),
+          shadowColor: theme.colorScheme.shadow,
+          borderRadius: borderRadius,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 52.0),
               child: Row(
                 spacing: 16.0,
                 children: <Widget>[

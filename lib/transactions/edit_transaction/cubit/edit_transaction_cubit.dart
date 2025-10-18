@@ -64,7 +64,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       account: state.account!,
       amc: state.amc,
       quantity: state.quantity ?? 0.0,
-      totalAmount: state.amount!,
+      totalAmount: state.type == TransactionType.invested ? state.amount!.abs() : -state.amount!.abs(),
       investedOn: state.date ?? DateTime.now(),
       note: state.notes,
     );

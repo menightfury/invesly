@@ -18,13 +18,8 @@ enum TransactionType {
     };
   }
 
-  static TransactionType? fromInt(int value) {
-    return switch (value) {
-      0 => invested,
-      1 => redeemed,
-      2 => dividend,
-      _ => null,
-    };
+  static TransactionType? fromCode(int value) {
+    return values.singleWhereOrNull((type) => type.index == value);
   }
 
   static TransactionType? fromChar(String value) {
@@ -45,7 +40,7 @@ enum TransactionType {
     if ($value.isEmpty) return null;
 
     final $string = $value.toLowerCase();
-    return values.firstWhereOrNull((type) => type.name == $string);
+    return values.firstWhereOrNull((type) => type.name.toLowerCase() == $string);
   }
 
   Color color(BuildContext context) {

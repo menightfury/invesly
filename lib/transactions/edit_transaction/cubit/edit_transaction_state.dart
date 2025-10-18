@@ -31,7 +31,6 @@ class EditTransactionState extends Equatable {
   // Check if all required fields are filled and valid
   bool get canSave {
     return account != null &&
-        amc != null &&
         amount != null &&
         (amount?.isFinite ?? false) &&
         !(amount?.isNegative ?? true) &&

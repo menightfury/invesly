@@ -173,7 +173,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
       TransactionType? type = state.defaultType;
       final rawType = typeColumnIndex == null ? null : row[typeColumnIndex];
       if (rawType is int) {
-        type = TransactionType.fromInt(rawType);
+        type = TransactionType.fromCode(rawType);
       } else if (rawType is String) {
         type = rawType.length == 1 ? TransactionType.fromChar(rawType) : TransactionType.fromString(rawType);
       }

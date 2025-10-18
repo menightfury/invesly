@@ -67,17 +67,16 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
   Future<void> _handleSavePressed(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       await context.read<EditTransactionCubit>().save();
-      if (!context.mounted) return;
-
-      const message = SnackBar(content: Text('Investment saved successfully.'), backgroundColor: Colors.teal);
-      ScaffoldMessenger.of(context).showSnackBar(message);
-
-      Navigator.maybePop<bool>(context);
-    } else {
-      if (_validateMode.value != AutovalidateMode.onUserInteraction) {
-        _validateMode.value = AutovalidateMode.onUserInteraction;
-      }
+      // if (!context.mounted) return;
+      // const message = SnackBar(content: Text('Investment saved successfully.'), backgroundColor: Colors.teal);
+      // ScaffoldMessenger.of(context).showSnackBar(message);
+      // Navigator.maybePop<bool>(context);
     }
+    // else {
+    //   if (_validateMode.value != AutovalidateMode.onUserInteraction) {
+    //     _validateMode.value = AutovalidateMode.onUserInteraction;
+    //   }
+    // }
   }
 
   @override
@@ -110,7 +109,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
           child: ValueListenableBuilder<AutovalidateMode>(
             valueListenable: _validateMode,
             builder: (context, validateMode, child) {
-              return Form(key: _formKey, autovalidateMode: validateMode, child: child!);
+              return Form(key: _formKey, autovalidateMode: AutovalidateMode.disabled, child: child!);
             },
             child: CustomScrollView(
               slivers: <Widget>[
@@ -118,7 +117,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                   pinned: true,
                   floating: true,
                   actions: [_AccountPickerWidget()],
-                  actionsPadding: EdgeInsets.only(right: 16.0),
+                  actionsPadding: const EdgeInsets.only(right: 16.0),
                 ),
 
                 SliverList(
@@ -163,8 +162,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                   },
                                   onTapCallback: (value) async {
                                     final newValue = await InveslyCalculatorWidget.showModal(context, value);
-                                    if (newValue == null) return null;
-                                    return newValue;
+                                    return newValue ?? value;
                                   },
                                   onChanged: (value) {
                                     if (value == null) return;
@@ -199,10 +197,8 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                   },
                                   onTapCallback: (value) async {
                                     final newValue = await InveslyCalculatorWidget.showModal(context, value);
-                                    if (newValue == null) return null;
-                                    return newValue;
+                                    return newValue ?? value;
                                   },
-
                                   onChanged: (value) {
                                     if (value == null) return;
                                     cubit.updateAmount(value.toDouble());
@@ -272,39 +268,6 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                             children: <Widget>[
                               // ~ Type ~
                               Expanded(
-                                // child: AsyncFormField<TransactionType>(
-                                //   contentAlignment: Alignment.center,
-                                //   initialValue: cubit.state.type,
-                                //   validator: (value) {
-                                //     if (value == null) {
-                                //       return 'Can\'t be empty';
-                                //     }
-                                //     return null;
-                                //   },
-                                //   onTapCallback: () {
-                                //     int index = _types.indexOf(cubit.state.type);
-                                //     if (index < 0) {
-                                //       index = 0;
-                                //     }
-                                //     final nextIndex = index < (_types.length - 1) ? index + 1 : 0;
-                                //     return _types.elementAt(nextIndex);
-                                //   },
-                                //   onChanged: (value) {
-                                //     if (value == null) return;
-                                //     cubit.updateTransactionType(value);
-                                //   },
-                                //   childBuilder: (value) {
-                                //     if (value == null) {
-                                //       return const Text(
-                                //         'Select type',
-                                //         style: TextStyle(color: Colors.grey),
-                                //         overflow: TextOverflow.ellipsis,
-                                //       );
-                                //     }
-
-                                //     return TransactionTypeSelectorFormField(type: value);
-                                //   },
-                                // ).withLabel('Transaction type'),
                                 child: TransactionTypeSelectorFormField(
                                   initialValue: cubit.state.type,
                                   onChanged: (value) {

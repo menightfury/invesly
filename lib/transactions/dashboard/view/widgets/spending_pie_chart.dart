@@ -1,9 +1,11 @@
 part of '../dashboard_screen.dart';
 
 class _SpendingPieChart extends StatefulWidget {
-  const _SpendingPieChart(this.stats, {super.key});
+  const _SpendingPieChart(this.stats, {super.key, this.selectedGenre, this.onSelected});
 
   final List<TransactionStat> stats;
+  final AmcGenre? selectedGenre;
+  final ValueChanged<AmcGenre?>? onSelected;
 
   @override
   State<_SpendingPieChart> createState() => _SpendingPieChartState();
@@ -11,52 +13,17 @@ class _SpendingPieChart extends StatefulWidget {
 
 class _SpendingPieChartState extends State<_SpendingPieChart> {
   int touchedIndex = -1;
-  bool scaleIn = false;
   final centerRadius = 40.0;
+
   @override
-  void initState() {
-    super.initState();
-    Future.delayed(Duration(milliseconds: 0), () {
-      setState(() {
-        scaleIn = true;
-      });
-    });
-    // Future.delayed(Duration(milliseconds: 500), () async {
-    //   int numCategories = (await database.getAllCategories()).length;
-    //   for (int i = 1; i <= numCategories + 25; i++) {
-    //     await Future.delayed(const Duration(milliseconds: 70));
-    //     if (mounted) {
-    //       setState(() {
-    //         showLabels = showLabels + 1;
-    //       });
-    //     }
-    //   }
-    // });
+  void didUpdateWidget(covariant _SpendingPieChart oldWidget) {
+    if (widget.stats.length != oldWidget.stats.length || widget.selectedGenre != oldWidget.selectedGenre) {
+      if (widget.selectedGenre != null) {
+        touchedIndex = AmcGenre.values.indexOf(widget.selectedGenre!);
+      }
+    }
+    super.didUpdateWidget(oldWidget);
   }
-
-  // void setTouchedIndex(int index) {
-  //   setState(() {
-  //     touchedIndex = index;
-  //   });
-  // }
-
-  // void setTouchedCategoryPk(String? categoryPk) {
-  //   if (categoryPk == null) return;
-  //   int index = 0;
-  //   bool found = false;
-  //   for (CategoryWithTotal category in widget.data) {
-  //     if (category.category.categoryPk == categoryPk) {
-  //       found = true;
-  //       break;
-  //     }
-  //     index++;
-  //   }
-  //   if (found == false) {
-  //     setTouchedIndex(-1);
-  //   } else {
-  //     setTouchedIndex(index);
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -75,31 +42,31 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
               pieTouchData: PieTouchData(
                 touchCallback: (event, pieTouchResponse) {
                   // print(event.runtimeType);
-                  setState(() {
-                    if (!event.isInterestedForInteractions ||
-                        pieTouchResponse == null ||
-                        pieTouchResponse.touchedSection == null) {
-                      return;
-                    }
-                    if (event.runtimeType == FlTapDownEvent &&
-                        touchedIndex != pieTouchResponse.touchedSection!.touchedSectionIndex) {
-                      touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                  if (!event.isInterestedForInteractions ||
+                      pieTouchResponse == null ||
+                      pieTouchResponse.touchedSection == null) {
+                    return;
+                  }
 
-                      // widget.setSelectedCategory(
-                      //   widget.data[touchedIndex].category.categoryPk,
-                      //   widget.data[touchedIndex].category,
-                      // );
-                    } else if (event is FlTapDownEvent) {
-                      touchedIndex = -1;
-                      // widget.setSelectedCategory("-1", null);
-                    } else if (event is FlLongPressMoveUpdate) {
-                      touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                      // widget.setSelectedCategory(
-                      //   widget.data[touchedIndex].category.categoryPk,
-                      //   widget.data[touchedIndex].category,
-                      // );
-                    }
-                  });
+                  if (event.runtimeType == FlTapDownEvent) {
+                    setState(() {
+                      if (touchedIndex != pieTouchResponse.touchedSection!.touchedSectionIndex) {
+                        touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                        final genre = touchedIndex == -1 ? null : AmcGenre.getByIndex(touchedIndex);
+                        widget.onSelected?.call(genre);
+                      } else {
+                        touchedIndex = -1;
+                        widget.onSelected?.call(null);
+                      }
+                    });
+                  }
+                  // else if (event is FlLongPressMoveUpdate) {
+                  //   touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                  //   // widget.setSelectedCategory(
+                  //   //   widget.data[touchedIndex].category.categoryPk,
+                  //   //   widget.data[touchedIndex].category,
+                  //   // );
+                  // }
                 },
               ),
             ),
@@ -141,24 +108,6 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
       final isTouched = i == touchedIndex;
       final radius = isTouched ? 56.0 : 50.0;
       final widgetScale = isTouched ? 1.3 : 1.0;
-
-      // bool isTouchingSameColorSection = false;
-      // if (nullIfIndexOutOfRange(stats, i - 1)?.category?.colour == stats[i].category.colour ||
-      //     nullIfIndexOutOfRange(stats, i + 1)?.category?.colour == stats[i].category.colour) {
-      //   isTouchingSameColorSection = true;
-      // }
-      // final Color color = dynamicPastel(
-      //   context,
-      //   HexColor(stats[i].category.colour, defaultColor: Theme.of(context).colorScheme.primary),
-      //   amountLight:
-      //       0.3 +
-      //       (isTouchingSameColorSection && i % 3 == 0 ? 0.2 : 0) +
-      //       (isTouchingSameColorSection && i % 3 == 1 ? 0.35 : 0),
-      //   amountDark:
-      //       0.1 +
-      //       (isTouchingSameColorSection && i % 3 == 0 ? 0.2 : 0) +
-      //       (isTouchingSameColorSection && i % 3 == 1 ? 0.35 : 0),
-      // );
       final percent = ((stat?.totalAmount ?? 0.0) / totalAmount * 100).abs();
       totalPercentAccumulated += percent;
       return PieChartSectionData(
@@ -214,10 +163,10 @@ class _Badge extends StatelessWidget {
         height: 42.0,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: genre.color.lighten(20),
+          color: genre.color.lighten(70),
           border: Border.all(color: genre.color, width: 2.0),
         ),
-        child: Center(child: Icon(genre.icon, size: 24.0, color: Colors.white)),
+        child: Center(child: Icon(genre.icon, size: 24.0, color: genre.color)),
       ),
     );
   }

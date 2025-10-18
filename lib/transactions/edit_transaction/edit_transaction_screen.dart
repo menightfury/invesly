@@ -67,17 +67,16 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
   Future<void> _handleSavePressed(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       await context.read<EditTransactionCubit>().save();
-      if (!context.mounted) return;
-
-      const message = SnackBar(content: Text('Investment saved successfully.'), backgroundColor: Colors.teal);
-      ScaffoldMessenger.of(context).showSnackBar(message);
-
-      Navigator.maybePop<bool>(context);
-    } else {
-      if (_validateMode.value != AutovalidateMode.onUserInteraction) {
-        _validateMode.value = AutovalidateMode.onUserInteraction;
-      }
+      // if (!context.mounted) return;
+      // const message = SnackBar(content: Text('Investment saved successfully.'), backgroundColor: Colors.teal);
+      // ScaffoldMessenger.of(context).showSnackBar(message);
+      // Navigator.maybePop<bool>(context);
     }
+    // else {
+    //   if (_validateMode.value != AutovalidateMode.onUserInteraction) {
+    //     _validateMode.value = AutovalidateMode.onUserInteraction;
+    //   }
+    // }
   }
 
   @override
@@ -110,7 +109,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
           child: ValueListenableBuilder<AutovalidateMode>(
             valueListenable: _validateMode,
             builder: (context, validateMode, child) {
-              return Form(key: _formKey, autovalidateMode: validateMode, child: child!);
+              return Form(key: _formKey, autovalidateMode: AutovalidateMode.disabled, child: child!);
             },
             child: CustomScrollView(
               slivers: <Widget>[
