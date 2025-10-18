@@ -18,8 +18,12 @@ enum TransactionType {
     };
   }
 
-  static TransactionType? fromCode(int value) {
-    return values.singleWhereOrNull((type) => type.index == value);
+  static TransactionType? fromCode(int? value) {
+    if (value == null || value < 0 || value > TransactionType.values.length - 1) {
+      return null;
+    }
+
+    return TransactionType.values[value];
   }
 
   static TransactionType? fromChar(String value) {

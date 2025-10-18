@@ -92,7 +92,7 @@ class TransactionRepository {
       stats = result.map<TransactionStat>((map) {
         return TransactionStat(
           accountId: map['account_id'] as String,
-          amcGenre: AmcGenre.getByIndex(map['genre'] as int),
+          amcGenre: AmcGenre.getByIndex(map['genre'] as int?),
           numTransactions: map['num_transactions'] as int,
           totalAmount: (map['total_amount'] as num).toDouble(),
         );

@@ -48,8 +48,6 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     final textTheme = context.textTheme;
     final colorScheme = context.colors;
-    // final settingsState = context.read<SettingsCubit>().state;
-
     return Scaffold(
       body: SafeArea(
         child: Padding(

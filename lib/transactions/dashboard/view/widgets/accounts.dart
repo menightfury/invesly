@@ -5,6 +5,8 @@ class _AccountsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appCubit = context.read<AppCubit>();
+
     return SizedBox(
       // height: 120.0,
       child: Align(
@@ -15,119 +17,113 @@ class _AccountsList extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: BlocBuilder<AccountsCubit, AccountsState>(
             builder: (context, accountState) {
-              return BlocBuilder<DashboardCubit, DashboardState>(
-                builder: (context, dashboardState) {
-                  final isError = accountState.isError || dashboardState.isError;
-                  final isLoading = accountState.isLoading || dashboardState.isLoading;
-                  final accounts = accountState.isLoaded ? (accountState as AccountsLoadedState).accounts : null;
-                  final totalAmount = dashboardState is DashboardLoadedState
-                      ? dashboardState.stats.fold<double>(0, (v, el) => v + el.totalAmount)
-                      : null;
+              final isError = accountState.isError;
+              final isLoading = accountState.isLoading;
+              final accounts = accountState.isLoaded ? (accountState as AccountsLoadedState).accounts : null;
+              // If primary account is not set, set first account as primary account
+              final primaryAccount = accounts?.firstWhereOrNull((account) => account.id == appCubit.id);
+              if ((accounts?.isNotEmpty ?? false) && primaryAccount == null) {
+                context.read<AppCubit>().updatePrimaryAccount(accounts!.first.id);
+              }
+              return Row(
+                spacing: 8.0,
+                children: <Widget>[
+                  // ~~~ Accounts ~~~
+                  ...List.generate(
+                    accounts?.length ?? 1, // dummy count for shimmer effect
+                    (index) {
+                      final account = accounts?.elementAt(index);
 
-                  return Row(
-                    spacing: 8.0,
-                    children: <Widget>[
-                      // ~~~ Accounts ~~~
-                      ...List.generate(
-                        accounts?.length ?? 1, // dummy count for shimmer effect
-                        (index) {
-                          final account = accounts?.elementAt(index);
-
-                          return Shimmer(
-                            isLoading: isLoading,
-                            child: account == null
-                                ? Skeleton(
-                                    color: isError ? context.colors.error : null,
-                                    width: 160.0,
-                                    height: 50.0,
-                                    shape: StadiumBorder(),
-                                  )
-                                : BlocSelector<AppCubit, AppState, bool>(
-                                    selector: (state) => state.primaryAccountId == account.id,
-                                    builder: (context, isCurrentAccount) {
-                                      $logger.i('rebuilding $account');
-                                      return ChoiceChip(
-                                        showCheckmark: false,
-                                        onSelected: (selected) =>
-                                            selected ? context.read<AppCubit>().updatePrimaryAccount(account.id) : null,
-                                        labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 8.0),
-                                        selected: isCurrentAccount,
-                                        avatar: CircleAvatar(backgroundImage: AssetImage(account.avatarSrc)),
-                                        label: Text(
-                                          account.name,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: isCurrentAccount ? context.colors.onPrimary : context.colors.primary,
-                                          ),
-                                        ),
-                                        color: WidgetStateProperty.resolveWith<Color?>((state) {
-                                          if (state.contains(WidgetState.selected)) return context.colors.primary;
-
-                                          return null;
-                                        }),
-                                        side: BorderSide(color: context.colors.primary, width: 1.0),
-                                      );
-                                    },
-                                  ),
-                          );
-                        },
-                      ),
-
-                      // ~~~ Add account ~~~
-                      Shimmer(
+                      return Shimmer(
                         isLoading: isLoading,
-                        child: isLoading
+                        child: account == null
                             ? Skeleton(
                                 color: isError ? context.colors.error : null,
                                 width: 160.0,
                                 height: 50.0,
                                 shape: StadiumBorder(),
                               )
-                            : ActionChip(
-                                onPressed: () => context.push(const EditAccountScreen()),
+                            : BlocSelector<AppCubit, AppState, bool>(
+                                selector: (state) => state.primaryAccountId == account.id,
+                                builder: (context, isCurrentAccount) {
+                                  $logger.i('rebuilding $account');
+                                  return ChoiceChip(
+                                    showCheckmark: false,
+                                    onSelected: (selected) =>
+                                        selected ? context.read<AppCubit>().updatePrimaryAccount(account.id) : null,
+                                    labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 8.0),
+                                    selected: isCurrentAccount,
+                                    avatar: CircleAvatar(backgroundImage: AssetImage(account.avatarSrc)),
+                                    label: Text(
+                                      account.name,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: isCurrentAccount ? context.colors.onPrimary : context.colors.primary,
+                                      ),
+                                    ),
+                                    color: WidgetStateProperty.resolveWith<Color?>((state) {
+                                      if (state.contains(WidgetState.selected)) return context.colors.primary;
 
-                                // color: context.colors.secondaryContainer,
-                                // width: 160.0,
-                                avatar: CircleAvatar(
-                                  backgroundColor: context.colors.primary,
-                                  child: Icon(Icons.add_rounded, color: context.colors.onPrimary),
-                                ),
-                                labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 8.0),
-                                label: Text(
-                                  'Add account',
-                                  style: TextStyle(color: context.colors.onSecondaryContainer),
-                                ),
+                                      return null;
+                                    }),
+                                    side: BorderSide(color: context.colors.primary, width: 1.0),
+                                  );
+                                },
                               ),
-                      ),
+                      );
+                    },
+                  ),
 
-                      // Tappable(
-                      //   onTap: () => context.push(const EditAccountScreen()),
-                      //   color: context.colors.secondaryContainer,
-                      //   width: 160.0,
-                      //   border: BorderSide(color: context.colors.onSecondaryContainer, width: 1.0),
-                      //   content: Shimmer(
-                      //     isLoading: isLoading,
-                      //     child: Column(
-                      //       crossAxisAlignment: CrossAxisAlignment.center,
-                      //       mainAxisAlignment: MainAxisAlignment.center,
-                      //       spacing: 4.0,
-                      //       children: <Widget>[
-                      //         isLoading
-                      //             ? Skeleton(color: isError ? context.colors.error : null)
-                      //             : Icon(Icons.format_list_bulleted_add, color: context.colors.onSecondaryContainer),
-                      //         isLoading
-                      //             ? Skeleton(color: isError ? context.colors.error : null)
-                      //             : Text(
-                      //                 'Create account',
-                      //                 style: TextStyle(color: context.colors.onSecondaryContainer),
-                      //               ),
-                      //       ],
-                      //     ),
-                      //   ),
-                      // ),
-                    ],
-                  );
-                },
+                  // ~~~ Add account ~~~
+                  Shimmer(
+                    isLoading: isLoading,
+                    child: isLoading
+                        ? Skeleton(
+                            color: isError ? context.colors.error : null,
+                            width: 160.0,
+                            height: 50.0,
+                            shape: StadiumBorder(),
+                          )
+                        : ActionChip(
+                            onPressed: () => context.push(const EditAccountScreen()),
+
+                            // color: context.colors.secondaryContainer,
+                            // width: 160.0,
+                            avatar: CircleAvatar(
+                              backgroundColor: context.colors.primary,
+                              child: Icon(Icons.add_rounded, color: context.colors.onPrimary),
+                            ),
+                            labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 8.0),
+                            label: Text('Add account', style: TextStyle(color: context.colors.onSecondaryContainer)),
+                          ),
+                  ),
+
+                  // Tappable(
+                  //   onTap: () => context.push(const EditAccountScreen()),
+                  //   color: context.colors.secondaryContainer,
+                  //   width: 160.0,
+                  //   border: BorderSide(color: context.colors.onSecondaryContainer, width: 1.0),
+                  //   content: Shimmer(
+                  //     isLoading: isLoading,
+                  //     child: Column(
+                  //       crossAxisAlignment: CrossAxisAlignment.center,
+                  //       mainAxisAlignment: MainAxisAlignment.center,
+                  //       spacing: 4.0,
+                  //       children: <Widget>[
+                  //         isLoading
+                  //             ? Skeleton(color: isError ? context.colors.error : null)
+                  //             : Icon(Icons.format_list_bulleted_add, color: context.colors.onSecondaryContainer),
+                  //         isLoading
+                  //             ? Skeleton(color: isError ? context.colors.error : null)
+                  //             : Text(
+                  //                 'Create account',
+                  //                 style: TextStyle(color: context.colors.onSecondaryContainer),
+                  //               ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
+                ],
               );
             },
           ),

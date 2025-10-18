@@ -12,7 +12,6 @@ import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
-import 'package:invesly/common/presentations/animations/animatedCircularProgress.dart';
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
 import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
@@ -21,7 +20,6 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/transactions/dashboard/cubit/dashboard_cubit.dart';
-import 'package:invesly/transactions/dashboard/view/widgets/category_entry.dart';
 
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_classic.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
@@ -42,13 +40,16 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final ScrollController _scrollController = ScrollController();
+  @override
+  void initState() {
+    super.initState();
+    context.read<AccountsCubit>().fetchAccounts();
+  }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = context.textTheme;
-
     return Scaffold(
-      // appBar: AppBar(),
       body: SafeArea(
         child: CustomScrollView(
           controller: _scrollController,
@@ -100,10 +101,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                 ),
-
                 const Gap(16.0),
 
-                // ~~~ Accounts, Stats, Recent transactions etc. ~~~
+                // ~~~ Accounts ~~~
+                _AccountsList(),
+                const Gap(16.0),
+
+                // ~~~ Stats, Recent transactions etc. ~~~
                 BlocProvider(
                   create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
                   child: _DashboardContents(),
@@ -184,7 +188,6 @@ class _DashboardContentsState extends State<_DashboardContents> {
     final startOfMonth = DateTime(now.year, now.month, 1);
     // final endOfMonth = DateTime(now.year, now.month + 1, 0);
     dateRange = DateTimeRange(start: startOfMonth, end: now);
-    context.read<AccountsCubit>().fetchAccounts();
     context.read<DashboardCubit>().fetchTransactionStats(dateRange: dateRange);
   }
 
@@ -193,7 +196,7 @@ class _DashboardContentsState extends State<_DashboardContents> {
     return Column(
       spacing: 16.0,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[_AccountsList(), _CategoriesWidget(), _RecentTransactions(dateRange)],
+      children: <Widget>[_CategoriesWidget(), _RecentTransactions(dateRange)],
     );
   }
 }

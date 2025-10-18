@@ -288,10 +288,10 @@ class SectionTile extends StatelessWidget {
           color: _tileColor(theme, tileTheme),
           shadowColor: theme.colorScheme.shadow,
           borderRadius: borderRadius,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 52.0),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 52.0),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
                 spacing: 16.0,
                 children: <Widget>[
