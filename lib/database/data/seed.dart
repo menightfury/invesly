@@ -11,7 +11,7 @@ final initialAmcs = [
   // ~ Mutual funds
   InveslyAmc.mf(
     // id: 'aditya-birla-sunlife-mf-equity-focused-growth-direct',
-    name: 'Aditya Birla Sunlife',
+    name: 'Aditya Birla Sunlife Mutual Fund',
     category: MfCategory.eFocused,
     plan: MfPlan.growth,
     scheme: MfScheme.direct,

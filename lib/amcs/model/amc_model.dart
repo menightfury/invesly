@@ -147,7 +147,7 @@ class AmcTable extends TableSchema<AmcInDb> {
   static const _i = AmcTable._();
   factory AmcTable() => _i;
 
-  TableColumn<String> get nameColumn => TableColumn('name', tableName);
+  TableColumn<String> get nameColumn => TableColumn('name', tableName, isUnique: true);
   TableColumn<int> get genreColumn => TableColumn('genre', tableName, type: TableColumnType.integer, isNullable: true);
   TableColumn<String> get tagsColumn => TableColumn('tags', tableName, isNullable: true);
 
