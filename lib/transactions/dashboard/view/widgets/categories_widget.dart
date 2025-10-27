@@ -20,47 +20,48 @@ class _CategoriesWidgetState extends State<_CategoriesWidget> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Section(
-      title: const Text('Categories'),
-      icon: const Icon(Icons.pie_chart_rounded),
-      // InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
-      // tiles: AmcGenre.values.map((genre) => _buildGenre(context, genre)).toList(),
-      tiles: [
-        BlocBuilder<AccountsCubit, AccountsState>(
-          builder: (context, accountsState) {
-            return BlocSelector<AppCubit, AppState, String?>(
-              selector: (state) => state.primaryAccountId,
-              builder: (context, accountId) {
-                return BlocBuilder<DashboardCubit, DashboardState>(
-                  builder: (context, dashboardState) {
-                    final isError = dashboardState.isError || accountsState.isError;
-                    final isLoading = dashboardState.isLoading || accountsState.isLoading;
-                    final stats = dashboardState is DashboardLoadedState
-                        ? dashboardState.stats.where((stat) => stat.accountId == accountId).toList()
-                        : null;
-                    final totalAmount = stats?.fold<double>(0, (v, el) => v + el.totalAmount);
-                    return SectionTile(
+    return BlocBuilder<AccountsCubit, AccountsState>(
+      builder: (context, accountsState) {
+        return BlocSelector<AppCubit, AppState, String?>(
+          selector: (state) => state.primaryAccountId,
+          builder: (context, accountId) {
+            return BlocBuilder<DashboardCubit, DashboardState>(
+              builder: (context, dashboardState) {
+                final isError = dashboardState.isError || accountsState.isError;
+                final isLoading = dashboardState.isLoading || accountsState.isLoading;
+                final stats = dashboardState is DashboardLoadedState
+                    ? dashboardState.stats.where((stat) => stat.accountId == accountId).toList()
+                    : null;
+                final totalAmount = stats?.fold<double>(0, (v, el) => v + el.totalAmount);
+                return Section(
+                  title: const Text('Total investment'),
+                  icon: const Icon(Icons.pie_chart_rounded),
+                  // InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
+                  // tiles: AmcGenre.values.map((genre) => _buildGenre(context, genre)).toList(),
+                  trailingIcon: Shimmer(
+                    isLoading: isLoading,
+                    child: totalAmount == null || isLoading
+                        ? Skeleton(color: isError ? context.colors.error : null, height: 24.0)
+                        : BlocSelector<AppCubit, AppState, bool>(
+                            selector: (state) => state.isPrivateMode,
+                            builder: (context, isPrivateMode) {
+                              return CurrencyView(
+                                amount: totalAmount,
+                                integerStyle: textTheme.headlineLarge,
+                                decimalsStyle: textTheme.headlineSmall,
+                                currencyStyle: textTheme.bodyMedium,
+                                privateMode: isPrivateMode,
+                                // compactView: snapshot.data! >= 1_00_00_000
+                              );
+                            },
+                          ),
+                  ),
+                  tiles: [
+                    SectionTile(
                       title: Shimmer(
                         isLoading: isLoading,
                         child: Column(
                           children: <Widget>[
-                            Text('Total investment', style: context.textTheme.bodySmall),
-                            totalAmount == null
-                                ? Skeleton(color: isError ? context.colors.error : null)
-                                : BlocSelector<AppCubit, AppState, bool>(
-                                    selector: (state) => state.isPrivateMode,
-                                    builder: (context, isPrivateMode) {
-                                      return CurrencyView(
-                                        amount: totalAmount,
-                                        integerStyle: textTheme.headlineLarge,
-                                        decimalsStyle: textTheme.headlineSmall,
-                                        currencyStyle: textTheme.bodyMedium,
-                                        privateMode: isPrivateMode,
-                                        // compactView: snapshot.data! >= 1_00_00_000
-                                      );
-                                    },
-                                  ),
-
                             // ~ Pie chart
                             SizedBox(
                               height: 256.0,
@@ -79,6 +80,8 @@ class _CategoriesWidgetState extends State<_CategoriesWidget> {
                                       },
                                     ),
                             ),
+
+                            // ~ Categories
                             ValueListenableBuilder(
                               valueListenable: _selectedCategory,
                               builder: (context, selectedCategory, _) {
@@ -131,14 +134,14 @@ class _CategoriesWidgetState extends State<_CategoriesWidget> {
                           ],
                         ),
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 );
               },
             );
           },
-        ),
-      ],
+        );
+      },
     );
   }
 

@@ -21,11 +21,14 @@ class Skeleton extends StatelessWidget {
     final effectiveShape =
         shape ?? RoundedRectangleBorder(borderRadius: borderRadius ?? const BorderRadius.all(Radius.circular(16.0)));
 
-    return ClipPath(
-      clipper: ShapeBorderClipper(shape: effectiveShape, textDirection: Directionality.maybeOf(context)),
-      child: ColoredBox(
-        color: color ?? theme.colorScheme.primaryContainer,
-        child: SizedBox(width: width, height: height),
+    return LimitedBox(
+      maxWidth: 100.0,
+      child: ClipPath(
+        clipper: ShapeBorderClipper(shape: effectiveShape, textDirection: Directionality.maybeOf(context)),
+        child: ColoredBox(
+          color: color ?? theme.colorScheme.primaryContainer,
+          child: SizedBox(width: width, height: height),
+        ),
       ),
     );
   }

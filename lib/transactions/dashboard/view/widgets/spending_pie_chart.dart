@@ -110,11 +110,12 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
       final widgetScale = isTouched ? 1.3 : 1.0;
       final percent = ((stat?.totalAmount ?? 0.0) / totalAmount * 100).abs();
       totalPercentAccumulated += percent;
+
       return PieChartSectionData(
         color: genre.color,
         // value: stat.totalAmount == 0 ? 5 : (stats[i].total / widget.totalSpent).abs(),
         value: stat?.totalAmount,
-        title: '',
+        showTitle: false,
         radius: radius,
         badgeWidget: _Badge(
           genre,
@@ -126,7 +127,7 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
           isTouched: isTouched,
         ),
         titlePositionPercentageOffset: 1.4,
-        badgePositionPercentageOffset: .98,
+        badgePositionPercentageOffset: 0.98,
       );
     });
   }

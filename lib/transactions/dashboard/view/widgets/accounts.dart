@@ -21,9 +21,13 @@ class _AccountsList extends StatelessWidget {
               final isLoading = accountState.isLoading;
               final accounts = accountState.isLoaded ? (accountState as AccountsLoadedState).accounts : null;
               // If primary account is not set, set first account as primary account
-              final primaryAccount = accounts?.firstWhereOrNull((account) => account.id == appCubit.id);
-              if ((accounts?.isNotEmpty ?? false) && primaryAccount == null) {
-                context.read<AppCubit>().updatePrimaryAccount(accounts!.first.id);
+              if (accounts?.isNotEmpty ?? false) {
+                final primaryAccount = accounts?.firstWhereOrNull(
+                  (account) => account.id == appCubit.state.primaryAccountId,
+                );
+                if (primaryAccount == null) {
+                  context.read<AppCubit>().updatePrimaryAccount(accounts!.first.id);
+                }
               }
               return Row(
                 spacing: 8.0,

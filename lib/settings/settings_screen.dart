@@ -83,8 +83,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ? GoogleUserCircleAvatar(identity: currentUser!) // TODO: Implement cached network image
                           : CircleAvatar(child: const Icon(Icons.person_rounded)),
                       trailingIcon: IconButton(
-                        // onPressed: () => context.push(const EditAccountScreen()),
-                        onPressed: () => context.read<AppCubit>().updatePrimaryAccount(''),
+                        onPressed: () => context.push(const EditAccountScreen()),
+                        // onPressed: () => context.read<AppCubit>().updatePrimaryAccount(''),
                         icon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
                         style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
                       ),
