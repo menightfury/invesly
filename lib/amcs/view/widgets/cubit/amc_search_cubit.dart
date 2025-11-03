@@ -10,27 +10,27 @@ class AmcSearchCubit extends Cubit<AmcSearchState> {
   AmcSearchCubit({required AmcRepository amcRepository})
     : _amcRepository = amcRepository,
       _debounce = _Debounce(1.seconds),
-      super(AmcSearchStateEmpty());
+      super(AmcSearchState.empty());
 
   final AmcRepository _amcRepository;
   final Map<String, List<InveslyAmc>> _amcCache = {};
   final _Debounce _debounce;
 
   Future<void> search(String query) async {
-    if (query.isEmpty) return emit(AmcSearchStateEmpty());
+    if (query.isEmpty) return emit(AmcSearchState.empty());
 
     final cachedResult = _amcCache[query];
     if (cachedResult != null) {
-      return emit(AmcSearchStateSuccess(cachedResult));
+      return emit(AmcSearchState.success(cachedResult));
     }
 
-    emit(AmcSearchStateLoading());
+    emit(AmcSearchState.loading());
 
     try {
       await _debounce.wait(); // wait for 1 second
       final results = await _amcRepository.getAmcs(query);
       $logger.d(results);
-      emit(AmcSearchStateSuccess(results));
+      emit(AmcSearchState.success(results));
       _amcCache[query] = results;
     } catch (error) {
       // emit(
@@ -38,7 +38,7 @@ class AmcSearchCubit extends Cubit<AmcSearchState> {
       //       ? SearchStateError(error.message)
       //       : const SearchStateError('something went wrong'),
       // );
-      emit(AmcSearchStateError(error.toString()));
+      emit(AmcSearchState.error(error.toString()));
     }
   }
 

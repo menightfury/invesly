@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/widgets/cubit/amc_search_cubit.dart';
-import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 
@@ -25,7 +24,7 @@ class InveslyAmcPickerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Select Asset Management Company')),
+      appBar: AppBar(title: const Text('Search Asset Management Company')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -80,15 +79,25 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
           decoration: const InputDecoration(hintText: 'Enter keyword to search', prefixIcon: Icon(Icons.search)),
           controller: _searchController,
           autofocus: true,
-        ).withLabel('Search Asset Management Company (AMC)'),
+        ),
+        SingleChildScrollView(
+          child: const Row(
+            spacing: 8.0,
+            children: <Widget>[
+              ChoiceChip(label: Text('Stock'), selected: true),
+              ChoiceChip(label: Text('Mutual fund'), selected: false),
+              ChoiceChip(label: Text('Miscellaneous'), selected: false),
+            ],
+          ),
+        ),
         Expanded(
           child: BlocBuilder<AmcSearchCubit, AmcSearchState>(
             builder: (context, state) {
-              return switch (state) {
-                AmcSearchStateEmpty() => Center(child: const Text('Please enter a term to begin')),
-                AmcSearchStateLoading() => Center(child: const CircularProgressIndicator.adaptive()),
-                AmcSearchStateError() => Center(child: Text(state.error)),
-                AmcSearchStateSuccess() =>
+              return switch (state.status) {
+                AmcSearchStateStatus.empty => Center(child: const Text('Please enter a term to begin')),
+                AmcSearchStateStatus.loading => Center(child: const CircularProgressIndicator.adaptive()),
+                AmcSearchStateStatus.error => Center(child: Text(state.error!)),
+                AmcSearchStateStatus.success =>
                   state.items.isEmpty
                       ? const Text('Sorry! No results found 😞')
                       : _SearchResults(amcs: state.items, onPickup: (amc) => widget.onPickup?.call(amc)),

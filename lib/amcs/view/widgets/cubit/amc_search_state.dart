@@ -1,33 +1,52 @@
 part of 'amc_search_cubit.dart';
 
-sealed class AmcSearchState extends Equatable {
-  const AmcSearchState();
+enum AmcSearchStateStatus { empty, loading, success, error }
 
-  @override
-  List<Object> get props => [];
-}
+class AmcSearchState extends Equatable {
+  const AmcSearchState.empty() : items = const [], error = null, status = AmcSearchStateStatus.empty;
+  const AmcSearchState.loading() : items = const [], error = null, status = AmcSearchStateStatus.loading;
+  const AmcSearchState.success(this.items) : error = null, status = AmcSearchStateStatus.success;
+  const AmcSearchState.error(this.error) : items = const [], status = AmcSearchStateStatus.error;
 
-final class AmcSearchStateEmpty extends AmcSearchState {}
-
-final class AmcSearchStateLoading extends AmcSearchState {}
-
-final class AmcSearchStateSuccess extends AmcSearchState {
-  const AmcSearchStateSuccess(this.items);
-
+  final AmcSearchStateStatus status;
   final List<InveslyAmc> items;
+  final String? error;
+
+  AmcSearchState copyWith({AmcSearchStateStatus? status, List<InveslyAmc>? items, String? error}) {
+    final newStatus = status ?? this.status;
+    return switch (newStatus) {
+      AmcSearchStateStatus.empty => AmcSearchState.empty(),
+      AmcSearchStateStatus.loading => AmcSearchState.loading(),
+      AmcSearchStateStatus.success => AmcSearchState.success(items ?? this.items),
+      AmcSearchStateStatus.error => AmcSearchState.error(error ?? this.error),
+    };
+  }
 
   @override
-  List<Object> get props => [items];
-
-  @override
-  String toString() => 'SearchStateSuccess { items: ${items.length} }';
+  List<Object?> get props => [status, items, error];
 }
 
-final class AmcSearchStateError extends AmcSearchState {
-  const AmcSearchStateError(this.error);
+// final class AmcSearchStateEmpty extends AmcSearchState {}
 
-  final String error;
+// final class AmcSearchStateLoading extends AmcSearchState {}
 
-  @override
-  List<Object> get props => [error];
-}
+// final class AmcSearchStateSuccess extends AmcSearchState {
+//   const AmcSearchStateSuccess(this.items);
+
+//   final List<InveslyAmc> items;
+
+//   @override
+//   List<Object> get props => [items];
+
+//   @override
+//   String toString() => 'SearchStateSuccess { items: ${items.length} }';
+// }
+
+// final class AmcSearchStateError extends AmcSearchState {
+//   const AmcSearchStateError(this.error);
+
+//   final String error;
+
+//   @override
+//   List<Object> get props => [error];
+// }
