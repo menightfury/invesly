@@ -15,5 +15,5 @@ class AppConstants {
   static const tileBorderRadius = BorderRadius.all(Radius.circular(4.0));
   static const formFieldLabelSpacing = 6.0;
   static const formFieldContentPadding = EdgeInsetsGeometry.symmetric(horizontal: 12.0, vertical: 16.0);
-  static const textFieldBorderRadius = BorderRadius.all(Radius.circular(8.0));
+  static const textFieldBorderRadius = BorderRadius.all(Radius.circular(16.0));
 }

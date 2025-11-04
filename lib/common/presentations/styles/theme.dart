@@ -43,8 +43,12 @@ class AppStyle {
       ),
       iconTheme: IconThemeData(color: colorScheme.onSurface),
       chipTheme: ChipThemeData(
-        selectedColor: colorScheme.primaryContainer,
-        shape: const StadiumBorder(),
+        color: WidgetStateProperty.resolveWith<Color?>((state) {
+          if (state.contains(WidgetState.selected)) return colorScheme.primaryContainer;
+          return colorScheme.surface;
+        }),
+        // selectedColor: colorScheme.primaryContainer,
+        shape: StadiumBorder(side: BorderSide(color: colorScheme.primary)),
         padding: const EdgeInsets.all(4.0),
       ),
       appBarTheme: AppBarTheme(

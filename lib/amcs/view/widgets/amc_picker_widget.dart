@@ -71,6 +71,11 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.read<AmcSearchCubit>();
+    final searchChipsData = AmcGenre.values
+        .map((genre) => InveslyChipData(value: genre, label: Text(genre.title)))
+        .toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: AppConstants.formFieldLabelSpacing,
@@ -80,27 +85,28 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
           controller: _searchController,
           autofocus: true,
         ),
-        SingleChildScrollView(
-          child: const Row(
-            spacing: 8.0,
-            children: <Widget>[
-              ChoiceChip(label: Text('Stock'), selected: true),
-              ChoiceChip(label: Text('Mutual fund'), selected: false),
-              ChoiceChip(label: Text('Miscellaneous'), selected: false),
-            ],
-          ),
+        BlocSelector<AmcSearchCubit, AmcSearchState, AmcGenre?>(
+          selector: (state) => state.searchGenre,
+          builder: (context, amcGenre) {
+            return InveslyChoiceChips<AmcGenre>.single(
+              wrapped: false,
+              options: searchChipsData,
+              selected: amcGenre,
+              onChanged: (value) => cubit.updateSearchGenre(value),
+            );
+          },
         ),
         Expanded(
           child: BlocBuilder<AmcSearchCubit, AmcSearchState>(
             builder: (context, state) {
               return switch (state.status) {
-                AmcSearchStateStatus.empty => Center(child: const Text('Please enter a term to begin')),
                 AmcSearchStateStatus.loading => Center(child: const CircularProgressIndicator.adaptive()),
                 AmcSearchStateStatus.error => Center(child: Text(state.error!)),
                 AmcSearchStateStatus.success =>
-                  state.items.isEmpty
+                  state.results.isEmpty
                       ? const Text('Sorry! No results found 😞')
-                      : _SearchResults(amcs: state.items, onPickup: (amc) => widget.onPickup?.call(amc)),
+                      : _SearchResults(amcs: state.results, onPickup: (amc) => widget.onPickup?.call(amc)),
+                _ => Center(child: const Text('Please enter a term to begin')),
               };
             },
           ),

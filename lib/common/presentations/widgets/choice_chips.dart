@@ -16,7 +16,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
   InveslyChoiceChips({
     super.key,
     required this.options,
-    this.optionsBuilder,
+    // this.optionsBuilder,
     required this.selected,
     this.onChanged,
     this.clearable = false,
@@ -34,7 +34,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
   InveslyChoiceChips.single({
     super.key,
     required this.options,
-    this.optionsBuilder,
+    // this.optionsBuilder,
     T? selected,
     ValueChanged<T?>? onChanged,
     this.clearable = false,
@@ -51,7 +51,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
        assert(selected != null || clearable);
 
   final List<InveslyChipData<T>> options;
-  final WidgetBuilder? optionsBuilder;
+  // final WidgetBuilder? optionsBuilder;
   final ValueChanged<Set<T>>? onChanged;
   final Set<T> selected;
 
@@ -80,8 +80,9 @@ class InveslyChoiceChips<T> extends StatelessWidget {
       final Set<T> pressedOption = <T>{optionValue};
       late final Set<T> updatedOption;
       if (toggle) {
-        updatedOption =
-            selected.contains(optionValue) ? selected.difference(pressedOption) : selected.union(pressedOption);
+        updatedOption = selected.contains(optionValue)
+            ? selected.difference(pressedOption)
+            : selected.union(pressedOption);
       } else {
         updatedOption = pressedOption;
       }
@@ -98,10 +99,9 @@ class InveslyChoiceChips<T> extends StatelessWidget {
         spacing: chipSpacing,
         runSpacing: chipSpacing,
         crossAxisAlignment: WrapCrossAlignment.center,
-        children:
-            List.generate(options.length, (index) {
-              return _buildItem(context, options[index]);
-            }).toList(),
+        children: List.generate(options.length, (index) {
+          return _buildItem(context, options[index]);
+        }).toList(),
       );
     }
 
@@ -111,14 +111,13 @@ class InveslyChoiceChips<T> extends StatelessWidget {
       clipBehavior: Clip.none,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
-        children:
-            List.generate(childCount, (index) {
-              final itemIndex = index ~/ 2;
-              if (index.isEven) {
-                return _buildItem(context, options[itemIndex]);
-              }
-              return SizedBox(width: chipSpacing);
-            }).toList(),
+        children: List.generate(childCount, (index) {
+          final itemIndex = index ~/ 2;
+          if (index.isEven) {
+            return _buildItem(context, options[itemIndex]);
+          }
+          return SizedBox(width: chipSpacing);
+        }).toList(),
       ),
     );
   }
