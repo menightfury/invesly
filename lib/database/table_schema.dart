@@ -24,7 +24,7 @@ abstract class TableFilter {
   (String, List<Object>) toSql();
 }
 
-enum SingleValueTableFilterOperator {
+enum FilterOperator {
   equal,
   greaterThan,
   lessThan,
@@ -46,16 +46,12 @@ enum SingleValueTableFilterOperator {
 }
 
 class SingleValueTableFilter<T extends Object> implements TableFilter {
-  const SingleValueTableFilter(
-    this.column,
-    this.value, {
-    this.operator = SingleValueTableFilterOperator.equal,
-    this.negate = false,
-  }) : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool');
+  const SingleValueTableFilter(this.column, this.value, {this.operator = FilterOperator.equal, this.negate = false})
+    : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool');
 
   final TableColumn column;
   final T value;
-  final SingleValueTableFilterOperator operator;
+  final FilterOperator operator;
   final bool negate;
 
   @override
@@ -65,7 +61,7 @@ class SingleValueTableFilter<T extends Object> implements TableFilter {
       buffer.write('NOT ');
     }
     buffer.write('${column.fullTitle} $operator ?');
-    final arg = value is String && operator == SingleValueTableFilterOperator.like ? '%$value%' : value;
+    final arg = value is String && operator == FilterOperator.like ? '%$value%' : value;
     return (buffer.toString(), [arg]);
   }
 }

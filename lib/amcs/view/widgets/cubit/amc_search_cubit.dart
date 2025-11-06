@@ -33,7 +33,7 @@ class AmcSearchCubit extends Cubit<AmcSearchState> {
 
     try {
       await _debounce.wait(); // wait for 1 second
-      final results = await _amcRepository.getAmcs(query);
+      final results = await _amcRepository.getAmcs(query, state.searchGenre);
       $logger.d(results);
       emit(state.copyWith(status: AmcSearchStateStatus.success, results: results));
       _amcCache[query] = results;
