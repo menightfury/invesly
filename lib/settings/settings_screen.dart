@@ -3,6 +3,7 @@
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_sign_in/google_sign_in.dart' show GoogleUserCircleAvatar;
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
+import 'package:invesly/amcs/view/all_amcs_screen.dart';
 import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:path/path.dart';
@@ -201,6 +202,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           onChanged: (value) => context.read<AppCubit>().updatePrivateMode(value),
                         );
                       },
+                    ),
+                    SectionTile.navigation(
+                      icon: const Icon(Icons.account_balance_outlined),
+                      title: Text('View all AMCs'),
+                      // title: Text(context.watch<SettingsRepository>().currentLocale.name),
+                      subtitle: Text('View and manage your Asset Management Companies'),
+                      onTap: () => context.push(const AllAmcsScreen()),
                     ),
                     SectionTile.navigation(
                       icon: const Icon(Icons.account_balance_outlined),

@@ -27,6 +27,12 @@ class AmcRepository {
       'https://www.nseindia.com/api/historical/cm/equity?symbol=ADANIENSOL&from=20-10-2025&to=23-10-2025';
   static const String _mfUrl = 'api.mfapi.in';
 
+  /// Get all amcs
+  Future<List<InveslyAmc>> getAllAmcs() async {
+    final dbData = await _api.select(_amcTable).toList();
+    return dbData.map<InveslyAmc>((e) => InveslyAmc.fromDb(_amcTable.encode(e))).toList();
+  }
+
   /// Get all amcs matched by query
   Future<List<InveslyAmc>> getAmcs(String searchQuery, AmcGenre genre, [int limit = 10]) async {
     // get results from db
