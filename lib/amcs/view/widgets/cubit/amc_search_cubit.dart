@@ -13,7 +13,7 @@ class AmcSearchCubit extends Cubit<AmcSearchState> {
       super(AmcSearchState.initial());
 
   final AmcRepository _amcRepository;
-  final Map<String, List<InveslyAmc>> _amcCache = {};
+  final Map<String, List<InveslyAmc>> _amcCache = {}; // key is combination of query and genre
   final _Debounce _debounce;
 
   void updateSearchGenre(AmcGenre? value) {
@@ -24,7 +24,8 @@ class AmcSearchCubit extends Cubit<AmcSearchState> {
   Future<void> search(String query) async {
     if (query.isEmpty) return emit(state.copyWith(status: AmcSearchStateStatus.empty));
 
-    final cachedResult = _amcCache[query];
+    final key = '${state.searchGenre.name} - ${query.toLowerCase()}';
+    final cachedResult = _amcCache[key];
     if (cachedResult != null) {
       return emit(state.copyWith(status: AmcSearchStateStatus.success, results: cachedResult));
     }
@@ -36,7 +37,7 @@ class AmcSearchCubit extends Cubit<AmcSearchState> {
       final results = await _amcRepository.getAmcs(query, state.searchGenre);
       $logger.d(results);
       emit(state.copyWith(status: AmcSearchStateStatus.success, results: results));
-      _amcCache[query] = results;
+      _amcCache[key] = results;
     } catch (error) {
       // emit(
       //   error is SearchResultError

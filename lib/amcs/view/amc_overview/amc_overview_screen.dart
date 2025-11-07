@@ -22,7 +22,8 @@ class _AmcOverviewScreenState extends State<AmcOverviewScreen> {
   @override
   void initState() {
     super.initState();
-    amcFuture = context.read<AmcRepository>().getAmcById(widget.id);
+    // amcFuture = context.read<AmcRepository>().getAmcById(widget.id);
+    amcFuture = AmcRepository.instance.getAmcById(widget.id);
   }
 
   @override

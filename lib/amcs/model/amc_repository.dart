@@ -6,7 +6,18 @@ import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/database/table_schema.dart';
 
 class AmcRepository {
-  AmcRepository(InveslyApi api) : _api = api;
+  // singleton api instance
+  static AmcRepository? _instance;
+  static AmcRepository get instance {
+    assert(_instance != null, 'Please make sure to initialize before getting repository');
+    return _instance!;
+  }
+
+  factory AmcRepository(InveslyApi api) {
+    _instance ??= AmcRepository._(api);
+    return _instance!;
+  }
+  const AmcRepository._(this._api);
 
   final InveslyApi _api;
 

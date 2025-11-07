@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
@@ -65,8 +66,14 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
   }
 
   Future<void> _handleSavePressed(BuildContext context) async {
+    final transactionCubit = context.read<EditTransactionCubit>();
+    // final amcRepository = context.read<AmcRepository>();
     if (_formKey.currentState!.validate()) {
-      await context.read<EditTransactionCubit>().save();
+      await transactionCubit.save();
+      // save amc in database
+      if (transactionCubit.state.amc == null) return;
+      // await amcRepository.saveAmc(cubit.state.amc);
+      await AmcRepository.instance.saveAmc(transactionCubit.state.amc!);
       // if (!context.mounted) return;
       // const message = SnackBar(content: Text('Investment saved successfully.'), backgroundColor: Colors.teal);
       // ScaffoldMessenger.of(context).showSnackBar(message);

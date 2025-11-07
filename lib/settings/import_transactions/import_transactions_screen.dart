@@ -25,7 +25,8 @@ class ImportTransactionsScreen extends StatelessWidget {
         child: BlocProvider(
           create: (context) => ImportTransactionsCubit(
             accountRepository: context.read<AccountRepository>(),
-            amcRepository: context.read<AmcRepository>(),
+            // amcRepository: context.read<AmcRepository>(),
+            amcRepository: AmcRepository.instance,
             transactionRepository: context.read<TransactionRepository>(),
           ),
           child: _ImportTransactionsScreen(),

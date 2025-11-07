@@ -11,7 +11,8 @@ class EditAmcScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => EditAmcCubit(repository: context.read<AmcRepository>(), initialAmc: initialAmc),
+      // create: (context) => EditAmcCubit(repository: context.read<AmcRepository>(), initialAmc: initialAmc),
+      create: (context) => EditAmcCubit(repository: AmcRepository.instance, initialAmc: initialAmc),
       child: const _EditView(),
     );
   }

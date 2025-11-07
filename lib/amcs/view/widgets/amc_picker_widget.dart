@@ -29,7 +29,8 @@ class InveslyAmcPickerWidget extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: BlocProvider(
-            create: (context) => AmcSearchCubit(amcRepository: context.read<AmcRepository>()),
+            // create: (context) => AmcSearchCubit(amcRepository: context.read<AmcRepository>()),
+            create: (context) => AmcSearchCubit(amcRepository: AmcRepository.instance),
             child: _InveslyAmcPickerWidget(onPickup: onPickup),
           ),
         ),
@@ -92,7 +93,10 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
               wrapped: false,
               options: searchChipsData,
               selected: amcGenre,
-              onChanged: (value) => cubit.updateSearchGenre(value),
+              onChanged: (value) {
+                cubit.updateSearchGenre(value);
+                cubit.search(_searchController.text);
+              },
             );
           },
         ),
