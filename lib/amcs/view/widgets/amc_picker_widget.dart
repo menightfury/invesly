@@ -109,7 +109,14 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
                 AmcSearchStateStatus.success =>
                   state.results.isEmpty
                       ? const Text('Sorry! No results found 😞')
-                      : _SearchResults(amcs: state.results, onPickup: (amc) => widget.onPickup?.call(amc)),
+                      : _SearchResults(
+                          amcs: state.results,
+                          onPickup: (amc) {
+                            // get more details of amc by id before picking
+
+                            widget.onPickup?.call(amc);
+                          },
+                        ),
                 _ => Center(child: const Text('Please enter a term to begin')),
               };
             },

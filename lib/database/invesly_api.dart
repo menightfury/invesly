@@ -52,7 +52,7 @@ class InveslyApi {
         batch.execute(_amcTable.createTable());
         // insert default table values in amcTable
         // ignore: avoid_function_literals_in_foreach_calls
-        initialAmcs.forEach((amc) => batch.insert(_amcTable.tableName, _amcTable.decode(amc)));
+        // initialAmcs.forEach((amc) => batch.insert(_amcTable.tableName, _amcTable.decode(amc)));
         batch.execute(_trnTable.createTable());
         await batch.commit(noResult: true, continueOnError: true);
       },
