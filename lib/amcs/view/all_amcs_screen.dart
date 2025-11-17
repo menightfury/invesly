@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
+import 'package:http/http.dart' as http;
 
 class AllAmcsScreen extends StatefulWidget {
   const AllAmcsScreen({super.key});
@@ -16,6 +17,7 @@ class _AllAmcsScreenState extends State<AllAmcsScreen> {
   void initState() {
     super.initState();
     future = AmcRepository.instance.getAllAmcs();
+    http.Client();
   }
 
   @override
