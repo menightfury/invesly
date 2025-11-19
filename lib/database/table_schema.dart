@@ -298,10 +298,10 @@ abstract class TableSchema<T extends InveslyDataModel> extends Equatable {
   Type get type => T;
 
   /// Convert the data model to a map acceptable by the table
-  Map<String, dynamic> decode(T data);
+  Map<String, dynamic> fromModel(T data);
 
   /// Convert the map from a table to a data model
-  T encode(Map<String, dynamic> map);
+  T fromMap(Map<String, dynamic> map);
 
   @override
   List<Object?> get props => [tableName];

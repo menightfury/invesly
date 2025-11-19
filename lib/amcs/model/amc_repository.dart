@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/database/invesly_api.dart';
@@ -30,7 +31,7 @@ class AmcRepository {
   /// Get all amcs
   Future<List<InveslyAmc>> getAllAmcs() async {
     final dbData = await _api.select(_amcTable).toList();
-    return dbData.map<InveslyAmc>((e) => InveslyAmc.fromDb(_amcTable.encode(e))).toList();
+    return dbData.map<InveslyAmc>((e) => InveslyAmc.fromDb(_amcTable.fromMap(e))).toList();
   }
 
   /// Get all amcs matched by query
@@ -43,10 +44,11 @@ class AmcRepository {
           SingleValueTableFilter<String>(_amcTable.nameColumn, searchQuery, operator: FilterOperator.like),
         ])
         .toList(limit: limit);
-    final dbResults = dbData.map<InveslyAmc>((e) => InveslyAmc.fromDb(_amcTable.encode(e))).toList();
+    final dbResults = dbData.map<InveslyAmc>((e) => InveslyAmc.fromDb(_amcTable.fromMap(e))).toList();
 
     // get results from url
     final webResults = <InveslyAmc>[];
+    final firestore = FirebaseFirestore.instance;
     if (genre == AmcGenre.stock) {
       // fetch stock amcs from NSE
     } else if (genre == AmcGenre.mf) {
@@ -59,6 +61,12 @@ class AmcRepository {
             )
             .toList();
         webResults.addAll(data);
+      }
+      final mfs = await firestore.collection('mfs').startAt([searchQuery]).endAt(['$searchQuery\uf8ff']).get();
+      for (var mf in mfs.docs) {
+        final data = mf.data();
+        final amc = InveslyAmc.fromDb(_amcTable.fromMap(data));
+        webResults.add(amc);
       }
     }
     // remove duplicates
@@ -73,7 +81,7 @@ class AmcRepository {
 
     if (list.isEmpty) return null;
 
-    return InveslyAmc.fromDb(_amcTable.encode(list.first));
+    return InveslyAmc.fromDb(_amcTable.fromMap(list.first));
   }
 
   /// Get amc by name
@@ -84,7 +92,7 @@ class AmcRepository {
 
     if (list.isEmpty) return null;
 
-    return InveslyAmc.fromDb(_amcTable.encode(list.first));
+    return InveslyAmc.fromDb(_amcTable.fromMap(list.first));
   }
 
   /// Get amc by id or name
@@ -96,7 +104,7 @@ class AmcRepository {
 
     if (list.isEmpty) return null;
 
-    return InveslyAmc.fromDb(_amcTable.encode(list.first));
+    return InveslyAmc.fromDb(_amcTable.fromMap(list.first));
   }
 
   /// Add or update amc

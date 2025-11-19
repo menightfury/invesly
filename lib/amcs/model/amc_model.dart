@@ -139,6 +139,19 @@ class AmcInDb extends InveslyDataModel {
 
   @override
   List<Object?> get props => super.props..addAll([name, genreIndex, tagsString]);
+
+  Map<String, dynamic> toMap() {
+    return {'id': id, 'name': name, 'genre': genreIndex, 'tags': tagsString};
+  }
+
+  factory AmcInDb.fromMap(Map<String, dynamic> map) {
+    return AmcInDb(
+      id: map['id'] as String,
+      name: map['name'] as String,
+      genreIndex: map['genre'] as int?,
+      tagsString: map['tags'] as String?,
+    );
+  }
 }
 
 class AmcTable extends TableSchema<AmcInDb> {
@@ -155,7 +168,7 @@ class AmcTable extends TableSchema<AmcInDb> {
   Set<TableColumn> get columns => super.columns..addAll([nameColumn, genreColumn, tagsColumn]);
 
   @override
-  Map<String, dynamic> decode(AmcInDb data) {
+  Map<String, dynamic> fromModel(AmcInDb data) {
     return {
       idColumn.title: data.id,
       nameColumn.title: data.name,
@@ -165,7 +178,7 @@ class AmcTable extends TableSchema<AmcInDb> {
   }
 
   @override
-  AmcInDb encode(Map<String, dynamic> map) {
+  AmcInDb fromMap(Map<String, dynamic> map) {
     return AmcInDb(
       id: map[idColumn.title] as String,
       name: map[nameColumn.title] as String,

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:invesly/database/data/seed.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -71,7 +70,7 @@ class InveslyApi {
   }
 
   Future<int> insert(TableSchema table, InveslyDataModel data) async {
-    final r = await db.insert(table.tableName, table.decode(data));
+    final r = await db.insert(table.tableName, table.fromModel(data));
     _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.insertion));
     return r;
   }
@@ -79,7 +78,7 @@ class InveslyApi {
   Future<int> update(TableSchema table, InveslyDataModel data) async {
     final r = await db.update(
       table.tableName,
-      table.decode(data),
+      table.fromModel(data),
       where: '${table.idColumn.fullTitle} = ?',
       whereArgs: [data.id],
     );

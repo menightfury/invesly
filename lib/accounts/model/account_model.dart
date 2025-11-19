@@ -78,7 +78,7 @@ class AccountTable extends TableSchema<AccountInDb> {
   Set<TableColumn> get columns => super.columns..addAll([nameColumn, avatarColumn]);
 
   @override
-  Map<String, dynamic> decode(AccountInDb data) {
+  Map<String, dynamic> fromModel(AccountInDb data) {
     return {
       idColumn.title: data.id,
       nameColumn.title: data.name,
@@ -89,7 +89,7 @@ class AccountTable extends TableSchema<AccountInDb> {
   }
 
   @override
-  AccountInDb encode(Map<String, dynamic> map) {
+  AccountInDb fromMap(Map<String, dynamic> map) {
     return AccountInDb(
       id: map[idColumn.title] as String,
       name: map[nameColumn.title] as String,

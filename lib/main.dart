@@ -1,7 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/database/backup/backup_service.dart';
+import 'package:invesly/firebase_options.dart';
 import 'package:invesly/intro/splash_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:invesly/database/invesly_api.dart';
@@ -20,8 +21,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   Bloc.observer = InveslyBlocObserver();
-
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Bootstrap.initialize();
+
   runApp(const InveslyApp());
 }
 
@@ -148,12 +150,6 @@ class Bootstrap {
       storageDirectory: kIsWeb ? HydratedStorageDirectory.web : HydratedStorageDirectory(directory.path),
     );
 
-    // Testing firestore local emulator
-    final user = <String, dynamic>{'first': 'Ada', 'last': 'Lovelace', 'born': 1_815};
-    final db = FirebaseFirestore.instance;
-
-    // Add a new document with a generated ID
-    await db.collection('users').add(user).then((doc) => print('DocumentSnapshot added with ID: ${doc.id}'));
     // Initialize local storage i.e. sqlite
     final api = InveslyApi(directory);
     return _instance = Bootstrap._(api);

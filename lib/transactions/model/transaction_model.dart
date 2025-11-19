@@ -191,7 +191,7 @@ class TransactionTable extends TableSchema<TransactionInDb> {
       super.columns..addAll([accountIdColumn, amcIdColumn, quantityColumn, amountColumn, dateColumn, noteColumn]);
 
   @override
-  Map<String, dynamic> decode(TransactionInDb data) {
+  Map<String, dynamic> fromModel(TransactionInDb data) {
     return <String, dynamic>{
       idColumn.title: data.id,
       accountIdColumn.title: data.accountId,
@@ -205,7 +205,7 @@ class TransactionTable extends TableSchema<TransactionInDb> {
   }
 
   @override
-  TransactionInDb encode(Map<String, dynamic> map) {
+  TransactionInDb fromMap(Map<String, dynamic> map) {
     return TransactionInDb(
       id: map[idColumn.title] as String,
       accountId: map[accountIdColumn.title] as String,

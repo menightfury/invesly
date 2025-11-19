@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/database/data/seed.dart';
 import 'package:invesly/intro/intro_page.dart';
 import 'package:invesly/main.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -20,6 +23,21 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
     final settingsState = context.read<AppCubit>().state;
+
+    // Write seed data to Firebase
+    final firestore = FirebaseFirestore.instance;
+    final batch = firestore.batch();
+    final usersCollection = firestore.collection('mfs');
+
+    for (var mf in mfs) {
+      final id =
+          '${mf['amc_name']?.toString().escaped}-mf-${mf['category']?.toString().escaped}-'
+          '${mf['sub_category']?.toString().escaped}-${mf['plan'].toString().escaped}-'
+          '${mf['scheme_type'].toString().escaped}';
+      final newDocRef = usersCollection.doc(id.toLowerCase()); // Auto-generated ID
+      batch.set(newDocRef, mf);
+    }
+    batch.commit();
 
     // _completer = Completer();
     // show splash screen for few seconds

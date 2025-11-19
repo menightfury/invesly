@@ -24,7 +24,7 @@ class AccountRepository {
   Future<List<InveslyAccount>> getAccounts() async {
     final list = await _api.select(_accountTable).toList();
 
-    return list.map<InveslyAccount>((el) => InveslyAccount.fromDb(_accountTable.encode(el))).toList();
+    return list.map<InveslyAccount>((el) => InveslyAccount.fromDb(_accountTable.fromMap(el))).toList();
   }
 
   /// Get account by id
@@ -35,7 +35,7 @@ class AccountRepository {
 
     if (list.isEmpty) return null;
 
-    return InveslyAccount.fromDb(_accountTable.encode(list.first));
+    return InveslyAccount.fromDb(_accountTable.fromMap(list.first));
   }
 
   /// Get account by name
@@ -46,7 +46,7 @@ class AccountRepository {
 
     if (list.isEmpty) return null;
 
-    return InveslyAccount.fromDb(_accountTable.encode(list.first));
+    return InveslyAccount.fromDb(_accountTable.fromMap(list.first));
   }
 
   /// Get account by id or name
@@ -58,7 +58,7 @@ class AccountRepository {
 
     if (list.isEmpty) return null;
 
-    return InveslyAccount.fromDb(_accountTable.encode(list.first));
+    return InveslyAccount.fromDb(_accountTable.fromMap(list.first));
   }
 
   /// Add or update account to database

@@ -58,9 +58,9 @@ class TransactionRepository {
 
       transactions = result.map<InveslyTransaction>((map) {
         return InveslyTransaction.fromDb(
-          _trnTable.encode(map),
-          _accountTable.encode(map[_accountTable.type.toString().toCamelCase()] as Map<String, dynamic>),
-          _amcTable.encode(map[_amcTable.type.toString().toCamelCase()] as Map<String, dynamic>),
+          _trnTable.fromMap(map),
+          _accountTable.fromMap(map[_accountTable.type.toString().toCamelCase()] as Map<String, dynamic>),
+          _amcTable.fromMap(map[_amcTable.type.toString().toCamelCase()] as Map<String, dynamic>),
         );
       }).toList();
     } on Exception catch (err) {
@@ -118,7 +118,7 @@ class TransactionRepository {
   Future<void> insertTransactions(List<TransactionInDb> transactions) async {
     final batch = _api.db.batch();
     // ignore: avoid_function_literals_in_foreach_calls
-    transactions.forEach((trn) => batch.insert(_trnTable.tableName, _trnTable.decode(trn)));
+    transactions.forEach((trn) => batch.insert(_trnTable.tableName, _trnTable.fromModel(trn)));
 
     await batch.commit(noResult: true, continueOnError: true);
   }
@@ -127,7 +127,7 @@ class TransactionRepository {
     final csvHeader = _trnTable.columns.map((col) => col.title.toCamelCase()).toList();
     final transactions = await getTransactions();
 
-    final csvData = transactions.map((trn) => _trnTable.decode(trn).values.toList()).toList();
+    final csvData = transactions.map((trn) => _trnTable.fromModel(trn).values.toList()).toList();
 
     return const ListToCsvConverter().convert([csvHeader, ...csvData], fieldDelimiter: separator);
   }
