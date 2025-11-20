@@ -57,6 +57,8 @@ class EditAmcCubit extends Cubit<EditAmcState> {
 
     final amc = InveslyAmc(
       id: state.initialAmc?.id ?? $uuid.v1(),
+      code: state.initialAmc?.code ?? 'This is temporary code',
+      isin: state.initialAmc?.isin ?? 'This is temporary isin',
       name: state.name!,
       genre: state.genre,
       tags: state.selectedTags,

@@ -158,9 +158,13 @@ class _SearchResults extends StatelessWidget {
                 ),
               ),
 
-              if (amc.tags != null && amc.tags!.isNotEmpty)
-                ...amc.tags!.map(
-                  (tag) => DecoratedBox(
+              if (amc.tags.isNotEmpty)
+                ...amc.tags.map((tag) {
+                  if (tag == null || tag.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return DecoratedBox(
                     decoration: ShapeDecoration(
                       shape: StadiumBorder(),
                       color: Theme.of(context).colorScheme.primaryContainer,
@@ -169,8 +173,8 @@ class _SearchResults extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
                       child: Text(tag, style: context.textTheme.labelSmall?.copyWith()),
                     ),
-                  ),
-                ),
+                  );
+                }),
             ],
           ),
           contentSpacing: 4.0,
