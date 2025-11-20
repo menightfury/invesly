@@ -69,6 +69,7 @@ class _AmcOverviewScreenState extends State<AmcOverviewScreen> {
                           separatorBuilder: (_, _) => const SizedBox(width: 8.0),
                           itemBuilder: (context, i) {
                             final tag = tags[i];
+                            if (tag == null) return const SizedBox();
                             return Center(
                               child: Material(
                                 color: const Color.fromARGB(255, 105, 5, 151),

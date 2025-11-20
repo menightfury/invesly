@@ -65,8 +65,8 @@ class AccountInDb extends InveslyDataModel {
 class AccountTable extends TableSchema<AccountInDb> {
   // Singleton pattern to ensure only one instance exists
   const AccountTable._() : super('accounts');
-  static const i = AccountTable._();
-  factory AccountTable() => i;
+  static const instance = AccountTable._();
+  factory AccountTable() => instance;
 
   TableColumn<String> get nameColumn => TableColumn('name', tableName);
   TableColumn<int> get avatarColumn =>

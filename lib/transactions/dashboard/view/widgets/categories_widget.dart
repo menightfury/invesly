@@ -88,7 +88,7 @@ class _CategoriesWidgetState extends State<_CategoriesWidget> {
                                 return Section(
                                   margin: null,
                                   tiles: List.generate(AmcGenre.values.length, (i) {
-                                    final genre = AmcGenre.getByIndex(i);
+                                    final genre = AmcGenre.fromIndex(i);
                                     final isSelected = selectedCategory == genre;
                                     final stat = stats?.singleWhereOrNull((stat) => stat.amcGenre == genre);
 

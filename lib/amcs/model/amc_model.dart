@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 
 enum AmcGenre {
@@ -11,11 +12,11 @@ enum AmcGenre {
 
   final String title;
 
-  static AmcGenre findByName(String name) {
+  static AmcGenre fromTitle(String name) {
     return AmcGenre.values.firstWhere((e) => e.name == name, orElse: () => AmcGenre.misc);
   }
 
-  static AmcGenre getByIndex(int? index) {
+  static AmcGenre fromIndex(int? index) {
     if (index == null || index < 0 || index > AmcGenre.values.length - 1) {
       return AmcGenre.values.last; // set default genre to misc
     }
@@ -51,82 +52,115 @@ enum MfPlan {
 
   final String title;
 
-  static MfPlan findByName(String name) {
+  static MfPlan fromTitle(String? name) {
     return MfPlan.values.firstWhere((e) => e.name == name, orElse: () => MfPlan.growth);
   }
 }
 
-enum MfScheme {
+enum MfSchemeType {
   direct('Direct'),
   regular('Regular');
 
-  const MfScheme(this.title);
+  const MfSchemeType(this.title);
 
   final String title;
 
-  static MfScheme findByName(String name) {
-    return MfScheme.values.firstWhere((e) => e.name == name, orElse: () => MfScheme.regular);
+  static MfSchemeType fromTitle(String? name) {
+    return MfSchemeType.values.firstWhere((e) => e.name == name, orElse: () => MfSchemeType.regular);
   }
 }
 
 enum MfCategory {
-  eLarge('Equity Large Cap'),
-  eMid('Equity Mid Cap'),
-  eLargeMid('Equity Large & Mid Cap'),
-  eSmall('Equity Small Cap'),
-  eMultiCap('Equity Multi Cap'),
-  eFocused('Equity Focused'),
-  eFlexi('Equity Flexi Cap'),
-  eSectoral('Equity Sectoral/Thematic'),
-  eIndex('Equity Index'),
-  eHybrid('Balanced/Hybrid'),
-  etf('ETF'),
-  taxSaving('Tax Saving (ELSS)'),
+  equity('Equity'),
+  debt('Debt'),
+  hybrid('Hybrid'),
   other('Other');
 
   const MfCategory(this.title);
 
   final String title;
 
-  static MfCategory findByName(String name) {
+  static MfCategory fromTitle(String? name) {
     return MfCategory.values.firstWhere((e) => e.name == name, orElse: () => MfCategory.other);
   }
 }
 
-class InveslyAmc extends AmcInDb {
-  InveslyAmc({required super.id, required super.name, this.genre, this.tags})
-    : super(genreIndex: genre?.index, tagsString: tags?.join(';'));
+enum MfSubCategory {
+  large('Large Cap'),
+  mid('Mid Cap'),
+  largeMid('Large & Mid Cap'),
+  small('Small Cap'),
+  multiCap('Multi Cap'),
+  focused('Focused'),
+  flexi('Flexi Cap'),
+  sectoral('Sectoral/Thematic'),
+  eIndex('Index'),
+  hybrid('Balanced/Hybrid'),
+  etf('ETF'),
+  taxSaving('Tax Saving (ELSS)'),
+  other('Other');
 
-  InveslyAmc.mf({required super.name, required MfCategory category, required MfPlan plan, required MfScheme scheme})
-    : genre = AmcGenre.mf,
-      tags = {category.title, plan.title, scheme.title},
-      super(id: '${name.escaped}-mf-${category.title.escaped}-${plan.title.escaped}-${scheme.title.escaped}');
+  const MfSubCategory(this.title);
+
+  final String title;
+
+  static MfSubCategory fromTitle(String? name) {
+    return MfSubCategory.values.firstWhere((e) => e.name == name, orElse: () => MfSubCategory.other);
+  }
+}
+
+class InveslyAmc extends AmcInDb {
+  InveslyAmc({required super.id, required super.name, this.genre, required this.tags})
+    : super(genreIndex: genre?.index, tagsString: tags.join(';'));
+
+  InveslyAmc.mf({
+    required super.name,
+    MfCategory? category,
+    MfSubCategory? subCategory,
+    MfPlan? plan,
+    MfSchemeType? schemeType,
+  }) : genre = AmcGenre.mf,
+       tags = {category?.title, subCategory?.title, plan?.title, schemeType?.title},
+       super(id: 'mf-${$uuid.v1()}');
 
   InveslyAmc.stock({required super.name, required String sector})
     : genre = AmcGenre.stock,
       tags = {sector},
-      super(id: '${name.escaped}-stock-${sector.escaped}');
+      super(id: 'stock-${$uuid.v1()}');
 
-  InveslyAmc.insurance({required super.name, required String plan})
+  InveslyAmc.insurance({required super.name, String? plan})
     : genre = AmcGenre.insurance,
       tags = {plan},
-      super(id: '${name.escaped}-insurance-${plan.escaped}');
+      super(id: 'insurance-${$uuid.v1()}');
 
-  InveslyAmc.misc({required super.name, required String tag})
+  InveslyAmc.misc({required super.name, String? tag})
     : genre = AmcGenre.misc,
       tags = {tag},
-      super(id: '${name.escaped}-misc-${tag.escaped}');
+      super(id: 'misc-${$uuid.v1()}');
 
   /// Genre of the AMC i.e. mf, stock, insurance, misc etc.
   final AmcGenre? genre;
 
   /// tags is combination of sector, sub-sector, plan, scheme etc.,
   /// tags is saved in database as string separated by commas
-  final Set<String>? tags;
+  final Set<String?> tags;
 
   factory InveslyAmc.fromDb(AmcInDb amc) {
-    final tags = amc.tagsString?.split(',').map((tag) => tag.trim()).toSet();
-    return InveslyAmc(id: amc.id, name: amc.name, genre: AmcGenre.getByIndex(amc.genreIndex), tags: tags);
+    final tags = amc.tagsString?.split(';').map((tag) => tag.trim()).toList();
+    final amcGenre = AmcGenre.fromIndex(amc.genreIndex);
+    return switch (amcGenre) {
+      AmcGenre.mf => InveslyAmc.mf(
+        name: amc.name,
+        category: MfCategory.fromTitle(tags?[0]),
+        subCategory: MfSubCategory.fromTitle(tags?[1]),
+        plan: MfPlan.fromTitle(tags?[2]),
+        schemeType: MfSchemeType.fromTitle(tags?[3]),
+      ),
+      AmcGenre.stock => InveslyAmc.stock(name: amc.name, sector: tags?.first ?? ''),
+      AmcGenre.insurance => InveslyAmc.insurance(name: amc.name, plan: tags?.first ?? ''),
+      _ => InveslyAmc.misc(name: amc.name, tag: tags?.first ?? ''),
+    };
+    // return InveslyAmc(id: amc.id, name: amc.name, genre: AmcGenre.fromIndex(amc.genreIndex), tags: tags);
   }
 }
 
@@ -157,8 +191,8 @@ class AmcInDb extends InveslyDataModel {
 class AmcTable extends TableSchema<AmcInDb> {
   // Singleton pattern to ensure only one instance exists
   const AmcTable._() : super('amcs');
-  static const _i = AmcTable._();
-  factory AmcTable() => _i;
+  static const instance = AmcTable._();
+  factory AmcTable() => instance;
 
   TableColumn<String> get nameColumn => TableColumn('name', tableName, isUnique: true);
   TableColumn<int> get genreColumn => TableColumn('genre', tableName, type: TableColumnType.integer, isNullable: true);

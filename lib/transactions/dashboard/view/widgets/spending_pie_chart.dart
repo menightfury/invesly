@@ -52,7 +52,7 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
                     setState(() {
                       if (touchedIndex != pieTouchResponse.touchedSection!.touchedSectionIndex) {
                         touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                        final genre = touchedIndex == -1 ? null : AmcGenre.getByIndex(touchedIndex);
+                        final genre = touchedIndex == -1 ? null : AmcGenre.fromIndex(touchedIndex);
                         widget.onSelected?.call(genre);
                       } else {
                         touchedIndex = -1;
@@ -103,7 +103,7 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
     final totalAmount = stats.fold<double>(0, (v, el) => v + el.totalAmount);
     double totalPercentAccumulated = 0;
     return List.generate(AmcGenre.values.length, (i) {
-      final genre = AmcGenre.getByIndex(i);
+      final genre = AmcGenre.fromIndex(i);
       final stat = stats.singleWhereOrNull((stat) => stat.amcGenre == genre);
       final isTouched = i == touchedIndex;
       final radius = isTouched ? 56.0 : 50.0;

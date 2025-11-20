@@ -173,8 +173,8 @@ class TransactionInDb extends InveslyDataModel {
 class TransactionTable extends TableSchema<TransactionInDb> {
   // Singleton pattern to ensure only one instance exists
   const TransactionTable._() : super('transactions');
-  static final _i = TransactionTable._();
-  factory TransactionTable() => _i;
+  static const instance = TransactionTable._();
+  factory TransactionTable() => instance;
 
   TableColumn<String> get accountIdColumn =>
       TableColumn('account_id', tableName, foreignReference: ForeignReference('accounts', 'id'));
