@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 
@@ -110,11 +109,19 @@ enum MfSubCategory {
 }
 
 class InveslyAmc extends AmcInDb {
-  InveslyAmc({required super.id, required super.name, this.genre, required this.tags})
-    : super(genreIndex: genre?.index, tagsString: tags.join(';'));
+  InveslyAmc({
+    required super.id,
+    required super.name,
+    required super.code,
+    required super.isin,
+    this.genre,
+    required this.tags,
+  }) : super(genreIndex: genre?.index, tagsString: tags.join(';'));
 
   InveslyAmc.mf({
     required super.name,
+    required super.code,
+    required super.isin,
     MfCategory? category,
     MfSubCategory? subCategory,
     MfPlan? plan,
@@ -123,17 +130,17 @@ class InveslyAmc extends AmcInDb {
        tags = {category?.title, subCategory?.title, plan?.title, schemeType?.title},
        super(id: 'mf-${$uuid.v1()}');
 
-  InveslyAmc.stock({required super.name, required String sector})
+  InveslyAmc.stock({required super.name, required super.code, required super.isin, String? sector})
     : genre = AmcGenre.stock,
       tags = {sector},
       super(id: 'stock-${$uuid.v1()}');
 
-  InveslyAmc.insurance({required super.name, String? plan})
+  InveslyAmc.insurance({required super.name, required super.code, required super.isin, String? plan})
     : genre = AmcGenre.insurance,
       tags = {plan},
       super(id: 'insurance-${$uuid.v1()}');
 
-  InveslyAmc.misc({required super.name, String? tag})
+  InveslyAmc.misc({required super.name, required super.code, required super.isin, String? tag})
     : genre = AmcGenre.misc,
       tags = {tag},
       super(id: 'misc-${$uuid.v1()}');
@@ -151,41 +158,52 @@ class InveslyAmc extends AmcInDb {
     return switch (amcGenre) {
       AmcGenre.mf => InveslyAmc.mf(
         name: amc.name,
+        code: amc.code,
+        isin: amc.isin,
         category: MfCategory.fromTitle(tags?[0]),
         subCategory: MfSubCategory.fromTitle(tags?[1]),
         plan: MfPlan.fromTitle(tags?[2]),
         schemeType: MfSchemeType.fromTitle(tags?[3]),
       ),
-      AmcGenre.stock => InveslyAmc.stock(name: amc.name, sector: tags?.first ?? ''),
-      AmcGenre.insurance => InveslyAmc.insurance(name: amc.name, plan: tags?.first ?? ''),
-      _ => InveslyAmc.misc(name: amc.name, tag: tags?.first ?? ''),
+      AmcGenre.stock => InveslyAmc.stock(name: amc.name, code: amc.code, isin: amc.isin, sector: tags?.first),
+      AmcGenre.insurance => InveslyAmc.insurance(name: amc.name, code: amc.code, isin: amc.isin, plan: tags?.first),
+      _ => InveslyAmc.misc(name: amc.name, code: amc.code, isin: amc.isin, tag: tags?.first),
     };
     // return InveslyAmc(id: amc.id, name: amc.name, genre: AmcGenre.fromIndex(amc.genreIndex), tags: tags);
   }
 }
 
 class AmcInDb extends InveslyDataModel {
-  const AmcInDb({required super.id, required this.name, this.genreIndex, this.tagsString});
+  const AmcInDb({
+    required super.id,
+    required this.name,
+    required this.code,
+    required this.isin,
+    this.genreIndex,
+    this.tagsString,
+  });
 
   final String name;
+  final String code;
+  final String isin;
   final int? genreIndex;
   final String? tagsString;
 
   @override
-  List<Object?> get props => super.props..addAll([name, genreIndex, tagsString]);
+  List<Object?> get props => super.props..addAll([name, code, isin, genreIndex, tagsString]);
 
-  Map<String, dynamic> toMap() {
-    return {'id': id, 'name': name, 'genre': genreIndex, 'tags': tagsString};
-  }
+  // Map<String, dynamic> toMap() {
+  //   return {'id': id, 'name': name, 'genre': genreIndex, 'tags': tagsString};
+  // }
 
-  factory AmcInDb.fromMap(Map<String, dynamic> map) {
-    return AmcInDb(
-      id: map['id'] as String,
-      name: map['name'] as String,
-      genreIndex: map['genre'] as int?,
-      tagsString: map['tags'] as String?,
-    );
-  }
+  // factory AmcInDb.fromMap(Map<String, dynamic> map) {
+  //   return AmcInDb(
+  //     id: map['id'] as String,
+  //     name: map['name'] as String,
+  //     genreIndex: map['genre'] as int?,
+  //     tagsString: map['tags'] as String?,
+  //   );
+  // }
 }
 
 class AmcTable extends TableSchema<AmcInDb> {
@@ -195,17 +213,21 @@ class AmcTable extends TableSchema<AmcInDb> {
   factory AmcTable() => instance;
 
   TableColumn<String> get nameColumn => TableColumn('name', tableName, isUnique: true);
+  TableColumn<String> get codeColumn => TableColumn('code', tableName, isUnique: true);
+  TableColumn<String> get isinColumn => TableColumn('isin', tableName, isUnique: true);
   TableColumn<int> get genreColumn => TableColumn('genre', tableName, type: TableColumnType.integer, isNullable: true);
   TableColumn<String> get tagsColumn => TableColumn('tags', tableName, isNullable: true);
 
   @override
-  Set<TableColumn> get columns => super.columns..addAll([nameColumn, genreColumn, tagsColumn]);
+  Set<TableColumn> get columns => super.columns..addAll([nameColumn, codeColumn, isinColumn, genreColumn, tagsColumn]);
 
   @override
   Map<String, dynamic> fromModel(AmcInDb data) {
     return {
       idColumn.title: data.id,
       nameColumn.title: data.name,
+      codeColumn.title: data.code,
+      isinColumn.title: data.isin,
       genreColumn.title: data.genreIndex,
       tagsColumn.title: data.tagsString,
     };
@@ -216,6 +238,8 @@ class AmcTable extends TableSchema<AmcInDb> {
     return AmcInDb(
       id: map[idColumn.title] as String,
       name: map[nameColumn.title] as String,
+      code: map[codeColumn.title] as String,
+      isin: map[isinColumn.title] as String,
       genreIndex: map[genreColumn.title] as int?,
       tagsString: map[tagsColumn.title] as String?,
     );

@@ -30,15 +30,18 @@ class _SplashPageState extends State<SplashPage> {
     final usersCollection = firestore.collection('mfs');
 
     for (var mf in mfs) {
-      final amc = InveslyAmc.mf(
-        name: mf['amc_name']!.toString(),
-        category: MfCategory.fromTitle(mf['category']!.toString()),
-        subCategory: MfSubCategory.fromTitle(mf['sub_category']!.toString()),
-        plan: MfPlan.fromTitle(mf['plan']!.toString()),
-        schemeType: MfSchemeType.fromTitle(mf['scheme_type']!.toString()),
-      );
-      final newDocRef = usersCollection.doc(amc.id.toLowerCase()); // No Auto-generated ID
-      batch.set(newDocRef, AmcTable.instance.fromModel(amc));
+      final amc = {
+        'name': mf['name']! as String,
+        'code': mf['scheme_code']!.toString(),
+        'isin': mf['isin']! as String,
+        'tags':
+            '${MfCategory.fromTitle(mf['category'] as String?).title}; '
+            '${MfSubCategory.fromTitle(mf['sub_category'] as String?).title}; '
+            '${MfPlan.fromTitle(mf['plan'] as String?).title}; '
+            '${MfSchemeType.fromTitle(mf['scheme_type'] as String?).title}',
+      };
+      final newDocRef = usersCollection.doc(); // Auto-generated ID
+      batch.set(newDocRef, amc);
     }
     batch.commit();
 
