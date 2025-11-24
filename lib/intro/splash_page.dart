@@ -35,10 +35,10 @@ class _SplashPageState extends State<SplashPage> {
         'code': mf['scheme_code']!.toString(),
         'isin': mf['isin']! as String,
         'tags':
-            '${MfCategory.fromTitle(mf['category'] as String?).title}; '
-            '${MfSubCategory.fromTitle(mf['sub_category'] as String?).title}; '
-            '${MfPlan.fromTitle(mf['plan'] as String?).title}; '
-            '${MfSchemeType.fromTitle(mf['scheme_type'] as String?).title}',
+            '${MfCategory.fromTitle(mf['category'] as String?)?.title}; '
+            '${MfSubCategory.fromTitle(mf['sub_category'] as String?)?.title}; '
+            '${MfPlan.fromTitle(mf['plan'] as String?)?.title}; '
+            '${MfSchemeType.fromTitle(mf['scheme_type'] as String?)?.title}',
       };
       final newDocRef = usersCollection.doc(); // Auto-generated ID
       batch.set(newDocRef, amc);

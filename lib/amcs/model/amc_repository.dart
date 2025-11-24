@@ -56,7 +56,9 @@ class AmcRepository {
         .get();
 
     for (var doc in snap.docs) {
-      final data = doc.data();
+      final data = doc.data()
+        ..putIfAbsent('id', () => doc.id)
+        ..putIfAbsent('genre', () => genre.index);
       final amc = InveslyAmc.fromDb(_amcTable.fromMap(data));
       webResults.add(amc);
     }

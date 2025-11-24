@@ -11,8 +11,8 @@ enum AmcGenre {
 
   final String title;
 
-  static AmcGenre fromTitle(String name) {
-    return AmcGenre.values.firstWhere((e) => e.name == name, orElse: () => AmcGenre.misc);
+  static AmcGenre fromTitle(String title) {
+    return AmcGenre.values.firstWhere((e) => e.title == title, orElse: () => AmcGenre.misc);
   }
 
   static AmcGenre fromIndex(int? index) {
@@ -51,8 +51,8 @@ enum MfPlan {
 
   final String title;
 
-  static MfPlan fromTitle(String? name) {
-    return MfPlan.values.firstWhere((e) => e.name == name, orElse: () => MfPlan.growth);
+  static MfPlan? fromTitle(String? plan) {
+    return MfPlan.values.firstWhereOrNull((e) => e.title == plan);
   }
 }
 
@@ -64,8 +64,8 @@ enum MfSchemeType {
 
   final String title;
 
-  static MfSchemeType fromTitle(String? name) {
-    return MfSchemeType.values.firstWhere((e) => e.name == name, orElse: () => MfSchemeType.regular);
+  static MfSchemeType? fromTitle(String? type) {
+    return MfSchemeType.values.firstWhereOrNull((e) => e.title == type);
   }
 }
 
@@ -79,8 +79,8 @@ enum MfCategory {
 
   final String title;
 
-  static MfCategory fromTitle(String? name) {
-    return MfCategory.values.firstWhere((e) => e.name == name, orElse: () => MfCategory.other);
+  static MfCategory? fromTitle(String? category) {
+    return MfCategory.values.firstWhereOrNull((e) => e.title == category);
   }
 }
 
@@ -103,8 +103,8 @@ enum MfSubCategory {
 
   final String title;
 
-  static MfSubCategory fromTitle(String? name) {
-    return MfSubCategory.values.firstWhere((e) => e.name == name, orElse: () => MfSubCategory.other);
+  static MfSubCategory? fromTitle(String? subCategory) {
+    return MfSubCategory.values.firstWhereOrNull((e) => e.title == subCategory);
   }
 }
 
