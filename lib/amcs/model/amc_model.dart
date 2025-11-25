@@ -85,13 +85,13 @@ enum MfCategory {
 }
 
 enum MfSubCategory {
-  large('Large Cap'),
-  mid('Mid Cap'),
-  largeMid('Large & Mid Cap'),
-  small('Small Cap'),
-  multiCap('Multi Cap'),
+  large('Large cap'),
+  mid('Mid cap'),
+  largeMid('Large & Mid cap'),
+  small('Small cap'),
+  multiCap('Multi cap'),
   focused('Focused'),
-  flexi('Flexi Cap'),
+  flexi('Flexi cap'),
   sectoral('Sectoral/Thematic'),
   eIndex('Index'),
   hybrid('Balanced/Hybrid'),

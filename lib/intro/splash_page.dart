@@ -24,26 +24,26 @@ class _SplashPageState extends State<SplashPage> {
     super.initState();
     final settingsState = context.read<AppCubit>().state;
 
-    // Write seed data to Firebase
-    final firestore = FirebaseFirestore.instance;
-    final batch = firestore.batch();
-    final usersCollection = firestore.collection('mfs');
+    // ~ Write seed data to Firebase
+    // final firestore = FirebaseFirestore.instance;
+    // final batch = firestore.batch();
+    // final usersCollection = firestore.collection('mfs');
 
-    for (var mf in mfs) {
-      final amc = {
-        'name': mf['name']! as String,
-        'code': mf['scheme_code']!.toString(),
-        'isin': mf['isin']! as String,
-        'tags':
-            '${MfCategory.fromTitle(mf['category'] as String?)?.title}; '
-            '${MfSubCategory.fromTitle(mf['sub_category'] as String?)?.title}; '
-            '${MfPlan.fromTitle(mf['plan'] as String?)?.title}; '
-            '${MfSchemeType.fromTitle(mf['scheme_type'] as String?)?.title}',
-      };
-      final newDocRef = usersCollection.doc(); // Auto-generated ID
-      batch.set(newDocRef, amc);
-    }
-    batch.commit();
+    // for (var mf in mfs) {
+    //   final amc = {
+    //     'name': mf['name']! as String,
+    //     'code': mf['scheme_code']!.toString(),
+    //     'isin': mf['isin']! as String,
+    //     'tags':
+    //         '${MfCategory.fromTitle(mf['category'] as String?)?.title}; '
+    //         '${MfSubCategory.fromTitle(mf['sub_category'] as String?)?.title}; '
+    //         '${MfPlan.fromTitle(mf['plan'] as String?)?.title}; '
+    //         '${MfSchemeType.fromTitle(mf['scheme_type'] as String?)?.title}',
+    //   };
+    //   final newDocRef = usersCollection.doc(); // Auto-generated ID
+    //   batch.set(newDocRef, amc);
+    // }
+    // batch.commit();
 
     // _completer = Completer();
     // show splash screen for few seconds
