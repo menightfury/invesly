@@ -158,9 +158,9 @@ class _SearchResults extends StatelessWidget {
                 ),
               ),
 
-              if (amc.tags.isNotEmpty)
-                ...amc.tags.map((tag) {
-                  if (tag == null || tag.isEmpty) {
+              if (amc.tag?.tags.isNotEmpty ?? false)
+                ...amc.tag!.tags.map((tag) {
+                  if (tag.isEmpty) {
                     return const SizedBox.shrink();
                   }
 

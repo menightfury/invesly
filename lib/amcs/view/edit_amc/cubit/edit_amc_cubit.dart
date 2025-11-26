@@ -61,7 +61,7 @@ class EditAmcCubit extends Cubit<EditAmcState> {
       isin: state.initialAmc?.isin ?? 'This is temporary isin',
       name: state.name!,
       genre: state.genre,
-      tags: state.selectedTags,
+      // tag: state.selectedTags,
     );
     $logger.i(amc);
 

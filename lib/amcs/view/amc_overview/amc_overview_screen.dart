@@ -47,7 +47,8 @@ class _AmcOverviewScreenState extends State<AmcOverviewScreen> {
               }
 
               // final tags = [amc.plan, amc.sector, amc.subSector].whereNotNull().toList(growable: false);
-              final tags = amc.tags?.toList() ?? <String>[];
+              // final tags = amc.tags?.toList() ?? <String>[];
+              final tags = amc.tag?.toMap();
 
               return Stack(
                 children: <Widget>[
@@ -62,32 +63,33 @@ class _AmcOverviewScreenState extends State<AmcOverviewScreen> {
                       const SizedBox(height: 16.0),
 
                       // ~ Tags
-                      SizedBox(
-                        height: 24.0,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          separatorBuilder: (_, _) => const SizedBox(width: 8.0),
-                          itemBuilder: (context, i) {
-                            final tag = tags[i];
-                            if (tag == null) return const SizedBox();
-                            return Center(
-                              child: Material(
-                                color: const Color.fromARGB(255, 105, 5, 151),
-                                shape: const StadiumBorder(),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                  child: Text(
-                                    tag,
-                                    style: textTheme.labelMedium?.copyWith(color: Colors.white),
-                                    overflow: TextOverflow.ellipsis,
+                      if (tags != null && tags.isNotEmpty)
+                        SizedBox(
+                          height: 24.0,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            separatorBuilder: (_, _) => const SizedBox(width: 8.0),
+                            itemBuilder: (context, i) {
+                              final tag = tags.values.elementAt(i);
+                              if (tag == null) return const SizedBox.shrink();
+                              return Center(
+                                child: Material(
+                                  color: const Color.fromARGB(255, 105, 5, 151),
+                                  shape: const StadiumBorder(),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                    child: Text(
+                                      tag,
+                                      style: textTheme.labelMedium?.copyWith(color: Colors.white),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                          itemCount: tags.length,
+                              );
+                            },
+                            itemCount: tags.values.length,
+                          ),
                         ),
-                      ),
                       const SizedBox(height: 16.0),
 
                       // ~ Transaction
