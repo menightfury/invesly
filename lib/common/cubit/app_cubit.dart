@@ -47,6 +47,10 @@ class AppCubit extends HydratedCubit<AppState> {
     emit(state.copyWith(dateFormat: dateFormat));
   }
 
+  void updateAmcSha(String amcSha) {
+    emit(state.copyWith(amcSha: amcSha));
+  }
+
   @override
   AppState fromJson(Map<String, dynamic> json) {
     return AppState.fromMap(json);

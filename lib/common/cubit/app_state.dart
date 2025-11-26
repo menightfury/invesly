@@ -11,6 +11,7 @@ class AppState extends Equatable {
     this.isPrivateMode = false,
     this.gapiAccessToken,
     this.dateFormat,
+    this.amcSha,
   });
 
   final bool isOnboarded;
@@ -21,6 +22,9 @@ class AppState extends Equatable {
   final bool isDynamicColor;
   final AccessToken? gapiAccessToken;
   final String? dateFormat;
+
+  /// AMC SHAs received from github releases -- Used to check if the local AMC list is recent or not
+  final String? amcSha;
 
   /// Hide all currency values
   final bool isPrivateMode;
@@ -35,6 +39,7 @@ class AppState extends Equatable {
     bool? isPrivateMode,
     AccessToken? gapiAccessToken,
     String? dateFormat,
+    String? amcSha,
   }) {
     return AppState(
       isOnboarded: isOnboarded ?? this.isOnboarded,
@@ -46,6 +51,7 @@ class AppState extends Equatable {
       isPrivateMode: isPrivateMode ?? this.isPrivateMode,
       gapiAccessToken: gapiAccessToken ?? this.gapiAccessToken,
       dateFormat: dateFormat ?? this.dateFormat,
+      amcSha: amcSha ?? this.amcSha,
     );
   }
 
@@ -60,6 +66,7 @@ class AppState extends Equatable {
     isPrivateMode,
     gapiAccessToken,
     dateFormat,
+    amcSha,
   ];
 
   Map<String, dynamic> toMap() {
@@ -73,6 +80,7 @@ class AppState extends Equatable {
       'isPrivateMode': isPrivateMode,
       'gapiAccessToken': gapiAccessToken?.toJson(),
       'dateFormat': dateFormat,
+      'amcShas': amcSha,
     };
   }
 
@@ -89,6 +97,7 @@ class AppState extends Equatable {
           ? AccessToken.fromJson(map['gapiAccessToken'] as Map<String, dynamic>)
           : null,
       dateFormat: map['dateFormat'] as String?,
+      amcSha: map['amcShas'] as String?,
     );
   }
 
@@ -96,5 +105,6 @@ class AppState extends Equatable {
   String toString() =>
       'SettingsState(isOnboarded: $isOnboarded, isDarkMode: $isDarkMode, user: $user, '
       'primaryAccountId: $primaryAccountId, isDynamicColor: $isDynamicColor, accentColor: $accentColor, '
-      'isPrivateMode: $isPrivateMode, gapiAccessToken: $gapiAccessToken), dateFormat: $dateFormat, ';
+      'isPrivateMode: $isPrivateMode, gapiAccessToken: $gapiAccessToken, dateFormat: $dateFormat, '
+      'amcShas: $amcSha)';
 }

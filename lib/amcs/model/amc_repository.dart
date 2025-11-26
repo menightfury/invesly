@@ -109,4 +109,27 @@ class AmcRepository {
       await _api.update(_amcTable, amc);
     }
   }
+
+  /// Fetch amcs from network
+  Future<List<Photo>> _fetchAmcsFromNetwork(http.Client client) async {
+    final response = await client.get(
+      Uri.parse('https://api.github.com/repos/menightfury/invesly-data/contents/amcs.json'),
+    );
+
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      // If the server did return a 200 OK response, parse the JSON.
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final sha = decoded['sha'] as String;
+      final amcResponse = await client.get(Uri.parse(decoded['download_url'] as String));
+
+      // Use the compute function to run parsePhotos in a separate isolate.
+      return compute(_parseAmcs, amcResponse.body);
+    }
+  }
+
+  List<AmcInDb> _parseAmcs(String responseBody) {
+    final parsed = (jsonDecode(responseBody) as List<Object?>).cast<Map<String, Object?>>();
+
+    return parsed.map<AmcInDb>(AmcInDb.fromJson).toList();
+  }
 }

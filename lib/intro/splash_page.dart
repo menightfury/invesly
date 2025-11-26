@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'package:invesly/amcs/model/amc_model.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/database/data/seed.dart';
 import 'package:invesly/intro/intro_page.dart';
 import 'package:invesly/main.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -17,52 +16,47 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> {
   late final Timer _timer;
-  // late final Completer _completer;
+  late final Completer<void> _completer;
 
   @override
   void initState() {
     super.initState();
-    final settingsState = context.read<AppCubit>().state;
+    final appState = context.read<AppCubit>().state;
 
-    // ~ Write seed data to Firebase
-    // final firestore = FirebaseFirestore.instance;
-    // final batch = firestore.batch();
-    // final usersCollection = firestore.collection('mfs');
+    _completer = Completer<void>();
+    // show splash screen for at least 2 seconds
+    _timer = Timer(2.seconds, () => _completer.complete());
 
-    // for (var mf in mfs) {
-    //   final amc = {
-    //     'name': mf['name']! as String,
-    //     'code': mf['scheme_code']!.toString(),
-    //     'isin': mf['isin']! as String,
-    //     'tags':
-    //         '${MfCategory.fromTitle(mf['category'] as String?)?.title}; '
-    //         '${MfSubCategory.fromTitle(mf['sub_category'] as String?)?.title}; '
-    //         '${MfPlan.fromTitle(mf['plan'] as String?)?.title}; '
-    //         '${MfSchemeType.fromTitle(mf['scheme_type'] as String?)?.title}',
-    //   };
-    //   final newDocRef = usersCollection.doc(); // Auto-generated ID
-    //   batch.set(newDocRef, amc);
-    // }
-    // batch.commit();
+    Future.wait<void>([_completer.future, Bootstrap.instance.api.initializeDatabase()]).then((_) async {
+      // check amc status is latest or not
+      final client = http.Client();
+      final response = await client.get(
+        Uri.parse('https://api.github.com/repos/menightfury/invesly-data/contents/amcs.json'),
+      );
 
-    // _completer = Completer();
-    // show splash screen for few seconds
-    // _timer = Timer(2.seconds, () => _completer.complete());
-    _timer = Timer(2.seconds, () async {
-      if (!settingsState.isOnboarded) {
+      if (!mounted) {
+        return;
+      }
+
+      if (response.statusCode == 200 && response.body.isNotEmpty) {
+        // If the server did return a 200 OK response, parse the JSON.
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        final sha = decoded['sha'] as String;
+        if (sha != appState.amcSha) {
+          // If sha is not same, it means amcs in remote location have changed
+          // Fetch and update amcs
+
+          // update amc sha in app state
+          context.read<AppCubit>().updateAmcSha(sha);
+        }
+      }
+      final amcResponse = await client.get(Uri.parse(decoded['download_url'] as String));
+
+      if (!appState.isOnboarded) {
         context.go(const IntroPage());
         return;
       }
 
-      // if (settingsState.currentUser == null) {
-      //   LoginPage.showModal(context);
-      //   return;
-      // }
-      // Load database
-      await Bootstrap.instance.api.initializeDatabase();
-      if (!mounted) {
-        return;
-      }
       // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
       context.go(const DashboardScreen());
     });
@@ -73,6 +67,7 @@ class _SplashPageState extends State<SplashPage> {
     final textTheme = context.textTheme;
     final colorScheme = context.colors;
     return Scaffold(
+      backgroundColor: Colors.lime[100],
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),

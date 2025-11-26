@@ -1,12 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 
+import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
-import 'package:invesly/accounts/model/account_model.dart';
 
 import 'table_schema.dart';
 
@@ -46,19 +49,14 @@ class InveslyApi {
       onCreate: (db, version) async {
         final batch = db.batch();
         // initialize all necessary tables in database
-
         batch.execute(_accountTable.createTable());
         batch.execute(_amcTable.createTable());
-        // insert default table values in amcTable
-        // ignore: avoid_function_literals_in_foreach_calls
-        // initialAmcs.forEach((amc) => batch.insert(_amcTable.tableName, _amcTable.decode(amc)));
         batch.execute(_trnTable.createTable());
         await batch.commit(noResult: true, continueOnError: true);
       },
     );
 
     // Close database at the end ??
-
     _tables.addAll([_accountTable, _amcTable, _trnTable]);
   }
 
@@ -90,5 +88,10 @@ class InveslyApi {
     final r = await Future.delayed(2.seconds, () => 1); // TODO: implement
     _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.deletion));
     return r;
+  }
+
+  Future<void> close() async {
+    await _db?.close();
+    await _tableChangeEventController.close();
   }
 }
