@@ -261,7 +261,7 @@ class AmcTable extends TableSchema<AmcInDb> {
   factory AmcTable() => instance;
 
   TableColumn<String> get nameColumn => TableColumn('name', tableName, isUnique: true);
-  TableColumn<String> get codeColumn => TableColumn('code', tableName, isUnique: true);
+  TableColumn<String> get codeColumn => TableColumn('scheme_code', tableName, isUnique: true);
   TableColumn<String> get isinColumn => TableColumn('isin', tableName, isUnique: true);
   TableColumn<String> get genreColumn => TableColumn('genre', tableName, isNullable: true);
   TableColumn<String> get tagColumn => TableColumn('tag', tableName, isNullable: true);

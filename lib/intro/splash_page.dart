@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/intro/intro_page.dart';
 import 'package:invesly/main.dart';
@@ -34,10 +35,6 @@ class _SplashPageState extends State<SplashPage> {
         Uri.parse('https://api.github.com/repos/menightfury/invesly-data/contents/amcs.json'),
       );
 
-      if (!mounted) {
-        return;
-      }
-
       if (response.statusCode == 200 && response.body.isNotEmpty) {
         // If the server did return a 200 OK response, parse the JSON.
         final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -45,12 +42,24 @@ class _SplashPageState extends State<SplashPage> {
         if (sha != appState.amcSha) {
           // If sha is not same, it means amcs in remote location have changed
           // Fetch and update amcs
-
+          final amcs = await AmcRepository.instance.fetchAmcsFromNetwork(client, decoded['download_url'] as String);
+          //
+          $logger.w(amcs);
+          // write amcs to database in a separate isolate
+          if (amcs != null && amcs.isNotEmpty) {
+            await AmcRepository.instance.saveAmcs(amcs);
+          }
+          if (!mounted) {
+            return;
+          }
           // update amc sha in app state
           context.read<AppCubit>().updateAmcSha(sha);
         }
       }
-      final amcResponse = await client.get(Uri.parse(decoded['download_url'] as String));
+
+      if (!mounted) {
+        return;
+      }
 
       if (!appState.isOnboarded) {
         context.go(const IntroPage());

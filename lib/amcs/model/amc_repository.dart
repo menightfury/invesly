@@ -1,10 +1,13 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/database/table_schema.dart';
+import 'package:sqflite/sqflite.dart';
 
 class AmcRepository {
   // singleton api instance
@@ -31,6 +34,7 @@ class AmcRepository {
   /// Get all amcs
   Future<List<InveslyAmc>> getAllAmcs() async {
     final dbData = await _api.select(_amcTable).toList();
+    // $logger.i(dbData);
     return dbData.map<InveslyAmc>((e) => InveslyAmc.fromDb(_amcTable.fromMap(e))).toList();
   }
 
@@ -105,31 +109,34 @@ class AmcRepository {
   Future<void> saveAmc(InveslyAmc amc, [bool isNew = true]) async {
     if (isNew) {
       await _api.insert(_amcTable, amc);
+      // await _api.table(_amcTable).insert(amc)
     } else {
       await _api.update(_amcTable, amc);
     }
   }
 
-  /// Fetch amcs from network
-  Future<List<Photo>> _fetchAmcsFromNetwork(http.Client client) async {
-    final response = await client.get(
-      Uri.parse('https://api.github.com/repos/menightfury/invesly-data/contents/amcs.json'),
-    );
-
-    if (response.statusCode == 200 && response.body.isNotEmpty) {
-      // If the server did return a 200 OK response, parse the JSON.
-      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-      final sha = decoded['sha'] as String;
-      final amcResponse = await client.get(Uri.parse(decoded['download_url'] as String));
-
-      // Use the compute function to run parsePhotos in a separate isolate.
-      return compute(_parseAmcs, amcResponse.body);
+  /// Add or update multiple amcs
+  Future<void> saveAmcs(List<AmcInDb> amcs) async {
+    final batch = _api.db.batch();
+    for (var amc in amcs) {
+      batch.insert(_amcTable.tableName, _amcTable.fromModel(amc), conflictAlgorithm: ConflictAlgorithm.replace);
     }
+    await batch.commit(noResult: true, continueOnError: true);
   }
 
-  List<AmcInDb> _parseAmcs(String responseBody) {
-    final parsed = (jsonDecode(responseBody) as List<Object?>).cast<Map<String, Object?>>();
+  /// Fetch amcs from network
+  Future<List<AmcInDb>?> fetchAmcsFromNetwork(http.Client client, String uri) async {
+    final response = await client.get(Uri.parse(uri));
 
-    return parsed.map<AmcInDb>(AmcInDb.fromJson).toList();
+    if (response.statusCode != 200 && response.body.isEmpty) return null;
+
+    // If the server did return a 200 OK response, parse the JSON.
+    final responseBody = response.body;
+
+    // Use the compute function to run parse in a separate isolate.
+    return compute((responseBody) {
+      final parsed = (jsonDecode(responseBody) as List<Object?>).cast<Map<String, dynamic>>();
+      return parsed.map<AmcInDb>(AmcTable.instance.fromMap).toList();
+    }, responseBody);
   }
 }
