@@ -1,8 +1,6 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/database/backup/backup_service.dart';
-import 'package:invesly/firebase_options.dart';
 import 'package:invesly/intro/splash_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:invesly/database/invesly_api.dart';
@@ -21,7 +19,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   Bloc.observer = InveslyBlocObserver();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Bootstrap.initialize();
 
   runApp(const InveslyApp());

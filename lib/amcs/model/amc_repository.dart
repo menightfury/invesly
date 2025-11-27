@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -49,28 +48,7 @@ class AmcRepository {
         ])
         .toList(limit: limit);
     final dbResults = dbData.map<InveslyAmc>((e) => InveslyAmc.fromDb(_amcTable.fromMap(e))).toList();
-
-    // get results from url
-    final webResults = <InveslyAmc>[];
-    final snap = await FirebaseFirestore.instance
-        .collection('${genre.name}s')
-        .orderBy('name')
-        .startAt([searchQuery])
-        .endAt(['$searchQuery\uf8ff'])
-        .get();
-
-    for (var doc in snap.docs) {
-      final data = doc.data()
-        ..putIfAbsent('id', () => doc.id)
-        ..putIfAbsent('genre', () => genre.index);
-      final amc = InveslyAmc.fromDb(_amcTable.fromMap(data));
-      webResults.add(amc);
-    }
-
-    // remove duplicates
-    final dbResultIds = dbResults.map((e) => e.id).toSet();
-    webResults.removeWhere((e) => dbResultIds.contains(e.id));
-    return [...dbResults, ...webResults];
+    return dbResults;
   }
 
   /// Get amc by id
