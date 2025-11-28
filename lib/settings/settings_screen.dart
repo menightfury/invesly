@@ -69,33 +69,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SliverList(
               delegate: SliverChildListDelegate.fixed([
                 // ~~~ User Profile Section ~~~
-                BlocSelector<AppCubit, AppState, InveslyUser?>(
-                  selector: (state) => state.user,
-                  builder: (context, currentUser) {
-                    // final user = currentUser ?? InveslyUser.empty();
-                    return Section(
-                      title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
-                      subTitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
-                      // icon: CircleAvatar(
-                      //   backgroundImage: user.photoUrl != null ? CachedNetworkImageProvider(user.photoUrl!) : null,
-                      //   child: user.photoUrl == null ? const Icon(Icons.person_rounded) : null,
-                      // ),
-                      icon: currentUser.isNotNullOrEmpty
-                          ? GoogleUserCircleAvatar(identity: currentUser!) // TODO: Implement cached network image
-                          : CircleAvatar(child: const Icon(Icons.person_rounded)),
-                      trailingIcon: IconButton(
-                        onPressed: () => context.push(const EditAccountScreen()),
-                        icon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
-                        style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
-                      ),
-                      tiles: <Widget>[
-                        BlocBuilder<AccountsCubit, AccountsState>(
-                          builder: (context, state) {
-                            final isLoading = state.isLoading;
-                            final isError = state.isError;
-                            final accounts = state.isLoaded ? (state as AccountsLoadedState).accounts : null;
+                BlocBuilder<AccountsCubit, AccountsState>(
+                  builder: (context, accountsState) {
+                    final isLoading = accountsState.isLoading;
+                    final isError = accountsState.isError;
+                    final accounts = accountsState.isLoaded ? (accountsState as AccountsLoadedState).accounts : null;
 
-                            return BlocSelector<AppCubit, AppState, String?>(
+                    return BlocSelector<AppCubit, AppState, InveslyUser?>(
+                      selector: (state) => state.user,
+                      builder: (context, currentUser) {
+                        // final user = currentUser ?? InveslyUser.empty();
+                        return Section(
+                          title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
+                          subTitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
+                          // icon: CircleAvatar(
+                          //   backgroundImage: user.photoUrl != null ? CachedNetworkImageProvider(user.photoUrl!) : null,
+                          //   child: user.photoUrl == null ? const Icon(Icons.person_rounded) : null,
+                          // ),
+                          icon: currentUser.isNotNullOrEmpty
+                              ? GoogleUserCircleAvatar(identity: currentUser!) // TODO: Implement cached network image
+                              : CircleAvatar(child: const Icon(Icons.person_rounded)),
+                          trailingIcon: IconButton(
+                            onPressed: () => context.push(const EditAccountScreen()),
+                            icon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
+                            style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
+                          ),
+                          tiles: <Widget>[
+                            BlocSelector<AppCubit, AppState, String?>(
                               selector: (state) => state.primaryAccountId,
                               builder: (context, currentAccountId) {
                                 return ColumnBuilder(
@@ -141,10 +141,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   itemCount: accounts?.length ?? 2, // dummy count for shimmer effect
                                 );
                               },
-                            );
-                          },
-                        ),
-                      ],
+                            ),
+                          ],
+                        );
+                      },
                     );
                   },
                 ),
