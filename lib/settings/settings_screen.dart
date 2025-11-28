@@ -85,20 +85,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           : CircleAvatar(child: const Icon(Icons.person_rounded)),
                       trailingIcon: IconButton(
                         onPressed: () => context.push(const EditAccountScreen()),
-                        // onPressed: () => context.read<AppCubit>().updatePrimaryAccount(''),
                         icon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
                         style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
                       ),
-                      // trailingIcon: GestureDetector(
-                      //   onTap: () => context.push(const EditAccountScreen()),
-                      //   child: Text(
-                      //     'Add',
-                      //     style: context.textTheme.labelMedium?.copyWith(
-                      //       color: context.theme.primaryColor,
-                      //       fontWeight: FontWeight.w600,
-                      //     ),
-                      //   ),
-                      // ),
                       tiles: <Widget>[
                         BlocBuilder<AccountsCubit, AccountsState>(
                           builder: (context, state) {
@@ -288,18 +277,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SectionTile(
                       icon: const Icon(Icons.login),
                       title: Text('Google Sign-in'),
-                      // title: Text(context.watch<SettingsRepository>().currentLocale.name),
-                      subtitle: Text('NA'), // TODO:
-                      // onTap: () => context.push(const SignInDemo()),
-                    ),
-                    SectionTile(
-                      icon: const Icon(Icons.restore_page_outlined),
-                      title: Text('Restore'),
-                      subtitle: Text(
-                        'Restore your data from a previously saved backup. This action will overwrite your current data.',
+                      subtitle: BlocSelector<AppCubit, AppState, InveslyUser?>(
+                        selector: (state) => state.user,
+                        builder: (context, currentUser) {
+                          if (currentUser.isNullOrEmpty) {
+                            return Text('Sign in to your Google account');
+                          }
+                          return Text(currentUser?.email ?? 'NA');
+                        },
                       ),
-                      onTap: () {},
+                      onTap: () async {
+                        final user = await context.read<AuthRepository>().signInWithGoogle();
+                        if (user == null) {
+                          $logger.w('Google sign-in failed');
+                          return;
+                        }
+                        await context.read<AuthRepository>().getAccessToken(user);
+                      },
                     ),
+                    // SectionTile(
+                    //   icon: const Icon(Icons.restore_page_outlined),
+                    //   title: Text('Restore'),
+                    //   subtitle: Text(
+                    //     'Restore your data from a previously saved backup. This action will overwrite your current data.',
+                    //   ),
+                    //   onTap: () {},
+                    // ),
                     SectionTile.navigation(
                       icon: const Icon(Icons.restore_rounded),
                       title: Text('Manual import'),
