@@ -18,8 +18,7 @@ class Section extends StatelessWidget {
     this.trailingIcon,
     required List<Widget> tiles,
     this.margin = const EdgeInsets.symmetric(horizontal: 16.0),
-  }) : assert(tiles.isNotEmpty),
-       tileCount = tiles.length,
+  }) : tileCount = tiles.length,
        _variant = _SectionVariant.fixed,
        _tiles = tiles,
        _tileBuilder = null;
@@ -33,7 +32,7 @@ class Section extends StatelessWidget {
     required this.tileCount,
     required IndexedWidgetBuilder tileBuilder,
     this.margin = const EdgeInsets.symmetric(horizontal: 16.0),
-  }) : assert(tileCount > 0),
+  }) : assert(tileCount >= 0),
        _variant = _SectionVariant.scrollable,
        _tiles = null,
        _tileBuilder = tileBuilder;
@@ -52,12 +51,12 @@ class Section extends StatelessWidget {
 
   BorderRadius effectiveTileRadius(int index) {
     BorderRadius tileRadius = BorderRadius.all(_kSmallRadius);
-    // check if first tile
+    // check if the tile is first tile
     if (index == 0 && title == null) {
       tileRadius = tileRadius.copyWith(topLeft: _kBigRadius, topRight: _kBigRadius);
     }
 
-    // check if last tile
+    // check if the tile is last tile
     if (index == tileCount - 1) {
       tileRadius = tileRadius.copyWith(bottomLeft: _kBigRadius, bottomRight: _kBigRadius);
     }
@@ -125,7 +124,7 @@ class Section extends StatelessWidget {
               icon: icon,
               trailingIcon: trailingIcon,
               tileColor: theme.colorScheme.primaryContainer.darken(5),
-              borderRadius: const BorderRadius.vertical(top: _kBigRadius, bottom: _kSmallRadius),
+              borderRadius: BorderRadius.vertical(top: _kBigRadius, bottom: hasTiles ? _kSmallRadius : _kBigRadius),
             ),
           child,
         ],

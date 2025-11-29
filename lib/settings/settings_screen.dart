@@ -94,55 +94,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             icon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
                             style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
                           ),
-                          tiles: <Widget>[
-                            BlocSelector<AppCubit, AppState, String?>(
-                              selector: (state) => state.primaryAccountId,
-                              builder: (context, currentAccountId) {
-                                return ColumnBuilder(
-                                  spacing: 2.0,
-                                  itemBuilder: (context, index) {
-                                    final account = accounts?.elementAt(index);
 
-                                    return BlocSelector<AppCubit, AppState, bool>(
-                                      selector: (state) => state.primaryAccountId == account?.id,
-                                      builder: (context, isCurrentAccount) {
-                                        $logger.i('rebuilding $account');
-                                        return Shimmer(
-                                          isLoading: isLoading,
-
-                                          child: SectionTile(
-                                            // onTap: () => context.read<AppCubit>().saveCurrentAccount(account.id),
-                                            icon: CircleAvatar(
-                                              backgroundColor: isError
-                                                  ? context.colors.error
-                                                  : context.theme.canvasColor,
-                                              backgroundImage: account != null ? AssetImage(account.avatarSrc) : null,
-                                            ),
-                                            title: account == null
-                                                ? Skeleton(color: isError ? context.colors.error : null)
-                                                : Text(account.name.toSentenceCase(), overflow: TextOverflow.ellipsis),
-                                            subtitle: account == null
-                                                ? Skeleton(color: isError ? context.colors.error : null)
-                                                : isCurrentAccount
-                                                ? Text('Primary account')
-                                                : null,
-                                            trailingIcon: IconButton(
-                                              onPressed: () => context.push(EditAccountScreen(initialAccount: account)),
-                                              icon: const Icon(Icons.edit_note_rounded),
-                                              style: IconButton.styleFrom(
-                                                backgroundColor: Colors.black.withAlpha(0x1F),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                  itemCount: accounts?.length ?? 2, // dummy count for shimmer effect
-                                );
-                              },
-                            ),
-                          ],
+                          tiles: List.generate(
+                            accounts?.length ?? (isLoading ? 2 : 0), // dummy count for shimmer effect
+                            (index) {
+                              final account = accounts?.elementAt(index);
+                              return BlocSelector<AppCubit, AppState, bool>(
+                                selector: (state) => state.primaryAccountId == account?.id,
+                                builder: (context, isCurrentAccount) {
+                                  $logger.i('rebuilding $account');
+                                  return Shimmer(
+                                    isLoading: isLoading,
+                                    child: SectionTile(
+                                      // onTap: () => context.read<AppCubit>().saveCurrentAccount(account.id),
+                                      icon: CircleAvatar(
+                                        backgroundColor: isError ? context.colors.error : context.theme.canvasColor,
+                                        backgroundImage: account != null ? AssetImage(account.avatarSrc) : null,
+                                      ),
+                                      title: account == null
+                                          ? Skeleton(color: isError ? context.colors.error : null)
+                                          : Text(account.name.toSentenceCase(), overflow: TextOverflow.ellipsis),
+                                      subtitle: account == null
+                                          ? Skeleton(color: isError ? context.colors.error : null)
+                                          : isCurrentAccount
+                                          ? Text('Primary account')
+                                          : null,
+                                      trailingIcon: IconButton(
+                                        onPressed: () => context.push(EditAccountScreen(initialAccount: account)),
+                                        icon: const Icon(Icons.edit_note_rounded),
+                                        style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
                         );
                       },
                     );
@@ -275,34 +262,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // icon: const Icon(Icons.import_export_rounded),
                   tiles: [
                     SectionTile(
+                      title: const Text('Google Sign-in'),
                       icon: const Icon(Icons.login),
-                      title: Text('Google Sign-in'),
                       subtitle: BlocSelector<AppCubit, AppState, InveslyUser?>(
                         selector: (state) => state.user,
                         builder: (context, currentUser) {
                           if (currentUser.isNullOrEmpty) {
-                            return Text('Sign in to your Google account');
+                            return const Text('Sign in to your Google account');
                           }
-                          return Text(currentUser?.email ?? 'NA');
+                          return Text(currentUser?.email ?? 'email: NA');
                         },
                       ),
-                      onTap: () async {
-                        final user = await context.read<AuthRepository>().signInWithGoogle();
-                        if (user == null) {
-                          $logger.w('Google sign-in failed');
-                          return;
-                        }
-                        await context.read<AuthRepository>().getAccessToken(user);
-                      },
+                      trailingIcon: FilledButton.tonalIcon(
+                        label: Icon(Icons.logout_rounded, color: context.theme.primaryColor),
+                        onPressed: () async {
+                          await context.read<AuthRepository>().signOut();
+                          context.read<AppCubit>().resetGapiAccessToken();
+                        },
+                        icon: const Text('Sign out'),
+                        style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
+                      ),
                     ),
-                    // SectionTile(
-                    //   icon: const Icon(Icons.restore_page_outlined),
-                    //   title: Text('Restore'),
-                    //   subtitle: Text(
-                    //     'Restore your data from a previously saved backup. This action will overwrite your current data.',
-                    //   ),
-                    //   onTap: () {},
-                    // ),
                     SectionTile.navigation(
                       icon: const Icon(Icons.restore_rounded),
                       title: Text('Manual import'),
@@ -387,9 +367,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onTap: () => _onBackupToDrivePressed(context),
                     ),
                     SectionTile(
-                      title: Text('Load drive files'),
-                      icon: const Icon(Icons.backup_outlined),
-                      subtitle: Text('Load your data from a backup file in Google Drive.'),
+                      title: const Text('Restore from Google Drive'),
+                      icon: const Icon(Icons.restore_page_outlined),
+                      subtitle: const Text(
+                        'Restore your data from a previously saved backup. This action will overwrite your current data.',
+                      ),
                       onTap: () async {
                         gapis.AccessToken? accessToken = context.read<AppCubit>().state.gapiAccessToken;
 

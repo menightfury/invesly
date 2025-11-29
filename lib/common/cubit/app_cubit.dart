@@ -43,6 +43,10 @@ class AppCubit extends HydratedCubit<AppState> {
     emit(state.copyWith(gapiAccessToken: accessToken));
   }
 
+  void resetGapiAccessToken() {
+    emit(state.copyWith(gapiAccessToken: null));
+  }
+
   void updateDateFormat(String dateFormat) {
     emit(state.copyWith(dateFormat: dateFormat));
   }
