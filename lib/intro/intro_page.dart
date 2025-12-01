@@ -1,4 +1,4 @@
-import 'package:invesly/authentication/login_page.dart';
+import 'package:invesly/authentication/functions.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
@@ -91,39 +91,39 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
     super.dispose();
   }
 
-  Future<void> _handleCompletePressed(BuildContext context) async {
-    if (_currentPage.value != _pageData.length - 1) return;
+  // Future<void> _handleCompletePressed(BuildContext context) async {
+  //   if (_currentPage.value != _pageData.length - 1) return;
 
-    final settingsState = context.read<AppCubit>().state;
-    if (settingsState.user == null) {
-      final user = await LoginPage.showModal(context);
+  //   final settingsState = context.read<AppCubit>().state;
+  //   if (settingsState.user == null) {
+  //     final user = await LoginPage.showModal(context);
 
-      if (!context.mounted || user == null) {
-        // User cancelled sign-in or error occurred
-        return;
-      }
+  //     if (!context.mounted || user == null) {
+  //       // User cancelled sign-in or error occurred
+  //       return;
+  //     }
 
-      // Save current user
-      context.read<AppCubit>().updateCurrentUser(user);
+  //     // Save current user
+  //     context.read<AppCubit>().updateCurrentUser(user);
 
-      if (user == InveslyUser.empty()) {
-        // User chose to continue without sign-in
-        // Write initial database file from assets
-        // await context.read<AuthRepository>().writeDatabaseFile();
-      } else {
-        // User signed in successfully
-        await ImportBackupPage.showModal(context);
-      }
+  //     if (user == InveslyUser.empty()) {
+  //       // User chose to continue without sign-in
+  //       // Write initial database file from assets
+  //       // await context.read<AuthRepository>().writeDatabaseFile();
+  //     } else {
+  //       // User signed in successfully
+  //       await ImportBackupPage.showModal(context);
+  //     }
 
-      // Load database
-      await Bootstrap.instance.api.initializeDatabase();
+  //     // Load database
+  //     await Bootstrap.instance.api.initializeDatabase();
 
-      if (!context.mounted) return;
-      context.read<AppCubit>().completeOnboarding();
-      // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
-      context.go(const DashboardScreen());
-    }
-  }
+  //     if (!context.mounted) return;
+  //     context.read<AppCubit>().completeOnboarding();
+  //     // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
+  //     context.go(const DashboardScreen());
+  //   }
+  // }
 
   Future<void> _finalizeSetUp(BuildContext context, InveslyUser user) async {
     // Save current user
@@ -303,7 +303,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
   // }
 
   Future<void> _onSignInPressed(BuildContext context) async {
-    final (user, _) = await LoginPage.startLoginFlow(context);
+    final (user, _) = await startLoginFlow(context);
     if (!context.mounted) return;
     _finalizeSetUp(context, InveslyUser.fromGoogleSignInAccount(user));
   }

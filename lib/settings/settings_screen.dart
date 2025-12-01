@@ -3,19 +3,19 @@
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_sign_in/google_sign_in.dart' show GoogleUserCircleAvatar;
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
-import 'package:invesly/amcs/view/all_amcs_screen.dart';
-import 'package:invesly/common/presentations/animations/shimmer.dart';
-import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:path/path.dart';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
+import 'package:invesly/amcs/view/all_amcs_screen.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
 import 'package:invesly/authentication/auth_repository.dart';
-import 'package:invesly/authentication/login_page.dart';
+import 'package:invesly/authentication/functions.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
+import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
@@ -263,7 +263,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   tiles: [
                     SectionTile(
                       title: const Text('Google Sign-in'),
-                      icon: const Icon(Icons.login),
+                      icon: const Icon(Icons.login_rounded),
                       subtitle: BlocSelector<AppCubit, AppState, InveslyUser?>(
                         selector: (state) => state.user,
                         builder: (context, currentUser) {
@@ -273,15 +273,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           return Text(currentUser?.email ?? 'email: NA');
                         },
                       ),
-                      trailingIcon: FilledButton.tonalIcon(
-                        label: Icon(Icons.logout_rounded, color: context.theme.primaryColor),
-                        onPressed: () async {
-                          context.read<AppCubit>().updateGapiAccessToken(null);
-                          // await context.read<AuthRepository>().signOut();
-                          await AuthRepository.instance.signOut();
+                      trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                        selector: (state) => state.user.isNullOrEmpty,
+                        builder: (context, userNotExists) {
+                          return FilledButton.tonalIcon(
+                            label: userNotExists
+                                ? Icon(Icons.login_rounded, color: context.theme.primaryColor)
+                                : Icon(Icons.logout_rounded, color: context.theme.primaryColor),
+                            onPressed: userNotExists
+                                ? () => startLoginFlow(context)
+                                : () async {
+                                    context.read<AppCubit>().updateGapiAccessToken(null);
+                                    // await context.read<AuthRepository>().signOut();
+                                    await AuthRepository.instance.signOut();
+                                  },
+                            icon: userNotExists ? const Text('Sign in') : const Text('Sign out'),
+                            style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
+                          );
                         },
-                        icon: const Text('Sign out'),
-                        style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
                       ),
                     ),
                     SectionTile.navigation(
@@ -465,7 +474,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     try {
       if (accessToken == null) {
-        final (_, accessToken_) = await LoginPage.startLoginFlow(context);
+        final (_, accessToken_) = await startLoginFlow(context);
 
         // if (accessToken_ == null) return;
         accessToken = accessToken_;

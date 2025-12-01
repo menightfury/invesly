@@ -4,10 +4,10 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart';
 
 import 'package:invesly/authentication/auth_repository.dart';
-import 'package:invesly/authentication/login_page.dart';
+import 'package:invesly/authentication/functions.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
-import 'package:invesly/common/cubit/app_cubit.dart';
 
 class ImportBackupPage extends StatelessWidget {
   const ImportBackupPage({super.key, this.onRestoreComplete});
@@ -158,7 +158,7 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
     try {
       // // ignore: prefer_conditional_assignment
       if (_accessToken == null) {
-        final (_, accessToken_) = await LoginPage.startLoginFlow(context);
+        final (_, accessToken_) = await startLoginFlow(context);
         _accessToken = accessToken_;
       }
       // if (accessToken_ == null) {
