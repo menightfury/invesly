@@ -276,8 +276,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       trailingIcon: FilledButton.tonalIcon(
                         label: Icon(Icons.logout_rounded, color: context.theme.primaryColor),
                         onPressed: () async {
-                          await context.read<AuthRepository>().signOut();
-                          context.read<AppCubit>().resetGapiAccessToken();
+                          context.read<AppCubit>().updateGapiAccessToken(null);
+                          // await context.read<AuthRepository>().signOut();
+                          await AuthRepository.instance.signOut();
                         },
                         icon: const Text('Sign out'),
                         style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
@@ -373,18 +374,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         'Restore your data from a previously saved backup. This action will overwrite your current data.',
                       ),
                       onTap: () async {
-                        gapis.AccessToken? accessToken = context.read<AppCubit>().state.gapiAccessToken;
-
+                        var accessToken = context.read<AppCubit>().state.gapiAccessToken;
                         if (accessToken == null) {
-                          final user = await context.read<AuthRepository>().signInWithGoogle();
+                          // final user = await context.read<AuthRepository>().signInWithGoogle();
+                          final user = await AuthRepository.instance.signInWithGoogle();
                           if (user == null) {
                             $logger.w('Google sign-in failed');
                             return;
                           }
-
-                          accessToken = await context.read<AuthRepository>().getAccessToken(user);
+                          // accessToken = await context.read<AuthRepository>().getAccessToken(user);
+                          accessToken = await AuthRepository.instance.getAccessToken(user);
                         }
-                        final files = await context.read<AuthRepository>().getDriveFiles(accessToken);
+                        // final files = await context.read<AuthRepository>().getDriveFiles(accessToken);
+                        final files = await AuthRepository.instance.getDriveFiles(accessToken);
                         $logger.i(files);
                       },
                     ),
@@ -469,7 +471,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         accessToken = accessToken_;
       }
       final file = context.read<BackupRestoreRepository>().databaseFile;
-      await context.read<AuthRepository>().saveFileInDrive(accessToken: accessToken, file: file);
+      // await context.read<AuthRepository>().saveFileInDrive(accessToken: accessToken, file: file);
+      await AuthRepository.instance.saveFileInDrive(accessToken: accessToken, file: file);
       $logger.i('Backup created successfully');
     } catch (err) {
       $logger.e(err);

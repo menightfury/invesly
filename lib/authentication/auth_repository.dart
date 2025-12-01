@@ -32,27 +32,29 @@ import 'package:invesly/common_libs.dart';
 
 // Auth means Authentication and Authorization
 class AuthRepository {
-  AuthRepository();
+  // Singleton pattern
+  AuthRepository._()
+    : _googleSignIn = GoogleSignIn.instance,
+      _scopes = const <String>[
+        // See https://github.com/flutter/flutter/issues/155490 and https://github.com/flutter/flutter/issues/155429
+        // Once an account is logged in with these scopes, they are not needed
+        // So we will keep these to apply for all users to prevent errors, especially on silent sign in
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+        drive.DriveApi.driveAppdataScope,
+        drive.DriveApi.driveFileScope,
+      ];
+  factory AuthRepository.initialize() => _instance;
+  static final AuthRepository _instance = AuthRepository._();
+  static AuthRepository get instance => _instance;
 
   // GoogleSignInAccount? googleUser;
   drive.DriveApi? _driveApi;
 
-  final _googleSignIn = GoogleSignIn.instance;
-  final _scopes = <String>[
-    // See https://github.com/flutter/flutter/issues/155490 and https://github.com/flutter/flutter/issues/155429
-    // Once an account is logged in with these scopes, they are not needed
-    // So we will keep these to apply for all users to prevent errors, especially on silent sign in
-    'https://www.googleapis.com/auth/userinfo.profile',
-    'https://www.googleapis.com/auth/userinfo.email',
-    drive.DriveApi.driveAppdataScope,
-    drive.DriveApi.driveFileScope,
-  ];
+  final GoogleSignIn _googleSignIn;
+  final List<String> _scopes;
 
-  Future<GoogleSignInAccount?> signInWithGoogle({
-    BuildContext? context,
-    bool? waitForCompletion = false,
-    Function()? next,
-  }) async {
+  Future<GoogleSignInAccount?> signInWithGoogle({bool? waitForCompletion = false, Function()? next}) async {
     // bool isConnected = false;
     // if (await checkLockedFeatureIfInDemoMode(context) == false) return null;
 

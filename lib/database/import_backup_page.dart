@@ -165,8 +165,9 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
       //   throw Exception('Error getting accessToken');
       // }
 
-      if (!context.mounted) return null;
-      return await context.read<AuthRepository>().getDriveFiles(_accessToken!);
+      // if (!context.mounted) return null;
+      // return await context.read<AuthRepository>().getDriveFiles(_accessToken!);
+      return await AuthRepository.instance.getDriveFiles(_accessToken!);
     } catch (err) {
       $logger.e(err);
       throw Exception('Error getting drive files: $err');
@@ -174,7 +175,8 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
   }
 
   Future<void> _onRestorePressed(BuildContext context, drive.File file) async {
-    final authRepository = context.read<AuthRepository>();
+    // final authRepository = context.read<AuthRepository>();
+    final authRepository = AuthRepository.instance;
     final backupRepository = context.read<BackupRestoreRepository>();
 
     // // Delete drive files -- Testing only

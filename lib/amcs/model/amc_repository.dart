@@ -16,7 +16,7 @@ class AmcRepository {
     return _instance!;
   }
 
-  factory AmcRepository(InveslyApi api) {
+  factory AmcRepository.initialize(InveslyApi api) {
     _instance ??= AmcRepository._(api);
     return _instance!;
   }

@@ -23,7 +23,7 @@ class AppState extends Equatable {
   final AccessToken? gapiAccessToken;
   final String? dateFormat;
 
-  /// AMC SHAs received from github releases -- Used to check if the local AMC list is recent or not
+  /// AMC SHAs received from github releases - Used to check if the local AMC list is recent or not
   final String? amcSha;
 
   /// Hide all currency values
@@ -32,26 +32,26 @@ class AppState extends Equatable {
   AppState copyWith({
     bool? isOnboarded,
     bool? isDarkMode,
-    InveslyUser? user,
-    String? primaryAccountId,
+    InveslyUser? Function()? user,
+    String? Function()? primaryAccountId,
     bool? isDynamicColor,
-    int? accentColor,
+    int? Function()? accentColor,
     bool? isPrivateMode,
-    AccessToken? gapiAccessToken,
-    String? dateFormat,
-    String? amcSha,
+    AccessToken? Function()? gapiAccessToken,
+    String? Function()? dateFormat,
+    String? Function()? amcSha,
   }) {
     return AppState(
       isOnboarded: isOnboarded ?? this.isOnboarded,
       isDarkMode: isDarkMode ?? this.isDarkMode,
-      user: user ?? this.user,
-      primaryAccountId: primaryAccountId ?? this.primaryAccountId,
+      user: user != null ? user() : this.user,
+      primaryAccountId: primaryAccountId != null ? primaryAccountId() : this.primaryAccountId,
       isDynamicColor: isDynamicColor ?? this.isDynamicColor,
-      accentColor: accentColor ?? this.accentColor,
+      accentColor: accentColor != null ? accentColor() : this.accentColor,
       isPrivateMode: isPrivateMode ?? this.isPrivateMode,
-      gapiAccessToken: gapiAccessToken ?? this.gapiAccessToken,
-      dateFormat: dateFormat ?? this.dateFormat,
-      amcSha: amcSha ?? this.amcSha,
+      gapiAccessToken: gapiAccessToken != null ? gapiAccessToken() : this.gapiAccessToken,
+      dateFormat: dateFormat != null ? dateFormat() : this.dateFormat,
+      amcSha: amcSha != null ? amcSha() : this.amcSha,
     );
   }
 

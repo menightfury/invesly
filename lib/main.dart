@@ -31,12 +31,13 @@ class InveslyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final api = Bootstrap.instance.api;
     // initialize all repositories here
+    AuthRepository.initialize();
     final accountRepository = AccountRepository(api);
-    AmcRepository(api);
+    AmcRepository.initialize(api);
 
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<AuthRepository>(create: (_) => AuthRepository()),
+        // RepositoryProvider<AuthRepository>(create: (_) => AuthRepository()),
         RepositoryProvider<BackupRestoreRepository>(create: (_) => BackupRestoreRepository(api)),
         RepositoryProvider<AccountRepository>.value(value: accountRepository),
         // RepositoryProvider(create: (_) => AmcRepository(api)),

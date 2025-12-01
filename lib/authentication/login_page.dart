@@ -30,7 +30,8 @@ class LoginPage extends StatelessWidget {
   }
 
   static Future<(GoogleSignInAccount, AccessToken)> startLoginFlow(BuildContext context) async {
-    final authRepository = context.read<AuthRepository>();
+    // final authRepository = context.read<AuthRepository>();
+    final authRepository = AuthRepository.instance;
 
     // GoogleSignInAccount? user;
     late final AccessToken accessToken;
@@ -47,7 +48,7 @@ class LoginPage extends StatelessWidget {
 
         // Save access token to device
         if (!context.mounted) return null;
-        context.read<AppCubit>().saveGapiAccessToken(accessToken);
+        context.read<AppCubit>().updateGapiAccessToken(accessToken);
 
         return user_;
       });

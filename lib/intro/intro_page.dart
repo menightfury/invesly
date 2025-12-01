@@ -104,7 +104,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
       }
 
       // Save current user
-      context.read<AppCubit>().saveCurrentUser(user);
+      context.read<AppCubit>().updateCurrentUser(user);
 
       if (user == InveslyUser.empty()) {
         // User chose to continue without sign-in
@@ -127,7 +127,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
 
   Future<void> _finalizeSetUp(BuildContext context, InveslyUser user) async {
     // Save current user
-    context.read<AppCubit>().saveCurrentUser(user);
+    context.read<AppCubit>().updateCurrentUser(user);
 
     if (user == InveslyUser.empty()) {
       // User chose to continue without sign-in
