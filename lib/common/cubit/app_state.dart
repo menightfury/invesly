@@ -9,7 +9,7 @@ class AppState extends Equatable {
     this.isDynamicColor = true,
     this.accentColor,
     this.isPrivateMode = false,
-    this.gapiAccessToken,
+    // this.gapiAccessToken,
     this.dateFormat,
     this.amcSha,
   });
@@ -20,7 +20,7 @@ class AppState extends Equatable {
   final String? primaryAccountId;
   final int? accentColor;
   final bool isDynamicColor;
-  final AccessToken? gapiAccessToken;
+  // final AccessToken? gapiAccessToken;
   final String? dateFormat;
 
   /// AMC SHAs received from github releases - Used to check if the local AMC list is recent or not
@@ -37,7 +37,7 @@ class AppState extends Equatable {
     bool? isDynamicColor,
     int? Function()? accentColor,
     bool? isPrivateMode,
-    AccessToken? Function()? gapiAccessToken,
+    // AccessToken? Function()? gapiAccessToken,
     String? Function()? dateFormat,
     String? Function()? amcSha,
   }) {
@@ -49,7 +49,7 @@ class AppState extends Equatable {
       isDynamicColor: isDynamicColor ?? this.isDynamicColor,
       accentColor: accentColor != null ? accentColor() : this.accentColor,
       isPrivateMode: isPrivateMode ?? this.isPrivateMode,
-      gapiAccessToken: gapiAccessToken != null ? gapiAccessToken() : this.gapiAccessToken,
+      // gapiAccessToken: gapiAccessToken != null ? gapiAccessToken() : this.gapiAccessToken,
       dateFormat: dateFormat != null ? dateFormat() : this.dateFormat,
       amcSha: amcSha != null ? amcSha() : this.amcSha,
     );
@@ -64,7 +64,7 @@ class AppState extends Equatable {
     isDynamicColor,
     accentColor,
     isPrivateMode,
-    gapiAccessToken,
+    // gapiAccessToken,
     dateFormat,
     amcSha,
   ];
@@ -78,7 +78,7 @@ class AppState extends Equatable {
       'isDynamicColor': isDynamicColor,
       'accentColor': accentColor,
       'isPrivateMode': isPrivateMode,
-      'gapiAccessToken': gapiAccessToken?.toJson(),
+      // 'gapiAccessToken': gapiAccessToken?.toJson(),
       'dateFormat': dateFormat,
       'amcShas': amcSha,
     };
@@ -93,9 +93,9 @@ class AppState extends Equatable {
       isDynamicColor: map['isDynamicColor'] as bool,
       accentColor: map['accentColor'] as int?,
       isPrivateMode: map['isPrivateMode'] as bool,
-      gapiAccessToken: map['gapiAccessToken'] != null
-          ? AccessToken.fromJson(map['gapiAccessToken'] as Map<String, dynamic>)
-          : null,
+      // gapiAccessToken: map['gapiAccessToken'] != null
+      //     ? AccessToken.fromJson(map['gapiAccessToken'] as Map<String, dynamic>)
+      //     : null,
       dateFormat: map['dateFormat'] as String?,
       amcSha: map['amcShas'] as String?,
     );
@@ -105,6 +105,5 @@ class AppState extends Equatable {
   String toString() =>
       'SettingsState(isOnboarded: $isOnboarded, isDarkMode: $isDarkMode, user: $user, '
       'primaryAccountId: $primaryAccountId, isDynamicColor: $isDynamicColor, accentColor: $accentColor, '
-      'isPrivateMode: $isPrivateMode, gapiAccessToken: $gapiAccessToken, dateFormat: $dateFormat, '
-      'amcShas: $amcSha)';
+      'isPrivateMode: $isPrivateMode, dateFormat: $dateFormat, amcShas: $amcSha)';
 }

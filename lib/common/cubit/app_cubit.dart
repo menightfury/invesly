@@ -1,4 +1,3 @@
-import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common_libs.dart';
 
@@ -39,9 +38,9 @@ class AppCubit extends HydratedCubit<AppState> {
     emit(state.copyWith(isPrivateMode: value));
   }
 
-  void updateGapiAccessToken(AccessToken? accessToken) {
-    emit(state.copyWith(gapiAccessToken: () => accessToken));
-  }
+  // void updateGapiAccessToken(AccessToken? accessToken) {
+  //   emit(state.copyWith(gapiAccessToken: () => accessToken));
+  // }
 
   void updateDateFormat(String dateFormat) {
     emit(state.copyWith(dateFormat: () => dateFormat));

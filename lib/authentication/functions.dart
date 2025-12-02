@@ -1,43 +1,69 @@
-import 'package:flutter/widgets.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:invesly/authentication/auth_repository.dart';
+import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
 
-Future<(GoogleSignInAccount, AccessToken)> startLoginFlow(BuildContext context) async {
+// Future<(GoogleSignInAccount, AccessToken)> startLoginFlow(BuildContext context) async {
+Future<InveslyUser> startLoginFlow(BuildContext context) async {
   // final authRepository = context.read<AuthRepository>();
   final authRepository = AuthRepository.instance;
+  final appCubit = context.read<AppCubit>();
 
-  // GoogleSignInAccount? user;
   late final AccessToken accessToken;
 
   try {
     // ignore: prefer_conditional_assignment
-    final user = await showLoadingDialog<GoogleSignInAccount?>(context, () async {
-      final user_ = await authRepository.signInWithGoogle();
-      if (user_ == null) {
+    final gAccount = await showLoadingDialog<GoogleSignInAccount?>(context, () async {
+      final acc = await authRepository.signInWithGoogle();
+      if (acc == null) {
         throw Exception('Sign in failed');
       }
 
-      accessToken = await authRepository.getAccessToken(user_);
-
-      // Save access token to device
-      if (!context.mounted) return null;
-      context.read<AppCubit>().updateGapiAccessToken(accessToken);
-
-      return user_;
+      accessToken = await authRepository.getAccessToken(acc);
+      // // Save access token to device
+      // if (!context.mounted) {
+      //   return null;
+      // }
+      // appCubit.updateGapiAccessToken(accessToken);
+      return acc;
     });
 
-    if (user == null) {
+    if (gAccount == null) {
       throw Exception('Sign in failed');
     }
 
-    return (user, accessToken);
+    final user = InveslyUser(
+      id: gAccount.id,
+      email: gAccount.email,
+      name: gAccount.displayName ?? gAccount.email,
+      photoUrl: gAccount.photoUrl, // TODO: Cached network image and default avatar
+      gapiAccessToken: accessToken,
+    );
+    // Save current user
+    appCubit.updateCurrentUser(user);
+    return user;
   } catch (err) {
     $logger.e(err);
     throw Exception('Error signing in');
+  }
+}
+
+Future<void> startLogoutFlow(BuildContext context) async {
+  // final authRepository = context.read<AuthRepository>();
+  final authRepository = AuthRepository.instance;
+  final appCubit = context.read<AppCubit>();
+
+  try {
+    // ignore: prefer_conditional_assignment
+    await showLoadingDialog<void>(context, () async {
+      await authRepository.signOut();
+      appCubit.updateCurrentUser(null);
+    });
+  } catch (err) {
+    $logger.e(err);
+    throw Exception('Error signing out');
   }
 }

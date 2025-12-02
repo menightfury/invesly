@@ -75,8 +75,8 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () => _onSignInPressed(context),
-            icon: CircleAvatar(radius: 16.0, backgroundImage: AssetImage('assets/images/google_logo.png')),
-            label: Text('Sign in with Google', textAlign: TextAlign.center),
+            icon: const CircleAvatar(radius: 16.0, backgroundImage: AssetImage('assets/images/google_logo.png')),
+            label: const Text('Sign in with Google', textAlign: TextAlign.center),
           ),
         ),
       ),
@@ -91,45 +91,24 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
     super.dispose();
   }
 
-  // Future<void> _handleCompletePressed(BuildContext context) async {
-  //   if (_currentPage.value != _pageData.length - 1) return;
+  void _animateToPage(int index) {
+    _pageController.animateToPage(index, duration: 300.ms, curve: Curves.easeInOut);
+  }
 
-  //   final settingsState = context.read<AppCubit>().state;
-  //   if (settingsState.user == null) {
-  //     final user = await LoginPage.showModal(context);
+  Future<void> _onSignInPressed(BuildContext context) async {
+    final user = await startLoginFlow(context);
+    if (!context.mounted) return;
+    _finalizeSetUp(context, user);
+  }
 
-  //     if (!context.mounted || user == null) {
-  //       // User cancelled sign-in or error occurred
-  //       return;
-  //     }
+  void _onWithoutSignInPressed(BuildContext context) {
+    // _finalizeSetUp(context, InveslyUser.empty());
+    _finalizeSetUp(context, null);
+  }
 
-  //     // Save current user
-  //     context.read<AppCubit>().updateCurrentUser(user);
-
-  //     if (user == InveslyUser.empty()) {
-  //       // User chose to continue without sign-in
-  //       // Write initial database file from assets
-  //       // await context.read<AuthRepository>().writeDatabaseFile();
-  //     } else {
-  //       // User signed in successfully
-  //       await ImportBackupPage.showModal(context);
-  //     }
-
-  //     // Load database
-  //     await Bootstrap.instance.api.initializeDatabase();
-
-  //     if (!context.mounted) return;
-  //     context.read<AppCubit>().completeOnboarding();
-  //     // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
-  //     context.go(const DashboardScreen());
-  //   }
-  // }
-
-  Future<void> _finalizeSetUp(BuildContext context, InveslyUser user) async {
-    // Save current user
-    context.read<AppCubit>().updateCurrentUser(user);
-
-    if (user == InveslyUser.empty()) {
+  Future<void> _finalizeSetUp(BuildContext context, InveslyUser? user) async {
+    // if (user == InveslyUser.empty()) {
+    if (user.isNullOrEmpty) {
       // User chose to continue without sign-in
       // Write initial database file from assets
       // await context.read<AuthRepository>().writeDatabaseFile();
@@ -145,10 +124,6 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
     context.read<AppCubit>().completeOnboarding();
     // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
     context.go(const DashboardScreen());
-  }
-
-  void _animateToPage(int index) {
-    _pageController.animateToPage(index, duration: 300.ms, curve: Curves.easeInOut);
   }
 
   @override
@@ -285,31 +260,6 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
       ],
       // persistentFooterAlignment: AlignmentDirectional.center,
     );
-  }
-
-  // Widget _buildFinishBtn(BuildContext context) {
-  //   return ValueListenableBuilder<int>(
-  //     valueListenable: _currentPage,
-  //     builder: (_, pageIndex, child) {
-  //       return AnimatedScale(scale: pageIndex == _pageData.length - 1 ? 1.0 : 0.0, duration: 200.ms, child: child);
-  //     },
-  //     child: IconButton(
-  //       icon: const Icon(Icons.arrow_forward_rounded),
-  //       onPressed: () => _handleCompletePressed(context),
-  //       style: IconButton.styleFrom(foregroundColor: context.colors.onPrimary, backgroundColor: context.colors.primary),
-  //       padding: const EdgeInsets.all(16.0),
-  //     ),
-  //   );
-  // }
-
-  Future<void> _onSignInPressed(BuildContext context) async {
-    final (user, _) = await startLoginFlow(context);
-    if (!context.mounted) return;
-    _finalizeSetUp(context, InveslyUser.fromGoogleSignInAccount(user));
-  }
-
-  void _onWithoutSignInPressed(BuildContext context) {
-    _finalizeSetUp(context, InveslyUser.empty());
   }
 }
 
