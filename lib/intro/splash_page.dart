@@ -35,15 +35,15 @@ class _SplashPageState extends State<SplashPage> {
         Uri.parse('https://api.github.com/repos/menightfury/invesly-data/contents/amcs.json'),
       );
 
+      // If the server did return a 200 OK response, parse the JSON.
       if (response.statusCode == 200 && response.body.isNotEmpty) {
-        // If the server did return a 200 OK response, parse the JSON.
         final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-        final sha = decoded['sha'] as String;
-        if (sha != appState.amcSha) {
+        final sha = decoded['sha'] as String?;
+        final url = decoded['download_url'] as String?;
+        if (sha != null && sha != appState.amcSha && url != null) {
           // If sha is not same, it means amcs in remote location have changed
           // Fetch and update amcs
-          final amcs = await AmcRepository.instance.fetchAmcsFromNetwork(client, decoded['download_url'] as String);
-          //
+          final amcs = await AmcRepository.instance.fetchAmcsFromNetwork(client, url);
           $logger.w(amcs);
           // write amcs to database in a separate isolate
           if (amcs != null && amcs.isNotEmpty) {

@@ -14,7 +14,7 @@ class AppCubit extends HydratedCubit<AppState> {
     emit(state.copyWith(isOnboarded: true));
   }
 
-  void updateCurrentUser(InveslyUser? user) {
+  void updateUser(InveslyUser? user) {
     emit(state.copyWith(user: () => user));
   }
 

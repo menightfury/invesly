@@ -43,7 +43,7 @@ Future<InveslyUser> startLoginFlow(BuildContext context) async {
       gapiAccessToken: accessToken,
     );
     // Save current user
-    appCubit.updateCurrentUser(user);
+    appCubit.updateUser(user);
     return user;
   } catch (err) {
     $logger.e(err);
@@ -60,7 +60,7 @@ Future<void> startLogoutFlow(BuildContext context) async {
     // ignore: prefer_conditional_assignment
     await showLoadingDialog<void>(context, () async {
       await authRepository.signOut();
-      appCubit.updateCurrentUser(null);
+      appCubit.updateUser(null);
     });
   } catch (err) {
     $logger.e(err);
