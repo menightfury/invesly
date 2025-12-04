@@ -8,6 +8,7 @@ import 'package:invesly/common_libs.dart';
 
 // Future<(GoogleSignInAccount, AccessToken)> startLoginFlow(BuildContext context) async {
 Future<InveslyUser> startLoginFlow(BuildContext context) async {
+  debugPrint('==== Signing in ====');
   // final authRepository = context.read<AuthRepository>();
   final authRepository = AuthRepository.instance;
   final appCubit = context.read<AppCubit>();
@@ -52,6 +53,7 @@ Future<InveslyUser> startLoginFlow(BuildContext context) async {
 }
 
 Future<void> startLogoutFlow(BuildContext context) async {
+  debugPrint('==== Signing out ====');
   // final authRepository = context.read<AuthRepository>();
   final authRepository = AuthRepository.instance;
   final appCubit = context.read<AppCubit>();

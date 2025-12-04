@@ -109,12 +109,10 @@ class AmcRepository {
     if (response.statusCode != 200 && response.body.isEmpty) return null;
 
     // If the server did return a 200 OK response, parse the JSON.
-    final responseBody = response.body;
-
     // Use the compute function to run parse in a separate isolate.
-    return compute((responseBody) {
-      final parsed = (jsonDecode(responseBody) as List<Object?>).cast<Map<String, dynamic>>();
+    return compute<String, List<AmcInDb>>((body) {
+      final parsed = (jsonDecode(body) as List<Object?>).cast<Map<String, dynamic>>();
       return parsed.map<AmcInDb>(AmcTable.instance.fromMap).toList();
-    }, responseBody);
+    }, response.body);
   }
 }

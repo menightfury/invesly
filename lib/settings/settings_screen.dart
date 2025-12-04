@@ -276,19 +276,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       trailingIcon: BlocSelector<AppCubit, AppState, bool>(
                         selector: (state) => state.user.isNullOrEmpty,
                         builder: (context, userNotExists) {
-                          return FilledButton.tonalIcon(
-                            label: userNotExists
-                                ? Icon(Icons.login_rounded, color: context.theme.primaryColor)
-                                : Icon(Icons.logout_rounded, color: context.theme.primaryColor),
-                            onPressed: userNotExists
-                                ? () => startLoginFlow(context)
-                                : () async {
-                                    context.read<AppCubit>().updateUser(null);
-                                    // await context.read<AuthRepository>().signOut();
-                                    await AuthRepository.instance.signOut();
-                                  },
-                            icon: userNotExists ? const Text('Sign in') : const Text('Sign out'),
-                            style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
+                          return FilledButton.tonal(
+                            // icon: userNotExists
+                            //     ? Icon(Icons.login_rounded, color: context.theme.primaryColor)
+                            //     : Icon(Icons.logout_rounded, color: context.theme.primaryColor),
+                            onPressed: () => userNotExists ? startLoginFlow(context) : startLogoutFlow(context),
+                            style: FilledButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
+                            child: userNotExists ? const Text('Sign in') : const Text('Sign out'),
                           );
                         },
                       ),

@@ -45,7 +45,7 @@ class _SplashPageState extends State<SplashPage> {
           // Fetch and update amcs
           final amcs = await AmcRepository.instance.fetchAmcsFromNetwork(client, url);
           $logger.w(amcs);
-          // write amcs to database in a separate isolate
+          // write amcs to database
           if (amcs != null && amcs.isNotEmpty) {
             await AmcRepository.instance.saveAmcs(amcs);
           }
@@ -76,7 +76,7 @@ class _SplashPageState extends State<SplashPage> {
     final textTheme = context.textTheme;
     final colorScheme = context.colors;
     return Scaffold(
-      backgroundColor: Colors.lime[100],
+      backgroundColor: Colors.blue[100],
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
