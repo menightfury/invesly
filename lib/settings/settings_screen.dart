@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, avoid_print
 
 // import 'package:cached_network_image/cached_network_image.dart';
-import 'package:google_sign_in/google_sign_in.dart' show GoogleUserCircleAvatar;
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
 import 'package:path/path.dart';
 
@@ -14,6 +13,7 @@ import 'package:invesly/authentication/functions.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/animations/shimmer.dart';
+import 'package:invesly/common/presentations/widgets/circle_avatar.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
@@ -87,12 +87,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           //   child: user.photoUrl == null ? const Icon(Icons.person_rounded) : null,
                           // ),
                           icon: currentUser.isNotNullOrEmpty
-                              ? GoogleUserCircleAvatar(identity: currentUser!) // TODO: Implement cached network image
+                              ? InveslyUserCircleAvatar(user: currentUser!)
                               : CircleAvatar(child: const Icon(Icons.person_rounded)),
-                          trailingIcon: IconButton(
-                            onPressed: () => context.push(const EditAccountScreen()),
-                            icon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
-                            style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
+                          // trailingIcon: IconButton(
+                          //   onPressed: () => context.push(const EditAccountScreen()),
+                          //   icon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
+                          //   style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
+                          // ),
+                          trailingIcon: MenuAnchor(
+                            menuChildren: [
+                              MenuItemButton(
+                                leadingIcon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
+                                onPressed: () => context.push(const EditAccountScreen()),
+                                child: const Text('Add new account'),
+                              ),
+                            ],
+                            // alignmentOffset: Offset(-130, 0),
+                            style: MenuStyle(alignment: Alignment(-6.5, 0.5)),
+                            builder: (context, controller, child) {
+                              return IconButton(
+                                onPressed: () => controller.isOpen ? controller.close() : controller.open(),
+                                icon: child!,
+                              );
+                            },
+                            child: const Icon(Icons.more_vert),
                           ),
 
                           tiles: List.generate(
