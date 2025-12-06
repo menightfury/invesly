@@ -9,7 +9,7 @@ class TransactionTypeSelectorFormField extends StatelessWidget {
     super.key,
     this.initialValue,
     this.onChanged,
-    this.padding = AppConstants.formFieldContentPadding,
+    this.padding = iFormFieldContentPadding,
     this.leading,
   });
 

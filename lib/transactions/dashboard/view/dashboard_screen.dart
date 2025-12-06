@@ -1,7 +1,6 @@
 // ignore_for_file: unused_element
 
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_sign_in/google_sign_in.dart';

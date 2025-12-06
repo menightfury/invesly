@@ -206,7 +206,7 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                     icon: const Icon(Icons.exposure_rounded),
                     bgColor: themeColor.primary,
                     textColor: themeColor.onPrimary,
-                    borderRadius: _kButtonBorderRadius.copyWith(topLeft: AppConstants.buttonBorderRadius.topLeft),
+                    borderRadius: _kButtonBorderRadius.copyWith(topLeft: iButtonBorderRadius.topLeft),
                   ),
                   _CalculatorButton(
                     onPressed: cubit.handleBackspacePressed,
@@ -225,7 +225,7 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                     label: CalculatorOperator.divide.symbol,
                     textColor: themeColor.onPrimary,
                     bgColor: themeColor.primary,
-                    borderRadius: _kButtonBorderRadius.copyWith(topRight: AppConstants.buttonBorderRadius.topRight),
+                    borderRadius: _kButtonBorderRadius.copyWith(topRight: iButtonBorderRadius.topRight),
                   ),
                 ],
               ),
@@ -281,9 +281,7 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                         disabled: hasDecimal,
                         onPressed: () => cubit.handleDecimalPressed(),
                         label: '.',
-                        borderRadius: _kButtonBorderRadius.copyWith(
-                          bottomLeft: AppConstants.buttonBorderRadius.bottomLeft,
-                        ),
+                        borderRadius: _kButtonBorderRadius.copyWith(bottomLeft: iButtonBorderRadius.bottomLeft),
                       );
                     },
                   ),
@@ -317,9 +315,7 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                         flex: 2,
                         textColor: themeColor.onPrimary,
                         bgColor: themeColor.primary,
-                        borderRadius: _kButtonBorderRadius.copyWith(
-                          bottomRight: AppConstants.buttonBorderRadius.bottomRight,
-                        ),
+                        borderRadius: _kButtonBorderRadius.copyWith(bottomRight: iButtonBorderRadius.bottomRight),
                       );
                     },
                   ),

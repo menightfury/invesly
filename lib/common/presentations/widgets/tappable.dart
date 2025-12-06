@@ -10,7 +10,7 @@ class Tappable extends StatelessWidget {
     this.leading,
     this.trailing,
     this.color,
-    this.borderRadius = AppConstants.buttonBorderRadius,
+    this.borderRadius = iButtonBorderRadius,
     this.border,
     this.shape,
     this.margin,

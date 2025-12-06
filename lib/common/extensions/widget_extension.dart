@@ -5,7 +5,7 @@ import 'package:invesly/constants.dart';
 extension LabelOfWidget on Widget {
   Widget withLabel(String label, {EdgeInsetsGeometry? labelPadding}) {
     return Column(
-      spacing: AppConstants.formFieldLabelSpacing,
+      spacing: iFormFieldLabelSpacing,
       crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[

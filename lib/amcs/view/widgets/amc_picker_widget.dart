@@ -79,7 +79,7 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: AppConstants.formFieldLabelSpacing,
+      spacing: iFormFieldLabelSpacing,
       children: <Widget>[
         TextFormField(
           decoration: const InputDecoration(hintText: 'Enter keyword to search', prefixIcon: Icon(Icons.search)),

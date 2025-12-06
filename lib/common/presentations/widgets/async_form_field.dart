@@ -19,7 +19,7 @@ class AsyncFormField<T> extends FormField<T> {
     required Widget Function(T? value) childBuilder,
     Widget? leading,
     Widget? trailing,
-    EdgeInsetsGeometry padding = AppConstants.formFieldContentPadding,
+    EdgeInsetsGeometry padding = iFormFieldContentPadding,
     AlignmentGeometry contentAlignment = Alignment.centerLeft,
     Color? color,
     Color? errorColor, // TODO: Change to material state color

@@ -3,14 +3,15 @@
 import 'package:flutter/material.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/extensions/num_extension.dart';
+import 'package:invesly/common_libs.dart';
 
-const _kBigRadius = Radius.circular(16.0);
-const _kSmallRadius = Radius.circular(4.0);
+final _kBigRadius = iCardBorderRadius;
+const _kSmallRadius = iTileBorderRadius;
 
 enum _SectionVariant { scrollable, fixed }
 
 class Section extends StatelessWidget {
-  Section({
+  const Section({
     super.key,
     this.title,
     this.subTitle,
@@ -50,15 +51,15 @@ class Section extends StatelessWidget {
   bool get hasTiles => tileCount > 0;
 
   BorderRadius effectiveTileRadius(int index) {
-    BorderRadius tileRadius = BorderRadius.all(_kSmallRadius);
+    BorderRadius tileRadius = _kSmallRadius;
     // check if the tile is first tile
     if (index == 0 && title == null) {
-      tileRadius = tileRadius.copyWith(topLeft: _kBigRadius, topRight: _kBigRadius);
+      tileRadius = tileRadius.copyWith(topLeft: _kBigRadius.topLeft, topRight: _kBigRadius.topRight);
     }
 
     // check if the tile is last tile
     if (index == tileCount - 1) {
-      tileRadius = tileRadius.copyWith(bottomLeft: _kBigRadius, bottomRight: _kBigRadius);
+      tileRadius = tileRadius.copyWith(bottomLeft: _kBigRadius.bottomLeft, bottomRight: _kBigRadius.bottomRight);
     }
 
     return tileRadius;
@@ -111,7 +112,7 @@ class Section extends StatelessWidget {
 
     child = Material(
       type: MaterialType.transparency,
-      borderRadius: BorderRadius.all(_kSmallRadius),
+      borderRadius: _kSmallRadius,
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,7 +125,9 @@ class Section extends StatelessWidget {
               icon: icon,
               trailingIcon: trailingIcon,
               tileColor: theme.colorScheme.primaryContainer.darken(5),
-              borderRadius: BorderRadius.vertical(top: _kBigRadius, bottom: hasTiles ? _kSmallRadius : _kBigRadius),
+              borderRadius: hasTiles
+                  ? _kBigRadius.copyWith(bottomLeft: _kSmallRadius.bottomLeft, bottomRight: _kSmallRadius.bottomRight)
+                  : _kBigRadius,
             ),
           child,
         ],
@@ -166,7 +169,7 @@ class SectionTile extends StatelessWidget {
     this.trailingIcon,
     this.tileColor,
     this.selectedTileColor,
-    this.borderRadius = const BorderRadius.all(_kSmallRadius),
+    this.borderRadius = _kSmallRadius,
     VoidCallback? onTap,
     this.enabled = true,
     this.selected = false,
@@ -184,7 +187,7 @@ class SectionTile extends StatelessWidget {
     this.trailingIcon,
     this.tileColor,
     this.selectedTileColor,
-    this.borderRadius = const BorderRadius.all(_kSmallRadius),
+    this.borderRadius = _kSmallRadius,
     this.enabled = true,
     this.selected = false,
     VoidCallback? onTap,
@@ -202,7 +205,7 @@ class SectionTile extends StatelessWidget {
     required bool value,
     this.tileColor,
     this.selectedTileColor,
-    this.borderRadius = const BorderRadius.all(_kSmallRadius),
+    this.borderRadius = _kSmallRadius,
     this.enabled = true,
     this.selected = false,
     void Function(bool)? onChanged,
@@ -221,7 +224,7 @@ class SectionTile extends StatelessWidget {
     required bool value,
     this.tileColor,
     this.selectedTileColor,
-    this.borderRadius = const BorderRadius.all(_kSmallRadius),
+    this.borderRadius = _kSmallRadius,
     this.enabled = true,
     this.selected = false,
     void Function(bool)? onChanged,

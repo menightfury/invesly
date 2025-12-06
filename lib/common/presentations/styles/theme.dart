@@ -77,37 +77,37 @@ class AppStyle {
           }
           return colorScheme.primaryContainer;
         }),
-        contentPadding: AppConstants.formFieldContentPadding,
+        contentPadding: iFormFieldContentPadding,
         isCollapsed: true,
         // isDense: true,
         hintStyle: const TextStyle(color: Colors.black38),
-        border: const OutlineInputBorder(borderRadius: AppConstants.textFieldBorderRadius, borderSide: BorderSide.none),
+        border: const OutlineInputBorder(borderRadius: iTextFieldBorderRadius, borderSide: BorderSide.none),
         // enabledBorder: OutlineInputBorder(
-        //   borderRadius: AppConstants.textFieldBorderRadius,
+        //   borderRadius: iTextFieldBorderRadius,
         //   borderSide: BorderSide(width: 1.0, color: colorScheme.primary.withOpacity(0.38)),
         // ),
         // focusedBorder: OutlineInputBorder(
-        //   borderRadius: AppConstants.textFieldBorderRadius,
+        //   borderRadius: iTextFieldBorderRadius,
         //   borderSide: BorderSide(width: 1.0, color: colorScheme.primary),
         // ),
         // disabledBorder: OutlineInputBorder(
-        //   borderRadius: AppConstants.textFieldBorderRadius,
+        //   borderRadius: iTextFieldBorderRadius,
         //   borderSide: BorderSide(width: 1.0, color: colorScheme.onSurface.withOpacity(0.38)),
         // ),
         // errorBorder: OutlineInputBorder(
-        //   borderRadius: AppConstants.textFieldBorderRadius,
+        //   borderRadius: iTextFieldBorderRadius,
         //   borderSide: BorderSide(width: 1.0, color: colorScheme.error),
         // ),
         // focusedErrorBorder: OutlineInputBorder(
-        //   borderRadius: AppConstants.textFieldBorderRadius,
+        //   borderRadius: iTextFieldBorderRadius,
         //   borderSide: BorderSide(width: 1.0, color: colorScheme.error),
         // ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
           elevation: const WidgetStatePropertyAll<double>(2.0),
-          padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
-          minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
+          padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(iButtonPadding),
+          minimumSize: const WidgetStatePropertyAll<Size>(iMinButtonSize),
           backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
             if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);
             if (state.contains(WidgetState.error)) return colorScheme.error;
@@ -115,14 +115,14 @@ class AppStyle {
           }),
           foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimary),
           shape: const WidgetStatePropertyAll<OutlinedBorder>(
-            RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
+            RoundedRectangleBorder(borderRadius: iButtonBorderRadius),
           ),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: ButtonStyle(
-          padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
-          minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
+          padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(iButtonPadding),
+          minimumSize: const WidgetStatePropertyAll<Size>(iMinButtonSize),
           // backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
           //   if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);
           //   if (state.contains(WidgetState.error)) return colorScheme.error;
@@ -130,14 +130,14 @@ class AppStyle {
           // }),
           // foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimary),
           shape: const WidgetStatePropertyAll<OutlinedBorder>(
-            RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
+            RoundedRectangleBorder(borderRadius: iButtonBorderRadius),
           ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
-          padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
-          minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
+          padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(iButtonPadding),
+          minimumSize: const WidgetStatePropertyAll<Size>(iMinButtonSize),
           // backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
           //   if (state.contains(WidgetState.disabled)) return colorScheme.primaryContainer.withAlpha(30);
           //   if (state.contains(WidgetState.error)) return colorScheme.errorContainer;
@@ -152,16 +152,16 @@ class AppStyle {
             //   borderColor = colorScheme.error;
             // }
 
-            return RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius);
+            return RoundedRectangleBorder(borderRadius: iButtonBorderRadius);
           }),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: ButtonStyle(
-          padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
-          minimumSize: const WidgetStatePropertyAll<Size>(AppConstants.minButtonSize),
+          padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(iButtonPadding),
+          minimumSize: const WidgetStatePropertyAll<Size>(iMinButtonSize),
           shape: const WidgetStatePropertyAll<OutlinedBorder>(
-            RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
+            RoundedRectangleBorder(borderRadius: iButtonBorderRadius),
           ),
           side: WidgetStatePropertyAll(BorderSide(width: 2.0, color: colorScheme.primary)),
         ),
@@ -170,12 +170,12 @@ class AppStyle {
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
         elevation: 2.0,
-        shape: const RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
+        shape: const RoundedRectangleBorder(borderRadius: iButtonBorderRadius),
       ),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
-          // padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(AppConstants.buttonPadding),
-          minimumSize: WidgetStatePropertyAll<Size>(Size.square(AppConstants.minButtonSize.shortestSide)),
+          // padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(iButtonPadding),
+          minimumSize: WidgetStatePropertyAll<Size>(Size.square(iMinButtonSize.shortestSide)),
           // backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
           //   if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);
           //   if (state.contains(WidgetState.error)) return colorScheme.error;
@@ -183,7 +183,7 @@ class AppStyle {
           // }),
           // foregroundColor: WidgetStatePropertyAll<Color>(colorScheme.onPrimary),
           shape: const WidgetStatePropertyAll<OutlinedBorder>(
-            RoundedRectangleBorder(borderRadius: AppConstants.buttonBorderRadius),
+            RoundedRectangleBorder(borderRadius: iButtonBorderRadius),
           ),
         ),
       ),
@@ -198,7 +198,7 @@ class AppStyle {
       listTileTheme: ListTileThemeData(minVerticalPadding: 8.0, minTileHeight: 56.0),
       navigationBarTheme: NavigationBarThemeData(backgroundColor: colorScheme.surface),
       cardTheme: CardThemeData(
-        shape: RoundedRectangleBorder(borderRadius: AppConstants.cardBorderRadius),
+        shape: RoundedRectangleBorder(borderRadius: iCardBorderRadius),
         elevation: 1.0,
         color: colorScheme.secondaryContainer,
       ),

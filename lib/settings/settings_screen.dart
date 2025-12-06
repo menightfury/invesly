@@ -96,14 +96,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           // ),
                           trailingIcon: MenuAnchor(
                             menuChildren: [
+                              BlocSelector<AppCubit, AppState, bool>(
+                                selector: (state) => state.user.isNotNullOrEmpty,
+                                builder: (context, userExists) {
+                                  if (userExists) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return MenuItemButton(
+                                    leadingIcon: Icon(Icons.login_rounded, color: context.theme.primaryColor),
+                                    onPressed: () => startLoginFlow(context),
+                                    // style: FilledButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
+                                    child: const Text('Sign in'),
+                                  );
+                                },
+                              ),
                               MenuItemButton(
                                 leadingIcon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
                                 onPressed: () => context.push(const EditAccountScreen()),
                                 child: const Text('Add new account'),
                               ),
+                              BlocSelector<AppCubit, AppState, bool>(
+                                selector: (state) => state.user.isNullOrEmpty,
+                                builder: (context, userNotExists) {
+                                  if (userNotExists) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return MenuItemButton(
+                                    leadingIcon: Icon(Icons.logout_rounded, color: context.theme.primaryColor),
+                                    onPressed: () => startLogoutFlow(context),
+                                    // style: FilledButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
+                                    child: const Text('Sign out'),
+                                  );
+                                },
+                              ),
                             ],
                             // alignmentOffset: Offset(-130, 0),
-                            style: MenuStyle(alignment: Alignment(-6.5, 0.5)),
+                            style: MenuStyle(
+                              alignment: Alignment(-6.0, -1.0),
+                              shape: WidgetStatePropertyAll(
+                                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                              ),
+                            ),
                             builder: (context, controller, child) {
                               return IconButton(
                                 onPressed: () => controller.isOpen ? controller.close() : controller.open(),

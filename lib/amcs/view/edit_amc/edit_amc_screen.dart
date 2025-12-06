@@ -118,7 +118,7 @@ class __EditViewState extends State<_EditView> {
                         Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: AppConstants.formFieldLabelSpacing,
+                          spacing: iFormFieldLabelSpacing,
                           children: <Widget>[
                             const Text('Name of AMC'),
                             TextFormField(
@@ -144,7 +144,7 @@ class __EditViewState extends State<_EditView> {
                         Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: AppConstants.formFieldLabelSpacing,
+                          spacing: iFormFieldLabelSpacing,
                           children: <Widget>[
                             const Text('Genre'),
                             BlocSelector<EditAmcCubit, EditAmcState, AmcGenre>(
@@ -171,7 +171,7 @@ class __EditViewState extends State<_EditView> {
                         Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: AppConstants.formFieldLabelSpacing,
+                          spacing: iFormFieldLabelSpacing,
                           children: <Widget>[
                             const Text('Tags'),
                             BlocSelector<EditAmcCubit, EditAmcState, Set<String>>(
