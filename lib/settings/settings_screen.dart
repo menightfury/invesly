@@ -89,23 +89,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           icon: currentUser.isNotNullOrEmpty
                               ? InveslyUserCircleAvatar(user: currentUser!)
                               : CircleAvatar(child: const Icon(Icons.person_rounded)),
-                          // trailingIcon: IconButton(
-                          //   onPressed: () => context.push(const EditAccountScreen()),
-                          //   icon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
-                          //   style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
-                          // ),
                           trailingIcon: MenuAnchor(
                             menuChildren: [
                               BlocSelector<AppCubit, AppState, bool>(
                                 selector: (state) => state.user.isNotNullOrEmpty,
-                                builder: (context, userExists) {
+                                builder: (_, userExists) {
                                   if (userExists) {
                                     return const SizedBox.shrink();
                                   }
                                   return MenuItemButton(
                                     leadingIcon: Icon(Icons.login_rounded, color: context.theme.primaryColor),
                                     onPressed: () => startLoginFlow(context),
-                                    // style: FilledButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
                                     child: const Text('Sign in'),
                                   );
                                 },
@@ -117,15 +111,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               BlocSelector<AppCubit, AppState, bool>(
                                 selector: (state) => state.user.isNullOrEmpty,
-                                builder: (context, userNotExists) {
+                                builder: (_, userNotExists) {
                                   if (userNotExists) {
                                     return const SizedBox.shrink();
                                   }
                                   return MenuItemButton(
-                                    leadingIcon: Icon(Icons.logout_rounded, color: context.theme.primaryColor),
+                                    leadingIcon: Icon(Icons.logout_rounded, color: context.colors.error),
                                     onPressed: () => startLogoutFlow(context),
-                                    // style: FilledButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
-                                    child: const Text('Sign out'),
+                                    style: MenuItemButton.styleFrom(
+                                      backgroundColor: context.colors.error.withAlpha(0x1F),
+                                    ),
+                                    child: Text('Sign out', style: TextStyle(color: context.colors.error)),
                                   );
                                 },
                               ),
@@ -133,9 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             // alignmentOffset: Offset(-130, 0),
                             style: MenuStyle(
                               alignment: Alignment(-6.0, -1.0),
-                              shape: WidgetStatePropertyAll(
-                                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-                              ),
+                              shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: iCardBorderRadius)),
                             ),
                             builder: (context, controller, child) {
                               return IconButton(

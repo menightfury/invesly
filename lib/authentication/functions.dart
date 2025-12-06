@@ -9,9 +9,7 @@ import 'package:invesly/common_libs.dart';
 // Future<(GoogleSignInAccount, AccessToken)> startLoginFlow(BuildContext context) async {
 Future<InveslyUser> startLoginFlow(BuildContext context) async {
   debugPrint('==== Signing in ====');
-  // final authRepository = context.read<AuthRepository>();
   final authRepository = AuthRepository.instance;
-  final appCubit = context.read<AppCubit>();
 
   late final AccessToken accessToken;
 
@@ -24,11 +22,6 @@ Future<InveslyUser> startLoginFlow(BuildContext context) async {
       }
 
       accessToken = await authRepository.getAccessToken(acc);
-      // // Save access token to device
-      // if (!context.mounted) {
-      //   return null;
-      // }
-      // appCubit.updateGapiAccessToken(accessToken);
       return acc;
     });
 
@@ -40,11 +33,13 @@ Future<InveslyUser> startLoginFlow(BuildContext context) async {
       id: gAccount.id,
       email: gAccount.email,
       name: gAccount.displayName ?? gAccount.email,
-      photoUrl: gAccount.photoUrl, // TODO: Cached network image and default avatar
+      photoUrl: gAccount.photoUrl,
       gapiAccessToken: accessToken,
     );
     // Save current user
-    appCubit.updateUser(user);
+    if (context.mounted) {
+      context.read<AppCubit>().updateUser(user);
+    }
     return user;
   } catch (err) {
     $logger.e(err);
@@ -54,15 +49,15 @@ Future<InveslyUser> startLoginFlow(BuildContext context) async {
 
 Future<void> startLogoutFlow(BuildContext context) async {
   debugPrint('==== Signing out ====');
-  // final authRepository = context.read<AuthRepository>();
   final authRepository = AuthRepository.instance;
-  final appCubit = context.read<AppCubit>();
 
   try {
     // ignore: prefer_conditional_assignment
     await showLoadingDialog<void>(context, () async {
       await authRepository.signOut();
-      appCubit.updateUser(null);
+      if (context.mounted) {
+        context.read<AppCubit>().updateUser(null);
+      }
     });
   } catch (err) {
     $logger.e(err);
