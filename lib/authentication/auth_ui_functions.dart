@@ -6,11 +6,15 @@ import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
 
-// Future<(GoogleSignInAccount, AccessToken)> startLoginFlow(BuildContext context) async {
-Future<InveslyUser> startLoginFlow(BuildContext context) async {
+Future<InveslyUser> startLoginFlow(BuildContext context, [bool forceLogin = false]) async {
   debugPrint('==== Signing in ====');
-  final authRepository = AuthRepository.instance;
+  // Check if already signed in and not forced to sign in again
+  InveslyUser? user = context.read<AppCubit>().state.user;
+  if (user != null && !forceLogin) {
+    return Future.value(user);
+  }
 
+  final authRepository = AuthRepository.instance;
   late final AccessToken accessToken;
 
   try {
@@ -20,7 +24,6 @@ Future<InveslyUser> startLoginFlow(BuildContext context) async {
       if (acc == null) {
         throw Exception('Sign in failed');
       }
-
       accessToken = await authRepository.getAccessToken(acc);
       return acc;
     });
@@ -29,10 +32,10 @@ Future<InveslyUser> startLoginFlow(BuildContext context) async {
       throw Exception('Sign in failed');
     }
 
-    final user = InveslyUser(
+    user = InveslyUser(
       id: gAccount.id,
       email: gAccount.email,
-      name: gAccount.displayName ?? gAccount.email,
+      name: gAccount.displayName ?? gAccount.email.substring(0, gAccount.email.indexOf('@')),
       photoUrl: gAccount.photoUrl,
       gapiAccessToken: accessToken,
     );
@@ -40,6 +43,7 @@ Future<InveslyUser> startLoginFlow(BuildContext context) async {
     if (context.mounted) {
       context.read<AppCubit>().updateUser(user);
     }
+
     return user;
   } catch (err) {
     $logger.e(err);
@@ -49,8 +53,13 @@ Future<InveslyUser> startLoginFlow(BuildContext context) async {
 
 Future<void> startLogoutFlow(BuildContext context) async {
   debugPrint('==== Signing out ====');
-  final authRepository = AuthRepository.instance;
+  // Check if already signed in
+  final user = context.read<AppCubit>().state.user;
+  if (user == null) {
+    return;
+  }
 
+  final authRepository = AuthRepository.instance;
   try {
     // ignore: prefer_conditional_assignment
     await showLoadingDialog<void>(context, () async {

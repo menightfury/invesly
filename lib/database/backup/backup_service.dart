@@ -113,29 +113,28 @@ class BackupRestoreRepository {
   //   return false;
   // }
 
-  Future<void> writeDatabaseFile([List<int>? fileContent]) async {
+  Future<void> writeDatabaseFile(List<int> fileContent) async {
     try {
       // sqflite - copy from assets (for optimizing performance, asset is copied only once)
       // should happen only first time the application is launched copy from asset
-      final isDbExists = await databaseExists(_api.dbPath);
-      if (!isDbExists) {
-        List<int>? bytes = fileContent;
-
-        if (bytes == null || bytes.isEmpty) {
-          // final data = await rootBundle.load('assets/data/initial.db');
-          // bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-          // $logger.i('Data written from assets');
-          return;
-        }
-
-        // write and flush the bytes written
-        await File(_api.dbPath).writeAsBytes(bytes, flush: true);
-      } else {
-        $logger.d('Database exists. No need to overwrite.');
+      // final isDbExists = await databaseExists(_api.dbPath);
+      // if (!isDbExists) {
+      if (fileContent.isEmpty) {
+        // final data = await rootBundle.load('assets/data/initial.db');
+        // bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        // $logger.i('Data written from assets');
+        return;
       }
+
+      // write and flush the bytes written
+      await File(_api.dbPath).writeAsBytes(fileContent, flush: true);
+      // }
+      // else {
+      //   $logger.d('Database exists. No need to overwrite.');
+      // }
     } catch (e) {
       $logger.e('Error saving backup to device: $e');
-      throw ('Error saving backup to device');
+      Exception('Error saving backup to device');
     }
   }
 

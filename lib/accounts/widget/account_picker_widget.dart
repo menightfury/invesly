@@ -51,8 +51,8 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
                 child: Text(
                   'Select an account',
                   style: TextStyle(fontWeight: FontWeight.w600),

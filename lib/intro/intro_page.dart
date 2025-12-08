@@ -1,12 +1,10 @@
-import 'package:invesly/authentication/functions.dart';
+import 'package:invesly/authentication/auth_ui_functions.dart';
 import 'package:invesly/authentication/user_model.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/import_backup_page.dart';
-import 'package:invesly/main.dart';
-
-import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 
 const _kPaddingTop = 56.0;
@@ -107,20 +105,19 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
   }
 
   Future<void> _finalizeSetUp(BuildContext context, InveslyUser? user) async {
-    // if (user == InveslyUser.empty()) {
+    late final bool? restoreStatus;
     if (user.isNullOrEmpty) {
       // User chose to continue without sign-in
       // Write initial database file from assets
       // await context.read<AuthRepository>().writeDatabaseFile();
     } else {
       // User signed in successfully
-      await ImportBackupPage.showModal(context);
+      restoreStatus = await DriveImportBackupPage.showModal(context);
     }
 
-    // Load database
-    await Bootstrap.instance.api.initializeDatabase();
-
-    if (!context.mounted) return;
+    if (!context.mounted) {
+      return;
+    }
     context.read<AppCubit>().completeOnboarding();
     // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
     context.go(const DashboardScreen());

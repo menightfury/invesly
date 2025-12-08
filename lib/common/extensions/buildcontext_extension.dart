@@ -15,7 +15,7 @@ extension BuildContextX on BuildContext {
 
   /// Pops the current route from the navigator stack.
   void pop<T extends Object>([T? result]) {
-    Navigator.of(this).pop<T>(result);
+    Navigator.of(this).maybePop<T>(result);
   }
 
   /// Pushes a new route onto the navigator stack.

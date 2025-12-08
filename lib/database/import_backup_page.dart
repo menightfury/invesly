@@ -4,45 +4,46 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart';
 
 import 'package:invesly/authentication/auth_repository.dart';
-import 'package:invesly/authentication/functions.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_service.dart';
+import 'package:invesly/intro/splash_page.dart';
 
-class ImportBackupPage extends StatelessWidget {
-  const ImportBackupPage({super.key, this.onRestoreComplete});
+class DriveImportBackupPage extends StatelessWidget {
+  const DriveImportBackupPage({super.key, this.onComplete});
 
-  final VoidCallback? onRestoreComplete;
+  final ValueChanged<bool?>? onComplete;
 
   @override
   Widget build(BuildContext context) {
-    return _ImportBackupPage(key: key, onRestoreComplete: onRestoreComplete);
+    return _DriveImportBackupPage(key: key, onComplete: onComplete);
   }
 
-  static Future<void> showModal(BuildContext context, {Key? key}) async {
-    return await showModalBottomSheet<void>(
+  static Future<bool?> showModal(BuildContext context, {Key? key}) async {
+    return await showModalBottomSheet<bool>(
       context: context,
-      isDismissible: false,
-      enableDrag: false,
+      // isDismissible: false,
+      // enableDrag: false,
       useSafeArea: true,
       builder: (context) {
-        return _ImportBackupPage(key: key, showInModal: true, onRestoreComplete: () => context.pop());
+        return _DriveImportBackupPage(key: key, showInModal: true, onComplete: (value) => context.pop(value));
       },
     );
   }
 }
 
-class _ImportBackupPage extends StatefulWidget {
-  const _ImportBackupPage({super.key, this.showInModal = false, this.onRestoreComplete});
+class _DriveImportBackupPage extends StatefulWidget {
+  const _DriveImportBackupPage({super.key, this.showInModal = false, this.onComplete});
 
   final bool showInModal;
-  final VoidCallback? onRestoreComplete;
+  final ValueChanged<bool>? onComplete;
 
   @override
-  State<_ImportBackupPage> createState() => _ImportBackupPageState();
+  State<_DriveImportBackupPage> createState() => _DriveImportBackupPageState();
 }
 
-class _ImportBackupPageState extends State<_ImportBackupPage> {
+class _DriveImportBackupPageState extends State<_DriveImportBackupPage> {
   late final Future<List<drive.File>?> _files;
   AccessToken? _accessToken;
 
@@ -50,104 +51,130 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
   void initState() {
     super.initState();
     _accessToken = context.read<AppCubit>().state.user?.gapiAccessToken;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _files = _getDriveFiles(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget content = Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: FutureBuilder<List<drive.File>?>(
-        future: _files,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.hasData) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 4.0,
-                children: <Widget>[
-                  // Welcome text
-                  Text('Restore backup', style: context.textTheme.headlineMedium),
-                  Gap(8.0),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Icon(Icons.cloud_done, size: 48.0, color: Colors.teal),
-                  ),
-                  Text('Backup found!', style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600)),
-                  Gap(8.0),
-                  Text('6 minutes ago', style: context.textTheme.labelMedium?.copyWith(color: Colors.grey)),
-                  Text('Size: 215 KB', style: context.textTheme.labelMedium?.copyWith(color: Colors.grey)),
-                  Gap(16.0),
-                  Text(
-                    'Restore your data from Google Drive.'
-                    ' If you don\'t restore now, you won\'t be able to restore it later.',
-                  ),
-                  Spacer(),
+    Widget content = Column(
+      spacing: 8.0,
+      children: <Widget>[
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
+          child: Text(
+            'Restore from Google Drive',
+            style: TextStyle(fontWeight: FontWeight.w600),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: FutureBuilder<List<drive.File>?>(
+              future: _files,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
 
-                  // Restore button
-                  Row(
-                    spacing: 8.0,
-                    children: <Widget>[
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => widget.onRestoreComplete?.call(),
-                          child: const Text('Skip'),
+                  final files = snapshot.data;
+                  if (files == null || files.isEmpty) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 12.0,
+                      children: <Widget>[
+                        Image.asset('assets/images/empty_1.png', height: 200.0),
+                        const Text('Sorry! No backup found.', textAlign: TextAlign.center),
+                        Spacer(),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(onPressed: () => _onSkipPressed(context), child: const Text('Dismiss')),
                         ),
-                      ),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return;
-                            }
-                            _onRestorePressed(context, snapshot.data!.first);
-                          },
-                          icon: Icon(Icons.restore_rounded),
-                          label: const Text('Restore', textAlign: TextAlign.center),
+                      ],
+                    );
+                  }
+
+                  // find the most recent backup file
+                  final file = files.length > 1
+                      ? files.reduce((a, b) {
+                          final aTime = a.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+                          final bTime = b.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+                          return aTime.isAfter(bTime) ? a : b;
+                        })
+                      : files.first;
+                  return Column(
+                    children: <Widget>[
+                      Icon(Icons.cloud_done_rounded, size: 48.0, color: context.theme.primaryColor),
+                      const Gap(8.0),
+                      const Text('Backup found!', style: TextStyle(fontWeight: FontWeight.w600)),
+                      if (file.modifiedTime != null)
+                        Text(
+                          file.modifiedTime!.toReadable(),
+                          style: context.textTheme.labelMedium?.copyWith(color: Colors.grey),
+                        ),
+
+                      if (file.size != null && int.tryParse(file.size!) != null)
+                        Text(
+                          'Size: ${int.parse(file.size!).formatAsBytes(2)}',
+                          style: context.textTheme.labelMedium?.copyWith(color: Colors.grey),
+                        ),
+                      Spacer(),
+
+                      // Restore button
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          spacing: 8.0,
+                          children: <Widget>[
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () => _onSkipPressed(context),
+                                child: const Text('Skip'),
+                              ),
+                            ),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => _onRestorePressed(context, file),
+                                icon: Icon(Icons.restore_rounded),
+                                label: const Text('Restore', textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ),
-                ],
-              );
-            }
+                  );
+                }
 
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 8.0,
-              children: <Widget>[
-                Image.asset('assets/images/empty_1.png', height: 200),
-                const Text('Sorry! No backup found.', textAlign: TextAlign.center),
-                Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => widget.onRestoreComplete?.call(),
-                    child: const Text('Go to dashboard'),
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 12.0,
+                    children: <Widget>[
+                      SpinKitDancingSquare(color: context.theme.primaryColor),
+                      const Text('Looking for backups...'),
+                    ],
                   ),
-                ),
-              ],
-            );
-          }
-          return Center(
-            child: Column(
-              spacing: 8.0,
-              children: <Widget>[CircularProgressIndicator(), Text('Looking for backups...')],
+                );
+              },
             ),
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
 
     if (!widget.showInModal) {
       content = Scaffold(
         appBar: AppBar(title: Text('Import from Google drive')),
-        body: SafeArea(child: content),
+        body: SafeArea(
+          child: Padding(padding: const EdgeInsets.all(16.0), child: content),
+        ),
       );
     }
 
@@ -156,17 +183,13 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
 
   Future<List<drive.File>?> _getDriveFiles(BuildContext context) async {
     try {
-      // // ignore: prefer_conditional_assignment
+      // if (_accessToken == null) {
+      //   final user = await startLoginFlow(context, true);
+      //   _accessToken = user.gapiAccessToken;
+      // }
       if (_accessToken == null) {
-        final user = await startLoginFlow(context);
-        _accessToken = user.gapiAccessToken;
+        throw Exception('Error getting AccessToken.');
       }
-      if (_accessToken == null) {
-        throw Exception('Error getting accessToken');
-      }
-
-      // if (!context.mounted) return null;
-      // return await context.read<AuthRepository>().getDriveFiles(_accessToken!);
       return await AuthRepository.instance.getDriveFiles(_accessToken!);
     } catch (err) {
       $logger.e(err);
@@ -174,15 +197,33 @@ class _ImportBackupPageState extends State<_ImportBackupPage> {
     }
   }
 
+  Future<void> _onSkipPressed(BuildContext context) async {
+    widget.onComplete?.call(false);
+  }
+
   Future<void> _onRestorePressed(BuildContext context, drive.File file) async {
+    widget.onComplete?.call(true);
     // final authRepository = context.read<AuthRepository>();
     final authRepository = AuthRepository.instance;
     final backupRepository = context.read<BackupRestoreRepository>();
 
-    // // Delete drive files -- Testing only
-    // await authRepository.deleteBackups(accessToken);
-    final fileContent = await authRepository.getDriveFileContent(accessToken: _accessToken!, fileId: file.id!);
-    await backupRepository.writeDatabaseFile(fileContent);
-    widget.onRestoreComplete?.call();
+    try {
+      await showLoadingDialog<void>(context, () async {
+        // // Delete drive files -- Testing only
+        // await authRepository.deleteBackups(accessToken);
+        final fileContent = await authRepository.getDriveFileContent(accessToken: _accessToken!, fileId: file.id!);
+        if (fileContent == null || fileContent.isEmpty) {
+          throw Exception('Error reading backup file from Google Drive.');
+        }
+        await backupRepository.writeDatabaseFile(fileContent);
+      }); // TODO: implement loadingMessage: 'Restoring backup...'
+      if (!context.mounted) {
+        return;
+      }
+      await context.go(SplashPage());
+    } catch (err) {
+      $logger.e(err);
+      // await showAlertDialog(context, title: 'Error', content: '$err');
+    }
   }
 }

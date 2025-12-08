@@ -2,6 +2,7 @@
 
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
+import 'package:invesly/database/import_backup_page.dart';
 import 'package:path/path.dart';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
@@ -9,7 +10,7 @@ import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/amcs/view/all_amcs_screen.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
 import 'package:invesly/authentication/auth_repository.dart';
-import 'package:invesly/authentication/functions.dart';
+import 'package:invesly/authentication/auth_ui_functions.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/animations/shimmer.dart';
@@ -82,10 +83,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         return Section(
                           title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
                           subTitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
-                          // icon: CircleAvatar(
-                          //   backgroundImage: user.photoUrl != null ? CachedNetworkImageProvider(user.photoUrl!) : null,
-                          //   child: user.photoUrl == null ? const Icon(Icons.person_rounded) : null,
-                          // ),
                           icon: currentUser.isNotNullOrEmpty
                               ? InveslyUserCircleAvatar(user: currentUser!)
                               : CircleAvatar(child: const Icon(Icons.person_rounded)),
@@ -118,9 +115,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   return MenuItemButton(
                                     leadingIcon: Icon(Icons.logout_rounded, color: context.colors.error),
                                     onPressed: () => startLogoutFlow(context),
-                                    style: MenuItemButton.styleFrom(
-                                      backgroundColor: context.colors.error.withAlpha(0x1F),
-                                    ),
+                                    // style: MenuItemButton.styleFrom(
+                                    //   backgroundColor: context.colors.error.withAlpha(0x1F),
+                                    // ),
                                     child: Text('Sign out', style: TextStyle(color: context.colors.error)),
                                   );
                                 },
@@ -306,32 +303,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subTitle: const Text('Last backup: 2023-10-01'),
                   // icon: const Icon(Icons.import_export_rounded),
                   tiles: [
-                    SectionTile(
-                      title: const Text('Google Sign-in'),
-                      icon: const Icon(Icons.login_rounded),
-                      subtitle: BlocSelector<AppCubit, AppState, InveslyUser?>(
-                        selector: (state) => state.user,
-                        builder: (context, currentUser) {
-                          if (currentUser.isNullOrEmpty) {
-                            return const Text('Sign in to your Google account');
-                          }
-                          return Text(currentUser?.email ?? 'email: NA');
-                        },
-                      ),
-                      trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                        selector: (state) => state.user.isNullOrEmpty,
-                        builder: (context, userNotExists) {
-                          return FilledButton.tonal(
-                            // icon: userNotExists
-                            //     ? Icon(Icons.login_rounded, color: context.theme.primaryColor)
-                            //     : Icon(Icons.logout_rounded, color: context.theme.primaryColor),
-                            onPressed: () => userNotExists ? startLoginFlow(context) : startLogoutFlow(context),
-                            style: FilledButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
-                            child: userNotExists ? const Text('Sign in') : const Text('Sign out'),
-                          );
-                        },
-                      ),
-                    ),
                     SectionTile.navigation(
                       icon: const Icon(Icons.restore_rounded),
                       title: const Text('Manual import'),
@@ -422,21 +393,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         'Restore your data from a previously saved backup. This action will overwrite your current data.',
                       ),
                       onTap: () async {
-                        var accessToken = context.read<AppCubit>().state.user?.gapiAccessToken;
-                        if (accessToken == null) {
-                          // final user = await context.read<AuthRepository>().signInWithGoogle();
-                          final user = await AuthRepository.instance.signInWithGoogle();
-                          if (user == null) {
-                            $logger.w('Google sign-in failed');
-                            return;
-                          }
-                          // accessToken = await context.read<AuthRepository>().getAccessToken(user);
-                          accessToken = await AuthRepository.instance.getAccessToken(user);
+                        await startLoginFlow(context);
+                        if (context.mounted) {
+                          DriveImportBackupPage.showModal(context);
                         }
-                        // final files = await context.read<AuthRepository>().getDriveFiles(accessToken);
-                        final files = await AuthRepository.instance.getDriveFiles(accessToken);
-                        $logger.i(files);
                       },
+                      // onTap: () async {
+                      //   var accessToken = context.read<AppCubit>().state.user?.gapiAccessToken;
+                      //   if (accessToken == null) {
+                      //     // final user = await context.read<AuthRepository>().signInWithGoogle();
+                      //     final user = await AuthRepository.instance.signInWithGoogle();
+                      //     if (user == null) {
+                      //       $logger.w('Google sign-in failed');
+                      //       return;
+                      //     }
+                      //     // accessToken = await context.read<AuthRepository>().getAccessToken(user);
+                      //     accessToken = await AuthRepository.instance.getAccessToken(user);
+                      //   }
+                      //   // final files = await context.read<AuthRepository>().getDriveFiles(accessToken);
+                      //   final files = await AuthRepository.instance.getDriveFiles(accessToken);
+                      //   $logger.i(files);
+                      // },
                     ),
                   ],
                 ),

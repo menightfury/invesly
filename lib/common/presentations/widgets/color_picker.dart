@@ -81,7 +81,11 @@ class InveslyColorPickerWidget extends StatelessWidget {
         // crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 16.0,
         children: <Widget>[
-          Text('Pick a color'),
+          Text(
+            'Pick a color',
+            style: TextStyle(fontWeight: FontWeight.w600),
+            overflow: TextOverflow.ellipsis,
+          ),
           Expanded(
             child: SingleChildScrollView(
               controller: scrollController,
