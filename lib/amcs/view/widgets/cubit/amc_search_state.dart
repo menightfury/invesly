@@ -3,9 +3,8 @@ part of 'amc_search_cubit.dart';
 enum AmcSearchStateStatus { initial, empty, loading, success, error }
 
 class AmcSearchState extends Equatable {
-  const AmcSearchState.initial()
-    : searchGenre = AmcGenre.stock,
-      results = const [],
+  const AmcSearchState.initial({required this.searchGenre})
+    : results = const [],
       error = null,
       status = AmcSearchStateStatus.initial;
 
@@ -41,7 +40,7 @@ class AmcSearchState extends Equatable {
     final newStatus = status ?? this.status;
     final newSearchGenre = searchGenre ?? this.searchGenre;
     return switch (newStatus) {
-      AmcSearchStateStatus.initial => AmcSearchState.initial(),
+      AmcSearchStateStatus.initial => AmcSearchState.initial(searchGenre: newSearchGenre),
       AmcSearchStateStatus.empty => AmcSearchState._empty(searchGenre: newSearchGenre),
       AmcSearchStateStatus.loading => AmcSearchState._loading(searchGenre: newSearchGenre),
       AmcSearchStateStatus.success => AmcSearchState._success(results ?? this.results, searchGenre: newSearchGenre),

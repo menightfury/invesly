@@ -1,21 +1,25 @@
 import 'dart:async';
 
 import 'package:intl/intl.dart';
+
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/accounts/widget/account_picker_widget.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/amcs/model/amc_repository.dart';
+import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/presentations/widgets/async_form_field.dart';
 import 'package:invesly/common/utils/keyboard.dart';
+import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
 import 'package:invesly/transactions/edit_transaction/widgets/calculator/calculator.dart';
-
-import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
-import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/accounts/model/account_model.dart';
-import 'package:invesly/accounts/widget/account_picker_widget.dart';
+import 'package:invesly/transactions/widgets/genre_selector_form_field.dart';
 
 import 'cubit/edit_transaction_cubit.dart';
 
@@ -27,10 +31,8 @@ class EditTransactionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => EditTransactionCubit(
-        repository: context.read<TransactionRepository>(),
-        initialInvestment: initialTransaction,
-      ),
+      create: (context) =>
+          EditTransactionCubit(repository: context.read<TransactionRepository>(), initial: initialTransaction),
       child: const _EditTransactionScreen(),
     );
   }
@@ -48,8 +50,6 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
   late final ValueNotifier<AutovalidateMode> _validateMode;
   late final DateTime _dateNow;
 
-  final _types = TransactionType.values;
-
   @override
   void initState() {
     super.initState();
@@ -65,8 +65,14 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
   }
 
   Future<void> _handleSavePressed(BuildContext context) async {
+    final transactionCubit = context.read<EditTransactionCubit>();
+    // final amcRepository = context.read<AmcRepository>();
     if (_formKey.currentState!.validate()) {
-      await context.read<EditTransactionCubit>().save();
+      await transactionCubit.save();
+      // save amc in database
+      if (transactionCubit.state.amc == null) return;
+      // await amcRepository.saveAmc(cubit.state.amc);
+      await AmcRepository.instance.saveAmc(transactionCubit.state.amc!);
       // if (!context.mounted) return;
       // const message = SnackBar(content: Text('Investment saved successfully.'), backgroundColor: Colors.teal);
       // ScaffoldMessenger.of(context).showSnackBar(message);
@@ -113,23 +119,48 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
             },
             child: CustomScrollView(
               slivers: <Widget>[
-                SliverAppBar(pinned: true, floating: true, actions: [_UserPickerWidget()]),
+                SliverAppBar(
+                  pinned: true,
+                  floating: true,
+                  actions: [_AccountPickerWidget()],
+                  actionsPadding: const EdgeInsets.only(right: 16.0),
+                ),
 
                 SliverList(
                   delegate: SliverChildListDelegate.fixed(<Widget>[
                     // ~ Title
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Text(cubit.state.isNewTransaction ? 'Add' : 'Edit', style: context.textTheme.headlineSmall),
-                          Text('Transaction', style: context.textTheme.headlineMedium),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                cubit.state.isNewTransaction ? 'Add' : 'Edit',
+                                style: context.textTheme.headlineSmall,
+                              ),
+                              Text('Investment', style: context.textTheme.headlineMedium),
+                            ],
+                          ),
+                          BlocSelector<EditTransactionCubit, EditTransactionState, double>(
+                            selector: (state) => (state.amount ?? 0.0) * (state.quantity ?? 0.0),
+                            builder: (context, total) {
+                              return CurrencyView(
+                                amount: total,
+                                integerStyle: context.textTheme.headlineLarge,
+                                decimalsStyle: context.textTheme.headlineSmall,
+                                currencyStyle: context.textTheme.bodyMedium,
+                                // compactView: snapshot.data! >= 1_00_00_000
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12.0),
+                    const Gap(12.0),
 
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -137,163 +168,20 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                         spacing: 12.0,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // ~ Amount
-                          AsyncFormField<num>(
-                            initialValue: cubit.state.amount,
-                            validator: (value) {
-                              if (value == null || value.isNegative) {
-                                return 'Can\'t be empty or negative';
-                              }
-                              return null;
-                            },
-                            onTapCallback: (value) async {
-                              final newValue = await InveslyCalculatorWidget.showModal(context, value);
-                              if (newValue == null) return null;
-                              return newValue;
-                            },
-                            onChanged: (value) {
-                              if (value == null) return;
-                              cubit.updateAmount(value.toDouble());
-                            },
-                            contentAlignment: Alignment.center,
-                            padding: EdgeInsets.zero,
-                            color: Colors.transparent,
-                            errorColor: Colors.transparent,
-                            childBuilder: (value) {
-                              final textStyle = context.textTheme.headlineLarge?.copyWith(fontSize: 80.0);
-                              return Text(
-                                NumberFormat.decimalPattern('en_IN').format(value ?? 0.0),
-                                style: textStyle?.copyWith(color: value == null ? Colors.grey : null),
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                              );
-                            },
-                          ),
-
-                          // ~~~ Units and Amount ~~~
+                          // ~~~ Genre and Date ~~~
                           Row(
                             spacing: 12.0,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              // ~ Units
+                              // ~ Genre ~
                               Expanded(
-                                child: AsyncFormField<num>(
-                                  initialValue: cubit.state.quantity,
-                                  validator: (value) {
-                                    if (value == null) {
-                                      return 'Can\'t be empty';
-                                    }
-                                    if (value.isNegative) {
-                                      return 'Can\'t be negative';
-                                    }
-                                    return null;
-                                  },
-                                  onTapCallback: (value) async {
-                                    final newValue = await InveslyCalculatorWidget.showModal(context, value);
-                                    if (newValue == null) return null;
-                                    return newValue;
-                                  },
+                                child: GenreSelectorFormField(
+                                  initialValue: cubit.state.genre,
                                   onChanged: (value) {
                                     if (value == null) return;
-                                    cubit.updateQuantity(value.toDouble());
+                                    cubit.updateGenre(value);
                                   },
-                                  childBuilder: (value) {
-                                    if (value == null) {
-                                      return const Text(
-                                        'e.g. 10',
-                                        style: TextStyle(color: Colors.grey),
-                                        overflow: TextOverflow.ellipsis,
-                                      );
-                                    }
-                                    return Text(
-                                      NumberFormat.decimalPattern('en_IN').format(value),
-                                      textAlign: TextAlign.right,
-                                      overflow: TextOverflow.ellipsis,
-                                    );
-                                  },
-                                ).withLabel('No. of units'),
-                              ),
-                            ],
-                          ),
-
-                          // ~~~ AMC ~~~
-                          AsyncFormField<InveslyAmc>(
-                            initialValue: cubit.state.amc,
-                            validator: (value) {
-                              if (value == null) {
-                                return 'Can\'t be empty';
-                              }
-                              return null;
-                            },
-                            onTapCallback: (value) async {
-                              // final newAmc = await InveslyAmcPickerWidget.showModal(context, value?.id);
-                              final newAmc = await context.push(InveslyAmcPickerWidget(amcId: value?.id));
-                              if (newAmc == null) return null;
-                              // return newAmc;
-                            },
-                            onChanged: (value) {
-                              if (value == null) return;
-                              cubit.updateAmc(value);
-                            },
-                            childBuilder: (value) {
-                              if (value == null) {
-                                return const Text('Select AMC', style: TextStyle(color: Colors.grey));
-                              }
-                              return Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(value.name, overflow: TextOverflow.ellipsis),
-                                  Text(
-                                    (value.genre ?? AmcGenre.misc).title,
-                                    style: context.textTheme.labelSmall,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              );
-                            },
-                          ).withLabel('Asset management company (AMC)'),
-
-                          // ~~~ Type and Date ~~~
-                          Row(
-                            spacing: 12.0,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              // ~ Type ~
-                              Expanded(
-                                child: AsyncFormField<TransactionType>(
-                                  contentAlignment: Alignment.center,
-                                  initialValue: cubit.state.type,
-                                  validator: (value) {
-                                    if (value == null) {
-                                      return 'Can\'t be empty';
-                                    }
-                                    return null;
-                                  },
-                                  onTapCallback: (_) {
-                                    int index = _types.indexOf(cubit.state.type);
-                                    if (index < 0) {
-                                      index = 0;
-                                    }
-                                    final nextIndex = index < (_types.length - 1) ? index + 1 : 0;
-                                    return _types.elementAt(nextIndex);
-                                  },
-                                  onChanged: (value) {
-                                    if (value == null) return;
-                                    cubit.updateTransactionType(value);
-                                  },
-                                  childBuilder: (value) {
-                                    if (value == null) {
-                                      return const Text(
-                                        'Select type',
-                                        style: TextStyle(color: Colors.grey),
-                                        overflow: TextOverflow.ellipsis,
-                                      );
-                                    }
-
-                                    return _TransactionTypeViewer(type: value);
-                                  },
-                                ).withLabel('Type'),
+                                ).withLabel('Investment type'),
                               ),
 
                               // ~ Date ~
@@ -334,6 +222,185 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                             ],
                           ),
 
+                          // ~~~ AMC ~~~
+                          AsyncFormField<InveslyAmc>(
+                            initialValue: cubit.state.amc,
+                            validator: (value) {
+                              if (value == null) {
+                                return 'Can\'t be empty';
+                              }
+                              return null;
+                            },
+                            onTapCallback: (value) async {
+                              // final newAmc = await InveslyAmcPickerWidget.showModal(context, value?.id);
+                              final newAmc = await context.push<InveslyAmc>(
+                                InveslyAmcPickerWidget(
+                                  amcId: value?.id,
+                                  genre: cubit.state.genre,
+                                  onPickup: (amc) => context.pop(amc),
+                                ),
+                              );
+                              return newAmc ?? value;
+                            },
+                            onChanged: (value) {
+                              if (value == null) return;
+                              cubit.updateAmc(value);
+                            },
+                            childBuilder: (value) {
+                              if (value == null) {
+                                return const Text('Select AMC', style: TextStyle(color: Colors.grey));
+                              }
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(value.name, overflow: TextOverflow.ellipsis),
+                                  Text(
+                                    (value.genre ?? AmcGenre.misc).title,
+                                    style: context.textTheme.labelSmall,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              );
+                            },
+                          ).withLabel('Asset management company (AMC)'),
+
+                          // ~~~ Units and Amount ~~~
+                          Row(
+                            // spacing: 12.0,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              // ~ Amount
+                              Expanded(
+                                child: Column(
+                                  spacing: iFormFieldLabelSpacing,
+                                  crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
+                                      selector: (state) => state.genre,
+                                      builder: (context, genre) {
+                                        final label = switch (genre) {
+                                          AmcGenre.mf => 'NAV (Rs.)',
+                                          AmcGenre.stock => 'Unit price (Rs.)',
+                                          _ => 'Total amount (Rs.)',
+                                        };
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                          child: FadeIn(
+                                            key: ValueKey(label),
+                                            from: Offset(0.0, 0.4),
+                                            child: Text(label, overflow: TextOverflow.ellipsis),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    AsyncFormField<num>(
+                                      initialValue: cubit.state.amount,
+                                      validator: (value) {
+                                        if (value == null || value.isNegative) {
+                                          return 'Can\'t be empty or negative';
+                                        }
+                                        return null;
+                                      },
+                                      onTapCallback: (value) async {
+                                        final newValue = await InveslyCalculatorWidget.showModal(context, value);
+                                        return newValue ?? value;
+                                      },
+                                      onChanged: (value) {
+                                        if (value == null) return;
+                                        cubit.updateAmount(value.toDouble());
+                                      },
+                                      childBuilder: (value) {
+                                        if (value == null) {
+                                          return const Text(
+                                            'e.g. 1,500',
+                                            style: TextStyle(color: Colors.grey),
+                                            overflow: TextOverflow.ellipsis,
+                                          );
+                                        }
+                                        return Text(
+                                          NumberFormat.decimalPattern('en_IN').format(value),
+                                          textAlign: TextAlign.right,
+                                          overflow: TextOverflow.ellipsis,
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // ~ Units
+                              BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
+                                selector: (state) => state.genre,
+                                builder: (context, genre) {
+                                  final label = switch (genre) {
+                                    AmcGenre.mf => 'No. of units',
+                                    AmcGenre.stock => 'No. of shares',
+                                    _ => '',
+                                  };
+                                  if (genre != AmcGenre.mf && genre != AmcGenre.stock) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 12.0),
+                                      child: Column(
+                                        spacing: iFormFieldLabelSpacing,
+                                        crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: <Widget>[
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                            child: FadeIn(
+                                              key: ValueKey(label),
+                                              from: Offset(0.0, 0.4),
+                                              child: Text(label, overflow: TextOverflow.ellipsis),
+                                            ),
+                                          ),
+                                          AsyncFormField<num>(
+                                            initialValue: cubit.state.quantity,
+                                            validator: (value) {
+                                              // if (value == null) {
+                                              //   return 'Can\'t be empty';
+                                              // }
+                                              if (value?.isNegative ?? false) {
+                                                return 'Can\'t be negative';
+                                              }
+                                              return null;
+                                            },
+                                            onTapCallback: (value) async {
+                                              final newValue = await InveslyCalculatorWidget.showModal(context, value);
+                                              return newValue ?? value;
+                                            },
+                                            onChanged: (value) {
+                                              if (value == null) return;
+                                              cubit.updateQuantity(value.toDouble());
+                                            },
+                                            childBuilder: (value) {
+                                              if (value == null) {
+                                                return const Text(
+                                                  'e.g. 10',
+                                                  style: TextStyle(color: Colors.grey),
+                                                  overflow: TextOverflow.ellipsis,
+                                                );
+                                              }
+                                              return Text(
+                                                NumberFormat.decimalPattern('en_IN').format(value),
+                                                textAlign: TextAlign.right,
+                                                overflow: TextOverflow.ellipsis,
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+
                           // ~~~ Note ~~~
                           TextFormField(
                             decoration: const InputDecoration(hintText: 'Notes'),
@@ -368,58 +435,58 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
   }
 }
 
-class _UserPickerWidget extends StatelessWidget {
-  const _UserPickerWidget({super.key});
+class _AccountPickerWidget extends StatefulWidget {
+  const _AccountPickerWidget({super.key});
+
+  @override
+  State<_AccountPickerWidget> createState() => _AccountPickerWidgetState();
+}
+
+class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
+  InveslyAccount? initialAccount;
+
+  @override
+  void initState() {
+    super.initState();
+    final cubit = context.read<EditTransactionCubit>();
+    final accountsState = context.read<AccountsCubit>().state;
+    if (accountsState.isLoaded) {
+      final accounts = (accountsState as AccountsLoadedState).accounts;
+      if (accounts.isEmpty) return;
+
+      final currentAccountId = cubit.state.account ?? context.read<AppCubit>().state.primaryAccountId;
+
+      if (cubit.state.isNewTransaction) {
+        initialAccount = accounts.firstWhere((acc) => acc.id == currentAccountId, orElse: () => accounts.first);
+        cubit.updateAccount(initialAccount!);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
 
     return FormField<InveslyAccount>(
-      builder: (state) {
-        late final Widget icon;
-
-        if (state.hasError) {
-          icon = Icon(Icons.person_2_rounded, color: context.colors.error);
-        } else if (state.value != null) {
-          icon = CircleAvatar(foregroundImage: AssetImage(state.value!.avatarSrc), radius: 20.0);
-        } else {
-          icon = const Icon(Icons.person_2_rounded);
-        }
+      initialValue: initialAccount,
+      builder: (formFieldState) {
         return Shake(
-          shake: state.hasError,
-          child: IconButton(
-            onPressed: () async {
+          shake: formFieldState.hasError,
+          child: GestureDetector(
+            onTap: () async {
               final newUser = await InveslyAccountPickerWidget.showModal(context, cubit.state.account?.id);
               if (newUser == null) return;
 
               cubit.updateAccount(newUser);
-              state.didChange(newUser);
+              formFieldState.didChange(newUser);
             },
-            style: IconButton.styleFrom(
-              backgroundColor: state.hasError ? context.colors.errorContainer : context.colors.primaryContainer,
+            child: CircleAvatar(
+              foregroundImage: formFieldState.value != null ? AssetImage(formFieldState.value!.avatarSrc) : null,
+              backgroundColor: formFieldState.hasError ? context.colors.errorContainer : null,
+              child: formFieldState.value == null
+                  ? Icon(Icons.person_rounded, color: formFieldState.hasError ? context.colors.error : null)
+                  : null,
             ),
-            icon: icon,
-            // icon: BlocBuilder<UsersCubit, UsersState>(
-            //   builder: (context, state) {
-            //     if (state is UsersErrorState) {
-            //       return const Icon(Icons.error_outline_rounded, color: Colors.redAccent);
-            //     }
-
-            //     if (state is UsersLoadedState) {
-            //       final users = state.users;
-            //       final currentUser = users.isEmpty ? null : users.firstWhereOrNull((u) => u.id == cubit.state.userId);
-
-            //       return CircleAvatar(
-            //         foregroundImage: currentUser != null ? AssetImage(currentUser.avatar) : null,
-            //         radius: 20.0,
-            //         child: Text(currentUser?.name.substring(0, 1).toUpperCase() ?? '?'),
-            //       );
-            //     }
-
-            //     return const CircularProgressIndicator();
-            //   },
-            // ),
           ),
         );
       },
@@ -429,64 +496,6 @@ class _UserPickerWidget extends StatelessWidget {
         }
         return null;
       },
-    );
-  }
-}
-
-class _TransactionTypeViewer extends StatefulWidget {
-  const _TransactionTypeViewer({super.key, required this.type});
-
-  final TransactionType type;
-
-  @override
-  State<_TransactionTypeViewer> createState() => __TransactionTypeViewerState();
-}
-
-class __TransactionTypeViewerState extends State<_TransactionTypeViewer> {
-  late TransactionType _prevType;
-  // AnimationController? _fadeOutController;
-  AnimationController? _fadeInController;
-
-  @override
-  void initState() {
-    super.initState();
-    _prevType = widget.type;
-    // _fadeOutController?.value = 1.0;
-    // _fadeInController?.value = 1.0;
-  }
-
-  @override
-  void didUpdateWidget(_TransactionTypeViewer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _prevType = oldWidget.type;
-    if (_prevType != widget.type) {
-      // _fadeOutController
-      //   ?..reset()
-      //   ..forward();
-      _fadeInController
-        ?..reset()
-        ..forward();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: <Widget>[
-        // FadeOut(
-        //   fadeOut: false,
-        //   to: Offset(0.0, -0.4),
-        //   controller: (ctrl) => _fadeOutController = ctrl,
-        //   child: Text(_prevType.name.toSentenceCase()),
-        // ),
-        FadeIn(
-          // fadeIn: false,
-          from: Offset(0.0, 0.4),
-          controller: (ctrl) => _fadeInController = ctrl,
-          child: Text(widget.type.name.toUpperCase()),
-        ),
-      ],
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_classic.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';

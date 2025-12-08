@@ -34,7 +34,7 @@ class _CategoriesWidgetState extends State<_CategoriesWidget> {
                     : null;
                 final totalAmount = stats?.fold<double>(0, (v, el) => v + el.totalAmount);
                 return Section(
-                  title: const Text('Total investment'),
+                  title: const Text('Total Investment'),
                   icon: const Icon(Icons.pie_chart_rounded),
                   // InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
                   // tiles: AmcGenre.values.map((genre) => _buildGenre(context, genre)).toList(),

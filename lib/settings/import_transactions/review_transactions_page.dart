@@ -1,7 +1,7 @@
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/import_transactions/cubit/import_transactions_cubit.dart';
-import 'package:invesly/transactions/edit_transaction/edit_transaction_screen_classic.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 
 class ReviewTransactionsPage extends StatelessWidget {
   const ReviewTransactionsPage({super.key});

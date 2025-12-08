@@ -7,10 +7,21 @@ import 'package:invesly/common_libs.dart';
 part 'amc_search_state.dart';
 
 class AmcSearchCubit extends Cubit<AmcSearchState> {
-  AmcSearchCubit({required AmcRepository amcRepository})
+  AmcSearchCubit({required AmcRepository amcRepository, AmcGenre? genre})
     : _amcRepository = amcRepository,
       _debounce = _Debounce(1.seconds),
-      super(AmcSearchState.initial());
+      super(AmcSearchState.initial(searchGenre: genre ?? AmcGenre.misc));
+
+  //  EditTransactionState(
+  //     id: initial?.id,
+  //     account: initial?.account,
+  //     quantity: initial?.quantity,
+  //     amount: initial?.totalAmount,
+  //     type: (initial?.totalAmount.isNegative ?? false) ? TransactionType.redeemed : TransactionType.invested,
+  //     genre: initial?.amc?.genre ?? AmcGenre.misc,
+  //     amc: initial?.amc,
+  //     notes: initial?.note,
+  //   ),
 
   final AmcRepository _amcRepository;
   final Map<String, List<InveslyAmc>> _amcCache = {}; // key is combination of query and genre

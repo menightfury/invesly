@@ -7,16 +7,17 @@ import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 
 class InveslyAmcPickerWidget extends StatelessWidget {
-  const InveslyAmcPickerWidget({super.key, this.amcId, this.onPickup});
+  const InveslyAmcPickerWidget({super.key, this.amcId, this.genre, this.onPickup});
 
   final String? amcId;
   final ValueChanged<InveslyAmc>? onPickup;
+  final AmcGenre? genre;
 
-  static Future<InveslyAmc?> showModal(BuildContext context, [String? amcId]) async {
+  static Future<InveslyAmc?> showModal(BuildContext context, [String? amcId, AmcGenre? genre]) async {
     return await showDialog<InveslyAmc>(
       context: context,
       builder: (context) {
-        return InveslyAmcPickerWidget(amcId: amcId, onPickup: (amc) => Navigator.maybePop(context, amc));
+        return InveslyAmcPickerWidget(amcId: amcId, genre: genre, onPickup: (amc) => Navigator.maybePop(context, amc));
       },
     );
   }
@@ -30,7 +31,7 @@ class InveslyAmcPickerWidget extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: BlocProvider(
             // create: (context) => AmcSearchCubit(amcRepository: context.read<AmcRepository>()),
-            create: (context) => AmcSearchCubit(amcRepository: AmcRepository.instance),
+            create: (context) => AmcSearchCubit(amcRepository: AmcRepository.instance, genre: genre),
             child: _InveslyAmcPickerWidget(onPickup: onPickup),
           ),
         ),
@@ -93,10 +94,10 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
               wrapped: false,
               options: searchChipsData,
               selected: amcGenre,
-              onChanged: (value) {
-                cubit.updateSearchGenre(value);
-                cubit.search(_searchController.text);
-              },
+              // onChanged: (value) {
+              //   cubit.updateSearchGenre(value);
+              //   cubit.search(_searchController.text);
+              // },
             );
           },
         ),

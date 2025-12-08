@@ -51,8 +51,8 @@ class _RecentTransactions extends StatelessWidget {
         }
 
         return Section(
-          title: const Text('Recent transactions'),
-          subTitle: Text('${dateRange.start.toReadable()} - ${dateRange.end.toReadable()}'),
+          title: const Text('Recent Transactions'),
+          subTitle: Text('From ${dateRange.start.toReadable()} to ${dateRange.end.toReadable()}'),
           icon: const Icon(Icons.swap_vert_rounded),
           tiles: tiles,
         );

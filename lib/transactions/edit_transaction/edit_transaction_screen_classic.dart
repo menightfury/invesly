@@ -30,10 +30,8 @@ class EditTransactionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => EditTransactionCubit(
-        repository: context.read<TransactionRepository>(),
-        initialInvestment: initialTransaction,
-      ),
+      create: (context) =>
+          EditTransactionCubit(repository: context.read<TransactionRepository>(), initial: initialTransaction),
       child: const _EditTransactionScreen(),
     );
   }

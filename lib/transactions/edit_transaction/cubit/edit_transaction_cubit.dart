@@ -7,19 +7,18 @@ import 'package:invesly/common_libs.dart';
 part 'edit_transaction_state.dart';
 
 class EditTransactionCubit extends Cubit<EditTransactionState> {
-  EditTransactionCubit({required TransactionRepository repository, InveslyTransaction? initialInvestment})
+  EditTransactionCubit({required TransactionRepository repository, InveslyTransaction? initial})
     : _repository = repository,
       super(
         EditTransactionState(
-          id: initialInvestment?.id,
-          account: initialInvestment?.account,
-          quantity: initialInvestment?.quantity,
-          amount: initialInvestment?.totalAmount,
-          type: (initialInvestment?.totalAmount.isNegative ?? false)
-              ? TransactionType.redeemed
-              : TransactionType.invested,
-          amc: initialInvestment?.amc,
-          notes: initialInvestment?.note,
+          id: initial?.id,
+          account: initial?.account,
+          quantity: initial?.quantity,
+          amount: initial?.totalAmount,
+          type: (initial?.totalAmount.isNegative ?? false) ? TransactionType.redeemed : TransactionType.invested,
+          genre: initial?.amc?.genre ?? AmcGenre.misc,
+          amc: initial?.amc,
+          notes: initial?.note,
         ),
       );
 
@@ -39,6 +38,10 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
 
   void updateTransactionType(TransactionType type) {
     emit(state.copyWith(type: type));
+  }
+
+  void updateGenre(AmcGenre genre) {
+    emit(state.copyWith(genre: genre));
   }
 
   void updateAmc(InveslyAmc amc) {
@@ -64,7 +67,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       account: state.account!,
       amc: state.amc,
       quantity: state.quantity ?? 0.0,
-      totalAmount: state.type == TransactionType.invested ? state.amount!.abs() : -state.amount!.abs(),
+      totalAmount: state.genre == TransactionType.invested ? state.amount!.abs() : -state.amount!.abs(),
       investedOn: state.date ?? DateTime.now(),
       note: state.notes,
     );
