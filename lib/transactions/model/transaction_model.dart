@@ -64,6 +64,7 @@ class InveslyTransaction extends TransactionInDb {
     // this.transactionType = TransactionType.invested,
     this.amc,
     super.quantity = 0.0,
+    super.rate = 0.0,
     super.totalAmount = 0.0,
     required this.investedOn,
     super.note,
@@ -130,6 +131,7 @@ class TransactionInDb extends InveslyDataModel {
     // this.typeIndex = 0, // 0: invested, 1: redeemed
     this.amcId,
     this.quantity = 0.0,
+    this.rate = 0.0,
     this.totalAmount = 0.0,
     required this.date,
     this.note,
@@ -139,14 +141,13 @@ class TransactionInDb extends InveslyDataModel {
   // final int typeIndex;
   final String? amcId;
   final double quantity;
-  // use totalAmount instead of unitRate,
-  // because for dividend, while quantity will be 0, totalAmount will have some value
+  final double rate;
   final double totalAmount;
   final int date;
   final String? note;
 
   @override
-  List<Object?> get props => super.props..addAll([accountId, amcId, quantity, totalAmount, date, note]);
+  List<Object?> get props => super.props..addAll([accountId, amcId, quantity, rate, totalAmount, date, note]);
 
   // TransactionInDb copyWith({
   //   String? userId,
@@ -182,13 +183,15 @@ class TransactionTable extends TableSchema<TransactionInDb> {
   TableColumn<String> get amcIdColumn =>
       TableColumn('amc_id', tableName, foreignReference: ForeignReference('amcs', 'id'), isNullable: true);
   TableColumn<double> get quantityColumn => TableColumn('quantity', tableName, type: TableColumnType.real);
+  TableColumn<double> get rateColumn => TableColumn('rate', tableName, type: TableColumnType.real);
   TableColumn<double> get amountColumn => TableColumn('total_amount', tableName, type: TableColumnType.real);
   TableColumn<int> get dateColumn => TableColumn('date', tableName, type: TableColumnType.integer);
   TableColumn<String> get noteColumn => TableColumn('note', tableName, isNullable: true);
 
   @override
   Set<TableColumn> get columns =>
-      super.columns..addAll([accountIdColumn, amcIdColumn, quantityColumn, amountColumn, dateColumn, noteColumn]);
+      super.columns
+        ..addAll([accountIdColumn, amcIdColumn, quantityColumn, rateColumn, amountColumn, dateColumn, noteColumn]);
 
   @override
   Map<String, dynamic> fromModel(TransactionInDb data) {
@@ -198,6 +201,7 @@ class TransactionTable extends TableSchema<TransactionInDb> {
       // typeColumn.title: data.typeIndex,
       amcIdColumn.title: data.amcId,
       quantityColumn.title: data.quantity,
+      rateColumn.title: data.rate,
       amountColumn.title: data.totalAmount,
       dateColumn.title: data.date,
       noteColumn.title: data.note,
@@ -212,6 +216,7 @@ class TransactionTable extends TableSchema<TransactionInDb> {
       // typeIndex: map[typeColumn.title] as int,
       amcId: map[amcIdColumn.title] as String?,
       quantity: (map[quantityColumn.title] as num).toDouble(),
+      rate: (map[rateColumn.title] as num).toDouble(),
       totalAmount: (map[amountColumn.title] as num).toDouble(),
       date: map[dateColumn.title] as int,
       note: map[noteColumn.title] as String?,

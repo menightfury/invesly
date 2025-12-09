@@ -10,6 +10,7 @@ class Tappable extends StatelessWidget {
     this.leading,
     this.trailing,
     this.color,
+    this.disabledColor,
     this.borderRadius = iButtonBorderRadius,
     this.border,
     this.shape,
@@ -21,9 +22,11 @@ class Tappable extends StatelessWidget {
     this.spacing = 8.0,
     this.onTap,
     this.onLongPress,
+    this.enabled = true,
   });
 
   final Color? color;
+  final Color? disabledColor;
   final BorderRadius? borderRadius;
   final BorderSide? border;
   final ShapeBorder? shape;
@@ -42,6 +45,8 @@ class Tappable extends StatelessWidget {
   final Widget? leading;
   final Widget? trailing;
 
+  final bool enabled;
+
   @override
   Widget build(BuildContext context) {
     final defaultShape = RoundedRectangleBorder(
@@ -50,13 +55,13 @@ class Tappable extends StatelessWidget {
     );
 
     Widget content = Material(
-      color: color ?? context.colors.primaryContainer,
+      color: enabled ? color ?? context.colors.primaryContainer : disabledColor ?? context.theme.disabledColor,
       clipBehavior: Clip.hardEdge,
       type: MaterialType.canvas,
       shape: shape ?? defaultShape,
       child: InkWell(
         customBorder: shape ?? defaultShape,
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
         onLongPress: onLongPress,
         child: SizedBox(
           width: width,

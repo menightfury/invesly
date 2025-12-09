@@ -21,19 +21,21 @@ class AsyncFormField<T> extends FormField<T> {
     Widget? trailing,
     EdgeInsetsGeometry padding = iFormFieldContentPadding,
     AlignmentGeometry contentAlignment = Alignment.centerLeft,
-    Color? color,
-    Color? errorColor, // TODO: Change to material state color
+    WidgetStateColor? materialStateColor,
+    // Color? disabledColor,
+    // Color? color,
+    // Color? errorColor, // TODO: Change to material state color
     super.restorationId,
   }) : super(
          autovalidateMode: autovalidateMode ?? AutovalidateMode.disabled,
          builder: (FormFieldState<T> fieldState) {
-           //  final state = field as _AsyncFormFieldState;
-           final theme = Theme.of(fieldState.context);
+           final state = fieldState as _AsyncFormFieldState;
+           final theme = Theme.of(state.context);
 
            final colors = theme.colorScheme;
            final textTheme = theme.textTheme;
 
-           final errorText = fieldState.errorText;
+           final errorText = state.errorText;
 
            TextStyle errorStyle = textTheme.bodySmall ?? const TextStyle();
            errorStyle = errorStyle.copyWith(color: colors.error).merge(theme.inputDecorationTheme.errorStyle);
@@ -41,11 +43,11 @@ class AsyncFormField<T> extends FormField<T> {
            Widget? error;
            if (errorText != null) {
              error =
-                 errorBuilder?.call(fieldState.context, errorText) ??
+                 errorBuilder?.call(state.context, errorText) ??
                  Text(errorText, style: errorStyle, overflow: TextOverflow.ellipsis, maxLines: 1);
            }
 
-           final hasError = errorText != null && error != null;
+           //  final hasError = errorText != null && error != null;
 
            return Column(
              mainAxisSize: MainAxisSize.min,
@@ -53,31 +55,35 @@ class AsyncFormField<T> extends FormField<T> {
              spacing: 4.0,
              children: <Widget>[
                Shake(
-                 shake: hasError,
+                 shake: state.hasError,
                  child: Tappable(
-                   onTap: () {
-                     if (onTapCallback == null) return;
+                   onTap: enabled
+                       ? () {
+                           if (onTapCallback == null) return;
 
-                     final result = onTapCallback.call(fieldState.value);
-                     if (result is Future<T?>) {
-                       result.then((value) => fieldState.didChange(value));
-                     } else {
-                       fieldState.didChange(result);
-                     }
-                   },
+                           final result = onTapCallback.call(state.value);
+                           if (result is Future<T?>) {
+                             result.then((value) => state.didChange(value));
+                           } else {
+                             state.didChange(result);
+                           }
+                         }
+                       : null,
                    childAlignment: contentAlignment,
                    padding: padding,
                    leading: leading,
                    trailing: trailing,
-                   color: hasError ? errorColor ?? colors.errorContainer : color ?? colors.primaryContainer,
-                   child: childBuilder(fieldState.value),
+                   color:
+                       materialStateColor?.resolve(state.widgetState) ??
+                       WidgetStateProperty.resolveAs(state.defaultColor, state.widgetState),
+                   child: childBuilder(state.value),
                  ),
                ),
 
                //  if (hasError)
                Padding(
                  padding: padding.resolve(TextDirection.ltr).copyWith(top: 0.0, bottom: 0.0),
-                 child: FadeIn(from: Offset(0.0, -0.25), fadeIn: hasError, child: error ?? SizedBox.shrink()),
+                 child: FadeIn(from: Offset(0.0, -0.25), fadeIn: state.hasError, child: error ?? SizedBox.shrink()),
                ),
              ],
            );
@@ -92,6 +98,25 @@ class AsyncFormField<T> extends FormField<T> {
 
 class _AsyncFormFieldState<T> extends FormFieldState<T> {
   AsyncFormField<T> get _formField => widget as AsyncFormField<T>;
+
+  Set<WidgetState> get widgetState => <WidgetState>{
+    if (!_formField.enabled) WidgetState.disabled,
+    // if (isFocused) WidgetState.focused,
+    // if (isHovering) WidgetState.hovered,
+    if (hasError) WidgetState.error,
+  };
+
+  Color get defaultColor => WidgetStateColor.resolveWith((Set<WidgetState> states) {
+    if (states.contains(WidgetState.disabled)) {
+      return Colors.black26;
+    }
+
+    if (states.contains(WidgetState.error)) {
+      return context.colors.errorContainer;
+    }
+
+    return context.colors.primaryContainer;
+  });
 
   @override
   void didChange(T? value) {

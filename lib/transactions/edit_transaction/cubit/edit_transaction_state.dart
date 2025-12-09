@@ -9,6 +9,7 @@ class EditTransactionState extends Equatable {
     this.id,
     this.account,
     this.quantity,
+    this.rate,
     required this.amount,
     this.type = TransactionType.invested,
     this.genre = AmcGenre.stock,
@@ -21,6 +22,7 @@ class EditTransactionState extends Equatable {
   final String? id;
   final InveslyAccount? account;
   final double? quantity;
+  final double? rate;
   final double? amount;
   final TransactionType type;
   final AmcGenre genre;
@@ -44,6 +46,7 @@ class EditTransactionState extends Equatable {
     InveslyTransaction? initialTransaction,
     InveslyAccount? account,
     double? quantity,
+    double? rate,
     double? amount,
     TransactionType? type,
     AmcGenre? genre,
@@ -56,6 +59,7 @@ class EditTransactionState extends Equatable {
       status: status ?? this.status,
       account: account ?? this.account,
       quantity: quantity ?? this.quantity,
+      rate: rate ?? this.rate,
       amount: amount ?? this.amount,
       type: type ?? this.type,
       genre: genre ?? this.genre,
@@ -66,7 +70,7 @@ class EditTransactionState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, id, account, quantity, amount, type, genre, date, amc, notes];
+  List<Object?> get props => [status, id, account, quantity, rate, amount, type, genre, date, amc, notes];
 }
 
 extension EditTransactionStateX on EditTransactionState {

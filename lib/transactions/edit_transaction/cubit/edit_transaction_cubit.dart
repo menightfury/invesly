@@ -28,12 +28,16 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     emit(state.copyWith(account: account));
   }
 
-  void updateQuantity(double result) {
-    emit(state.copyWith(quantity: result));
+  void updateQuantity(double value) {
+    emit(state.copyWith(quantity: value));
   }
 
-  void updateAmount(double result) {
-    emit(state.copyWith(amount: result));
+  void updateRate(double value) {
+    emit(state.copyWith(rate: value));
+  }
+
+  void updateAmount(double value) {
+    emit(state.copyWith(amount: value));
   }
 
   void updateTransactionType(TransactionType type) {

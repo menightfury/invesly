@@ -131,32 +131,12 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                     // ~ Title
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                cubit.state.isNewTransaction ? 'Add' : 'Edit',
-                                style: context.textTheme.headlineSmall,
-                              ),
-                              Text('Investment', style: context.textTheme.headlineMedium),
-                            ],
-                          ),
-                          BlocSelector<EditTransactionCubit, EditTransactionState, double>(
-                            selector: (state) => (state.amount ?? 0.0) * (state.quantity ?? 0.0),
-                            builder: (context, total) {
-                              return CurrencyView(
-                                amount: total,
-                                integerStyle: context.textTheme.headlineLarge,
-                                decimalsStyle: context.textTheme.headlineSmall,
-                                currencyStyle: context.textTheme.bodyMedium,
-                                // compactView: snapshot.data! >= 1_00_00_000
-                              );
-                            },
-                          ),
+                          Text(cubit.state.isNewTransaction ? 'Add' : 'Edit', style: context.textTheme.headlineSmall),
+                          Text('Investment', style: context.textTheme.headlineMedium),
                         ],
                       ),
                     ),
@@ -224,6 +204,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
 
                           // ~~~ AMC ~~~
                           AsyncFormField<InveslyAmc>(
+                            enabled: false,
                             initialValue: cubit.state.amc,
                             validator: (value) {
                               if (value == null) {
@@ -267,10 +248,10 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
 
                           // ~~~ Units and Amount ~~~
                           Row(
-                            // spacing: 12.0,
+                            spacing: 12.0,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              // ~ Amount
+                              // ~ Unit rate
                               Expanded(
                                 child: Column(
                                   spacing: iFormFieldLabelSpacing,
@@ -296,7 +277,8 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                       },
                                     ),
                                     AsyncFormField<num>(
-                                      initialValue: cubit.state.amount,
+                                      initialValue: cubit.state.rate,
+                                      enabled: false,
                                       validator: (value) {
                                         if (value == null || value.isNegative) {
                                           return 'Can\'t be empty or negative';
@@ -309,7 +291,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                       },
                                       onChanged: (value) {
                                         if (value == null) return;
-                                        cubit.updateAmount(value.toDouble());
+                                        cubit.updateRate(value.toDouble());
                                       },
                                       childBuilder: (value) {
                                         if (value == null) {
@@ -335,70 +317,105 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
                                 selector: (state) => state.genre,
                                 builder: (context, genre) {
                                   final label = switch (genre) {
-                                    AmcGenre.mf => 'No. of units',
                                     AmcGenre.stock => 'No. of shares',
-                                    _ => '',
+                                    _ => 'No. of units',
                                   };
-                                  if (genre != AmcGenre.mf && genre != AmcGenre.stock) {
-                                    return const SizedBox.shrink();
-                                  }
+
                                   return Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(left: 12.0),
-                                      child: Column(
-                                        spacing: iFormFieldLabelSpacing,
-                                        crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: <Widget>[
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                            child: FadeIn(
-                                              key: ValueKey(label),
-                                              from: Offset(0.0, 0.4),
-                                              child: Text(label, overflow: TextOverflow.ellipsis),
-                                            ),
+                                    child: Column(
+                                      spacing: iFormFieldLabelSpacing,
+                                      crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: <Widget>[
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                          child: FadeIn(
+                                            key: ValueKey(label),
+                                            from: Offset(0.0, 0.4),
+                                            child: Text(label, overflow: TextOverflow.ellipsis),
                                           ),
-                                          AsyncFormField<num>(
-                                            initialValue: cubit.state.quantity,
-                                            validator: (value) {
-                                              // if (value == null) {
-                                              //   return 'Can\'t be empty';
-                                              // }
-                                              if (value?.isNegative ?? false) {
-                                                return 'Can\'t be negative';
-                                              }
-                                              return null;
-                                            },
-                                            onTapCallback: (value) async {
-                                              final newValue = await InveslyCalculatorWidget.showModal(context, value);
-                                              return newValue ?? value;
-                                            },
-                                            onChanged: (value) {
-                                              if (value == null) return;
-                                              cubit.updateQuantity(value.toDouble());
-                                            },
-                                            childBuilder: (value) {
-                                              if (value == null) {
-                                                return const Text(
-                                                  'e.g. 10',
-                                                  style: TextStyle(color: Colors.grey),
-                                                  overflow: TextOverflow.ellipsis,
-                                                );
-                                              }
-                                              return Text(
-                                                NumberFormat.decimalPattern('en_IN').format(value),
-                                                textAlign: TextAlign.right,
+                                        ),
+                                        AsyncFormField<num>(
+                                          initialValue: cubit.state.quantity,
+                                          validator: (value) {
+                                            // if (value == null) {
+                                            //   return 'Can\'t be empty';
+                                            // }
+                                            if (value?.isNegative ?? false) {
+                                              return 'Can\'t be negative';
+                                            }
+                                            return null;
+                                          },
+                                          onTapCallback: (value) async {
+                                            final newValue = await InveslyCalculatorWidget.showModal(context, value);
+                                            return newValue ?? value;
+                                          },
+                                          onChanged: (value) {
+                                            if (value == null) return;
+                                            cubit.updateQuantity(value.toDouble());
+                                          },
+                                          childBuilder: (value) {
+                                            if (value == null) {
+                                              return const Text(
+                                                'e.g. 10',
+                                                style: TextStyle(color: Colors.grey),
                                                 overflow: TextOverflow.ellipsis,
                                               );
-                                            },
-                                          ),
-                                        ],
-                                      ),
+                                            }
+                                            return Text(
+                                              NumberFormat.decimalPattern('en_IN').format(value),
+                                              textAlign: TextAlign.right,
+                                              overflow: TextOverflow.ellipsis,
+                                            );
+                                          },
+                                        ),
+                                      ],
                                     ),
                                   );
                                 },
                               ),
                             ],
+                          ),
+
+                          // ~~~ Total amount ~~~
+                          BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
+                            selector: (state) => state.genre,
+                            builder: (context, _) {
+                              return AsyncFormField<num>(
+                                initialValue: cubit.state.amount,
+                                validator: (value) {
+                                  if (value == null) {
+                                    return 'Can\'t be empty';
+                                  }
+                                  if (value.isNegative) {
+                                    return 'Can\'t be negative';
+                                  }
+                                  return null;
+                                },
+                                onTapCallback: (value) async {
+                                  final newValue = await InveslyCalculatorWidget.showModal(context, value);
+                                  return newValue ?? value;
+                                },
+                                onChanged: (value) {
+                                  if (value == null) return;
+                                  cubit.updateAmount(value.toDouble());
+                                },
+                                childBuilder: (value) {
+                                  if (value == null) {
+                                    return const Text(
+                                      'e.g. 10',
+                                      style: TextStyle(color: Colors.grey),
+                                      overflow: TextOverflow.ellipsis,
+                                    );
+                                  }
+                                  return Text(
+                                    NumberFormat.decimalPattern('en_IN').format(value),
+                                    textAlign: TextAlign.right,
+                                    overflow: TextOverflow.ellipsis,
+                                  );
+                                },
+                              ).withLabel('Total amount (Rs.)');
+                            },
                           ),
 
                           // ~~~ Note ~~~
