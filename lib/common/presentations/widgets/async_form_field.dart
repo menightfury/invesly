@@ -108,7 +108,7 @@ class _AsyncFormFieldState<T> extends FormFieldState<T> {
 
   Color get defaultColor => WidgetStateColor.resolveWith((Set<WidgetState> states) {
     if (states.contains(WidgetState.disabled)) {
-      return Colors.black26;
+      return Colors.black12;
     }
 
     if (states.contains(WidgetState.error)) {

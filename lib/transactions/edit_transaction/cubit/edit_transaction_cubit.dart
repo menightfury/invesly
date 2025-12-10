@@ -16,7 +16,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
           quantity: initial?.quantity,
           amount: initial?.totalAmount,
           type: (initial?.totalAmount.isNegative ?? false) ? TransactionType.redeemed : TransactionType.invested,
-          genre: initial?.amc?.genre ?? AmcGenre.misc,
+          genre: initial?.amc?.genre ?? AmcGenre.mf,
           amc: initial?.amc,
           notes: initial?.note,
         ),
@@ -28,16 +28,20 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     emit(state.copyWith(account: account));
   }
 
-  void updateQuantity(double value) {
-    emit(state.copyWith(quantity: value));
+  void updateQuantity(double quantity) {
+    emit(state.copyWith(quantity: quantity, amount: state.canEditAmount ? null : quantity * (state.rate ?? 0.0)));
   }
 
-  void updateRate(double value) {
-    emit(state.copyWith(rate: value));
+  void updateRate(double rate) {
+    emit(state.copyWith(rate: rate, amount: state.canEditAmount ? null : rate * (state.quantity ?? 0.0)));
   }
 
   void updateAmount(double value) {
     emit(state.copyWith(amount: value));
+  }
+
+  void updateForceEditAmount(bool value) {
+    emit(state.copyWith(autoAmount: value));
   }
 
   void updateTransactionType(TransactionType type) {

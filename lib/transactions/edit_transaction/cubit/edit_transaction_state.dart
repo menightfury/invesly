@@ -11,8 +11,9 @@ class EditTransactionState extends Equatable {
     this.quantity,
     this.rate,
     required this.amount,
+    this.autoAmount = false,
     this.type = TransactionType.invested,
-    this.genre = AmcGenre.stock,
+    this.genre = AmcGenre.mf,
     this.date,
     this.amc,
     this.notes,
@@ -24,6 +25,7 @@ class EditTransactionState extends Equatable {
   final double? quantity;
   final double? rate;
   final double? amount;
+  final bool autoAmount;
   final TransactionType type;
   final AmcGenre genre;
   final DateTime? date;
@@ -41,6 +43,12 @@ class EditTransactionState extends Equatable {
         !(amount?.isZero ?? true);
   }
 
+  // check if unit rate and quantity fields can be edited
+  bool get canEditRateAndQnty => [AmcGenre.stock, AmcGenre.mf].contains(genre);
+
+  // check if total amount field can be edited
+  bool get canEditAmount => !autoAmount || !canEditRateAndQnty;
+
   EditTransactionState copyWith({
     EditTransactionStatus? status,
     InveslyTransaction? initialTransaction,
@@ -48,6 +56,7 @@ class EditTransactionState extends Equatable {
     double? quantity,
     double? rate,
     double? amount,
+    bool? autoAmount,
     TransactionType? type,
     AmcGenre? genre,
     DateTime? date,
@@ -61,6 +70,7 @@ class EditTransactionState extends Equatable {
       quantity: quantity ?? this.quantity,
       rate: rate ?? this.rate,
       amount: amount ?? this.amount,
+      autoAmount: autoAmount ?? this.autoAmount,
       type: type ?? this.type,
       genre: genre ?? this.genre,
       date: date ?? this.date,
@@ -70,7 +80,7 @@ class EditTransactionState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, id, account, quantity, rate, amount, type, genre, date, amc, notes];
+  List<Object?> get props => [status, id, account, quantity, rate, amount, autoAmount, type, genre, date, amc, notes];
 }
 
 extension EditTransactionStateX on EditTransactionState {
