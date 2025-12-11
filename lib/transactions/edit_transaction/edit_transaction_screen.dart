@@ -6,13 +6,13 @@ import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/widget/account_picker_widget.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/presentations/widgets/async_form_field.dart';
+import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
@@ -48,24 +48,17 @@ class _EditTransactionScreen extends StatefulWidget {
 
 class __EditTransactionScreenState extends State<_EditTransactionScreen> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  late final ValueNotifier<AutovalidateMode> _validateMode;
   late final DateTime _dateNow;
-  late final AnimationController _animController;
 
   @override
   void initState() {
     super.initState();
-    _validateMode = ValueNotifier(AutovalidateMode.disabled);
     _dateNow = DateTime.now();
-    _animController = AnimationController(vsync: this, duration: 500.ms)
-      ..value = context.read<EditTransactionCubit>().state.canEditRateAndQnty ? 1 : 0;
   }
 
   @override
   void dispose() {
     _formKey.currentState?.reset();
-    _validateMode.dispose();
-    _animController.dispose();
     super.dispose();
   }
 
@@ -74,20 +67,11 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> with Si
     // final amcRepository = context.read<AmcRepository>();
     if (_formKey.currentState!.validate()) {
       await transactionCubit.save();
-      // save amc in database
-      if (transactionCubit.state.amc == null) return;
-      // await amcRepository.saveAmc(cubit.state.amc);
-      await AmcRepository.instance.saveAmc(transactionCubit.state.amc!);
       // if (!context.mounted) return;
       // const message = SnackBar(content: Text('Investment saved successfully.'), backgroundColor: Colors.teal);
       // ScaffoldMessenger.of(context).showSnackBar(message);
       // Navigator.maybePop<bool>(context);
     }
-    // else {
-    //   if (_validateMode.value != AutovalidateMode.onUserInteraction) {
-    //     _validateMode.value = AutovalidateMode.onUserInteraction;
-    //   }
-    // }
   }
 
   @override
@@ -117,11 +101,21 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> with Si
       child: Scaffold(
         // ~ Form
         body: SafeArea(
-          child: ValueListenableBuilder<AutovalidateMode>(
-            valueListenable: _validateMode,
-            builder: (context, validateMode, child) {
-              return Form(key: _formKey, autovalidateMode: AutovalidateMode.disabled, child: child!);
+          child: Form(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, _) async {
+              if (didPop) {
+                return;
+              }
+              if (cubit.state.status == EditTransactionStatus.edited) {
+                final shouldPop = await showDiscardChangesDialog(context) ?? false;
+                if (shouldPop && context.mounted) {
+                  context.pop();
+                }
+              }
             },
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.disabled,
             child: CustomScrollView(
               slivers: <Widget>[
                 SliverAppBar(
@@ -165,11 +159,6 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> with Si
                                   onChanged: (value) {
                                     if (value == null) return;
                                     cubit.updateGenre(value);
-                                    if (cubit.state.canEditRateAndQnty) {
-                                      _animController.forward();
-                                    } else {
-                                      _animController.reverse();
-                                    }
                                   },
                                 ).withLabel('Investment type'),
                               ),
@@ -261,7 +250,8 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> with Si
                             builder: (context, isVisible) {
                               return AnimatedSize(
                                 alignment: Alignment.topCenter,
-                                duration: 300.ms,
+                                duration: 250.ms,
+                                curve: Curves.easeInOut,
                                 child: isVisible
                                     ? Row(
                                         spacing: 12.0,
@@ -451,7 +441,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> with Si
                                                         value: autoAmount,
                                                         onChanged: disabled
                                                             ? null
-                                                            : (value) => cubit.updateForceEditAmount(value),
+                                                            : (value) => cubit.updateAutoAmount(value),
                                                       ),
                                                     ),
                                                   ),
@@ -465,15 +455,20 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> with Si
                                   ],
                                 ),
                               ),
-                              BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
-                                selector: (state) => state.canEditAmount,
-                                builder: (context, canEditAmount) {
+                              BlocBuilder<EditTransactionCubit, EditTransactionState>(
+                                buildWhen: (prev, curr) {
+                                  return prev.canEditAmount != curr.canEditAmount ||
+                                      prev.rate != curr.rate ||
+                                      prev.quantity != curr.quantity;
+                                },
+                                builder: (context, state) {
                                   return AsyncFormField<num>(
-                                    initialValue: cubit.state.amount,
-                                    enabled: canEditAmount,
+                                    key: ValueKey(state.canEditAmount),
+                                    initialValue: state.amount,
+                                    enabled: state.canEditAmount,
                                     validator: (value) {
-                                      if (value == null) {
-                                        return 'Can\'t be empty';
+                                      if (value == null || value == 0) {
+                                        return 'Can\'t be empty or zero';
                                       }
                                       if (value.isNegative) {
                                         return 'Can\'t be negative';

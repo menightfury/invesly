@@ -114,7 +114,6 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
                           amcs: state.results,
                           onPickup: (amc) {
                             // get more details of amc by id before picking
-
                             widget.onPickup?.call(amc);
                           },
                         ),

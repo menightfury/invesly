@@ -21,10 +21,7 @@ class AsyncFormField<T> extends FormField<T> {
     Widget? trailing,
     EdgeInsetsGeometry padding = iFormFieldContentPadding,
     AlignmentGeometry contentAlignment = Alignment.centerLeft,
-    WidgetStateColor? materialStateColor,
-    // Color? disabledColor,
-    // Color? color,
-    // Color? errorColor, // TODO: Change to material state color
+    WidgetStateColor? color,
     super.restorationId,
   }) : super(
          autovalidateMode: autovalidateMode ?? AutovalidateMode.disabled,
@@ -74,7 +71,7 @@ class AsyncFormField<T> extends FormField<T> {
                    leading: leading,
                    trailing: trailing,
                    color:
-                       materialStateColor?.resolve(state.widgetState) ??
+                       color?.resolve(state.widgetState) ??
                        WidgetStateProperty.resolveAs(state.defaultColor, state.widgetState),
                    child: childBuilder(state.value),
                  ),

@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'edit_transaction_cubit.dart';
 
-enum EditTransactionStatus { initial, loading, success, failure }
+enum EditTransactionStatus { initial, edited, loading, success, failure }
 
 class EditTransactionState extends Equatable {
   const EditTransactionState({
@@ -11,7 +11,7 @@ class EditTransactionState extends Equatable {
     this.quantity,
     this.rate,
     required this.amount,
-    this.autoAmount = false,
+    this.autoAmount = true,
     this.type = TransactionType.invested,
     this.genre = AmcGenre.mf,
     this.date,

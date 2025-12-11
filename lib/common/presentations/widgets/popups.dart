@@ -1,9 +1,226 @@
 import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
 
+/// Show a general purpose popup
+// Future<T?> showPopup<T extends Object?>(
+//   BuildContext context, {
+//   IconData? icon,
+//   double? iconScale,
+//   String? title,
+//   String? subtitle,
+//   String? description,
+//   Widget? descriptionWidget,
+//   Widget? beforeDescriptionWidget,
+//   String? onSubmitLabel,
+//   String? onCancelLabel,
+//   String? onExtraLabel,
+//   String? onExtraLabel2,
+//   VoidCallback? onSubmit,
+//   VoidCallback? onCancel,
+//   Function(BuildContext context)? onCancelWithBoxContext,
+//   VoidCallback? onExtra,
+//   VoidCallback? onExtra2,
+//   bool barrierDismissible = true,
+// }) {
+//   minimizeKeyboard();
+//   return showGeneralDialog(
+//     context: context,
+//     useRootNavigator: false,
+//     barrierDismissible: barrierDismissible,
+//     barrierColor: Colors.black.withOpacity(0.4),
+//     barrierLabel: '',
+//     transitionBuilder: (_, anim, _, child) {
+//       Tween<double> tween;
+//       if (anim.status == AnimationStatus.reverse) {
+//         tween = Tween(begin: 0.9, end: 1);
+//       } else {
+//         tween = Tween(begin: 0.95, end: 1);
+//       }
+//       return ScaleTransition(
+//         scale: tween.animate(CurvedAnimation(parent: anim, curve: Curves.easeInOutQuart)),
+//         child: FadeTransition(opacity: anim, child: child),
+//       );
+//     },
+//     transitionDuration: Duration(milliseconds: 200),
+//     pageBuilder: (_, _, _) {
+//       final borderRadius = 25.0;
+//       return PopScope(
+//         //Stop back button
+//         onPopInvokedWithResult: (_, _) => barrierDismissible,
+//         child: Center(
+//           child: ConstrainedBox(
+//             constraints: BoxConstraints(
+//               // maxWidth: getWidthBottomSheet(context)
+//             ),
+//             child: Container(
+//               margin: EdgeInsets.only(
+//                 left: MediaQuery.paddingOf(context).left + 20,
+//                 right: MediaQuery.paddingOf(context).right + 20,
+//                 top: MediaQuery.paddingOf(context).top + 20,
+//                 bottom: MediaQuery.paddingOf(context).bottom + 20,
+//               ),
+//               decoration: BoxDecoration(
+//                 color: context.colors.secondaryContainer,
+//                 borderRadius: BorderRadiusDirectional.circular(borderRadius),
+//                 // boxShadow: boxShadowGeneral(context),
+//               ),
+//               child: SingleChildScrollView(
+//                 child: Builder(
+//                   builder: (context) {
+//                     Widget content = Column(
+//                       mainAxisSize: MainAxisSize.min,
+//                       children: [
+//                         Padding(
+//                           padding: EdgeInsetsDirectional.symmetric(horizontal: 25),
+//                           child: Column(
+//                             children: [
+//                               SizedBox(height: 17),
+//                               if (icon != null)
+//                                 Padding(
+//                                   padding: const EdgeInsetsDirectional.symmetric(vertical: 8.0, horizontal: 10),
+//                                   child: Transform.scale(
+//                                     scale: iconScale ?? 1,
+//                                     child: Icon(icon, size: 65, color: Theme.of(context).colorScheme.primary),
+//                                   ),
+//                                 ),
+//                               if (title != null)
+//                                 Padding(
+//                                   padding: const EdgeInsetsDirectional.symmetric(vertical: 8.0, horizontal: 10),
+//                                   child: Text(
+//                                     title,
+//                                     textAlign: TextAlign.center,
+//                                     style: TextStyle(
+//                                       fontSize: 23.0,
+//                                       fontWeight: FontWeight.w600,
+//                                       color: context.colors.onPrimaryContainer,
+//                                     ),
+//                                     maxLines: 5,
+//                                   ),
+//                                 ),
+//                               if (subtitle != null)
+//                                 Padding(
+//                                   padding: const EdgeInsetsDirectional.symmetric(vertical: 8.0, horizontal: 10),
+//                                   child: Text(
+//                                     subtitle,
+//                                     textAlign: TextAlign.center,
+//                                     style: TextStyle(
+//                                       fontSize: 21,
+//                                       fontWeight: FontWeight.w600,
+//                                       color: context.colors.onTertiaryContainer,
+//                                     ),
+//                                     maxLines: 5,
+//                                   ),
+//                                 ),
+//                               if (beforeDescriptionWidget != null) beforeDescriptionWidget,
+//                               if (description != null)
+//                                 Padding(
+//                                   padding: const EdgeInsetsDirectional.symmetric(vertical: 8.0, horizontal: 10),
+//                                   child: Text(
+//                                     description,
+//                                     style: TextStyle(fontSize: 16.5),
+//                                     textAlign: TextAlign.center,
+//                                     maxLines: 100,
+//                                   ),
+//                                 ),
+//                               if (descriptionWidget != null) descriptionWidget,
+//                               if (onSubmitLabel != null || onCancelLabel != null)
+//                                 Padding(
+//                                   padding: const EdgeInsetsDirectional.symmetric(vertical: 16.0),
+//                                   child: Wrap(
+//                                     alignment: WrapAlignment.center,
+//                                     runSpacing: 10,
+//                                     children: [
+//                                       onCancelLabel != null
+//                                           ? IntrinsicWidth(
+//                                               child: Padding(
+//                                                 padding: const EdgeInsetsDirectional.symmetric(horizontal: 8.0),
+//                                                 child: Builder(
+//                                                   builder: (boxContext) {
+//                                                     return TextButton(
+//                                                       // color: tertiaryButtonColor,
+//                                                       // textColor: onTertiaryButtonColor,
+//                                                       child: Text(onCancelLabel),
+//                                                       onPressed: () {
+//                                                         if (onCancel != null) {
+//                                                           onCancel();
+//                                                         }
+//                                                         if (onCancelWithBoxContext != null) {
+//                                                           onCancelWithBoxContext(boxContext);
+//                                                         }
+//                                                       },
+//                                                     );
+//                                                   },
+//                                                 ),
+//                                               ),
+//                                             )
+//                                           : SizedBox.shrink(),
+//                                       onExtraLabel != null
+//                                           ? IntrinsicWidth(
+//                                               child: Padding(
+//                                                 padding: const EdgeInsetsDirectional.symmetric(horizontal: 8.0),
+//                                                 child: TextButton(
+//                                                   // expandedLayout: true,
+//                                                   // color: primaryButtonColor,
+//                                                   // textColor: onPrimaryButtonColor,
+//                                                   onPressed: onExtra ?? () {},
+//                                                   child: Text(onExtraLabel),
+//                                                 ),
+//                                               ),
+//                                             )
+//                                           : SizedBox.shrink(),
+//                                       onSubmitLabel != null
+//                                           ? IntrinsicWidth(
+//                                               child: Padding(
+//                                                 padding: const EdgeInsetsDirectional.symmetric(horizontal: 8.0),
+//                                                 child: TextButton(
+//                                                   // color: primaryButtonColor,
+//                                                   // textColor: onPrimaryButtonColor,
+//                                                   onPressed: onSubmit ?? () {},
+//                                                   child: Text(onSubmitLabel),
+//                                                 ),
+//                                               ),
+//                                             )
+//                                           : SizedBox.shrink(),
+//                                     ],
+//                                   ),
+//                                 ),
+//                               onExtraLabel2 == null ? SizedBox(height: 17) : SizedBox(height: 5),
+//                             ],
+//                           ),
+//                         ),
+//                         if (onExtraLabel2 != null)
+//                           Padding(
+//                             padding: const EdgeInsetsDirectional.only(start: 10, end: 10, bottom: 12),
+//                             child: TextButton(
+//                               // borderRadius: borderRadius,
+//                               // expandedLayout: true,
+//                               // color: tertiaryButtonColor,
+//                               // textColor: onTertiaryButtonColor,
+//                               onPressed: onExtra2 ?? () {},
+//                               child: Text(onExtraLabel2),
+//                             ),
+//                           ),
+//                         // SizedBox(height: 16),
+//                       ],
+//                     );
+//                     // Only use intrinsic width if the content is controlled
+//                     if (onExtraLabel2 != null && descriptionWidget == null && beforeDescriptionWidget == null) {
+//                       return IntrinsicWidth(child: content);
+//                     }
+//                     return content;
+//                   },
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ),
+//       );
+//     },
+//   );
+// }
+
 /// Show a dialog with a loading spinner.
 /// A callback function must be provided. As long as the functions runs, loading spinner will be displayed.
-///
 Future<T?> showLoadingDialog<T extends Object?>(
   BuildContext context,
   Future<T?> Function() callback, {
@@ -77,7 +294,7 @@ Future<T?> showLoadingDialog<T extends Object?>(
 // }
 
 /// Show a dialog with a title, a description and confirm/cancel buttons.
-Future<void> showConfirmDialog(
+Future<bool?> showConfirmDialog(
   BuildContext context, {
   required String title,
   Widget? icon,
@@ -85,10 +302,10 @@ Future<void> showConfirmDialog(
   bool showCancelButton = false,
   String? confirmText,
   bool canPop = true,
-  VoidCallback? onConfirm,
-  VoidCallback? onCancel,
+  // VoidCallback? onConfirm,
+  // VoidCallback? onCancel,
 }) {
-  return showDialog(
+  return showDialog<bool>(
     context: context,
     barrierDismissible: canPop,
     builder: (context) {
@@ -101,239 +318,19 @@ Future<void> showConfirmDialog(
             TextButton(
               child: const Text('Cancel'),
               onPressed: () {
-                Navigator.of(context, rootNavigator: true).pop();
-                onCancel?.call();
+                Navigator.of(context, rootNavigator: true).pop(false);
+                // onCancel?.call();
               },
             ),
           FilledButton.tonalIcon(
             icon: const Icon(Icons.check_rounded),
             label: Text(confirmText ?? 'Confirm'),
             onPressed: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              onConfirm?.call();
+              Navigator.of(context, rootNavigator: true).pop(true);
+              // onConfirm?.call();
             },
           ),
         ],
-      );
-    },
-  );
-}
-
-Future<T?> openPopup<T extends Object?>(
-  BuildContext? contextPassed, {
-  IconData? icon,
-  double? iconScale,
-  String? title,
-  String? subtitle,
-  String? description,
-  Widget? descriptionWidget,
-  Widget? beforeDescriptionWidget,
-  String? onSubmitLabel,
-  String? onCancelLabel,
-  String? onExtraLabel,
-  String? onExtraLabel2,
-  VoidCallback? onSubmit,
-  VoidCallback? onCancel,
-  Function(BuildContext context)? onCancelWithBoxContext,
-  VoidCallback? onExtra,
-  VoidCallback? onExtra2,
-  bool barrierDismissible = true,
-}) {
-  if ((contextPassed ?? navigatorKey.currentContext) == null) return Future.error('No context');
-  BuildContext context = contextPassed ?? navigatorKey.currentContext!;
-
-  minimizeKeyboard();
-  return showGeneralDialog(
-    context: context,
-    useRootNavigator: false,
-    barrierDismissible: barrierDismissible,
-    barrierColor: Colors.black.withOpacity(0.4),
-    barrierLabel: '',
-    transitionBuilder: (_, anim, _, child) {
-      Tween<double> tween;
-      if (anim.status == AnimationStatus.reverse) {
-        tween = Tween(begin: 0.9, end: 1);
-      } else {
-        tween = Tween(begin: 0.95, end: 1);
-      }
-      return ScaleTransition(
-        scale: tween.animate(CurvedAnimation(parent: anim, curve: Curves.easeInOutQuart)),
-        child: FadeTransition(opacity: anim, child: child),
-      );
-    },
-    transitionDuration: Duration(milliseconds: 200),
-    pageBuilder: (_, _, _) {
-      final borderRadius = 25.0;
-      return PopScope(
-        //Stop back button
-        onPopInvokedWithResult: (_, _) => barrierDismissible,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              // maxWidth: getWidthBottomSheet(context)
-            ),
-            child: Container(
-              margin: EdgeInsets.only(
-                left: MediaQuery.paddingOf(context).left + 20,
-                right: MediaQuery.paddingOf(context).right + 20,
-                top: MediaQuery.paddingOf(context).top + 20,
-                bottom: MediaQuery.paddingOf(context).bottom + 20,
-              ),
-              decoration: BoxDecoration(
-                color: context.colors.secondaryContainer,
-                borderRadius: BorderRadiusDirectional.circular(borderRadius),
-                // boxShadow: boxShadowGeneral(context),
-              ),
-              child: SingleChildScrollView(
-                child: Builder(
-                  builder: (context) {
-                    Widget content = Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Padding(
-                          padding: EdgeInsetsDirectional.symmetric(horizontal: 25),
-                          child: Column(
-                            children: [
-                              SizedBox(height: 17),
-                              if (icon != null)
-                                Padding(
-                                  padding: const EdgeInsetsDirectional.symmetric(vertical: 8.0, horizontal: 10),
-                                  child: Transform.scale(
-                                    scale: iconScale ?? 1,
-                                    child: Icon(icon, size: 65, color: Theme.of(context).colorScheme.primary),
-                                  ),
-                                ),
-                              if (title != null)
-                                Padding(
-                                  padding: const EdgeInsetsDirectional.symmetric(vertical: 8.0, horizontal: 10),
-                                  child: Text(
-                                    title,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 23.0,
-                                      fontWeight: FontWeight.w600,
-                                      color: context.colors.onPrimaryContainer,
-                                    ),
-                                    maxLines: 5,
-                                  ),
-                                ),
-                              if (subtitle != null)
-                                Padding(
-                                  padding: const EdgeInsetsDirectional.symmetric(vertical: 8.0, horizontal: 10),
-                                  child: Text(
-                                    subtitle,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 21,
-                                      fontWeight: FontWeight.w600,
-                                      color: context.colors.onTertiaryContainer,
-                                    ),
-                                    maxLines: 5,
-                                  ),
-                                ),
-                              if (beforeDescriptionWidget != null) beforeDescriptionWidget,
-                              if (description != null)
-                                Padding(
-                                  padding: const EdgeInsetsDirectional.symmetric(vertical: 8.0, horizontal: 10),
-                                  child: Text(
-                                    description,
-                                    style: TextStyle(fontSize: 16.5),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 100,
-                                  ),
-                                ),
-                              if (descriptionWidget != null) descriptionWidget,
-                              if (onSubmitLabel != null || onCancelLabel != null)
-                                Padding(
-                                  padding: const EdgeInsetsDirectional.symmetric(vertical: 16.0),
-                                  child: Wrap(
-                                    alignment: WrapAlignment.center,
-                                    runSpacing: 10,
-                                    children: [
-                                      onCancelLabel != null
-                                          ? IntrinsicWidth(
-                                              child: Padding(
-                                                padding: const EdgeInsetsDirectional.symmetric(horizontal: 8.0),
-                                                child: Builder(
-                                                  builder: (boxContext) {
-                                                    return TextButton(
-                                                      // color: tertiaryButtonColor,
-                                                      // textColor: onTertiaryButtonColor,
-                                                      child: Text(onCancelLabel),
-                                                      onPressed: () {
-                                                        if (onCancel != null) {
-                                                          onCancel();
-                                                        }
-                                                        if (onCancelWithBoxContext != null) {
-                                                          onCancelWithBoxContext(boxContext);
-                                                        }
-                                                      },
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                            )
-                                          : SizedBox.shrink(),
-                                      onExtraLabel != null
-                                          ? IntrinsicWidth(
-                                              child: Padding(
-                                                padding: const EdgeInsetsDirectional.symmetric(horizontal: 8.0),
-                                                child: TextButton(
-                                                  // expandedLayout: true,
-                                                  // color: primaryButtonColor,
-                                                  // textColor: onPrimaryButtonColor,
-                                                  onPressed: onExtra ?? () {},
-                                                  child: Text(onExtraLabel),
-                                                ),
-                                              ),
-                                            )
-                                          : SizedBox.shrink(),
-                                      onSubmitLabel != null
-                                          ? IntrinsicWidth(
-                                              child: Padding(
-                                                padding: const EdgeInsetsDirectional.symmetric(horizontal: 8.0),
-                                                child: TextButton(
-                                                  // color: primaryButtonColor,
-                                                  // textColor: onPrimaryButtonColor,
-                                                  onPressed: onSubmit ?? () {},
-                                                  child: Text(onSubmitLabel),
-                                                ),
-                                              ),
-                                            )
-                                          : SizedBox.shrink(),
-                                    ],
-                                  ),
-                                ),
-                              onExtraLabel2 == null ? SizedBox(height: 17) : SizedBox(height: 5),
-                            ],
-                          ),
-                        ),
-                        if (onExtraLabel2 != null)
-                          Padding(
-                            padding: const EdgeInsetsDirectional.only(start: 10, end: 10, bottom: 12),
-                            child: TextButton(
-                              // borderRadius: borderRadius,
-                              // expandedLayout: true,
-                              // color: tertiaryButtonColor,
-                              // textColor: onTertiaryButtonColor,
-                              onPressed: onExtra2 ?? () {},
-                              child: Text(onExtraLabel2),
-                            ),
-                          ),
-                        // SizedBox(height: 16),
-                      ],
-                    );
-                    // Only use intrinsic width if the content is controlled
-                    if (onExtraLabel2 != null && descriptionWidget == null && beforeDescriptionWidget == null) {
-                      return IntrinsicWidth(child: content);
-                    }
-                    return content;
-                  },
-                ),
-              ),
-            ),
-          ),
-        ),
       );
     },
   );
@@ -468,45 +465,79 @@ enum RoutesToPopAfterDelete { none, one, all, preventDelete }
 //   // });
 // }
 
-// void discardChangesPopup(context, {previousObject, currentObject, Function? onDiscard, bool forceShow = false}) async {
-//   print(previousObject);
-//   print(currentObject);
+Future<bool?> showDiscardChangesDialog(
+  BuildContext context, {
+  // VoidCallback? onDiscard,
+  // VoidCallback? onCancel,
+  // previousObject,
+  // currentObject,
+  // bool forceShow = false,
+  bool canPop = true,
+}) async {
+  return showConfirmDialog(
+    context,
+    title: 'Discard Changes?',
+    content: const Text('Are you sure to discard changes?', textAlign: TextAlign.center),
+    icon: const Icon(Icons.warning_rounded),
+    confirmText: 'Discard',
+    showCancelButton: true,
+    canPop: canPop,
+    // onCancel: onCancel,
+    // onConfirm: onDiscard,
+  );
+  // if (forceShow == false && previousObject == currentObject && previousObject != null && currentObject != null) {
+  //   popRoute(context);
+  //   return;
+  // }
+  // if (forceShow == false && previousObject == null) {
+  //   popRoute(context);
+  //   return;
+  // }
 
-//   if (forceShow == false && previousObject == currentObject && previousObject != null && currentObject != null) {
-//     popRoute(context);
-//     return;
-//   }
-//   if (forceShow == false && previousObject == null) {
-//     popRoute(context);
-//     return;
-//   }
+  // previousObject = previousObject?.copyWith(dateTimeModified: Value(null));
 
-//   previousObject = previousObject?.copyWith(dateTimeModified: Value(null));
-
-//   if (forceShow == false &&
-//       previousObject != null &&
-//       currentObject != null &&
-//       previousObject.toString() == currentObject.toString()) {
-//     print(previousObject.toString());
-//     print(currentObject.toString());
-
-//     popRoute(context);
-//   } else {
-//     await openPopup(
-//       context,
-//       title: "discard-changes".tr(),
-//       description: "discard-changes-description".tr(),
-//       icon: appStateSettings["outlinedIcons"] ? Icons.warning_outlined : Icons.warning_rounded,
-//       onSubmitLabel: "discard".tr(),
-//       onSubmit: () async {
-//         if (onDiscard != null) await onDiscard();
-//         popRoute(context);
-//         popRoute(context);
-//       },
-//       onCancelLabel: "cancel".tr(),
-//       onCancel: () {
-//         popRoute(context);
-//       },
-//     );
-//   }
-// }
+  // if (forceShow == false &&
+  //     previousObject != null &&
+  //     currentObject != null &&
+  //     previousObject.toString() == currentObject.toString()) {
+  //   popRoute(context);
+  // } else {
+  //   await showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: Text('Discard Changes?'),
+  //         icon: Icon(Icons.warning_rounded),
+  //         content: Text('Are you sure to discard changes?'),
+  //         actions: <Widget>[
+  //           TextButton(
+  //             child: const Text('Cancel'),
+  //             onPressed: () {
+  //               Navigator.of(context, rootNavigator: true).pop();
+  //               onCancel?.call();
+  //             },
+  //           ),
+  //           FilledButton.tonalIcon(
+  //             icon: const Icon(Icons.check_rounded),
+  //             label: Text(confirmText ?? 'Confirm'),
+  //             onPressed: () {
+  //               Navigator.of(context, rootNavigator: true).pop();
+  //               onConfirm?.call();
+  //             },
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //     onSubmitLabel: "discard".tr(),
+  //     onSubmit: () async {
+  //       if (onDiscard != null) await onDiscard();
+  //       popRoute(context);
+  //       popRoute(context);
+  //     },
+  //     onCancelLabel: "cancel".tr(),
+  //     onCancel: () {
+  //       popRoute(context);
+  //     },
+  //   );
+  // }
+}
