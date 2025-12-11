@@ -102,7 +102,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> with Si
         // ~ Form
         body: SafeArea(
           child: Form(
-            canPop: false,
+            canPop: cubit.state.status != EditTransactionStatus.edited,
             onPopInvokedWithResult: (didPop, _) async {
               if (didPop) {
                 return;
