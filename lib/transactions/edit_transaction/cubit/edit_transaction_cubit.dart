@@ -77,9 +77,13 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     emit(state.copyWith(status: EditTransactionStatus.edited, notes: notes));
   }
 
+  void requestPop(bool value) {
+    emit(state.copyWith(isPopping: value));
+  }
+
   Future<void> save() async {
     if (!state.canSave) {
-      emit(state.copyWith(status: EditTransactionStatus.failure));
+      emit(state.copyWith(status: EditTransactionStatus.failed));
       return;
     }
 
@@ -95,13 +99,13 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     );
     $logger.i(inv);
 
-    emit(state.copyWith(status: EditTransactionStatus.loading));
+    emit(state.copyWith(status: EditTransactionStatus.saving));
     try {
       await _repository.saveTransaction(inv);
-      emit(state.copyWith(status: EditTransactionStatus.success));
+      emit(state.copyWith(status: EditTransactionStatus.saved));
     } on Exception catch (e) {
       $logger.e(e);
-      emit(state.copyWith(status: EditTransactionStatus.failure));
+      emit(state.copyWith(status: EditTransactionStatus.failed));
     }
   }
 }

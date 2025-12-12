@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'edit_transaction_cubit.dart';
 
-enum EditTransactionStatus { initial, edited, loading, success, failure }
+enum EditTransactionStatus { initial, edited, saving, saved, failed }
 
 class EditTransactionState extends Equatable {
   const EditTransactionState({
@@ -17,6 +17,7 @@ class EditTransactionState extends Equatable {
     this.date,
     this.amc,
     this.notes,
+    this.isPopping = false,
   });
 
   final EditTransactionStatus status;
@@ -31,6 +32,7 @@ class EditTransactionState extends Equatable {
   final DateTime? date;
   final InveslyAmc? amc;
   final String? notes;
+  final bool isPopping;
 
   bool get isNewTransaction => id == null;
 
@@ -62,6 +64,7 @@ class EditTransactionState extends Equatable {
     DateTime? date,
     InveslyAmc? amc,
     String? notes,
+    bool? isPopping,
   }) {
     return EditTransactionState(
       id: id,
@@ -76,14 +79,29 @@ class EditTransactionState extends Equatable {
       date: date ?? this.date,
       amc: amc ?? this.amc,
       notes: notes ?? this.notes,
+      isPopping: isPopping ?? this.isPopping,
     );
   }
 
   @override
-  List<Object?> get props => [status, id, account, quantity, rate, amount, autoAmount, type, genre, date, amc, notes];
+  List<Object?> get props => [
+    status,
+    id,
+    account,
+    quantity,
+    rate,
+    amount,
+    autoAmount,
+    type,
+    genre,
+    date,
+    amc,
+    notes,
+    isPopping,
+  ];
 }
 
 extension EditTransactionStateX on EditTransactionState {
-  bool get isLoadingOrSuccess => [EditTransactionStatus.loading, EditTransactionStatus.success].contains(status);
-  bool get isFailureOrSuccess => [EditTransactionStatus.failure, EditTransactionStatus.success].contains(status);
+  bool get isLoadingOrSuccess => [EditTransactionStatus.saving, EditTransactionStatus.saved].contains(status);
+  bool get isFailureOrSuccess => [EditTransactionStatus.failed, EditTransactionStatus.saved].contains(status);
 }

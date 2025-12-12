@@ -93,7 +93,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
       listener: (context, state) {
         late final SnackBar message;
 
-        if (state.status == EditTransactionStatus.success) {
+        if (state.status == EditTransactionStatus.saved) {
           if (context.canPop) {
             context.pop();
           } else {
@@ -101,7 +101,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
             context.go(DashboardScreen());
           }
           message = const SnackBar(content: Text('Investment saved successfully'), backgroundColor: Colors.teal);
-        } else if (state.status == EditTransactionStatus.failure) {
+        } else if (state.status == EditTransactionStatus.failed) {
           message = const SnackBar(content: Text('Sorry! some error occurred'), backgroundColor: Colors.redAccent);
         }
         ScaffoldMessenger.of(context)

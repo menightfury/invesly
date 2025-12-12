@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+// import 'connectivity/cubit/internet_cubit.dart';
+
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/database/backup/backup_service.dart';
-import 'package:invesly/intro/splash_page.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:invesly/database/invesly_api.dart';
+import 'package:invesly/intro/splash_page.dart';
+
 import 'bloc_observer.dart';
-// import 'connectivity/cubit/internet_cubit.dart';
 
 import 'accounts/cubit/accounts_cubit.dart';
 import 'amcs/model/amc_repository.dart';
