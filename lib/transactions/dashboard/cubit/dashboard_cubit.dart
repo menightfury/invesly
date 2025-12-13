@@ -22,7 +22,6 @@ class DashboardCubit extends Cubit<DashboardState> {
     // if (start != null || end != null) {
     //   dateRange = DateTimeRange(start: start ?? DateTime(1970), end: end ?? DateTime.now());
     // }
-
     // Get initial transactions
     emit(const DashboardLoadingState());
     try {
