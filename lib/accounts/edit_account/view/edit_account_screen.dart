@@ -3,7 +3,7 @@
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/utils/keyboard.dart';
-import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
+import 'package:invesly/dashboard/view/dashboard_screen.dart';
 
 import 'package:invesly/accounts/edit_account/cubit/edit_account_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';

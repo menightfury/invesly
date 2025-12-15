@@ -15,7 +15,7 @@ import 'package:invesly/common/presentations/widgets/async_form_field.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
+import 'package:invesly/dashboard/view/dashboard_screen.dart';
 import 'package:invesly/transactions/edit_transaction/widgets/calculator/calculator.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';

@@ -2,7 +2,7 @@
 
 import 'package:invesly/common_libs.dart';
 
-import '../../../model/transaction_model.dart';
+import '../../../transactions/model/transaction_model.dart';
 
 class _PortfolioCarouselWidget extends StatefulWidget {
   const _PortfolioCarouselWidget({required this.pages, super.key});

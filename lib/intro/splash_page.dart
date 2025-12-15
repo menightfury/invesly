@@ -6,7 +6,7 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/intro/intro_page.dart';
 import 'package:invesly/main.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
-import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
+import 'package:invesly/dashboard/view/dashboard_screen.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});

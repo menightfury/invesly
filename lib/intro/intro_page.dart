@@ -5,7 +5,7 @@ import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/import_backup_page.dart';
-import 'package:invesly/transactions/dashboard/view/dashboard_screen.dart';
+import 'package:invesly/dashboard/view/dashboard_screen.dart';
 
 const _kPaddingTop = 56.0;
 const _kImageSize = 156.0;
