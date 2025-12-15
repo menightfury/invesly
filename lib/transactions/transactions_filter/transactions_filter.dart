@@ -11,16 +11,16 @@ import 'package:invesly/common_libs.dart';
 //   return (((year + 5) / 5).ceil()) * 5;
 // }
 
-class TransactionsSearchPage extends StatefulWidget {
-  const TransactionsSearchPage({this.initialFilters, super.key});
+class TransactionsFilterPage extends StatefulWidget {
+  const TransactionsFilterPage({this.initialFilters, super.key});
 
   final SearchFilters? initialFilters;
 
   @override
-  State<TransactionsSearchPage> createState() => _TransactionsSearchPageState();
+  State<TransactionsFilterPage> createState() => _TransactionsFilterPageState();
 }
 
-class _TransactionsSearchPageState extends State<TransactionsSearchPage> with TickerProviderStateMixin {
+class _TransactionsFilterPageState extends State<TransactionsFilterPage> with TickerProviderStateMixin {
   //   void refreshState() {
   //     setState(() {});
   //   }
@@ -149,98 +149,56 @@ class _TransactionsSearchPageState extends State<TransactionsSearchPage> with Ti
         // listID: "TransactionsSearch",
         // dragDownToDismiss: true,
         // onScroll: _scrollListener,
-        // appBar: AppBar('Search'),
         body: SafeArea(
           child: CustomScrollView(
-            slivers: [
-              SliverList(
-                delegate: SliverChildListDelegate.fixed([
-                  Padding(
-                    padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),
-                    child: AnimatedBuilder(
-                      animation: _animationControllerSearch,
-                      builder: (_, child) {
-                        return Transform.translate(
-                          offset: Offset(0, 6.5 - 6.5 * (_animationControllerSearch.value)),
-                          child: child,
-                        );
-                      },
-                      child: Row(
-                        spacing: 8.0,
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              // controller: searchInputController,
-                              autofocus: true,
-                              decoration: InputDecoration(
-                                icon: Icon(Icons.search_rounded),
-                                labelText: 'Search placeholder',
-                              ),
-                              // onFieldSubmitted: (value) {
-                              //   setState(() {
-                              //     searchFilters.searchQuery = value;
-                              //   });
-                              // },
-                              // onChanged: (value) {
-                              //   _debouncer.run(() {
-                              //     if (searchFilters.searchQuery != value) {
-                              //       setState(() {
-                              //         searchFilters.searchQuery = value;
-                              //       });
-                              //     }
-                              //   });
-                              // },
-                            ),
-                          ),
-
-                          AnimatedSwitcher(
-                            duration: Duration(milliseconds: 500),
-                            child: IconButton(
-                              key: ValueKey((searchFilters.dateTimeRange == null).toString()),
-                              color: searchFilters.dateTimeRange == null
-                                  ? null
-                                  : Theme.of(context).colorScheme.tertiaryContainer,
-                              onPressed: () => selectDateRange(context),
-                              icon: Icon(
-                                Icons.calendar_month_rounded,
-                                color: searchFilters.dateTimeRange == null
-                                    ? null
-                                    : Theme.of(context).colorScheme.onTertiaryContainer,
-                              ),
-                            ),
-                          ),
-
-                          AnimatedSwitcher(
-                            duration: Duration(milliseconds: 500),
-                            child: IconButton(
-                              key: ValueKey(searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)),
-                              color: searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)
-                                  ? null
-                                  : Theme.of(context).colorScheme.tertiaryContainer,
-                              onPressed: () => selectFilters(context),
-                              icon: Icon(
-                                Icons.filter_alt_rounded,
-                                color: searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)
-                                    ? null
-                                    : Theme.of(context).colorScheme.onTertiaryContainer,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 20.0),
-                        ],
+            slivers: <Widget>[
+              SliverAppBar(
+                title: const Text('All transactions'),
+                actions: <Widget>[
+                  AnimatedSwitcher(
+                    duration: Duration(milliseconds: 500),
+                    child: IconButton(
+                      key: ValueKey((searchFilters.dateTimeRange == null).toString()),
+                      color: searchFilters.dateTimeRange == null ? null : context.colors.tertiaryContainer,
+                      onPressed: () => selectDateRange(context),
+                      icon: Icon(
+                        Icons.calendar_month_rounded,
+                        color: searchFilters.dateTimeRange == null ? null : context.colors.onTertiaryContainer,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 13.0),
+                  AnimatedSwitcher(
+                    duration: Duration(milliseconds: 500),
+                    child: IconButton(
+                      key: ValueKey(searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)),
+                      color: searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)
+                          ? null
+                          : context.colors.tertiaryContainer,
+                      onPressed: () => selectFilters(context),
+                      icon: Icon(
+                        Icons.filter_alt_rounded,
+                        color: searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)
+                            ? null
+                            : context.colors.onTertiaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SliverList(
+                delegate: SliverChildListDelegate.fixed([
+                  // ~ Applied Filter Chips
                   // Padding(
                   //   padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),
                   //   child: AppliedFilterChips(
                   //     searchFilters: searchFilters,
                   //     openFiltersSelection: () => selectFilters(context),
                   //     clearSearchFilters: clearSearchFilters,
-                  //     //openSelectDate: () => selectDateRange(context),
+                  //     // openSelectDate: () => selectDateRange(context),
                   //   ),
                   // ),
+
+                  // ~ Results
                   // Builder(
                   //   builder: (context) {
                   //     Widget dateRangeWidget = Tappable(
@@ -269,13 +227,11 @@ class _TransactionsSearchPageState extends State<TransactionsSearchPage> with Ti
                   //       ),
                   //     );
                   //     return TransactionEntries(
-                  //       renderType: appStateSettings["appAnimations"] != AppAnimations.all.index
-                  //           ? TransactionEntriesRenderType.sliversNotSticky
-                  //           : TransactionEntriesRenderType.slivers,
+                  //       renderType: TransactionEntriesRenderType.slivers,
                   //       null,
                   //       null,
                   //       listID: "TransactionsSearch",
-                  //       noResultsMessage: '"no-transactions-found".tr()',
+                  //       noResultsMessage: 'No transactions are found.',
                   //       noSearchResultsVariation: true,
                   //       searchFilters: searchFilters,
                   //       // limit: 250,
@@ -285,27 +241,7 @@ class _TransactionsSearchPageState extends State<TransactionsSearchPage> with Ti
                   //     );
                   //   },
                   // ),
-                  // TransactionEntries(
-                  //   simpleListRender: true,
-                  //   null, null,
-                  //   listID: "TransactionsSearch",
-                  //   noResultsMessage: "no-transactions-found".tr(),
-                  //   noSearchResultsVariation: true,
-                  //   searchFilters: searchFilters,
-                  //   // limit: 250,
-                  //   showTotalCashFlow: true,
-                  //   extraCashFlowInformation: getWordedDateShortMore(
-                  //           searchFilters.dateTimeRange?.start ?? DateTime.now(),
-                  //           includeYear: true) +
-                  //       " - " +
-                  //       getWordedDateShortMore(
-                  //           searchFilters.dateTimeRange?.end ?? DateTime.now(),
-                  //           includeYear: true),
-                  //   onTapCashFlow: () {
-                  //     selectDateRange(context);
-                  //   },
-                  // ),
-                  const SizedBox(height: 50.0),
+                  const SizedBox(height: 56.0),
                 ]),
               ),
             ],

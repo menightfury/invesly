@@ -22,6 +22,7 @@ import 'package:invesly/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
+import 'package:invesly/transactions/transactions_filter/transactions_filter.dart';
 
 part 'widgets/accounts.dart';
 part 'widgets/categories_widget.dart';

@@ -50,11 +50,24 @@ class _RecentTransactions extends StatelessWidget {
           tiles = [SectionTile(title: CircularProgressIndicator())];
         }
 
-        return Section(
-          title: const Text('Recent Transactions'),
-          subTitle: Text('From ${dateRange.start.toReadable()} to ${dateRange.end.toReadable()}'),
-          icon: const Icon(Icons.swap_vert_rounded),
-          tiles: tiles,
+        return Column(
+          children: <Widget>[
+            Section(
+              title: const Text('Recent Transactions'),
+              subTitle: Text('From ${dateRange.start.toReadable()} to ${dateRange.end.toReadable()}'),
+              icon: const Icon(Icons.swap_vert_rounded),
+              tiles: tiles,
+            ),
+            if (state is DashboardLoadedState && state.recentTransactions.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: FilledButton.tonalIcon(
+                  onPressed: () => context.push(const TransactionsFilterPage()),
+                  label: const Icon(Icons.arrow_forward),
+                  icon: const Text('See all transactions'),
+                ),
+              ),
+          ],
         );
       },
     );
