@@ -30,13 +30,19 @@ class BackupRestoreRepository {
   File get databaseFile => File(_api.dbPath);
 
   Future<File?> exportDatabaseFile() async {
+    // final dir = await _getDownloadsDirectory();
+    String? path = await FilePicker.platform.getDirectoryPath();
+    if (path == null || path.isEmpty) {
+      return null;
+    }
+
     $logger.i('File Size ${(databaseFile.lengthSync() / 1e+6).toString()}');
 
     final dateTime = DateTime.now().toUtc();
     final fileName = 'invesly-${dateTime.millisecondsSinceEpoch}.db';
-
-    final dir = await getApplicationDocumentsDirectory();
-    final destination = Directory(p.join(dir.path, fileName));
+    final file = File(p.join(path, fileName));
+    // final dir = await getApplicationDocumentsDirectory();
+    // final destination = Directory(p.join(dir.path, fileName));
     // if ((await destination.exists())) {
     //   final status = await Permission.storage.status;
     //   if (!status.isGranted) {
@@ -51,7 +57,7 @@ class BackupRestoreRepository {
     //   }
     // }
 
-    return await databaseFile.copy(destination.path);
+    return await databaseFile.copy(file.path);
   }
 
   // Future<void> downloadDatabaseFile() async {

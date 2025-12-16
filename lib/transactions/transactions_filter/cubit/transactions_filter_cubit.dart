@@ -27,7 +27,7 @@ class TransactionsFilterCubit extends Cubit<TransactionsFilterState> {
     try {
       final transactions = await _repository.getTransactions(dateRange: dateRange, limit: limit);
 
-      emit(state.copyWith(transactions: transactions));
+      emit(state.copyWith(status: TransactionsFilterStatus.loaded, transactions: transactions));
     } on Exception catch (err) {
       emit(state.copyWith(status: TransactionsFilterStatus.error, errorMsg: err.toString()));
     }

@@ -2,9 +2,14 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:intl/intl.dart';
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
+import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions_filter/cubit/transactions_filter_cubit.dart';
 import 'package:invesly/transactions/transactions_filter/search_filters_model.dart';
@@ -23,12 +28,54 @@ class TransactionsFilterPage extends StatefulWidget {
 }
 
 class _TransactionsFilterPageState extends State<TransactionsFilterPage> {
+  final ScrollController _scrollController = ScrollController();
   //   _scrollListener(position) {
   //     double percent = position / (MediaQuery.paddingOf(context).top + 65 + 50);
   //     if (percent >= 0 && percent <= 1) {
   //       _animationControllerSearch.value = 1 - percent;
   //     }
   //   }
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<AccountsCubit>().fetchAccounts();
+  }
+
+  void _handleNewTransactionPressed(BuildContext context) async {
+    final accountsState = context.read<AccountsCubit>().state;
+
+    // Load accounts if not loaded
+    if (accountsState is AccountsInitialState) {
+      await context.read<AccountsCubit>().fetchAccounts();
+    }
+    if (!context.mounted) return;
+    if (accountsState is AccountsErrorState) {
+      // showErrorDialog(context);
+      return;
+    }
+    if (accountsState is AccountsLoadedState) {
+      if (accountsState.accounts.isEmpty) {
+        final confirmed = await showConfirmDialog(
+          context,
+          title: 'Oops!',
+          icon: const Icon(Icons.warning_amber_rounded),
+          content: const Text(
+            'You must have at least one no-archived account before you can start creating transactions',
+          ),
+          confirmText: 'Continue',
+        );
+
+        if (!context.mounted) return;
+        if (confirmed ?? false) {
+          context.push(const EditAccountScreen());
+        }
+        return;
+      }
+
+      context.push(const EditTransactionScreen());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +88,19 @@ class _TransactionsFilterPageState extends State<TransactionsFilterPage> {
         child: BlocProvider(
           create: (context) => TransactionsFilterCubit(repository: context.read<TransactionRepository>()),
           child: _PageContent(),
+        ),
+      ),
+      // ~~~ Add transaction button ~~~
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
+        onPressed: () => _handleNewTransactionPressed(context),
+        icon: const Icon(Icons.add_rounded),
+        extendedPadding: const EdgeInsetsDirectional.only(start: 16.0, end: 16.0),
+        extendedIconLabelSpacing: 0.0,
+        label: ScrollToHide(
+          scrollController: _scrollController,
+          hideAxis: Axis.horizontal,
+          child: const Padding(padding: EdgeInsets.only(left: 8.0), child: Text('New transaction')),
         ),
       ),
     );
