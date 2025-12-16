@@ -1,97 +1,36 @@
 part of 'transactions_filter_cubit.dart';
 
-sealed class TransactionsFilterState extends Equatable {
-  const TransactionsFilterState();
+enum TransactionsFilterStatus { initial, loading, loaded, error }
 
-  @override
-  List<Object> get props => [];
-}
+class TransactionsFilterState extends Equatable {
+  const TransactionsFilterState({
+    this.status = TransactionsFilterStatus.initial,
+    this.transactions = const [],
+    this.errorMsg,
+  });
 
-final class TransactionsFilterInitial extends TransactionsFilterState {}
+  final TransactionsFilterStatus status;
+  final List<InveslyTransaction> transactions;
+  final String? errorMsg;
 
-
-// enum DashboardStatus {
-//   initial,
-//   loading,
-//   loaded,
-//   error;
-
-//   bool get isLoading => this == DashboardStatus.initial || this == DashboardStatus.loading;
-//   bool get isLoaded => this == DashboardStatus.loaded;
-//   bool get isError => this == DashboardStatus.error;
-// }
-
-sealed class DashboardState extends Equatable {
-  // class DashboardState extends Equatable {
-  const DashboardState();
-  // const DashboardState({
-  //   this.statStatus = DashboardStatus.initial,
-  //   this.stats = const [],
-  //   this.recentTransactionStatus = DashboardStatus.initial,
-  //   this.recentTransactions = const [],
-  //   this.errorMsg,
-  // });
-
-  // final DashboardStatus statStatus;
-  // final List<TransactionStat> stats;
-  // final DashboardStatus recentTransactionStatus;
-  // final List<InveslyTransaction> recentTransactions;
-  // final String? errorMsg;
-
-  // DashboardState copyWith({
-  //   DashboardStatus? statStatus,
-  //   List<TransactionStat>? stats,
-  //   DashboardStatus? recentTransactionStatus,
-  //   List<InveslyTransaction>? recentTransactions,
-  //   String? errorMsg,
-  // }) {
-  //   return DashboardState(
-  //     statStatus: statStatus ?? this.statStatus,
-  //     stats: stats ?? this.stats,
-  //     recentTransactionStatus: recentTransactionStatus ?? this.recentTransactionStatus,
-  //     recentTransactions: recentTransactions ?? this.recentTransactions,
-  //     errorMsg: errorMsg ?? this.errorMsg,
-  //   );
-  // }
-
-  @override
-  List<Object?> get props => [];
-  // List<Object?> get props => [statStatus, stats, recentTransactionStatus, recentTransactions, errorMsg];
-}
-
-class DashboardInitialState extends DashboardState {
-  const DashboardInitialState();
-}
-
-class DashboardLoadingState extends DashboardState {
-  const DashboardLoadingState();
-}
-
-class DashboardErrorState extends DashboardState {
-  const DashboardErrorState(this.errorMsg);
-
-  final String errorMsg;
-}
-
-class DashboardLoadedState extends DashboardState {
-  const DashboardLoadedState({this.stats = const [], this.recentTransactions = const []});
-
-  final List<TransactionStat> stats;
-  final List<InveslyTransaction> recentTransactions;
-
-  DashboardLoadedState copyWith({List<TransactionStat>? stats, List<InveslyTransaction>? recentTransactions}) {
-    return DashboardLoadedState(
-      stats: stats ?? this.stats,
-      recentTransactions: recentTransactions ?? this.recentTransactions,
+  TransactionsFilterState copyWith({
+    TransactionsFilterStatus? status,
+    List<InveslyTransaction>? transactions,
+    String? errorMsg,
+  }) {
+    return TransactionsFilterState(
+      status: status ?? this.status,
+      transactions: transactions ?? this.transactions,
+      errorMsg: errorMsg ?? this.errorMsg,
     );
   }
 
   @override
-  List<Object?> get props => [stats, recentTransactions];
+  List<Object?> get props => [status, transactions, errorMsg];
 }
 
-extension DashboardStateX on DashboardState {
-  bool get isLoading => this is DashboardInitialState || this is DashboardLoadingState;
-  bool get isLoaded => this is DashboardLoadedState;
-  bool get isError => this is DashboardErrorState;
+extension TransactionsFilterStateX on TransactionsFilterState {
+  bool get isLoading => status == TransactionsFilterStatus.initial || status == TransactionsFilterStatus.initial;
+  bool get isLoaded => status == TransactionsFilterStatus.loaded;
+  bool get isError => status == TransactionsFilterStatus.error;
 }

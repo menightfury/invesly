@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-import 'package:invesly/common/presentations/widgets/tappable.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/transactions/model/transaction_repository.dart';
+import 'package:invesly/transactions/transactions_filter/cubit/transactions_filter_cubit.dart';
+import 'package:invesly/transactions/transactions_filter/search_filters_model.dart';
 
 // int roundToNearestNextFifthYear(int year) {
 //   return (((year + 5) / 5).ceil()) * 5;
@@ -20,7 +22,41 @@ class TransactionsFilterPage extends StatefulWidget {
   State<TransactionsFilterPage> createState() => _TransactionsFilterPageState();
 }
 
-class _TransactionsFilterPageState extends State<TransactionsFilterPage> with TickerProviderStateMixin {
+class _TransactionsFilterPageState extends State<TransactionsFilterPage> {
+  //   _scrollListener(position) {
+  //     double percent = position / (MediaQuery.paddingOf(context).top + 65 + 50);
+  //     if (percent >= 0 && percent <= 1) {
+  //       _animationControllerSearch.value = 1 - percent;
+  //     }
+  //   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // scrollToTopButton: true,
+      // scrollToBottomButton: true,
+      // dragDownToDismiss: true,
+      // onScroll: _scrollListener,
+      body: SafeArea(
+        child: BlocProvider(
+          create: (context) => TransactionsFilterCubit(repository: context.read<TransactionRepository>()),
+          child: _PageContent(),
+        ),
+      ),
+    );
+  }
+}
+
+class _PageContent extends StatefulWidget {
+  const _PageContent({this.initialFilters, super.key});
+
+  final SearchFilters? initialFilters;
+
+  @override
+  State<_PageContent> createState() => __PageContentState();
+}
+
+class __PageContentState extends State<_PageContent> with TickerProviderStateMixin {
   //   void refreshState() {
   //     setState(() {});
   //   }
@@ -33,6 +69,7 @@ class _TransactionsFilterPageState extends State<TransactionsFilterPage> with Ti
   @override
   void initState() {
     super.initState();
+    context.read<TransactionsFilterCubit>().fetchTransactions();
     searchFilters = widget.initialFilters != null ? widget.initialFilters! : SearchFilters();
     //     if (widget.initialFilters == null) {
     //       searchFilters.loadFilterString(
@@ -49,13 +86,6 @@ class _TransactionsFilterPageState extends State<TransactionsFilterPage> with Ti
     searchInputController.dispose();
     super.dispose();
   }
-
-  //   _scrollListener(position) {
-  //     double percent = position / (MediaQuery.paddingOf(context).top + 65 + 50);
-  //     if (percent >= 0 && percent <= 1) {
-  //       _animationControllerSearch.value = 1 - percent;
-  //     }
-  //   }
 
   Future<void> selectFilters(BuildContext context) async {
     await showModalBottomSheet(
@@ -132,396 +162,144 @@ class _TransactionsFilterPageState extends State<TransactionsFilterPage> with Ti
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
-        // if ((globalSelectedID.value["TransactionsSearch"] ?? []).length > 0) {
-        //   globalSelectedID.value["TransactionsSearch"] = [];
-        //   globalSelectedID.notifyListeners();
-        //   return false;
-        // } else {
-        //   return true;
-        // }
-      },
-      child: Scaffold(
-        // scrollToTopButton: true,
-        // scrollToBottomButton: true,
-        // listID: "TransactionsSearch",
-        // dragDownToDismiss: true,
-        // onScroll: _scrollListener,
-        body: SafeArea(
-          child: CustomScrollView(
-            slivers: <Widget>[
-              SliverAppBar(
-                title: const Text('All transactions'),
-                actions: <Widget>[
-                  AnimatedSwitcher(
-                    duration: Duration(milliseconds: 500),
-                    child: IconButton(
-                      key: ValueKey((searchFilters.dateTimeRange == null).toString()),
-                      color: searchFilters.dateTimeRange == null ? null : context.colors.tertiaryContainer,
-                      onPressed: () => selectDateRange(context),
-                      icon: Icon(
-                        Icons.calendar_month_rounded,
-                        color: searchFilters.dateTimeRange == null ? null : context.colors.onTertiaryContainer,
-                      ),
-                    ),
-                  ),
-                  AnimatedSwitcher(
-                    duration: Duration(milliseconds: 500),
-                    child: IconButton(
-                      key: ValueKey(searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)),
-                      color: searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)
-                          ? null
-                          : context.colors.tertiaryContainer,
-                      onPressed: () => selectFilters(context),
-                      icon: Icon(
-                        Icons.filter_alt_rounded,
-                        color: searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)
-                            ? null
-                            : context.colors.onTertiaryContainer,
-                      ),
-                    ),
-                  ),
-                ],
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverAppBar(
+          title: const Text('All transactions'),
+          actions: <Widget>[
+            AnimatedSwitcher(
+              duration: Duration(milliseconds: 500),
+              child: IconButton(
+                key: ValueKey((searchFilters.dateTimeRange == null).toString()),
+                color: searchFilters.dateTimeRange == null ? null : context.colors.tertiaryContainer,
+                onPressed: () => selectDateRange(context),
+                icon: Icon(
+                  Icons.calendar_month_rounded,
+                  color: searchFilters.dateTimeRange == null ? null : context.colors.onTertiaryContainer,
+                ),
               ),
-              SliverList(
-                delegate: SliverChildListDelegate.fixed([
-                  // ~ Applied Filter Chips
-                  // Padding(
-                  //   padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),
-                  //   child: AppliedFilterChips(
-                  //     searchFilters: searchFilters,
-                  //     openFiltersSelection: () => selectFilters(context),
-                  //     clearSearchFilters: clearSearchFilters,
-                  //     // openSelectDate: () => selectDateRange(context),
-                  //   ),
-                  // ),
-
-                  // ~ Results
-                  // Builder(
-                  //   builder: (context) {
-                  //     Widget dateRangeWidget = Tappable(
-                  //       // borderRadius: 10,
-                  //       onTap: () => selectDateRange(context),
-                  //       color: Colors.transparent,
-                  //       child: Padding(
-                  //         padding: const EdgeInsetsDirectional.only(start: 10, end: 10, top: 10, bottom: 8),
-                  //         child: Text(
-                  //           'All time',
-                  //           // searchFilters.dateTimeRange == null
-                  //           //     ? 'all-time'
-                  //           //     : getWordedDateShortMore(
-                  //           //             searchFilters.dateTimeRange?.start ?? DateTime.now(),
-                  //           //             includeYear: true,
-                  //           //           ) +
-                  //           //           " – " +
-                  //           //           getWordedDateShortMore(
-                  //           //             searchFilters.dateTimeRange?.end ?? DateTime.now(),
-                  //           //             includeYear: true,
-                  //           //           ),
-                  //           // fontSize: 13,
-                  //           textAlign: TextAlign.center,
-                  //           // textColor: getColor(context, "textLight"),
-                  //         ),
-                  //       ),
-                  //     );
-                  //     return TransactionEntries(
-                  //       renderType: TransactionEntriesRenderType.slivers,
-                  //       null,
-                  //       null,
-                  //       listID: "TransactionsSearch",
-                  //       noResultsMessage: 'No transactions are found.',
-                  //       noSearchResultsVariation: true,
-                  //       searchFilters: searchFilters,
-                  //       // limit: 250,
-                  //       noResultsExtraWidget: dateRangeWidget,
-                  //       totalCashFlowExtraWidget: Transform.translate(offset: Offset(0, -15), child: dateRangeWidget),
-                  //       showTotalCashFlow: true,
-                  //     );
-                  //   },
-                  // ),
-                  const SizedBox(height: 56.0),
-                ]),
+            ),
+            AnimatedSwitcher(
+              duration: Duration(milliseconds: 500),
+              child: IconButton(
+                key: ValueKey(searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)),
+                color: searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)
+                    ? null
+                    : context.colors.tertiaryContainer,
+                onPressed: () => selectFilters(context),
+                icon: Icon(
+                  Icons.filter_alt_rounded,
+                  color: searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)
+                      ? null
+                      : context.colors.onTertiaryContainer,
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          tooltip: 'Add transaction',
-          label: const Text('Add transaction'),
-          icon: const Icon(Icons.add),
-          onPressed: () {},
+
+        SliverList(
+          delegate: SliverChildListDelegate.fixed([
+            // ~ Applied Filter Chips
+            // Padding(
+            //   padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),
+            //   child: AppliedFilterChips(
+            //     searchFilters: searchFilters,
+            //     openFiltersSelection: () => selectFilters(context),
+            //     clearSearchFilters: clearSearchFilters,
+            //     // openSelectDate: () => selectDateRange(context),
+            //   ),
+            // ),
+
+            // ~ Results
+            BlocBuilder<TransactionsFilterCubit, TransactionsFilterState>(
+              builder: (context, state) {
+                late final List<Widget> tiles;
+
+                if (state.isLoaded) {
+                  final rts = state.transactions;
+                  if (rts.isEmpty) {
+                    tiles = [
+                      SectionTile(
+                        title: Center(child: Text('Oops! This is so empty', style: context.textTheme.titleLarge)),
+                        subtitle: Center(
+                          child: Text(
+                            'No transactions have been found for this month.\nAdd a few transactions.',
+                            textAlign: TextAlign.center,
+                            style: context.textTheme.bodySmall,
+                          ),
+                        ),
+                        contentSpacing: 12.0,
+                      ),
+                    ];
+                  } else {
+                    tiles = rts.map((rt) {
+                      return SectionTile(
+                        icon: Icon(rt.transactionType.icon),
+                        title: Text(rt.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
+                        subtitle: Text(rt.investedOn.toReadable()),
+                        trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                          selector: (state) => state.isPrivateMode,
+                          builder: (context, isPrivateMode) {
+                            return CurrencyView(
+                              amount: rt.totalAmount,
+                              integerStyle: context.textTheme.headlineSmall?.copyWith(
+                                color: rt.transactionType.color(context),
+                              ),
+                              privateMode: isPrivateMode,
+                            );
+                          },
+                        ),
+                        onTap: () {},
+                      );
+                    }).toList();
+                  }
+                } else {
+                  tiles = [SectionTile(title: CircularProgressIndicator())];
+                }
+
+                return Column(
+                  children: <Widget>[
+                    Section(
+                      title: const Text('Recent Transactions'),
+                      // subTitle: Text('From ${dateRange.start.toReadable()} to ${dateRange.end.toReadable()}'),
+                      icon: const Icon(Icons.swap_vert_rounded),
+                      tiles: tiles,
+                    ),
+                    // Tappable(
+                    //       // borderRadius: 10,
+                    //       onTap: () => selectDateRange(context),
+                    //       color: Colors.transparent,
+                    //       child: Padding(
+                    //         padding: const EdgeInsetsDirectional.only(start: 10, end: 10, top: 10, bottom: 8),
+                    //         child: Text(
+                    //           'All time',
+                    //           // searchFilters.dateTimeRange == null
+                    //           //     ? 'all-time'
+                    //           //     : getWordedDateShortMore(
+                    //           //             searchFilters.dateTimeRange?.start ?? DateTime.now(),
+                    //           //             includeYear: true,
+                    //           //           ) +
+                    //           //           " – " +
+                    //           //           getWordedDateShortMore(
+                    //           //             searchFilters.dateTimeRange?.end ?? DateTime.now(),
+                    //           //             includeYear: true,
+                    //           //           ),
+                    //           // fontSize: 13,
+                    //           textAlign: TextAlign.center,
+                    //           // textColor: getColor(context, "textLight"),
+                    //         ),
+                    //       ),
+                    //     );
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 56.0),
+          ]),
         ),
-      ),
+      ],
     );
-  }
-}
-
-class SearchFilters {
-  SearchFilters({
-    this.walletPks = const [],
-    this.categoryPks = const [],
-    this.subcategoryPks = const [],
-    this.budgetPks = const [],
-    this.excludedBudgetPks = const [],
-    this.objectivePks = const [],
-    this.objectiveLoanPks = const [],
-    this.positiveCashFlow, //Similar to isIncome, but includes anything that is positive amount (loans)
-    this.amountRange,
-    this.dateTimeRange,
-    this.searchQuery,
-    this.titleContains,
-    this.noteContains,
-  }) {
-    walletPks = this.walletPks.isEmpty ? [] : this.walletPks;
-    categoryPks = this.categoryPks.isEmpty ? [] : this.categoryPks;
-    subcategoryPks = this.subcategoryPks?.isEmpty == true ? [] : this.subcategoryPks;
-    budgetPks = this.budgetPks.isEmpty ? [] : this.budgetPks;
-    excludedBudgetPks = this.excludedBudgetPks.isEmpty ? [] : this.excludedBudgetPks;
-    objectivePks = this.objectivePks.isEmpty ? [] : this.objectivePks;
-    objectiveLoanPks = this.objectiveLoanPks.isEmpty ? [] : this.objectiveLoanPks;
-    positiveCashFlow = this.positiveCashFlow;
-  }
-  //if the value is empty, it means all/ignore
-  // think of it, if the tag is added it will be considered in the search
-  List<String> walletPks;
-  List<String> categoryPks;
-  List<String>? subcategoryPks;
-  List<String?> budgetPks;
-  List<String> excludedBudgetPks;
-  List<String?> objectivePks;
-  List<String?> objectiveLoanPks;
-  bool? positiveCashFlow;
-  RangeValues? amountRange;
-  DateTimeRange? dateTimeRange;
-  String? searchQuery;
-  String? titleContains;
-  String? noteContains;
-
-  SearchFilters copyWith({
-    List<String>? walletPks,
-    List<String>? categoryPks,
-    List<String>? subcategoryPks,
-    List<String?>? budgetPks,
-    List<String>? excludedBudgetPks,
-    List<String?>? objectivePks,
-    List<String?>? objectiveLoanPks,
-    bool? positiveCashFlow,
-
-    RangeValues? amountRange,
-    DateTimeRange? dateTimeRange,
-    bool forceSetDateTimeRange = false,
-    String? searchQuery,
-    String? titleContains,
-    String? noteContains,
-  }) {
-    return SearchFilters(
-      walletPks: walletPks ?? this.walletPks,
-      categoryPks: categoryPks ?? this.categoryPks,
-      subcategoryPks: subcategoryPks ?? this.subcategoryPks,
-      budgetPks: budgetPks ?? this.budgetPks,
-      excludedBudgetPks: excludedBudgetPks ?? this.excludedBudgetPks,
-      objectivePks: objectivePks ?? this.objectivePks,
-      objectiveLoanPks: objectiveLoanPks ?? this.objectiveLoanPks,
-      positiveCashFlow: positiveCashFlow,
-      amountRange: amountRange ?? this.amountRange,
-      dateTimeRange: forceSetDateTimeRange == true ? dateTimeRange : (dateTimeRange ?? this.dateTimeRange),
-      searchQuery: searchQuery ?? this.searchQuery,
-      titleContains: titleContains ?? this.titleContains,
-      noteContains: noteContains ?? this.noteContains,
-    );
-  }
-
-  void clearSearchFilters() {
-    walletPks = [];
-    categoryPks = [];
-    subcategoryPks = [];
-    budgetPks = [];
-    excludedBudgetPks = [];
-    objectivePks = [];
-    objectiveLoanPks = [];
-    positiveCashFlow = null;
-    amountRange = null;
-    dateTimeRange = null;
-    searchQuery = null;
-    titleContains = null;
-    noteContains = null;
-  }
-
-  bool isClear({bool? ignoreDateTimeRange, bool? ignoreSearchQuery}) {
-    return (walletPks.isEmpty &&
-        categoryPks.isEmpty &&
-        subcategoryPks?.isEmpty == true &&
-        budgetPks.isEmpty &&
-        excludedBudgetPks.isEmpty &&
-        objectivePks.isEmpty &&
-        objectiveLoanPks.isEmpty &&
-        positiveCashFlow == null &&
-        amountRange == null &&
-        (ignoreDateTimeRange == true || dateTimeRange == null) &&
-        (ignoreSearchQuery == true || searchQuery == null) &&
-        titleContains == null &&
-        noteContains == null);
-  }
-
-  void loadFilterString(String? filterString, {bool skipDateTimeRange = false, bool skipSearchQuery = false}) {
-    if (filterString == null) return;
-    List<String> filterElements = filterString.split(":-:");
-    clearSearchFilters();
-
-    for (int i = 0; i < filterElements.length; i += 2) {
-      if (i >= filterElements.length - 1) break;
-      String? key = nullIfIndexOutOfRange(filterElements, i);
-      String? value = nullIfIndexOutOfRange(filterElements, i + 1);
-      if (key == null || value == null) break;
-      try {
-        switch (key) {
-          case 'walletPks':
-            walletPks.add(value);
-            break;
-          case 'categoryPks':
-            categoryPks.add(value);
-            break;
-          case 'subcategoryPks':
-            if (value == "null") {
-              subcategoryPks = null;
-            } else {
-              subcategoryPks?.add(value);
-            }
-            break;
-          case 'budgetPks':
-            if (value == "null") {
-              budgetPks.add(null);
-            } else {
-              budgetPks.add(value);
-            }
-            break;
-          case 'excludedBudgetPks':
-            excludedBudgetPks.add(value);
-            break;
-          case 'objectivePks':
-            if (value == "null") {
-              objectivePks.add(null);
-            } else {
-              objectivePks.add(value);
-            }
-            break;
-          case 'objectiveLoanPks':
-            if (value == "null") {
-              objectiveLoanPks.add(null);
-            } else {
-              objectiveLoanPks.add(value);
-            }
-            break;
-          // case 'expenseIncome':
-          //   expenseIncome.add(ExpenseIncome.values[int.parse(value)]);
-          //   break;
-          case 'positiveCashFlow':
-            if (value == "null") {
-              positiveCashFlow = null;
-            } else {
-              positiveCashFlow = bool.parse(value);
-            }
-            break;
-          // case 'paidStatus':
-          //   paidStatus.add(PaidStatus.values[int.parse(value)]);
-          //   break;
-          // case 'transactionTypes':
-          //   if (value == "null") {
-          //     transactionTypes.add(null);
-          //   } else {
-          //     transactionTypes.add(TransactionSpecialType.values[int.parse(value)]);
-          //   }
-          //   break;
-          // case 'budgetTransactionFilters':
-          //   budgetTransactionFilters.add(BudgetTransactionFilters.values[int.parse(value)]);
-          //   break;
-          // case 'methodAdded':
-          //   methodAdded.add(MethodAdded.values[int.parse(value)]);
-          //   break;
-          case 'amountRange':
-            if (value == "null") {
-              amountRange = null;
-            } else {
-              value = value.replaceAll("RangeValues(", "");
-              value = value.replaceAll(")", "");
-              List<String> rangeValues = value.split(", ");
-              amountRange = RangeValues(double.parse(rangeValues[0]), double.parse(rangeValues[1]));
-            }
-            break;
-          case 'dateTimeRange':
-            if (value == "null" || skipDateTimeRange) {
-              dateTimeRange = null;
-            } else {
-              List<String> dateValues = value.split(" - ");
-              dateTimeRange = DateTimeRange(start: DateTime.parse(dateValues[0]), end: DateTime.parse(dateValues[1]));
-            }
-            break;
-          case 'searchQuery':
-            if (value == "null" || value.trim() == "" || skipSearchQuery) {
-              searchQuery = null;
-            } else {
-              searchQuery = value;
-            }
-            break;
-          case 'titleContains':
-            if (value == "null" || value.trim() == "") {
-              titleContains = null;
-            } else {
-              titleContains = value;
-            }
-            break;
-          case 'noteContains':
-            if (value == "null" || value.trim() == "") {
-              noteContains = null;
-            } else {
-              noteContains = value;
-            }
-            break;
-          default:
-            break;
-        }
-      } catch (e) {
-        print(e.toString() + " error loading filter string " + key.toString() + " " + value.toString());
-      }
-    }
-  }
-
-  String getFilterString() {
-    String outString = "";
-    for (String element in walletPks) {
-      outString += "walletPks:-:" + element + ":-:";
-    }
-    for (String element in categoryPks) {
-      outString += "categoryPks:-:" + element + ":-:";
-    }
-    for (String element in subcategoryPks ?? []) {
-      outString += "subcategoryPks:-:" + element + ":-:";
-    }
-    if (subcategoryPks == null) {
-      outString += "subcategoryPks:-:" + "null" + ":-:";
-    }
-    for (String? element in budgetPks) {
-      outString += "budgetPks:-:" + element.toString() + ":-:";
-    }
-    for (String? element in excludedBudgetPks) {
-      outString += "excludedBudgetPks:-:" + element.toString() + ":-:";
-    }
-    for (String? element in objectivePks) {
-      outString += "objectivePks:-:" + element.toString() + ":-:";
-    }
-    for (String? element in objectiveLoanPks) {
-      outString += "objectiveLoanPks:-:" + element.toString() + ":-:";
-    }
-    outString += "positiveCashFlow:-:" + positiveCashFlow.toString() + ":-:";
-    outString += "amountRange:-:" + amountRange.toString() + ":-:";
-    outString += "dateTimeRange:-:" + dateTimeRange.toString() + ":-:";
-    outString += "searchQuery:-:" + searchQuery.toString() + ":-:";
-    outString += "titleContains:-:" + titleContains.toString() + ":-:";
-    outString += "noteContains:-:" + noteContains.toString() + ":-:";
-    //print(outString);
-    return outString;
   }
 }
 
@@ -1692,23 +1470,3 @@ List<DateTimeRange> createDateTimeRanges(ParsedDateTimeQuery? parsed) {
 //     );
 //   }
 // }
-
-class Debouncer {
-  final int milliseconds;
-  Timer? _timer;
-
-  Debouncer({required this.milliseconds});
-
-  run(VoidCallback action) {
-    _timer?.cancel();
-    _timer = Timer(Duration(milliseconds: milliseconds), action);
-  }
-}
-
-T? nullIfIndexOutOfRange<T>(List<T> list, int index) {
-  if (index < 0 || index >= list.length) {
-    return null;
-  } else {
-    return list[index];
-  }
-}

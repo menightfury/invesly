@@ -22,7 +22,7 @@ import 'package:invesly/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/transactions/transactions_filter/transactions_filter.dart';
+import 'package:invesly/transactions/transactions_filter/transactions_filter_page.dart';
 
 part 'widgets/accounts.dart';
 part 'widgets/categories_widget.dart';
@@ -187,7 +187,7 @@ class _DashboardContentsState extends State<_DashboardContents> {
     final startOfYear = DateTime(now.year, 1, 1);
     // final endOfMonth = DateTime(now.year, now.month + 1, 0);
     dateRange = DateTimeRange(start: startOfYear, end: now);
-    context.read<DashboardCubit>().fetchTransactionStats(dateRange: dateRange);
+    context.read<DashboardCubit>().fetchTransactionStats(dateRange: dateRange, limit: 3);
   }
 
   @override

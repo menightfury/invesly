@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
+import 'package:invesly/common/utils/debouncer.dart';
 import 'package:invesly/common_libs.dart';
 
 part 'amc_search_state.dart';
@@ -9,7 +10,7 @@ part 'amc_search_state.dart';
 class AmcSearchCubit extends Cubit<AmcSearchState> {
   AmcSearchCubit({required AmcRepository amcRepository, AmcGenre? genre})
     : _amcRepository = amcRepository,
-      _debounce = _Debounce(1.seconds),
+      _debouncer = Debouncer(1.seconds),
       super(AmcSearchState.initial(searchGenre: genre ?? AmcGenre.misc));
 
   //  EditTransactionState(
@@ -25,7 +26,7 @@ class AmcSearchCubit extends Cubit<AmcSearchState> {
 
   final AmcRepository _amcRepository;
   final Map<String, List<InveslyAmc>> _amcCache = {}; // key is combination of query and genre
-  final _Debounce _debounce;
+  final Debouncer _debouncer;
 
   void updateSearchGenre(AmcGenre? value) {
     if (value == null) return;
@@ -43,7 +44,7 @@ class AmcSearchCubit extends Cubit<AmcSearchState> {
 
     emit(state.copyWith(status: AmcSearchStateStatus.loading));
     try {
-      await _debounce.wait(); // wait for 1 second
+      await _debouncer.wait();
       final results = await _amcRepository.getAmcs(query, state.searchGenre);
       $logger.d(results);
       emit(state.copyWith(status: AmcSearchStateStatus.success, results: results));
@@ -62,25 +63,5 @@ class AmcSearchCubit extends Cubit<AmcSearchState> {
   Future<void> close() {
     _amcCache.clear();
     return super.close();
-  }
-}
-
-class _Debounce {
-  _Debounce(this.delay);
-
-  final Duration delay;
-  Timer? _timer;
-
-  Future<void> wait() async {
-    final completer = Completer<void>();
-    if (_timer?.isActive ?? false) {
-      _timer?.cancel();
-    }
-    _timer = Timer(delay, () => completer.complete());
-    return completer.future;
-  }
-
-  void dispose() {
-    _timer?.cancel();
   }
 }
