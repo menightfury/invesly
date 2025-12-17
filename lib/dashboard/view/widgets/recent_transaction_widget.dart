@@ -1,9 +1,10 @@
 part of '../dashboard_screen.dart';
 
 class _RecentTransactions extends StatelessWidget {
-  const _RecentTransactions(this.dateRange, {super.key});
+  const _RecentTransactions(this.transactions, {this.period, super.key});
 
-  final DateTimeRange dateRange;
+  final DateTimeRange? period;
+  final List<InveslyTransaction> transactions;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +55,7 @@ class _RecentTransactions extends StatelessWidget {
           children: <Widget>[
             Section(
               title: const Text('Recent Transactions'),
-              subTitle: Text('From ${dateRange.start.toReadable()} to ${dateRange.end.toReadable()}'),
+              subTitle: period != null ? Text('From ${period.start.toReadable()} to ${period.end.toReadable()}') :,
               icon: const Icon(Icons.swap_vert_rounded),
               tiles: tiles,
             ),
@@ -62,7 +63,7 @@ class _RecentTransactions extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: FilledButton.tonalIcon(
-                  onPressed: () => context.push(const TransactionsFilterPage()),
+                  onPressed: () => context.push(const TransactionsPage()),
                   label: const Icon(Icons.arrow_forward),
                   icon: const Text('See all transactions'),
                 ),

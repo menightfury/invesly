@@ -22,7 +22,7 @@ import 'package:invesly/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/transactions/transactions_filter/transactions_filter_page.dart';
+import 'package:invesly/transactions/transactions/transactions_page.dart';
 
 part 'widgets/accounts.dart';
 part 'widgets/categories_widget.dart';
@@ -195,7 +195,15 @@ class _DashboardContentsState extends State<_DashboardContents> {
     return Column(
       spacing: 16.0,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[_CategoriesWidget(), _RecentTransactions(dateRange)],
+      children: <Widget>[
+        _CategoriesWidget(),
+
+        BlocBuilder<DashboardCubit, DashboardState>(
+          builder: (context, state) {
+            return _RecentTransactions(dateRange);
+          },
+        ),
+      ],
     );
   }
 }

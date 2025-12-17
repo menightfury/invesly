@@ -11,23 +11,23 @@ import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/transactions/transactions_filter/cubit/transactions_filter_cubit.dart';
-import 'package:invesly/transactions/transactions_filter/search_filters_model.dart';
+import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
+import 'package:invesly/transactions/transactions/filter_transactions_model.dart';
 
 // int roundToNearestNextFifthYear(int year) {
 //   return (((year + 5) / 5).ceil()) * 5;
 // }
 
-class TransactionsFilterPage extends StatefulWidget {
-  const TransactionsFilterPage({this.initialFilters, super.key});
+class TransactionsPage extends StatefulWidget {
+  const TransactionsPage({this.initialFilters, super.key});
 
-  final SearchFilters? initialFilters;
+  final FilterTransactionsModel? initialFilters;
 
   @override
-  State<TransactionsFilterPage> createState() => _TransactionsFilterPageState();
+  State<TransactionsPage> createState() => _TransactionsPageState();
 }
 
-class _TransactionsFilterPageState extends State<TransactionsFilterPage> {
+class _TransactionsPageState extends State<TransactionsPage> {
   final ScrollController _scrollController = ScrollController();
   //   _scrollListener(position) {
   //     double percent = position / (MediaQuery.paddingOf(context).top + 65 + 50);
@@ -77,6 +77,28 @@ class _TransactionsFilterPageState extends State<TransactionsFilterPage> {
     }
   }
 
+  Future<void> selectFilters(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SizedBox.shrink();
+        // PopupFramework(
+        //   title: 'Filters',
+        //   hasPadding: false,
+        //   child: TransactionFiltersSelection(
+        //     setSearchFilters: setSearchFilters,
+        //     searchFilters: searchFilters,
+        //     clearSearchFilters: clearSearchFilters,
+        //   ),
+        // );
+      },
+    );
+    Future.delayed(Duration(milliseconds: 250), () {
+      // updateSettings("searchTransactionsSetFiltersString", searchFilters.getFilterString(), updateGlobalState: false);
+      setState(() {});
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,7 +108,12 @@ class _TransactionsFilterPageState extends State<TransactionsFilterPage> {
       // onScroll: _scrollListener,
       body: SafeArea(
         child: BlocProvider(
-          create: (context) => TransactionsFilterCubit(repository: context.read<TransactionRepository>()),
+          create: (context) {
+            return TransactionsCubit(
+              repository: context.read<TransactionRepository>(),
+              initialFilters: widget.initialFilters,
+            );
+          },
           child: _PageContent(),
         ),
       ),
@@ -110,7 +137,7 @@ class _TransactionsFilterPageState extends State<TransactionsFilterPage> {
 class _PageContent extends StatefulWidget {
   const _PageContent({this.initialFilters, super.key});
 
-  final SearchFilters? initialFilters;
+  final FilterTransactionsModel? initialFilters;
 
   @override
   State<_PageContent> createState() => __PageContentState();
@@ -123,14 +150,14 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
 
   late AnimationController _animationControllerSearch;
   //   final _debouncer = Debouncer(milliseconds: 500);
-  late SearchFilters searchFilters;
+  late FilterTransactionsModel searchFilters;
   TextEditingController searchInputController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    context.read<TransactionsFilterCubit>().fetchTransactions();
-    searchFilters = widget.initialFilters != null ? widget.initialFilters! : SearchFilters();
+    context.read<TransactionsCubit>().fetchTransactions();
+    searchFilters = widget.initialFilters != null ? widget.initialFilters! : FilterTransactionsModel();
     //     if (widget.initialFilters == null) {
     //       searchFilters.loadFilterString(
     //         appStateSettings["searchTransactionsSetFiltersString"],
@@ -147,55 +174,8 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
     super.dispose();
   }
 
-  Future<void> selectFilters(BuildContext context) async {
-    await showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SizedBox.shrink();
-        // PopupFramework(
-        //   title: 'Filters',
-        //   hasPadding: false,
-        //   child: TransactionFiltersSelection(
-        //     setSearchFilters: setSearchFilters,
-        //     searchFilters: searchFilters,
-        //     clearSearchFilters: clearSearchFilters,
-        //   ),
-        // );
-      },
-    );
-    Future.delayed(Duration(milliseconds: 250), () {
-      // updateSettings("searchTransactionsSetFiltersString", searchFilters.getFilterString(), updateGlobalState: false);
-      setState(() {});
-    });
-  }
-
   //   void setSearchFilters(SearchFilters searchFilters) {
   //     this.searchFilters = searchFilters;
-  //   }
-
-  //   void clearSearchFilters() {
-  //     // Don't change the DateTime selected, as its handles separately
-  //     DateTimeRange? dateTimeRange = searchFilters.dateTimeRange;
-  //     // Only clear the search query if there are special filters
-  //     // identified within the search query
-  //     String? savedSearchQuery;
-  //     ParsedDateTimeQuery? parsedDateTimeQuery = searchFilters.searchQuery == null
-  //         ? null
-  //         : parseSearchQueryForDateTimeText(searchFilters.searchQuery ?? "");
-  //     (double, double)? bounds = searchFilters.searchQuery == null
-  //         ? null
-  //         : parseSearchQueryForAmountText(searchFilters.searchQuery ?? "");
-  //     if (parsedDateTimeQuery != null || bounds != null) {
-  //       savedSearchQuery = null;
-  //       // setTextInput(searchInputController, "");
-  //     } else {
-  //       savedSearchQuery = searchFilters.searchQuery;
-  //     }
-  //     searchFilters.clearSearchFilters();
-  //     searchFilters.dateTimeRange = dateTimeRange;
-  //     searchFilters.searchQuery = savedSearchQuery;
-  //     // updateSettings("searchTransactionsSetFiltersString", null, updateGlobalState: false);
-  //     setState(() {});
   //   }
 
   Future<void> selectDateRange(BuildContext context) async {
@@ -261,18 +241,22 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
         SliverList(
           delegate: SliverChildListDelegate.fixed([
             // ~ Applied Filter Chips
-            // Padding(
-            //   padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),
-            //   child: AppliedFilterChips(
-            //     searchFilters: searchFilters,
-            //     openFiltersSelection: () => selectFilters(context),
-            //     clearSearchFilters: clearSearchFilters,
-            //     // openSelectDate: () => selectDateRange(context),
-            //   ),
-            // ),
+            Padding(
+              padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),
+              child: BlocBuilder<TransactionsCubit, TransactionsState>(
+                builder: (context, state) {
+                  return AppliedFilterChips(
+                    searchFilters: searchFilters,
+                    openFiltersSelection: () => selectFilters(context),
+                    clearSearchFilters: clearSearchFilters,
+                    // openSelectDate: () => selectDateRange(context),
+                  );
+                },
+              ),
+            ),
 
             // ~ Results
-            BlocBuilder<TransactionsFilterCubit, TransactionsFilterState>(
+            BlocBuilder<TransactionsCubit, TransactionsState>(
               builder: (context, state) {
                 late final List<Widget> tiles;
 
@@ -1156,377 +1140,369 @@ List<DateTimeRange> createDateTimeRanges(ParsedDateTimeQuery? parsed) {
 //   }
 // }
 
-// class AppliedFilterChips extends StatelessWidget {
-//   const AppliedFilterChips({
-//     required this.searchFilters,
-//     required this.openFiltersSelection,
-//     required this.clearSearchFilters,
-//     this.openSelectDate,
-//     this.padding = const EdgeInsetsDirectional.only(bottom: 8.0),
-//     super.key,
-//   });
-//   final SearchFilters searchFilters;
-//   final Function openFiltersSelection;
-//   final Function clearSearchFilters;
-//   final Function? openSelectDate;
-//   final EdgeInsetsDirectional padding;
+class AppliedFilterChips extends StatelessWidget {
+  const AppliedFilterChips({
+    required this.searchFilters,
+    required this.openFiltersSelection,
+    required this.clearSearchFilters,
+    // this.openSelectDate,
+    super.key,
+  });
 
-//   Future<List<Widget>> getSearchFilterWidgets(BuildContext context) async {
-//     AllWallets allWallets = Provider.of<AllWallets>(context);
-//     List<Widget> out = [];
-//     // Title contains
-//     if (searchFilters.titleContains != null) {
-//       out.add(
-//         AppliedFilterChip(
-//           label: "title-contains".tr() + ": " + (searchFilters.titleContains ?? ""),
-//           openFiltersSelection: openFiltersSelection,
-//         ),
-//       );
-//     }
-//     // Notes contains
-//     if (searchFilters.noteContains != null) {
-//       out.add(
-//         AppliedFilterChip(
-//           label: "notes-contain".tr() + ": " + (searchFilters.noteContains ?? ""),
-//           openFiltersSelection: openFiltersSelection,
-//         ),
-//       );
-//     }
-//     // Categories
-//     for (TransactionCategory category in await database.getAllCategories(
-//       categoryFks: searchFilters.categoryPks,
-//       allCategories: false,
-//     )) {
-//       out.add(
-//         AppliedFilterChip(
-//           label: category.name,
-//           customBorderColor: HexColor(category.colour, defaultColor: Theme.of(context).colorScheme.primary),
-//           openFiltersSelection: openFiltersSelection,
-//         ),
-//       );
-//     }
-//     for (TransactionCategory category in await database.getAllCategories(
-//       categoryFks: searchFilters.subcategoryPks,
-//       allCategories: false,
-//       includeSubCategories: true,
-//     )) {
-//       out.add(
-//         AppliedFilterChip(
-//           label: category.name,
-//           customBorderColor: HexColor(category.colour, defaultColor: Theme.of(context).colorScheme.primary),
-//           openFiltersSelection: openFiltersSelection,
-//         ),
-//       );
-//     }
-//     if (searchFilters.subcategoryPks == null) {
-//       out.add(AppliedFilterChip(label: "no-subcategory".tr(), openFiltersSelection: openFiltersSelection));
-//     }
-//     // Amount range
-//     if (searchFilters.amountRange != null) {
-//       out.add(
-//         AppliedFilterChip(
-//           label:
-//               convertToMoney(allWallets, searchFilters.amountRange!.start) +
-//               " – " +
-//               convertToMoney(allWallets, searchFilters.amountRange!.end),
-//           openFiltersSelection: openFiltersSelection,
-//         ),
-//       );
-//     }
-//     // Expense Income
-//     if (searchFilters.expenseIncome.contains(ExpenseIncome.expense)) {
-//       out.add(
-//         AppliedFilterChip(
-//           label: "expense".tr(),
-//           customBorderColor: getColor(context, "expenseAmount"),
-//           openFiltersSelection: openFiltersSelection,
-//         ),
-//       );
-//     }
-//     if (searchFilters.expenseIncome.contains(ExpenseIncome.income)) {
-//       out.add(
-//         AppliedFilterChip(
-//           label: "income".tr(),
-//           customBorderColor: getColor(context, "incomeAmount"),
-//           openFiltersSelection: openFiltersSelection,
-//         ),
-//       );
-//     }
-//     // Cash Flow
-//     if (searchFilters.positiveCashFlow == false) {
-//       out.add(
-//         AppliedFilterChip(
-//           label: "outgoing".tr(),
-//           customBorderColor: getColor(context, "expenseAmount"),
-//           openFiltersSelection: openFiltersSelection,
-//         ),
-//       );
-//     } else if (searchFilters.positiveCashFlow == true) {
-//       out.add(
-//         AppliedFilterChip(
-//           label: "incoming".tr(),
-//           customBorderColor: getColor(context, "incomeAmount"),
-//           openFiltersSelection: openFiltersSelection,
-//         ),
-//       );
-//     }
-//     // Transaction Types
-//     for (TransactionSpecialType? transactionType in searchFilters.transactionTypes) {
-//       Color? customBorderColor;
-//       if (transactionType == TransactionSpecialType.credit) {
-//         customBorderColor = getColor(context, "unPaidUpcoming");
-//       } else if (transactionType == TransactionSpecialType.debt) {
-//         customBorderColor = getColor(context, "unPaidOverdue");
-//       }
-//       out.add(
-//         AppliedFilterChip(
-//           label: transactionTypeDisplayToEnum[transactionType]?.toString().toLowerCase().tr() ?? "default".tr(),
-//           customBorderColor: customBorderColor,
-//           openFiltersSelection: openFiltersSelection,
-//         ),
-//       );
-//     }
-//     // Paid status
-//     if (searchFilters.paidStatus.contains(PaidStatus.paid)) {
-//       out.add(AppliedFilterChip(label: "paid".tr(), openFiltersSelection: openFiltersSelection));
-//     }
-//     if (searchFilters.paidStatus.contains(PaidStatus.notPaid)) {
-//       out.add(AppliedFilterChip(label: "not-paid".tr(), openFiltersSelection: openFiltersSelection));
-//     }
-//     if (searchFilters.paidStatus.contains(PaidStatus.skipped)) {
-//       out.add(AppliedFilterChip(label: "skipped".tr(), openFiltersSelection: openFiltersSelection));
-//     }
-//     // Budget Transaction Filters
-//     if (searchFilters.budgetTransactionFilters.contains(BudgetTransactionFilters.sharedToOtherBudget)) {
-//       out.add(AppliedFilterChip(label: "added-to-other-budgets".tr(), openFiltersSelection: openFiltersSelection));
-//     }
-//     if (searchFilters.budgetTransactionFilters.contains(BudgetTransactionFilters.addedToOtherBudget)) {
-//       out.add(AppliedFilterChip(label: "added-to-other-budgets".tr(), openFiltersSelection: openFiltersSelection));
-//     }
-//     // Wallets
-//     for (String walletPk in searchFilters.walletPks) {
-//       out.add(
-//         AppliedFilterChip(
-//           label: getWalletStringName(Provider.of<AllWallets>(context, listen: false), allWallets.indexedByPk[walletPk]),
-//           customBorderColor: HexColor(
-//             allWallets.indexedByPk[walletPk]?.colour,
-//             defaultColor: Theme.of(context).colorScheme.primary,
-//           ),
-//           openFiltersSelection: openFiltersSelection,
-//         ),
-//       );
-//     }
-//     // Budgets
-//     for (Budget budget in await database.getAllBudgets()) {
-//       if (searchFilters.budgetPks.contains(budget.budgetPk))
-//         out.add(
-//           AppliedFilterChip(
-//             label: budget.name,
-//             customBorderColor: HexColor(budget.colour, defaultColor: Theme.of(context).colorScheme.primary),
-//             openFiltersSelection: openFiltersSelection,
-//           ),
-//         );
-//     }
-//     // Excluded Budgets
-//     for (Budget budget in await database.getAllBudgets()) {
-//       if (searchFilters.excludedBudgetPks.contains(budget.budgetPk))
-//         out.add(
-//           AppliedFilterChip(
-//             label: "excluded-from".tr() + ": " + budget.name,
-//             customBorderColor: HexColor(budget.colour, defaultColor: Theme.of(context).colorScheme.primary),
-//             openFiltersSelection: openFiltersSelection,
-//           ),
-//         );
-//     }
-//     if (searchFilters.budgetPks.contains(null)) {
-//       out.add(AppliedFilterChip(label: "no-budget".tr(), openFiltersSelection: openFiltersSelection));
-//     }
-//     // Objectives
-//     for (Objective objective in await database.getAllObjectives(objectiveType: ObjectiveType.goal)) {
-//       if (searchFilters.objectivePks.contains(objective.objectivePk))
-//         out.add(
-//           AppliedFilterChip(
-//             label: objective.name,
-//             customBorderColor: HexColor(objective.colour, defaultColor: Theme.of(context).colorScheme.primary),
-//             openFiltersSelection: openFiltersSelection,
-//           ),
-//         );
-//     }
-//     if (searchFilters.objectivePks.contains(null)) {
-//       out.add(AppliedFilterChip(label: "no-goal".tr(), openFiltersSelection: openFiltersSelection));
-//     }
-//     // Loan Objectives
-//     for (Objective objective in await database.getAllObjectives(objectiveType: ObjectiveType.loan)) {
-//       if (searchFilters.objectiveLoanPks.contains(objective.objectivePk))
-//         out.add(
-//           AppliedFilterChip(
-//             label: objective.name,
-//             customBorderColor: HexColor(objective.colour, defaultColor: Theme.of(context).colorScheme.primary),
-//             openFiltersSelection: openFiltersSelection,
-//           ),
-//         );
-//     }
-//     if (searchFilters.objectiveLoanPks.contains(null)) {
-//       out.add(AppliedFilterChip(label: "no-loan".tr(), openFiltersSelection: openFiltersSelection));
-//     }
-//     // Date and time range
-//     if (out.length > 0 && openSelectDate != null && searchFilters.dateTimeRange != null) {
-//       out.add(
-//         AppliedFilterChip(
-//           label:
-//               getWordedDateShortMore(
-//                 searchFilters.dateTimeRange!.start,
-//                 includeYear: searchFilters.dateTimeRange!.start != DateTime.now().year,
-//               ) +
-//               " – " +
-//               getWordedDateShortMore(
-//                 searchFilters.dateTimeRange!.end,
-//                 includeYear: searchFilters.dateTimeRange!.end != DateTime.now().year,
-//               ),
-//           openFiltersSelection: () => {openSelectDate!()},
-//         ),
-//       );
-//     }
-//     // Date from search text
-//     ParsedDateTimeQuery? parsedDateTimeQuery = searchFilters.searchQuery == null
-//         ? null
-//         : parseSearchQueryForDateTimeText(searchFilters.searchQuery ?? "");
-//     if (parsedDateTimeQuery != null) {
-//       out.add(
-//         AppliedFilterChip(
-//           customBorderColor: Theme.of(context).colorScheme.tertiary,
-//           label: parsedDateTimeQuery.formatDate(context.locale.toString()),
-//           openFiltersSelection: () => {openSelectDate!()},
-//         ),
-//       );
-//     }
-//     // Amount from search text
-//     (double, double)? bounds = searchFilters.searchQuery == null
-//         ? null
-//         : parseSearchQueryForAmountText(searchFilters.searchQuery ?? "");
-//     if (bounds != null) {
-//       double lowerBound = bounds.$1;
-//       out.add(
-//         AppliedFilterChip(
-//           customBorderColor: Theme.of(context).colorScheme.tertiary,
-//           label: "= " + lowerBound.toString(),
-//           openFiltersSelection: () => {openSelectDate!()},
-//         ),
-//       );
-//     }
+  final FilterTransactionsModel searchFilters;
+  final VoidCallback openFiltersSelection;
+  final VoidCallback clearSearchFilters;
+  // final Function? openSelectDate;
 
-//     // Method Added
-//     for (MethodAdded? methodAdded in searchFilters.methodAdded) {
-//       out.add(
-//         AppliedFilterChip(
-//           label: methodAdded?.name.toString().capitalizeFirst ?? "default".tr(),
-//           openFiltersSelection: openFiltersSelection,
-//         ),
-//       );
-//     }
+  Future<List<Widget>> getSearchFilterWidgets(BuildContext context) async {
+    List<Widget> out = [];
+    // Title contains
+    if (searchFilters.titleContains != null) {
+      out.add(
+        AppliedFilterChip(
+          label: "title-contains".tr() + ": " + (searchFilters.titleContains ?? ""),
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+    // Notes contains
+    if (searchFilters.noteContains != null) {
+      out.add(
+        AppliedFilterChip(
+          label: "notes-contain".tr() + ": " + (searchFilters.noteContains ?? ""),
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+    // Categories
+    for (TransactionCategory category in await database.getAllCategories(
+      categoryFks: searchFilters.categoryPks,
+      allCategories: false,
+    )) {
+      out.add(
+        AppliedFilterChip(
+          label: category.name,
+          customBorderColor: HexColor(category.colour, defaultColor: Theme.of(context).colorScheme.primary),
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+    for (TransactionCategory category in await database.getAllCategories(
+      categoryFks: searchFilters.subcategoryPks,
+      allCategories: false,
+      includeSubCategories: true,
+    )) {
+      out.add(
+        AppliedFilterChip(
+          label: category.name,
+          customBorderColor: HexColor(category.colour, defaultColor: Theme.of(context).colorScheme.primary),
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+    if (searchFilters.subcategoryPks == null) {
+      out.add(AppliedFilterChip(label: "no-subcategory".tr(), openFiltersSelection: openFiltersSelection));
+    }
+    // Amount range
+    if (searchFilters.amountRange != null) {
+      out.add(
+        AppliedFilterChip(
+          label:
+              convertToMoney(allWallets, searchFilters.amountRange!.start) +
+              " – " +
+              convertToMoney(allWallets, searchFilters.amountRange!.end),
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+    // Expense Income
+    if (searchFilters.expenseIncome.contains(ExpenseIncome.expense)) {
+      out.add(
+        AppliedFilterChip(
+          label: "expense".tr(),
+          customBorderColor: getColor(context, "expenseAmount"),
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+    if (searchFilters.expenseIncome.contains(ExpenseIncome.income)) {
+      out.add(
+        AppliedFilterChip(
+          label: "income".tr(),
+          customBorderColor: getColor(context, "incomeAmount"),
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+    // Cash Flow
+    if (searchFilters.positiveCashFlow == false) {
+      out.add(
+        AppliedFilterChip(
+          label: "outgoing".tr(),
+          customBorderColor: getColor(context, "expenseAmount"),
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    } else if (searchFilters.positiveCashFlow == true) {
+      out.add(
+        AppliedFilterChip(
+          label: "incoming".tr(),
+          customBorderColor: getColor(context, "incomeAmount"),
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+    // Transaction Types
+    for (TransactionSpecialType? transactionType in searchFilters.transactionTypes) {
+      Color? customBorderColor;
+      if (transactionType == TransactionSpecialType.credit) {
+        customBorderColor = getColor(context, "unPaidUpcoming");
+      } else if (transactionType == TransactionSpecialType.debt) {
+        customBorderColor = getColor(context, "unPaidOverdue");
+      }
+      out.add(
+        AppliedFilterChip(
+          label: transactionTypeDisplayToEnum[transactionType]?.toString().toLowerCase().tr() ?? "default".tr(),
+          customBorderColor: customBorderColor,
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+    // Paid status
+    if (searchFilters.paidStatus.contains(PaidStatus.paid)) {
+      out.add(AppliedFilterChip(label: "paid".tr(), openFiltersSelection: openFiltersSelection));
+    }
+    if (searchFilters.paidStatus.contains(PaidStatus.notPaid)) {
+      out.add(AppliedFilterChip(label: "not-paid".tr(), openFiltersSelection: openFiltersSelection));
+    }
+    if (searchFilters.paidStatus.contains(PaidStatus.skipped)) {
+      out.add(AppliedFilterChip(label: "skipped".tr(), openFiltersSelection: openFiltersSelection));
+    }
+    // Budget Transaction Filters
+    if (searchFilters.budgetTransactionFilters.contains(BudgetTransactionFilters.sharedToOtherBudget)) {
+      out.add(AppliedFilterChip(label: "added-to-other-budgets".tr(), openFiltersSelection: openFiltersSelection));
+    }
+    if (searchFilters.budgetTransactionFilters.contains(BudgetTransactionFilters.addedToOtherBudget)) {
+      out.add(AppliedFilterChip(label: "added-to-other-budgets".tr(), openFiltersSelection: openFiltersSelection));
+    }
+    // Wallets
+    for (String walletPk in searchFilters.walletPks) {
+      out.add(
+        AppliedFilterChip(
+          label: getWalletStringName(Provider.of<AllWallets>(context, listen: false), allWallets.indexedByPk[walletPk]),
+          customBorderColor: HexColor(
+            allWallets.indexedByPk[walletPk]?.colour,
+            defaultColor: Theme.of(context).colorScheme.primary,
+          ),
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+    // Budgets
+    for (Budget budget in await database.getAllBudgets()) {
+      if (searchFilters.budgetPks.contains(budget.budgetPk))
+        out.add(
+          AppliedFilterChip(
+            label: budget.name,
+            customBorderColor: HexColor(budget.colour, defaultColor: Theme.of(context).colorScheme.primary),
+            openFiltersSelection: openFiltersSelection,
+          ),
+        );
+    }
+    // Excluded Budgets
+    for (Budget budget in await database.getAllBudgets()) {
+      if (searchFilters.excludedBudgetPks.contains(budget.budgetPk))
+        out.add(
+          AppliedFilterChip(
+            label: "excluded-from".tr() + ": " + budget.name,
+            customBorderColor: HexColor(budget.colour, defaultColor: Theme.of(context).colorScheme.primary),
+            openFiltersSelection: openFiltersSelection,
+          ),
+        );
+    }
+    if (searchFilters.budgetPks.contains(null)) {
+      out.add(AppliedFilterChip(label: "no-budget".tr(), openFiltersSelection: openFiltersSelection));
+    }
+    // Objectives
+    for (Objective objective in await database.getAllObjectives(objectiveType: ObjectiveType.goal)) {
+      if (searchFilters.objectivePks.contains(objective.objectivePk))
+        out.add(
+          AppliedFilterChip(
+            label: objective.name,
+            customBorderColor: HexColor(objective.colour, defaultColor: Theme.of(context).colorScheme.primary),
+            openFiltersSelection: openFiltersSelection,
+          ),
+        );
+    }
+    if (searchFilters.objectivePks.contains(null)) {
+      out.add(AppliedFilterChip(label: "no-goal".tr(), openFiltersSelection: openFiltersSelection));
+    }
+    // Loan Objectives
+    for (Objective objective in await database.getAllObjectives(objectiveType: ObjectiveType.loan)) {
+      if (searchFilters.objectiveLoanPks.contains(objective.objectivePk))
+        out.add(
+          AppliedFilterChip(
+            label: objective.name,
+            customBorderColor: HexColor(objective.colour, defaultColor: Theme.of(context).colorScheme.primary),
+            openFiltersSelection: openFiltersSelection,
+          ),
+        );
+    }
+    if (searchFilters.objectiveLoanPks.contains(null)) {
+      out.add(AppliedFilterChip(label: "no-loan".tr(), openFiltersSelection: openFiltersSelection));
+    }
+    // Date and time range
+    if (out.length > 0 && openSelectDate != null && searchFilters.dateTimeRange != null) {
+      out.add(
+        AppliedFilterChip(
+          label:
+              getWordedDateShortMore(
+                searchFilters.dateTimeRange!.start,
+                includeYear: searchFilters.dateTimeRange!.start != DateTime.now().year,
+              ) +
+              " – " +
+              getWordedDateShortMore(
+                searchFilters.dateTimeRange!.end,
+                includeYear: searchFilters.dateTimeRange!.end != DateTime.now().year,
+              ),
+          openFiltersSelection: () => {openSelectDate!()},
+        ),
+      );
+    }
+    // Date from search text
+    ParsedDateTimeQuery? parsedDateTimeQuery = searchFilters.searchQuery == null
+        ? null
+        : parseSearchQueryForDateTimeText(searchFilters.searchQuery ?? "");
+    if (parsedDateTimeQuery != null) {
+      out.add(
+        AppliedFilterChip(
+          customBorderColor: Theme.of(context).colorScheme.tertiary,
+          label: parsedDateTimeQuery.formatDate(context.locale.toString()),
+          openFiltersSelection: () => {openSelectDate!()},
+        ),
+      );
+    }
+    // Amount from search text
+    (double, double)? bounds = searchFilters.searchQuery == null
+        ? null
+        : parseSearchQueryForAmountText(searchFilters.searchQuery ?? "");
+    if (bounds != null) {
+      double lowerBound = bounds.$1;
+      out.add(
+        AppliedFilterChip(
+          customBorderColor: Theme.of(context).colorScheme.tertiary,
+          label: "= " + lowerBound.toString(),
+          openFiltersSelection: () => {openSelectDate!()},
+        ),
+      );
+    }
 
-//     return out;
-//   }
+    // Method Added
+    for (MethodAdded? methodAdded in searchFilters.methodAdded) {
+      out.add(
+        AppliedFilterChip(
+          label: methodAdded?.name.toString().capitalizeFirst ?? "default".tr(),
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return GestureDetector(
-//       onTap: () {
-//         openFiltersSelection();
-//       },
-//       child: FutureBuilder(
-//         future: getSearchFilterWidgets(context),
-//         builder: (context, AsyncSnapshot<List<Widget>> snapshot) {
-//           return AnimatedSize(
-//             curve: Curves.easeInOutCubicEmphasized,
-//             duration: Duration(milliseconds: 1000),
-//             child: snapshot.hasData && snapshot.data != null && snapshot.data!.length > 0
-//                 ? Padding(
-//                     padding: padding,
-//                     child: SingleChildScrollView(
-//                       padding: EdgeInsetsDirectional.symmetric(horizontal: 16),
-//                       scrollDirection: Axis.horizontal,
-//                       child: AnimatedSwitcher(
-//                         duration: 300.ms,
-//                         // clipBehavior: Clip.none,
-//                         child: Row(
-//                           key: ValueKey(snapshot.data.toString()),
-//                           children: [
-//                             SizedBox(width: 5),
-//                             IconButton(
-//                               icon: Icon(Icons.close_rounded),
-//                               iconSize: 14,
-//                               // scale: 1.5,
-//                               onPressed: () => clearSearchFilters(),
-//                             ),
-//                             const SizedBox(width: 2),
-//                             ...(snapshot.data ?? []),
-//                           ],
-//                         ),
-//                       ),
-//                     ),
-//                   )
-//                 : SizedBox.shrink(),
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
+    return out;
+  }
 
-// class AppliedFilterChip extends StatelessWidget {
-//   const AppliedFilterChip({
-//     required this.label,
-//     required this.openFiltersSelection,
-//     this.icon,
-//     this.customBorderColor,
-//     super.key,
-//   });
-//   final Color? customBorderColor;
-//   final String label;
-//   final IconData? icon;
-//   final Function openFiltersSelection;
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: openFiltersSelection,
+      child: FutureBuilder(
+        future: getSearchFilterWidgets(context),
+        builder: (context, AsyncSnapshot<List<Widget>> snapshot) {
+          return AnimatedSize(
+            curve: Curves.easeInOutCubicEmphasized,
+            duration: Duration(milliseconds: 1000),
+            child: snapshot.hasData && snapshot.data != null && snapshot.data!.length > 0
+                ? SingleChildScrollView(
+                    padding: EdgeInsetsDirectional.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    child: AnimatedSwitcher(
+                      duration: 300.ms,
+                      // clipBehavior: Clip.none,
+                      child: Row(
+                        key: ValueKey(snapshot.data.toString()),
+                        children: [
+                          SizedBox(width: 5),
+                          IconButton(
+                            icon: Icon(Icons.close_rounded),
+                            iconSize: 14,
+                            // scale: 1.5,
+                            onPressed: clearSearchFilters,
+                          ),
+                          const SizedBox(width: 2),
+                          ...(snapshot.data ?? []),
+                        ],
+                      ),
+                    ),
+                  )
+                : SizedBox.shrink(),
+          );
+        },
+      ),
+    );
+  }
+}
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Padding(
-//       padding: const EdgeInsetsDirectional.symmetric(horizontal: 4),
-//       child: Tappable(
-//         onTap: () {
-//           openFiltersSelection();
-//         },
-//         // borderRadius: 8,
-//         color: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.5),
-//         child: Container(
-//           padding: EdgeInsetsDirectional.only(start: 14, end: 14, top: 7, bottom: 7),
-//           decoration: BoxDecoration(
-//             borderRadius: BorderRadiusDirectional.circular(8),
-//             border: Border.all(
-//               color: customBorderColor == null
-//                   ? Theme.of(context).colorScheme.secondaryContainer
-//                   : customBorderColor!.withOpacity(0.4),
-//             ),
-//           ),
-//           child: Row(
-//             children: [
-//               icon == null
-//                   ? SizedBox.shrink()
-//                   : Padding(padding: const EdgeInsetsDirectional.only(end: 5.0), child: Icon(icon, size: 23.0)),
-//               Text(label, style: TextStyle(fontSize: 14.0)),
-//               // Padding(
-//               //   padding: EdgeInsetsDirectional.only(start: 4.5),
-//               //   child: Opacity(
-//               //     opacity: 0.6,
-//               //     child: Icon(
-//               //       Icons.close,
-//               //       size: 14,
-//               //     ),
-//               //   ),
-//               // ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
+class AppliedFilterChip extends StatelessWidget {
+  const AppliedFilterChip({
+    required this.label,
+    required this.openFiltersSelection,
+    this.icon,
+    this.customBorderColor,
+    super.key,
+  });
+
+  final Color? customBorderColor;
+  final String label;
+  final IconData? icon;
+  final VoidCallback openFiltersSelection;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 4.0),
+      child: Tappable(
+        onTap: openFiltersSelection,
+        // borderRadius: 8,
+        color: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.5),
+        child: Container(
+          padding: EdgeInsetsDirectional.only(start: 14, end: 14, top: 7, bottom: 7),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadiusDirectional.circular(8),
+            border: Border.all(
+              color: customBorderColor == null
+                  ? Theme.of(context).colorScheme.secondaryContainer
+                  : customBorderColor!.withOpacity(0.4),
+            ),
+          ),
+          child: Row(
+            children: [
+              icon == null
+                  ? SizedBox.shrink()
+                  : Padding(padding: const EdgeInsetsDirectional.only(end: 5.0), child: Icon(icon, size: 23.0)),
+              Text(label, style: TextStyle(fontSize: 14.0)),
+              // Padding(
+              //   padding: EdgeInsetsDirectional.only(start: 4.5),
+              //   child: Opacity(
+              //     opacity: 0.6,
+              //     child: Icon(
+              //       Icons.close,
+              //       size: 14,
+              //     ),
+              //   ),
+              // ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

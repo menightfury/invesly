@@ -1,8 +1,8 @@
 import 'package:invesly/common/extensions/iterable_extension.dart';
 import 'package:invesly/common_libs.dart';
 
-class SearchFilters extends Equatable {
-  const SearchFilters({
+class FilterTransactionsModel extends Equatable {
+  const FilterTransactionsModel({
     this.walletPks = const [],
     this.categoryPks = const [],
     this.subcategoryPks = const [],
@@ -32,7 +32,7 @@ class SearchFilters extends Equatable {
   final String? titleContains;
   final String? noteContains;
 
-  SearchFilters copyWith({
+  FilterTransactionsModel copyWith({
     List<String>? walletPks,
     List<String>? categoryPks,
     List<String>? subcategoryPks,
@@ -48,7 +48,7 @@ class SearchFilters extends Equatable {
     String? titleContains,
     String? noteContains,
   }) {
-    return SearchFilters(
+    return FilterTransactionsModel(
       walletPks: walletPks ?? this.walletPks,
       categoryPks: categoryPks ?? this.categoryPks,
       subcategoryPks: subcategoryPks ?? this.subcategoryPks,
