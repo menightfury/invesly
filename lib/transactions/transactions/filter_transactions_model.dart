@@ -1,83 +1,57 @@
-import 'package:invesly/common/extensions/iterable_extension.dart';
+import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/transactions/model/transaction_model.dart';
 
 class FilterTransactionsModel extends Equatable {
   const FilterTransactionsModel({
-    this.walletPks = const [],
-    this.categoryPks = const [],
-    this.subcategoryPks = const [],
-    this.budgetPks = const [],
-    this.excludedBudgetPks = const [],
-    this.objectivePks = const [],
-    this.objectiveLoanPks = const [],
-    this.positiveCashFlow,
-    this.amountRange,
-    this.dateTimeRange,
-    this.searchQuery,
     this.titleContains,
+    this.accounts = const [],
+    this.amcGenres = const [],
+    this.amcs = const [],
+    this.amountRange,
+    this.transactionTypes = const [],
+    this.dateTimeRange,
     this.noteContains,
   });
 
-  final List<String> walletPks;
-  final List<String> categoryPks;
-  final List<String>? subcategoryPks;
-  final List<String?> budgetPks;
-  final List<String> excludedBudgetPks;
-  final List<String?> objectivePks;
-  final List<String?> objectiveLoanPks;
-  final bool? positiveCashFlow;
-  final RangeValues? amountRange;
-  final DateTimeRange? dateTimeRange;
-  final String? searchQuery;
   final String? titleContains;
+  final List<InveslyAccount> accounts;
+  final List<AmcGenre> amcGenres;
+  final List<InveslyAmc> amcs;
+  final RangeValues? amountRange;
+  final List<TransactionType> transactionTypes;
+  final DateTimeRange? dateTimeRange;
   final String? noteContains;
 
   FilterTransactionsModel copyWith({
-    List<String>? walletPks,
-    List<String>? categoryPks,
-    List<String>? subcategoryPks,
-    List<String?>? budgetPks,
-    List<String>? excludedBudgetPks,
-    List<String?>? objectivePks,
-    List<String?>? objectiveLoanPks,
-    bool? positiveCashFlow,
-    RangeValues? amountRange,
-    DateTimeRange? dateTimeRange,
-    bool forceSetDateTimeRange = false,
-    String? searchQuery,
     String? titleContains,
+    List<InveslyAccount>? accounts,
+    List<AmcGenre>? amcGenres,
+    List<InveslyAmc>? amcs,
+    RangeValues? amountRange,
+    List<TransactionType>? transactionTypes,
+    DateTimeRange? dateTimeRange,
     String? noteContains,
   }) {
     return FilterTransactionsModel(
-      walletPks: walletPks ?? this.walletPks,
-      categoryPks: categoryPks ?? this.categoryPks,
-      subcategoryPks: subcategoryPks ?? this.subcategoryPks,
-      budgetPks: budgetPks ?? this.budgetPks,
-      excludedBudgetPks: excludedBudgetPks ?? this.excludedBudgetPks,
-      objectivePks: objectivePks ?? this.objectivePks,
-      objectiveLoanPks: objectiveLoanPks ?? this.objectiveLoanPks,
-      positiveCashFlow: positiveCashFlow,
-      amountRange: amountRange ?? this.amountRange,
-      dateTimeRange: forceSetDateTimeRange == true ? dateTimeRange : (dateTimeRange ?? this.dateTimeRange),
-      searchQuery: searchQuery ?? this.searchQuery,
       titleContains: titleContains ?? this.titleContains,
+      accounts: accounts ?? this.accounts,
+      amcGenres: amcGenres ?? this.amcGenres,
+      amcs: amcs ?? this.amcs,
+      amountRange: amountRange ?? this.amountRange,
+      transactionTypes: transactionTypes ?? this.transactionTypes,
+      dateTimeRange: dateTimeRange ?? this.dateTimeRange,
       noteContains: noteContains ?? this.noteContains,
     );
   }
 
-  bool isClear({bool? ignoreDateTimeRange, bool? ignoreSearchQuery}) {
-    return (walletPks.isEmpty &&
-        categoryPks.isEmpty &&
-        subcategoryPks?.isEmpty == true &&
-        budgetPks.isEmpty &&
-        excludedBudgetPks.isEmpty &&
-        objectivePks.isEmpty &&
-        objectiveLoanPks.isEmpty &&
-        positiveCashFlow == null &&
+  bool isClear({bool? ignoreDateTimeRange}) {
+    return (titleContains == null &&
+        accounts.isEmpty &&
+        amcs.isEmpty &&
         amountRange == null &&
         (ignoreDateTimeRange == true || dateTimeRange == null) &&
-        (ignoreSearchQuery == true || searchQuery == null) &&
-        titleContains == null &&
         noteContains == null);
   }
 
@@ -240,19 +214,5 @@ class FilterTransactionsModel extends Equatable {
   // }
 
   @override
-  List<Object?> get props => [
-    walletPks,
-    categoryPks,
-    subcategoryPks,
-    budgetPks,
-    excludedBudgetPks,
-    objectivePks,
-    objectiveLoanPks,
-    positiveCashFlow,
-    amountRange,
-    dateTimeRange,
-    searchQuery,
-    titleContains,
-    noteContains,
-  ];
+  List<Object?> get props => [titleContains, accounts, amcs, amountRange, dateTimeRange, noteContains];
 }

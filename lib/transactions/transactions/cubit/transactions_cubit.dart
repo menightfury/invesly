@@ -5,7 +5,6 @@ import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/filter_transactions_model.dart';
-import 'package:invesly/transactions/transactions/transactions_page.dart';
 
 part 'transactions_state.dart';
 
@@ -61,28 +60,25 @@ class TransactionsCubit extends Cubit<TransactionsState> {
   }
 
   void clearSearchFilters() {
-    // Don't change the DateTime selected, as its handles separately
-    DateTimeRange? dateTimeRange = searchFilters.dateTimeRange;
-    // Only clear the search query if there are special filters
-    // identified within the search query
-    String? savedSearchQuery;
-    ParsedDateTimeQuery? parsedDateTimeQuery = searchFilters.searchQuery == null
-        ? null
-        : parseSearchQueryForDateTimeText(searchFilters.searchQuery ?? "");
-    (double, double)? bounds = searchFilters.searchQuery == null
-        ? null
-        : parseSearchQueryForAmountText(searchFilters.searchQuery ?? "");
-    if (parsedDateTimeQuery != null || bounds != null) {
-      savedSearchQuery = null;
-      // setTextInput(searchInputController, "");
-    } else {
-      savedSearchQuery = searchFilters.searchQuery;
-    }
-    searchFilters.clearSearchFilters();
-    searchFilters.dateTimeRange = dateTimeRange;
-    searchFilters.searchQuery = savedSearchQuery;
-    // updateSettings("searchTransactionsSetFiltersString", null, updateGlobalState: false);
-    setState(() {});
+    // // Don't change the DateTime selected, as its handles separately
+    // DateTimeRange? dateTimeRange = searchFilters.dateTimeRange;
+    // // Only clear the search query if there are special filters identified within the search query
+    // String? savedSearchQuery;
+    // ParsedDateTimeQuery? parsedDateTimeQuery = searchFilters.searchQuery == null
+    //     ? null
+    //     : parseSearchQueryForDateTimeText(searchFilters.searchQuery ?? "");
+    // (double, double)? bounds = searchFilters.searchQuery == null
+    //     ? null
+    //     : parseSearchQueryForAmountText(searchFilters.searchQuery ?? "");
+    // if (parsedDateTimeQuery != null || bounds != null) {
+    //   savedSearchQuery = null;
+    // } else {
+    //   savedSearchQuery = searchFilters.searchQuery;
+    // }
+    // searchFilters.clearSearchFilters();
+    // searchFilters.dateTimeRange = dateTimeRange;
+    // searchFilters.searchQuery = savedSearchQuery;
+    emit(TransactionsState());
   }
 
   @override

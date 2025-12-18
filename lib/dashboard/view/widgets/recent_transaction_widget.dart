@@ -1,10 +1,10 @@
 part of '../dashboard_screen.dart';
 
 class _RecentTransactions extends StatelessWidget {
-  const _RecentTransactions(this.transactions, {this.period, super.key});
+  const _RecentTransactions({this.period, super.key});
 
   final DateTimeRange? period;
-  final List<InveslyTransaction> transactions;
+  // final List<InveslyTransaction> transactions;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +55,9 @@ class _RecentTransactions extends StatelessWidget {
           children: <Widget>[
             Section(
               title: const Text('Recent Transactions'),
-              subTitle: period != null ? Text('From ${period.start.toReadable()} to ${period.end.toReadable()}') :,
+              subTitle: period != null
+                  ? Text('From ${period!.start.toReadable()} to ${period!.end.toReadable()}')
+                  : null,
               icon: const Icon(Icons.swap_vert_rounded),
               tiles: tiles,
             ),

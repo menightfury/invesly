@@ -77,28 +77,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
     }
   }
 
-  Future<void> selectFilters(BuildContext context) async {
-    await showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SizedBox.shrink();
-        // PopupFramework(
-        //   title: 'Filters',
-        //   hasPadding: false,
-        //   child: TransactionFiltersSelection(
-        //     setSearchFilters: setSearchFilters,
-        //     searchFilters: searchFilters,
-        //     clearSearchFilters: clearSearchFilters,
-        //   ),
-        // );
-      },
-    );
-    Future.delayed(Duration(milliseconds: 250), () {
-      // updateSettings("searchTransactionsSetFiltersString", searchFilters.getFilterString(), updateGlobalState: false);
-      setState(() {});
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,6 +146,28 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
     _animationControllerSearch = AnimationController(vsync: this, value: 1);
   }
 
+  Future<void> selectFilters(BuildContext context) async {
+    return await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          maxChildSize: 0.65,
+          minChildSize: 0.45,
+          initialChildSize: 0.65,
+          builder: (context, scrollController) {
+            return TransactionFiltersSelection(
+              setSearchFilters: setSearchFilters,
+              searchFilters: searchFilters,
+              clearSearchFilters: clearSearchFilters,
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     searchInputController.dispose();
@@ -210,28 +210,12 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
             AnimatedSwitcher(
               duration: Duration(milliseconds: 500),
               child: IconButton(
-                key: ValueKey((searchFilters.dateTimeRange == null).toString()),
-                color: searchFilters.dateTimeRange == null ? null : context.colors.tertiaryContainer,
-                onPressed: () => selectDateRange(context),
-                icon: Icon(
-                  Icons.calendar_month_rounded,
-                  color: searchFilters.dateTimeRange == null ? null : context.colors.onTertiaryContainer,
-                ),
-              ),
-            ),
-            AnimatedSwitcher(
-              duration: Duration(milliseconds: 500),
-              child: IconButton(
-                key: ValueKey(searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)),
-                color: searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)
-                    ? null
-                    : context.colors.tertiaryContainer,
+                key: ValueKey(searchFilters.isClear(ignoreDateTimeRange: true)),
+                color: searchFilters.isClear(ignoreDateTimeRange: true) ? null : context.colors.tertiaryContainer,
                 onPressed: () => selectFilters(context),
                 icon: Icon(
                   Icons.filter_alt_rounded,
-                  color: searchFilters.isClear(ignoreDateTimeRange: true, ignoreSearchQuery: true)
-                      ? null
-                      : context.colors.onTertiaryContainer,
+                  color: searchFilters.isClear(ignoreDateTimeRange: true) ? null : context.colors.onTertiaryContainer,
                 ),
               ),
             ),
@@ -246,10 +230,9 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
               child: BlocBuilder<TransactionsCubit, TransactionsState>(
                 builder: (context, state) {
                   return AppliedFilterChips(
-                    searchFilters: searchFilters,
-                    openFiltersSelection: () => selectFilters(context),
-                    clearSearchFilters: clearSearchFilters,
-                    // openSelectDate: () => selectDateRange(context),
+                    searchFilter: searchFilters,
+                    // openFiltersSelection: () => selectFilters(context),
+                    // clearSearchFilters: clearSearchFilters,
                   );
                 },
               ),
@@ -529,924 +512,763 @@ List<DateTimeRange> createDateTimeRanges(ParsedDateTimeQuery? parsed) {
 //   }
 // }
 
-// class TransactionFiltersSelection extends StatefulWidget {
-//   const TransactionFiltersSelection({
-//     required this.searchFilters,
-//     required this.setSearchFilters,
-//     required this.clearSearchFilters,
-//     super.key,
-//   });
-
-//   final SearchFilters searchFilters;
-//   final Function(SearchFilters searchFilters) setSearchFilters;
-//   final Function() clearSearchFilters;
-
-//   @override
-//   State<TransactionFiltersSelection> createState() => _TransactionFiltersSelectionState();
-// }
-
-// class _TransactionFiltersSelectionState extends State<TransactionFiltersSelection> {
-//   late SearchFilters selectedFilters = widget.searchFilters;
-//   late ScrollController titleContainsScrollController = ScrollController();
-//   late TextEditingController titleContainsController = HighlightStringInList(
-//     initialText: selectedFilters.titleContains,
-//   );
-
-//   void setSearchFilters() {
-//     widget.setSearchFilters(selectedFilters);
-//     setState(() {});
-//   }
-
-//   @override
-//   void dispose() {
-//     titleContainsController.dispose();
-//     titleContainsScrollController.dispose();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       children: [
-//         //   SelectCategory(
-//         //     horizontalList: true,
-//         //     showSelectedAllCategoriesIfNoneSelected: true,
-//         //     addButton: false,
-//         //     selectedCategories: selectedFilters.categoryPks,
-//         //     setSelectedCategories: (List<String>? categories) async {
-//         //       selectedFilters.categoryPks = categories ?? [];
-//         //       if (selectedFilters.categoryPks.length <= 0) selectedFilters.subcategoryPks = [];
-
-//         //       // Remove any subcategories that are selected that no longer
-//         //       // have the primary category selected
-//         //       for (String subCategoryPk in ([...selectedFilters.subcategoryPks ?? []])) {
-//         //         TransactionCategory subCategory = await database.getCategoryInstance(subCategoryPk);
-//         //         if ((categories ?? []).contains(subCategory.mainCategoryPk) == false) {
-//         //           (selectedFilters.subcategoryPks ?? []).remove(subCategoryPk);
-//         //         }
-//         //       }
-
-//         //       setSearchFilters();
-//         //     },
-//         //   ),
-//         //   SelectCategory(
-//         //     horizontalList: true,
-//         //     showSelectedAllCategoriesIfNoneSelected: true,
-//         //     addButton: false,
-//         //     selectedCategories: selectedFilters.subcategoryPks,
-//         //     setSelectedCategories: (List<String>? categories) {
-//         //       selectedFilters.subcategoryPks = categories ?? [];
-//         //       setSearchFilters();
-//         //     },
-//         //     mainCategoryPks: selectedFilters.categoryPks,
-//         //     forceSelectAllToFalse: selectedFilters.subcategoryPks == null,
-//         //     header: [
-//         //       SelectedCategoryHorizontalExtraButton(
-//         //         label: "none".tr(),
-//         //         onTap: () {
-//         //           selectedFilters.subcategoryPks = null;
-//         //           setSearchFilters();
-//         //         },
-//         //         isOutlined: selectedFilters.subcategoryPks == null,
-//         //         icon: appStateSettings["outlinedIcons"] ? Icons.block_outlined : Icons.block_rounded,
-//         //       ),
-//         //     ],
-//         //   ),
-//         //   StreamBuilder<RangeValues>(
-//         //     stream: database.getHighestLowestAmount(SearchFilters(dateTimeRange: selectedFilters.dateTimeRange)),
-//         //     builder: ((context, snapshot) {
-//         //       if (snapshot.hasData) {
-//         //         RangeValues rangeLimit = RangeValues(
-//         //           (snapshot.data?.start ?? -0.00000001),
-//         //           (snapshot.data?.end ?? 0.00000001),
-//         //         );
-//         //         if ((selectedFilters.amountRange?.start ?? 0) < rangeLimit.start ||
-//         //             (selectedFilters.amountRange?.end ?? 0) > rangeLimit.end) {
-//         //           selectedFilters.amountRange = rangeLimit;
-//         //         }
-//         //         if (selectedFilters.amountRange?.end == rangeLimit.end &&
-//         //             selectedFilters.amountRange?.start == rangeLimit.start) {
-//         //           selectedFilters.amountRange = null;
-//         //         }
-//         //         return AmountRangeSlider(
-//         //           rangeLimit: rangeLimit,
-//         //           initialRange: selectedFilters.amountRange,
-//         //           onChange: (RangeValues rangeValue) {
-//         //             if (rangeLimit == rangeValue)
-//         //               selectedFilters.amountRange = null;
-//         //             else
-//         //               selectedFilters.amountRange = rangeValue;
-//         //           },
-//         //         );
-//         //       }
-//         //       return SizedBox.shrink();
-//         //     }),
-//         //   ),
-//         //   SizedBox(height: 10),
-//         //   SelectChips(
-//         //     items: ExpenseIncome.values,
-//         //     getLabel: (ExpenseIncome item) {
-//         //       return item == ExpenseIncome.expense
-//         //           ? "expense".tr()
-//         //           : item == ExpenseIncome.income
-//         //           ? "income".tr()
-//         //           : "";
-//         //     },
-//         //     getCustomBorderColor: (ExpenseIncome item) {
-//         //       Color? customBorderColor;
-//         //       if (item == ExpenseIncome.expense) {
-//         //         customBorderColor = getColor(context, "expenseAmount");
-//         //       } else if (item == ExpenseIncome.income) {
-//         //         customBorderColor = getColor(context, "incomeAmount");
-//         //       }
-//         //       if (customBorderColor == null) return null;
-//         //       return dynamicPastel(context, lightenPastel(customBorderColor, amount: 0.3), amount: 0.4);
-//         //     },
-//         //     onSelected: (ExpenseIncome item) {
-//         //       if (selectedFilters.expenseIncome.contains(item)) {
-//         //         selectedFilters.expenseIncome.remove(item);
-//         //       } else {
-//         //         selectedFilters.expenseIncome.add(item);
-//         //       }
-//         //       setSearchFilters();
-//         //     },
-//         //     getSelected: (ExpenseIncome item) {
-//         //       return selectedFilters.expenseIncome.contains(item);
-//         //     },
-//         //   ),
-//         //   SelectChips(
-//         //     items: [null, ...TransactionSpecialType.values],
-//         //     getLabel: (TransactionSpecialType? item) {
-//         //       return transactionTypeDisplayToEnum[item]?.toString().toLowerCase().tr() ?? "";
-//         //     },
-//         //     getCustomBorderColor: (TransactionSpecialType? item) {
-//         //       Color? customBorderColor;
-//         //       if (item == TransactionSpecialType.credit) {
-//         //         customBorderColor = getColor(context, "unPaidUpcoming");
-//         //       } else if (item == TransactionSpecialType.debt) {
-//         //         customBorderColor = getColor(context, "unPaidOverdue");
-//         //       }
-//         //       if (customBorderColor == null) return null;
-//         //       return dynamicPastel(context, lightenPastel(customBorderColor, amount: 0.3), amount: 0.4);
-//         //     },
-//         //     onSelected: (TransactionSpecialType? item) {
-//         //       if (selectedFilters.transactionTypes.contains(item)) {
-//         //         selectedFilters.transactionTypes.remove(item);
-//         //       } else {
-//         //         selectedFilters.transactionTypes.add(item);
-//         //       }
-//         //       setSearchFilters();
-//         //     },
-//         //     getSelected: (TransactionSpecialType? item) {
-//         //       return selectedFilters.transactionTypes.contains(item);
-//         //     },
-//         //   ),
-//         //   SelectChips(
-//         //     items: PaidStatus.values,
-//         //     getLabel: (PaidStatus item) {
-//         //       return item == PaidStatus.paid
-//         //           ? "paid".tr()
-//         //           : item == PaidStatus.notPaid
-//         //           ? "not-paid".tr()
-//         //           : item == PaidStatus.skipped
-//         //           ? "skipped".tr()
-//         //           : "";
-//         //     },
-//         //     onSelected: (PaidStatus item) {
-//         //       if (selectedFilters.paidStatus.contains(item)) {
-//         //         selectedFilters.paidStatus.remove(item);
-//         //       } else {
-//         //         selectedFilters.paidStatus.add(item);
-//         //       }
-//         //       setSearchFilters();
-//         //     },
-//         //     getSelected: (PaidStatus item) {
-//         //       return selectedFilters.paidStatus.contains(item);
-//         //     },
-//         //   ),
-//         //   if (appStateSettings["showMethodAdded"] == true)
-//         //     StreamBuilder<List<MethodAdded?>>(
-//         //       stream: database.watchAllDistinctMethodAdded(),
-//         //       builder: (context, snapshot) {
-//         //         if (snapshot.data == null || (snapshot.data?.length ?? 0) <= 1) return SizedBox.shrink();
-//         //         List<MethodAdded?> possibleMethodAdded = snapshot.data ?? [];
-//         //         return SelectChips(
-//         //           items: possibleMethodAdded,
-//         //           getLabel: (MethodAdded? item) {
-//         //             return item?.name.capitalizeFirst ?? 'Default';
-//         //           },
-//         //           onSelected: (MethodAdded? item) {
-//         //             if (selectedFilters.methodAdded.contains(item)) {
-//         //               selectedFilters.methodAdded.remove(item);
-//         //             } else {
-//         //               selectedFilters.methodAdded.add(item);
-//         //             }
-//         //             setSearchFilters();
-//         //           },
-//         //           getSelected: (MethodAdded? item) {
-//         //             return selectedFilters.methodAdded.contains(item);
-//         //           },
-//         //         );
-//         //       },
-//         //     ),
-
-//         //   SelectChips(
-//         //     items: Provider.of<AllWallets>(context).list,
-//         //     onLongPress: (TransactionWallet? item) {
-//         //       pushRoute(
-//         //         context,
-//         //         AddWalletPage(wallet: item, routesToPopAfterDelete: RoutesToPopAfterDelete.PreventDelete),
-//         //       );
-//         //     },
-//         //     getLabel: (TransactionWallet item) {
-//         //       return getWalletStringName(Provider.of<AllWallets>(context), item);
-//         //     },
-//         //     onSelected: (TransactionWallet item) {
-//         //       if (selectedFilters.walletPks.contains(item.walletPk)) {
-//         //         selectedFilters.walletPks.remove(item.walletPk);
-//         //       } else {
-//         //         selectedFilters.walletPks.add(item.walletPk);
-//         //       }
-//         //       setSearchFilters();
-//         //     },
-//         //     getSelected: (TransactionWallet item) {
-//         //       return selectedFilters.walletPks.contains(item.walletPk);
-//         //     },
-//         //     getCustomBorderColor: (TransactionWallet item) {
-//         //       return dynamicPastel(
-//         //         context,
-//         //         lightenPastel(HexColor(item.colour, defaultColor: Theme.of(context).colorScheme.primary), amount: 0.3),
-//         //         amount: 0.4,
-//         //       );
-//         //     },
-//         //   ),
-
-//         //   StreamBuilder<List<Budget>>(
-//         //     stream: database.watchAllAddableBudgets(),
-//         //     builder: (context, snapshot) {
-//         //       if (snapshot.data != null && snapshot.data!.length <= 0) return SizedBox.shrink();
-//         //       if (snapshot.hasData) {
-//         //         return Column(
-//         //           children: [
-//         //             // SelectChips(
-//         //             //   items: <BudgetTransactionFilters>[
-//         //             //     BudgetTransactionFilters.addedToOtherBudget,
-//         //             //     ...(appStateSettings["sharedBudgets"]
-//         //             //         ? [BudgetTransactionFilters.sharedToOtherBudget]
-//         //             //         : []),
-//         //             //   ],
-//         //             //   getLabel: (BudgetTransactionFilters item) {
-//         //             //     return item == BudgetTransactionFilters.addedToOtherBudget
-//         //             //         ? "added-to-other-budgets".tr()
-//         //             //         : item == BudgetTransactionFilters.sharedToOtherBudget
-//         //             //             ? "shared-to-other-budgets".tr()
-//         //             //             : "";
-//         //             //   },
-//         //             //   onSelected: (BudgetTransactionFilters item) {
-//         //             //     if (selectedFilters.budgetTransactionFilters
-//         //             //         .contains(item)) {
-//         //             //       selectedFilters.budgetTransactionFilters.remove(item);
-//         //             //     } else {
-//         //             //       selectedFilters.budgetTransactionFilters.add(item);
-//         //             //     }
-//         //             //     setSearchFilters();
-//         //             //   },
-//         //             //   getSelected: (BudgetTransactionFilters item) {
-//         //             //     return selectedFilters.budgetTransactionFilters
-//         //             //         .contains(item);
-//         //             //   },
-//         //             // ),
-//         //             SelectChips(
-//         //               items: [null, ...snapshot.data!],
-//         //               onLongPress: (Budget? item) {
-//         //                 pushRoute(
-//         //                   context,
-//         //                   AddBudgetPage(budget: item, routesToPopAfterDelete: RoutesToPopAfterDelete.PreventDelete),
-//         //                 );
-//         //               },
-//         //               getLabel: (Budget? item) {
-//         //                 if (item == null) return "no-budget".tr();
-//         //                 return item.name;
-//         //               },
-//         //               onSelected: (Budget? item) {
-//         //                 if (selectedFilters.budgetPks.contains(item?.budgetPk)) {
-//         //                   selectedFilters.budgetPks.remove(item?.budgetPk);
-//         //                 } else {
-//         //                   selectedFilters.budgetPks.add(item?.budgetPk);
-//         //                 }
-//         //                 setSearchFilters();
-//         //               },
-//         //               getSelected: (Budget? item) {
-//         //                 return selectedFilters.budgetPks.contains(item?.budgetPk);
-//         //               },
-//         //               getCustomBorderColor: (Budget? item) {
-//         //                 if (item == null) return null;
-//         //                 return dynamicPastel(
-//         //                   context,
-//         //                   lightenPastel(
-//         //                     HexColor(item.colour, defaultColor: Theme.of(context).colorScheme.primary),
-//         //                     amount: 0.3,
-//         //                   ),
-//         //                   amount: 0.4,
-//         //                 );
-//         //               },
-//         //             ),
-//         //           ],
-//         //         );
-//         //       } else {
-//         //         return SizedBox.shrink();
-//         //       }
-//         //     },
-//         //   ),
-//         //   StreamBuilder<List<Budget>>(
-//         //     stream: database.watchAllExcludedTransactionsBudgetsInUse(),
-//         //     builder: (context, snapshot) {
-//         //       if (snapshot.data != null && snapshot.data!.length <= 0) return SizedBox.shrink();
-//         //       if (snapshot.hasData) {
-//         //         return Column(
-//         //           children: [
-//         //             SelectChips(
-//         //               items: snapshot.data!,
-//         //               onLongPress: (Budget? item) {
-//         //                 pushRoute(
-//         //                   context,
-//         //                   AddBudgetPage(budget: item, routesToPopAfterDelete: RoutesToPopAfterDelete.PreventDelete),
-//         //                 );
-//         //               },
-//         //               getLabel: (Budget item) {
-//         //                 return "excluded-from".tr() + " " + item.name;
-//         //               },
-//         //               onSelected: (Budget item) {
-//         //                 if (selectedFilters.excludedBudgetPks.contains(item.budgetPk)) {
-//         //                   selectedFilters.excludedBudgetPks.remove(item.budgetPk);
-//         //                 } else {
-//         //                   selectedFilters.excludedBudgetPks.add(item.budgetPk);
-//         //                 }
-//         //                 setSearchFilters();
-//         //               },
-//         //               getSelected: (Budget item) {
-//         //                 return selectedFilters.excludedBudgetPks.contains(item.budgetPk);
-//         //               },
-//         //               getCustomBorderColor: (Budget? item) {
-//         //                 if (item == null) return null;
-//         //                 return dynamicPastel(
-//         //                   context,
-//         //                   lightenPastel(
-//         //                     HexColor(item.colour, defaultColor: Theme.of(context).colorScheme.primary),
-//         //                     amount: 0.3,
-//         //                   ),
-//         //                   amount: 0.4,
-//         //                 );
-//         //               },
-//         //             ),
-//         //           ],
-//         //         );
-//         //       } else {
-//         //         return SizedBox.shrink();
-//         //       }
-//         //     },
-//         //   ),
-
-//         //   StreamBuilder<List<Objective>>(
-//         //     stream: database.watchAllObjectives(objectiveType: ObjectiveType.goal, archivedLast: true),
-//         //     builder: (context, snapshot) {
-//         //       if (snapshot.data != null && snapshot.data!.length <= 0) return SizedBox.shrink();
-//         //       if (snapshot.hasData) {
-//         //         return SelectChips(
-//         //           items: [null, ...snapshot.data!],
-//         //           onLongPress: (Objective? item) {
-//         //             pushRoute(
-//         //               context,
-//         //               AddObjectivePage(objective: item, routesToPopAfterDelete: RoutesToPopAfterDelete.PreventDelete),
-//         //             );
-//         //           },
-//         //           getLabel: (Objective? item) {
-//         //             if (item == null) return "no-goal".tr();
-//         //             return item.name;
-//         //           },
-//         //           onSelected: (Objective? item) {
-//         //             if (selectedFilters.objectivePks.contains(item?.objectivePk)) {
-//         //               selectedFilters.objectivePks.remove(item?.objectivePk);
-//         //             } else {
-//         //               selectedFilters.objectivePks.add(item?.objectivePk);
-//         //             }
-//         //             setSearchFilters();
-//         //           },
-//         //           getSelected: (Objective? item) {
-//         //             return selectedFilters.objectivePks.contains(item?.objectivePk);
-//         //           },
-//         //           getCustomBorderColor: (Objective? item) {
-//         //             if (item == null) return null;
-//         //             return dynamicPastel(
-//         //               context,
-//         //               lightenPastel(
-//         //                 HexColor(item.colour, defaultColor: Theme.of(context).colorScheme.primary),
-//         //                 amount: 0.3,
-//         //               ),
-//         //               amount: 0.4,
-//         //             );
-//         //           },
-//         //         );
-//         //       } else {
-//         //         return SizedBox.shrink();
-//         //       }
-//         //     },
-//         //   ),
-
-//         //   StreamBuilder<List<Objective>>(
-//         //     stream: database.watchAllObjectives(objectiveType: ObjectiveType.loan, archivedLast: true),
-//         //     builder: (context, snapshot) {
-//         //       if (snapshot.data != null && snapshot.data!.length <= 0) return SizedBox.shrink();
-//         //       if (snapshot.hasData) {
-//         //         return SelectChips(
-//         //           items: [null, ...snapshot.data!],
-//         //           onLongPress: (Objective? item) {
-//         //             pushRoute(
-//         //               context,
-//         //               AddObjectivePage(
-//         //                 objective: item,
-//         //                 routesToPopAfterDelete: RoutesToPopAfterDelete.PreventDelete,
-//         //                 objectiveType: ObjectiveType.loan,
-//         //               ),
-//         //             );
-//         //           },
-//         //           getLabel: (Objective? item) {
-//         //             if (item == null) return "no-loan".tr();
-//         //             return item.name;
-//         //           },
-//         //           onSelected: (Objective? item) {
-//         //             if (selectedFilters.objectiveLoanPks.contains(item?.objectivePk)) {
-//         //               selectedFilters.objectiveLoanPks.remove(item?.objectivePk);
-//         //             } else {
-//         //               selectedFilters.objectiveLoanPks.add(item?.objectivePk);
-//         //             }
-//         //             setSearchFilters();
-//         //           },
-//         //           getSelected: (Objective? item) {
-//         //             return selectedFilters.objectiveLoanPks.contains(item?.objectivePk);
-//         //           },
-//         //           getCustomBorderColor: (Objective? item) {
-//         //             if (item == null) return null;
-//         //             return dynamicPastel(
-//         //               context,
-//         //               lightenPastel(
-//         //                 HexColor(item.colour, defaultColor: Theme.of(context).colorScheme.primary),
-//         //                 amount: 0.3,
-//         //               ),
-//         //               amount: 0.4,
-//         //             );
-//         //           },
-//         //         );
-//         //       } else {
-//         //         return SizedBox.shrink();
-//         //       }
-//         //     },
-//         //   ),
-
-//         //   // SelectChips(
-//         //   //   items: MethodAdded.values,
-//         //   //   getLabel: (item) {
-//         //   //     return item == MethodAdded.csv
-//         //   //         ? "CSV"
-//         //   //         : item == MethodAdded.shared
-//         //   //             ? "Shared"
-//         //   //             : item == MethodAdded.email
-//         //   //                 ? "Email"
-//         //   //                 : "";
-//         //   //   },
-//         //   //   onSelected: (item) {
-//         //   //     if (selectedFilters.methodAdded.contains(item)) {
-//         //   //       selectedFilters.methodAdded.remove(item);
-//         //   //     } else {
-//         //   //       selectedFilters.methodAdded.add(item);
-//         //   //     }
-//         //   //     setSearchFilters();
-//         //   //   },
-//         //   //   getSelected: (item) {
-//         //   //     return selectedFilters.methodAdded.contains(item);
-//         //   //   },
-//         //   // ),
-//         //   SizedBox(height: 5),
-//         //   Padding(
-//         //     padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
-//         //     child: Column(
-//         //       children: [
-//         //         TitleInput(
-//         //           maxLines: 5,
-//         //           resizePopupWhenChanged: false,
-//         //           titleInputController: titleContainsController,
-//         //           titleInputScrollController: titleContainsScrollController,
-//         //           padding: EdgeInsetsDirectional.zero,
-//         //           setSelectedCategory: (_) {},
-//         //           setSelectedSubCategory: (_) {},
-//         //           alsoSearchCategories: false,
-//         //           setSelectedTitle: (String value) {
-//         //             if (value.trim() == "") {
-//         //               selectedFilters.titleContains = null;
-//         //             } else {
-//         //               selectedFilters.titleContains = value.trim();
-//         //             }
-//         //           },
-//         //           showCategoryIconForRecommendedTitles: false,
-//         //           unfocusWhenRecommendedTapped: false,
-//         //           onNewRecommendedTitle: () {},
-//         //           onRecommendedTitleTapped: (TransactionAssociatedTitleWithCategory title) async {
-//         //             List<String> splitTitles = titleContainsController.text.trim().replaceAll(", ", ",").split(",");
-//         //             if (splitTitles.length <= 0) return;
-//         //             splitTitles.last = title.title.title;
-//         //             titleContainsController.text = splitTitles.join(", ") + ", ";
-
-//         //             if (titleContainsController.text == "") {
-//         //               selectedFilters.titleContains = null;
-//         //             } else {
-//         //               selectedFilters.titleContains = titleContainsController.text.trim();
-//         //             }
-
-//         //             // Scroll to the end of the text input
-//         //             titleContainsController.selection = TextSelection.fromPosition(
-//         //               TextPosition(offset: titleContainsController.text.length),
-//         //             );
-//         //             Future.delayed(Duration(milliseconds: 50), () {
-//         //               // delay cannot be zero
-//         //               titleContainsScrollController.animateTo(
-//         //                 titleContainsScrollController.position.maxScrollExtent,
-//         //                 curve: Curves.easeInOutCubicEmphasized,
-//         //                 duration: Duration(milliseconds: 500),
-//         //               );
-//         //             });
-//         //           },
-//         //           textToSearchFilter: (String text) {
-//         //             return (text.split(",").lastOrNull ?? "").trim();
-//         //           },
-//         //           getTextToExclude: (String text) {
-//         //             text = text.trim().replaceAll(", ", ",");
-//         //             return (text.split(","));
-//         //           },
-//         //           handleOnRecommendedTitleTapped: false,
-//         //           onSubmitted: (_) {},
-//         //           autoFocus: false,
-//         //           labelText: "title-contains".tr() + "...",
-//         //         ),
-//         //         SizedBox(height: 7),
-//         //         TextInput(
-//         //           maxLines: 5,
-//         //           padding: EdgeInsetsDirectional.zero,
-//         //           labelText: "notes-contain".tr() + "...",
-//         //           onChanged: (value) {
-//         //             if (value.trim() == "") {
-//         //               selectedFilters.noteContains = null;
-//         //             } else {
-//         //               selectedFilters.noteContains = value.trim();
-//         //             }
-//         //           },
-//         //           initialValue: selectedFilters.noteContains,
-//         //           icon: appStateSettings["outlinedIcons"] ? Icons.sticky_note_2_outlined : Icons.sticky_note_2_rounded,
-//         //         ),
-//         //       ],
-//         //     ),
-//         //   ),
-
-//         //   Padding(
-//         //     padding: const EdgeInsetsDirectional.symmetric(horizontal: 20, vertical: 10),
-//         //     child: Row(
-//         //       children: [
-//         //         Flexible(
-//         //           child: Button(
-//         //             expandedLayout: true,
-//         //             label: "reset".tr(),
-//         //             onTap: () {
-//         //               widget.clearSearchFilters();
-//         //               popRoute(context);
-//         //             },
-//         //             color: Theme.of(context).colorScheme.tertiaryContainer,
-//         //             textColor: Theme.of(context).colorScheme.onTertiaryContainer,
-//         //           ),
-//         //         ),
-//         //         SizedBox(width: 13),
-//         //         Flexible(
-//         //           child: Button(
-//         //             expandedLayout: true,
-//         //             label: "apply".tr(),
-//         //             onTap: () {
-//         //               popRoute(context);
-//         //             },
-//         //           ),
-//         //         ),
-//         //       ],
-//         //     ),
-//         //   ),
-//       ],
-//     );
-//   }
-// }
-
-class AppliedFilterChips extends StatelessWidget {
-  const AppliedFilterChips({
+class TransactionFiltersSelection extends StatefulWidget {
+  const TransactionFiltersSelection({
     required this.searchFilters,
-    required this.openFiltersSelection,
+    required this.setSearchFilters,
     required this.clearSearchFilters,
-    // this.openSelectDate,
     super.key,
   });
 
   final FilterTransactionsModel searchFilters;
-  final VoidCallback openFiltersSelection;
-  final VoidCallback clearSearchFilters;
-  // final Function? openSelectDate;
+  final Function(SearchFilters searchFilters) setSearchFilters;
+  final Function() clearSearchFilters;
 
-  Future<List<Widget>> getSearchFilterWidgets(BuildContext context) async {
-    List<Widget> out = [];
-    // Title contains
-    if (searchFilters.titleContains != null) {
-      out.add(
-        AppliedFilterChip(
-          label: "title-contains".tr() + ": " + (searchFilters.titleContains ?? ""),
-          openFiltersSelection: openFiltersSelection,
-        ),
-      );
-    }
-    // Notes contains
-    if (searchFilters.noteContains != null) {
-      out.add(
-        AppliedFilterChip(
-          label: "notes-contain".tr() + ": " + (searchFilters.noteContains ?? ""),
-          openFiltersSelection: openFiltersSelection,
-        ),
-      );
-    }
-    // Categories
-    for (TransactionCategory category in await database.getAllCategories(
-      categoryFks: searchFilters.categoryPks,
-      allCategories: false,
-    )) {
-      out.add(
-        AppliedFilterChip(
-          label: category.name,
-          customBorderColor: HexColor(category.colour, defaultColor: Theme.of(context).colorScheme.primary),
-          openFiltersSelection: openFiltersSelection,
-        ),
-      );
-    }
-    for (TransactionCategory category in await database.getAllCategories(
-      categoryFks: searchFilters.subcategoryPks,
-      allCategories: false,
-      includeSubCategories: true,
-    )) {
-      out.add(
-        AppliedFilterChip(
-          label: category.name,
-          customBorderColor: HexColor(category.colour, defaultColor: Theme.of(context).colorScheme.primary),
-          openFiltersSelection: openFiltersSelection,
-        ),
-      );
-    }
-    if (searchFilters.subcategoryPks == null) {
-      out.add(AppliedFilterChip(label: "no-subcategory".tr(), openFiltersSelection: openFiltersSelection));
-    }
-    // Amount range
-    if (searchFilters.amountRange != null) {
-      out.add(
-        AppliedFilterChip(
-          label:
-              convertToMoney(allWallets, searchFilters.amountRange!.start) +
-              " – " +
-              convertToMoney(allWallets, searchFilters.amountRange!.end),
-          openFiltersSelection: openFiltersSelection,
-        ),
-      );
-    }
-    // Expense Income
-    if (searchFilters.expenseIncome.contains(ExpenseIncome.expense)) {
-      out.add(
-        AppliedFilterChip(
-          label: "expense".tr(),
-          customBorderColor: getColor(context, "expenseAmount"),
-          openFiltersSelection: openFiltersSelection,
-        ),
-      );
-    }
-    if (searchFilters.expenseIncome.contains(ExpenseIncome.income)) {
-      out.add(
-        AppliedFilterChip(
-          label: "income".tr(),
-          customBorderColor: getColor(context, "incomeAmount"),
-          openFiltersSelection: openFiltersSelection,
-        ),
-      );
-    }
-    // Cash Flow
-    if (searchFilters.positiveCashFlow == false) {
-      out.add(
-        AppliedFilterChip(
-          label: "outgoing".tr(),
-          customBorderColor: getColor(context, "expenseAmount"),
-          openFiltersSelection: openFiltersSelection,
-        ),
-      );
-    } else if (searchFilters.positiveCashFlow == true) {
-      out.add(
-        AppliedFilterChip(
-          label: "incoming".tr(),
-          customBorderColor: getColor(context, "incomeAmount"),
-          openFiltersSelection: openFiltersSelection,
-        ),
-      );
-    }
-    // Transaction Types
-    for (TransactionSpecialType? transactionType in searchFilters.transactionTypes) {
-      Color? customBorderColor;
-      if (transactionType == TransactionSpecialType.credit) {
-        customBorderColor = getColor(context, "unPaidUpcoming");
-      } else if (transactionType == TransactionSpecialType.debt) {
-        customBorderColor = getColor(context, "unPaidOverdue");
-      }
-      out.add(
-        AppliedFilterChip(
-          label: transactionTypeDisplayToEnum[transactionType]?.toString().toLowerCase().tr() ?? "default".tr(),
-          customBorderColor: customBorderColor,
-          openFiltersSelection: openFiltersSelection,
-        ),
-      );
-    }
-    // Paid status
-    if (searchFilters.paidStatus.contains(PaidStatus.paid)) {
-      out.add(AppliedFilterChip(label: "paid".tr(), openFiltersSelection: openFiltersSelection));
-    }
-    if (searchFilters.paidStatus.contains(PaidStatus.notPaid)) {
-      out.add(AppliedFilterChip(label: "not-paid".tr(), openFiltersSelection: openFiltersSelection));
-    }
-    if (searchFilters.paidStatus.contains(PaidStatus.skipped)) {
-      out.add(AppliedFilterChip(label: "skipped".tr(), openFiltersSelection: openFiltersSelection));
-    }
-    // Budget Transaction Filters
-    if (searchFilters.budgetTransactionFilters.contains(BudgetTransactionFilters.sharedToOtherBudget)) {
-      out.add(AppliedFilterChip(label: "added-to-other-budgets".tr(), openFiltersSelection: openFiltersSelection));
-    }
-    if (searchFilters.budgetTransactionFilters.contains(BudgetTransactionFilters.addedToOtherBudget)) {
-      out.add(AppliedFilterChip(label: "added-to-other-budgets".tr(), openFiltersSelection: openFiltersSelection));
-    }
-    // Wallets
-    for (String walletPk in searchFilters.walletPks) {
-      out.add(
-        AppliedFilterChip(
-          label: getWalletStringName(Provider.of<AllWallets>(context, listen: false), allWallets.indexedByPk[walletPk]),
-          customBorderColor: HexColor(
-            allWallets.indexedByPk[walletPk]?.colour,
-            defaultColor: Theme.of(context).colorScheme.primary,
-          ),
-          openFiltersSelection: openFiltersSelection,
-        ),
-      );
-    }
-    // Budgets
-    for (Budget budget in await database.getAllBudgets()) {
-      if (searchFilters.budgetPks.contains(budget.budgetPk))
-        out.add(
-          AppliedFilterChip(
-            label: budget.name,
-            customBorderColor: HexColor(budget.colour, defaultColor: Theme.of(context).colorScheme.primary),
-            openFiltersSelection: openFiltersSelection,
-          ),
-        );
-    }
-    // Excluded Budgets
-    for (Budget budget in await database.getAllBudgets()) {
-      if (searchFilters.excludedBudgetPks.contains(budget.budgetPk))
-        out.add(
-          AppliedFilterChip(
-            label: "excluded-from".tr() + ": " + budget.name,
-            customBorderColor: HexColor(budget.colour, defaultColor: Theme.of(context).colorScheme.primary),
-            openFiltersSelection: openFiltersSelection,
-          ),
-        );
-    }
-    if (searchFilters.budgetPks.contains(null)) {
-      out.add(AppliedFilterChip(label: "no-budget".tr(), openFiltersSelection: openFiltersSelection));
-    }
-    // Objectives
-    for (Objective objective in await database.getAllObjectives(objectiveType: ObjectiveType.goal)) {
-      if (searchFilters.objectivePks.contains(objective.objectivePk))
-        out.add(
-          AppliedFilterChip(
-            label: objective.name,
-            customBorderColor: HexColor(objective.colour, defaultColor: Theme.of(context).colorScheme.primary),
-            openFiltersSelection: openFiltersSelection,
-          ),
-        );
-    }
-    if (searchFilters.objectivePks.contains(null)) {
-      out.add(AppliedFilterChip(label: "no-goal".tr(), openFiltersSelection: openFiltersSelection));
-    }
-    // Loan Objectives
-    for (Objective objective in await database.getAllObjectives(objectiveType: ObjectiveType.loan)) {
-      if (searchFilters.objectiveLoanPks.contains(objective.objectivePk))
-        out.add(
-          AppliedFilterChip(
-            label: objective.name,
-            customBorderColor: HexColor(objective.colour, defaultColor: Theme.of(context).colorScheme.primary),
-            openFiltersSelection: openFiltersSelection,
-          ),
-        );
-    }
-    if (searchFilters.objectiveLoanPks.contains(null)) {
-      out.add(AppliedFilterChip(label: "no-loan".tr(), openFiltersSelection: openFiltersSelection));
-    }
-    // Date and time range
-    if (out.length > 0 && openSelectDate != null && searchFilters.dateTimeRange != null) {
-      out.add(
-        AppliedFilterChip(
-          label:
-              getWordedDateShortMore(
-                searchFilters.dateTimeRange!.start,
-                includeYear: searchFilters.dateTimeRange!.start != DateTime.now().year,
-              ) +
-              " – " +
-              getWordedDateShortMore(
-                searchFilters.dateTimeRange!.end,
-                includeYear: searchFilters.dateTimeRange!.end != DateTime.now().year,
-              ),
-          openFiltersSelection: () => {openSelectDate!()},
-        ),
-      );
-    }
-    // Date from search text
-    ParsedDateTimeQuery? parsedDateTimeQuery = searchFilters.searchQuery == null
-        ? null
-        : parseSearchQueryForDateTimeText(searchFilters.searchQuery ?? "");
-    if (parsedDateTimeQuery != null) {
-      out.add(
-        AppliedFilterChip(
-          customBorderColor: Theme.of(context).colorScheme.tertiary,
-          label: parsedDateTimeQuery.formatDate(context.locale.toString()),
-          openFiltersSelection: () => {openSelectDate!()},
-        ),
-      );
-    }
-    // Amount from search text
-    (double, double)? bounds = searchFilters.searchQuery == null
-        ? null
-        : parseSearchQueryForAmountText(searchFilters.searchQuery ?? "");
-    if (bounds != null) {
-      double lowerBound = bounds.$1;
-      out.add(
-        AppliedFilterChip(
-          customBorderColor: Theme.of(context).colorScheme.tertiary,
-          label: "= " + lowerBound.toString(),
-          openFiltersSelection: () => {openSelectDate!()},
-        ),
-      );
-    }
+  @override
+  State<TransactionFiltersSelection> createState() => _TransactionFiltersSelectionState();
+}
 
-    // Method Added
-    for (MethodAdded? methodAdded in searchFilters.methodAdded) {
-      out.add(
-        AppliedFilterChip(
-          label: methodAdded?.name.toString().capitalizeFirst ?? "default".tr(),
-          openFiltersSelection: openFiltersSelection,
-        ),
-      );
-    }
+class _TransactionFiltersSelectionState extends State<TransactionFiltersSelection> {
+  late FilterTransactionsModel selectedFilters = widget.searchFilters;
+  late ScrollController titleContainsScrollController = ScrollController();
+  late TextEditingController titleContainsController = HighlightStringInList(
+    initialText: selectedFilters.titleContains,
+  );
 
-    return out;
+  void setSearchFilters() {
+    widget.setSearchFilters(selectedFilters);
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    titleContainsController.dispose();
+    titleContainsScrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: openFiltersSelection,
-      child: FutureBuilder(
-        future: getSearchFilterWidgets(context),
-        builder: (context, AsyncSnapshot<List<Widget>> snapshot) {
-          return AnimatedSize(
-            curve: Curves.easeInOutCubicEmphasized,
-            duration: Duration(milliseconds: 1000),
-            child: snapshot.hasData && snapshot.data != null && snapshot.data!.length > 0
-                ? SingleChildScrollView(
-                    padding: EdgeInsetsDirectional.symmetric(horizontal: 16),
-                    scrollDirection: Axis.horizontal,
-                    child: AnimatedSwitcher(
-                      duration: 300.ms,
-                      // clipBehavior: Clip.none,
-                      child: Row(
-                        key: ValueKey(snapshot.data.toString()),
-                        children: [
-                          SizedBox(width: 5),
-                          IconButton(
-                            icon: Icon(Icons.close_rounded),
-                            iconSize: 14,
-                            // scale: 1.5,
-                            onPressed: clearSearchFilters,
-                          ),
-                          const SizedBox(width: 2),
-                          ...(snapshot.data ?? []),
-                        ],
-                      ),
-                    ),
-                  )
-                : SizedBox.shrink(),
-          );
-        },
-      ),
+    return Column(
+      children: <Widget>[
+        //   SelectCategory(
+        //     horizontalList: true,
+        //     showSelectedAllCategoriesIfNoneSelected: true,
+        //     addButton: false,
+        //     selectedCategories: selectedFilters.categoryPks,
+        //     setSelectedCategories: (List<String>? categories) async {
+        //       selectedFilters.categoryPks = categories ?? [];
+        //       if (selectedFilters.categoryPks.length <= 0) selectedFilters.subcategoryPks = [];
+
+        //       // Remove any subcategories that are selected that no longer
+        //       // have the primary category selected
+        //       for (String subCategoryPk in ([...selectedFilters.subcategoryPks ?? []])) {
+        //         TransactionCategory subCategory = await database.getCategoryInstance(subCategoryPk);
+        //         if ((categories ?? []).contains(subCategory.mainCategoryPk) == false) {
+        //           (selectedFilters.subcategoryPks ?? []).remove(subCategoryPk);
+        //         }
+        //       }
+
+        //       setSearchFilters();
+        //     },
+        //   ),
+        //   SelectCategory(
+        //     horizontalList: true,
+        //     showSelectedAllCategoriesIfNoneSelected: true,
+        //     addButton: false,
+        //     selectedCategories: selectedFilters.subcategoryPks,
+        //     setSelectedCategories: (List<String>? categories) {
+        //       selectedFilters.subcategoryPks = categories ?? [];
+        //       setSearchFilters();
+        //     },
+        //     mainCategoryPks: selectedFilters.categoryPks,
+        //     forceSelectAllToFalse: selectedFilters.subcategoryPks == null,
+        //     header: [
+        //       SelectedCategoryHorizontalExtraButton(
+        //         label: "none".tr(),
+        //         onTap: () {
+        //           selectedFilters.subcategoryPks = null;
+        //           setSearchFilters();
+        //         },
+        //         isOutlined: selectedFilters.subcategoryPks == null,
+        //         icon: appStateSettings["outlinedIcons"] ? Icons.block_outlined : Icons.block_rounded,
+        //       ),
+        //     ],
+        //   ),
+        //   StreamBuilder<RangeValues>(
+        //     stream: database.getHighestLowestAmount(SearchFilters(dateTimeRange: selectedFilters.dateTimeRange)),
+        //     builder: ((context, snapshot) {
+        //       if (snapshot.hasData) {
+        //         RangeValues rangeLimit = RangeValues(
+        //           (snapshot.data?.start ?? -0.00000001),
+        //           (snapshot.data?.end ?? 0.00000001),
+        //         );
+        //         if ((selectedFilters.amountRange?.start ?? 0) < rangeLimit.start ||
+        //             (selectedFilters.amountRange?.end ?? 0) > rangeLimit.end) {
+        //           selectedFilters.amountRange = rangeLimit;
+        //         }
+        //         if (selectedFilters.amountRange?.end == rangeLimit.end &&
+        //             selectedFilters.amountRange?.start == rangeLimit.start) {
+        //           selectedFilters.amountRange = null;
+        //         }
+        //         return AmountRangeSlider(
+        //           rangeLimit: rangeLimit,
+        //           initialRange: selectedFilters.amountRange,
+        //           onChange: (RangeValues rangeValue) {
+        //             if (rangeLimit == rangeValue)
+        //               selectedFilters.amountRange = null;
+        //             else
+        //               selectedFilters.amountRange = rangeValue;
+        //           },
+        //         );
+        //       }
+        //       return SizedBox.shrink();
+        //     }),
+        //   ),
+        //   SizedBox(height: 10),
+        //   SelectChips(
+        //     items: ExpenseIncome.values,
+        //     getLabel: (ExpenseIncome item) {
+        //       return item == ExpenseIncome.expense
+        //           ? "expense".tr()
+        //           : item == ExpenseIncome.income
+        //           ? "income".tr()
+        //           : "";
+        //     },
+        //     getCustomBorderColor: (ExpenseIncome item) {
+        //       Color? customBorderColor;
+        //       if (item == ExpenseIncome.expense) {
+        //         customBorderColor = getColor(context, "expenseAmount");
+        //       } else if (item == ExpenseIncome.income) {
+        //         customBorderColor = getColor(context, "incomeAmount");
+        //       }
+        //       if (customBorderColor == null) return null;
+        //       return dynamicPastel(context, lightenPastel(customBorderColor, amount: 0.3), amount: 0.4);
+        //     },
+        //     onSelected: (ExpenseIncome item) {
+        //       if (selectedFilters.expenseIncome.contains(item)) {
+        //         selectedFilters.expenseIncome.remove(item);
+        //       } else {
+        //         selectedFilters.expenseIncome.add(item);
+        //       }
+        //       setSearchFilters();
+        //     },
+        //     getSelected: (ExpenseIncome item) {
+        //       return selectedFilters.expenseIncome.contains(item);
+        //     },
+        //   ),
+        //   SelectChips(
+        //     items: [null, ...TransactionSpecialType.values],
+        //     getLabel: (TransactionSpecialType? item) {
+        //       return transactionTypeDisplayToEnum[item]?.toString().toLowerCase().tr() ?? "";
+        //     },
+        //     getCustomBorderColor: (TransactionSpecialType? item) {
+        //       Color? customBorderColor;
+        //       if (item == TransactionSpecialType.credit) {
+        //         customBorderColor = getColor(context, "unPaidUpcoming");
+        //       } else if (item == TransactionSpecialType.debt) {
+        //         customBorderColor = getColor(context, "unPaidOverdue");
+        //       }
+        //       if (customBorderColor == null) return null;
+        //       return dynamicPastel(context, lightenPastel(customBorderColor, amount: 0.3), amount: 0.4);
+        //     },
+        //     onSelected: (TransactionSpecialType? item) {
+        //       if (selectedFilters.transactionTypes.contains(item)) {
+        //         selectedFilters.transactionTypes.remove(item);
+        //       } else {
+        //         selectedFilters.transactionTypes.add(item);
+        //       }
+        //       setSearchFilters();
+        //     },
+        //     getSelected: (TransactionSpecialType? item) {
+        //       return selectedFilters.transactionTypes.contains(item);
+        //     },
+        //   ),
+        //   SelectChips(
+        //     items: PaidStatus.values,
+        //     getLabel: (PaidStatus item) {
+        //       return item == PaidStatus.paid
+        //           ? "paid".tr()
+        //           : item == PaidStatus.notPaid
+        //           ? "not-paid".tr()
+        //           : item == PaidStatus.skipped
+        //           ? "skipped".tr()
+        //           : "";
+        //     },
+        //     onSelected: (PaidStatus item) {
+        //       if (selectedFilters.paidStatus.contains(item)) {
+        //         selectedFilters.paidStatus.remove(item);
+        //       } else {
+        //         selectedFilters.paidStatus.add(item);
+        //       }
+        //       setSearchFilters();
+        //     },
+        //     getSelected: (PaidStatus item) {
+        //       return selectedFilters.paidStatus.contains(item);
+        //     },
+        //   ),
+        //   if (appStateSettings["showMethodAdded"] == true)
+        //     StreamBuilder<List<MethodAdded?>>(
+        //       stream: database.watchAllDistinctMethodAdded(),
+        //       builder: (context, snapshot) {
+        //         if (snapshot.data == null || (snapshot.data?.length ?? 0) <= 1) return SizedBox.shrink();
+        //         List<MethodAdded?> possibleMethodAdded = snapshot.data ?? [];
+        //         return SelectChips(
+        //           items: possibleMethodAdded,
+        //           getLabel: (MethodAdded? item) {
+        //             return item?.name.capitalizeFirst ?? 'Default';
+        //           },
+        //           onSelected: (MethodAdded? item) {
+        //             if (selectedFilters.methodAdded.contains(item)) {
+        //               selectedFilters.methodAdded.remove(item);
+        //             } else {
+        //               selectedFilters.methodAdded.add(item);
+        //             }
+        //             setSearchFilters();
+        //           },
+        //           getSelected: (MethodAdded? item) {
+        //             return selectedFilters.methodAdded.contains(item);
+        //           },
+        //         );
+        //       },
+        //     ),
+
+        //   SelectChips(
+        //     items: Provider.of<AllWallets>(context).list,
+        //     onLongPress: (TransactionWallet? item) {
+        //       pushRoute(
+        //         context,
+        //         AddWalletPage(wallet: item, routesToPopAfterDelete: RoutesToPopAfterDelete.PreventDelete),
+        //       );
+        //     },
+        //     getLabel: (TransactionWallet item) {
+        //       return getWalletStringName(Provider.of<AllWallets>(context), item);
+        //     },
+        //     onSelected: (TransactionWallet item) {
+        //       if (selectedFilters.walletPks.contains(item.walletPk)) {
+        //         selectedFilters.walletPks.remove(item.walletPk);
+        //       } else {
+        //         selectedFilters.walletPks.add(item.walletPk);
+        //       }
+        //       setSearchFilters();
+        //     },
+        //     getSelected: (TransactionWallet item) {
+        //       return selectedFilters.walletPks.contains(item.walletPk);
+        //     },
+        //     getCustomBorderColor: (TransactionWallet item) {
+        //       return dynamicPastel(
+        //         context,
+        //         lightenPastel(HexColor(item.colour, defaultColor: Theme.of(context).colorScheme.primary), amount: 0.3),
+        //         amount: 0.4,
+        //       );
+        //     },
+        //   ),
+
+        //   StreamBuilder<List<Budget>>(
+        //     stream: database.watchAllAddableBudgets(),
+        //     builder: (context, snapshot) {
+        //       if (snapshot.data != null && snapshot.data!.length <= 0) return SizedBox.shrink();
+        //       if (snapshot.hasData) {
+        //         return Column(
+        //           children: [
+        //             // SelectChips(
+        //             //   items: <BudgetTransactionFilters>[
+        //             //     BudgetTransactionFilters.addedToOtherBudget,
+        //             //     ...(appStateSettings["sharedBudgets"]
+        //             //         ? [BudgetTransactionFilters.sharedToOtherBudget]
+        //             //         : []),
+        //             //   ],
+        //             //   getLabel: (BudgetTransactionFilters item) {
+        //             //     return item == BudgetTransactionFilters.addedToOtherBudget
+        //             //         ? "added-to-other-budgets".tr()
+        //             //         : item == BudgetTransactionFilters.sharedToOtherBudget
+        //             //             ? "shared-to-other-budgets".tr()
+        //             //             : "";
+        //             //   },
+        //             //   onSelected: (BudgetTransactionFilters item) {
+        //             //     if (selectedFilters.budgetTransactionFilters
+        //             //         .contains(item)) {
+        //             //       selectedFilters.budgetTransactionFilters.remove(item);
+        //             //     } else {
+        //             //       selectedFilters.budgetTransactionFilters.add(item);
+        //             //     }
+        //             //     setSearchFilters();
+        //             //   },
+        //             //   getSelected: (BudgetTransactionFilters item) {
+        //             //     return selectedFilters.budgetTransactionFilters
+        //             //         .contains(item);
+        //             //   },
+        //             // ),
+        //             SelectChips(
+        //               items: [null, ...snapshot.data!],
+        //               onLongPress: (Budget? item) {
+        //                 pushRoute(
+        //                   context,
+        //                   AddBudgetPage(budget: item, routesToPopAfterDelete: RoutesToPopAfterDelete.PreventDelete),
+        //                 );
+        //               },
+        //               getLabel: (Budget? item) {
+        //                 if (item == null) return "no-budget".tr();
+        //                 return item.name;
+        //               },
+        //               onSelected: (Budget? item) {
+        //                 if (selectedFilters.budgetPks.contains(item?.budgetPk)) {
+        //                   selectedFilters.budgetPks.remove(item?.budgetPk);
+        //                 } else {
+        //                   selectedFilters.budgetPks.add(item?.budgetPk);
+        //                 }
+        //                 setSearchFilters();
+        //               },
+        //               getSelected: (Budget? item) {
+        //                 return selectedFilters.budgetPks.contains(item?.budgetPk);
+        //               },
+        //               getCustomBorderColor: (Budget? item) {
+        //                 if (item == null) return null;
+        //                 return dynamicPastel(
+        //                   context,
+        //                   lightenPastel(
+        //                     HexColor(item.colour, defaultColor: Theme.of(context).colorScheme.primary),
+        //                     amount: 0.3,
+        //                   ),
+        //                   amount: 0.4,
+        //                 );
+        //               },
+        //             ),
+        //           ],
+        //         );
+        //       } else {
+        //         return SizedBox.shrink();
+        //       }
+        //     },
+        //   ),
+        //   StreamBuilder<List<Budget>>(
+        //     stream: database.watchAllExcludedTransactionsBudgetsInUse(),
+        //     builder: (context, snapshot) {
+        //       if (snapshot.data != null && snapshot.data!.length <= 0) return SizedBox.shrink();
+        //       if (snapshot.hasData) {
+        //         return Column(
+        //           children: [
+        //             SelectChips(
+        //               items: snapshot.data!,
+        //               onLongPress: (Budget? item) {
+        //                 pushRoute(
+        //                   context,
+        //                   AddBudgetPage(budget: item, routesToPopAfterDelete: RoutesToPopAfterDelete.PreventDelete),
+        //                 );
+        //               },
+        //               getLabel: (Budget item) {
+        //                 return "excluded-from".tr() + " " + item.name;
+        //               },
+        //               onSelected: (Budget item) {
+        //                 if (selectedFilters.excludedBudgetPks.contains(item.budgetPk)) {
+        //                   selectedFilters.excludedBudgetPks.remove(item.budgetPk);
+        //                 } else {
+        //                   selectedFilters.excludedBudgetPks.add(item.budgetPk);
+        //                 }
+        //                 setSearchFilters();
+        //               },
+        //               getSelected: (Budget item) {
+        //                 return selectedFilters.excludedBudgetPks.contains(item.budgetPk);
+        //               },
+        //               getCustomBorderColor: (Budget? item) {
+        //                 if (item == null) return null;
+        //                 return dynamicPastel(
+        //                   context,
+        //                   lightenPastel(
+        //                     HexColor(item.colour, defaultColor: Theme.of(context).colorScheme.primary),
+        //                     amount: 0.3,
+        //                   ),
+        //                   amount: 0.4,
+        //                 );
+        //               },
+        //             ),
+        //           ],
+        //         );
+        //       } else {
+        //         return SizedBox.shrink();
+        //       }
+        //     },
+        //   ),
+
+        //   StreamBuilder<List<Objective>>(
+        //     stream: database.watchAllObjectives(objectiveType: ObjectiveType.goal, archivedLast: true),
+        //     builder: (context, snapshot) {
+        //       if (snapshot.data != null && snapshot.data!.length <= 0) return SizedBox.shrink();
+        //       if (snapshot.hasData) {
+        //         return SelectChips(
+        //           items: [null, ...snapshot.data!],
+        //           onLongPress: (Objective? item) {
+        //             pushRoute(
+        //               context,
+        //               AddObjectivePage(objective: item, routesToPopAfterDelete: RoutesToPopAfterDelete.PreventDelete),
+        //             );
+        //           },
+        //           getLabel: (Objective? item) {
+        //             if (item == null) return "no-goal".tr();
+        //             return item.name;
+        //           },
+        //           onSelected: (Objective? item) {
+        //             if (selectedFilters.objectivePks.contains(item?.objectivePk)) {
+        //               selectedFilters.objectivePks.remove(item?.objectivePk);
+        //             } else {
+        //               selectedFilters.objectivePks.add(item?.objectivePk);
+        //             }
+        //             setSearchFilters();
+        //           },
+        //           getSelected: (Objective? item) {
+        //             return selectedFilters.objectivePks.contains(item?.objectivePk);
+        //           },
+        //           getCustomBorderColor: (Objective? item) {
+        //             if (item == null) return null;
+        //             return dynamicPastel(
+        //               context,
+        //               lightenPastel(
+        //                 HexColor(item.colour, defaultColor: Theme.of(context).colorScheme.primary),
+        //                 amount: 0.3,
+        //               ),
+        //               amount: 0.4,
+        //             );
+        //           },
+        //         );
+        //       } else {
+        //         return SizedBox.shrink();
+        //       }
+        //     },
+        //   ),
+
+        //   StreamBuilder<List<Objective>>(
+        //     stream: database.watchAllObjectives(objectiveType: ObjectiveType.loan, archivedLast: true),
+        //     builder: (context, snapshot) {
+        //       if (snapshot.data != null && snapshot.data!.length <= 0) return SizedBox.shrink();
+        //       if (snapshot.hasData) {
+        //         return SelectChips(
+        //           items: [null, ...snapshot.data!],
+        //           onLongPress: (Objective? item) {
+        //             pushRoute(
+        //               context,
+        //               AddObjectivePage(
+        //                 objective: item,
+        //                 routesToPopAfterDelete: RoutesToPopAfterDelete.PreventDelete,
+        //                 objectiveType: ObjectiveType.loan,
+        //               ),
+        //             );
+        //           },
+        //           getLabel: (Objective? item) {
+        //             if (item == null) return "no-loan".tr();
+        //             return item.name;
+        //           },
+        //           onSelected: (Objective? item) {
+        //             if (selectedFilters.objectiveLoanPks.contains(item?.objectivePk)) {
+        //               selectedFilters.objectiveLoanPks.remove(item?.objectivePk);
+        //             } else {
+        //               selectedFilters.objectiveLoanPks.add(item?.objectivePk);
+        //             }
+        //             setSearchFilters();
+        //           },
+        //           getSelected: (Objective? item) {
+        //             return selectedFilters.objectiveLoanPks.contains(item?.objectivePk);
+        //           },
+        //           getCustomBorderColor: (Objective? item) {
+        //             if (item == null) return null;
+        //             return dynamicPastel(
+        //               context,
+        //               lightenPastel(
+        //                 HexColor(item.colour, defaultColor: Theme.of(context).colorScheme.primary),
+        //                 amount: 0.3,
+        //               ),
+        //               amount: 0.4,
+        //             );
+        //           },
+        //         );
+        //       } else {
+        //         return SizedBox.shrink();
+        //       }
+        //     },
+        //   ),
+
+        //   // SelectChips(
+        //   //   items: MethodAdded.values,
+        //   //   getLabel: (item) {
+        //   //     return item == MethodAdded.csv
+        //   //         ? "CSV"
+        //   //         : item == MethodAdded.shared
+        //   //             ? "Shared"
+        //   //             : item == MethodAdded.email
+        //   //                 ? "Email"
+        //   //                 : "";
+        //   //   },
+        //   //   onSelected: (item) {
+        //   //     if (selectedFilters.methodAdded.contains(item)) {
+        //   //       selectedFilters.methodAdded.remove(item);
+        //   //     } else {
+        //   //       selectedFilters.methodAdded.add(item);
+        //   //     }
+        //   //     setSearchFilters();
+        //   //   },
+        //   //   getSelected: (item) {
+        //   //     return selectedFilters.methodAdded.contains(item);
+        //   //   },
+        //   // ),
+        //   SizedBox(height: 5),
+        //   Padding(
+        //     padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
+        //     child: Column(
+        //       children: [
+        //         TitleInput(
+        //           maxLines: 5,
+        //           resizePopupWhenChanged: false,
+        //           titleInputController: titleContainsController,
+        //           titleInputScrollController: titleContainsScrollController,
+        //           padding: EdgeInsetsDirectional.zero,
+        //           setSelectedCategory: (_) {},
+        //           setSelectedSubCategory: (_) {},
+        //           alsoSearchCategories: false,
+        //           setSelectedTitle: (String value) {
+        //             if (value.trim() == "") {
+        //               selectedFilters.titleContains = null;
+        //             } else {
+        //               selectedFilters.titleContains = value.trim();
+        //             }
+        //           },
+        //           showCategoryIconForRecommendedTitles: false,
+        //           unfocusWhenRecommendedTapped: false,
+        //           onNewRecommendedTitle: () {},
+        //           onRecommendedTitleTapped: (TransactionAssociatedTitleWithCategory title) async {
+        //             List<String> splitTitles = titleContainsController.text.trim().replaceAll(", ", ",").split(",");
+        //             if (splitTitles.length <= 0) return;
+        //             splitTitles.last = title.title.title;
+        //             titleContainsController.text = splitTitles.join(", ") + ", ";
+
+        //             if (titleContainsController.text == "") {
+        //               selectedFilters.titleContains = null;
+        //             } else {
+        //               selectedFilters.titleContains = titleContainsController.text.trim();
+        //             }
+
+        //             // Scroll to the end of the text input
+        //             titleContainsController.selection = TextSelection.fromPosition(
+        //               TextPosition(offset: titleContainsController.text.length),
+        //             );
+        //             Future.delayed(Duration(milliseconds: 50), () {
+        //               // delay cannot be zero
+        //               titleContainsScrollController.animateTo(
+        //                 titleContainsScrollController.position.maxScrollExtent,
+        //                 curve: Curves.easeInOutCubicEmphasized,
+        //                 duration: Duration(milliseconds: 500),
+        //               );
+        //             });
+        //           },
+        //           textToSearchFilter: (String text) {
+        //             return (text.split(",").lastOrNull ?? "").trim();
+        //           },
+        //           getTextToExclude: (String text) {
+        //             text = text.trim().replaceAll(", ", ",");
+        //             return (text.split(","));
+        //           },
+        //           handleOnRecommendedTitleTapped: false,
+        //           onSubmitted: (_) {},
+        //           autoFocus: false,
+        //           labelText: "title-contains".tr() + "...",
+        //         ),
+        //         SizedBox(height: 7),
+        //         TextInput(
+        //           maxLines: 5,
+        //           padding: EdgeInsetsDirectional.zero,
+        //           labelText: "notes-contain".tr() + "...",
+        //           onChanged: (value) {
+        //             if (value.trim() == "") {
+        //               selectedFilters.noteContains = null;
+        //             } else {
+        //               selectedFilters.noteContains = value.trim();
+        //             }
+        //           },
+        //           initialValue: selectedFilters.noteContains,
+        //           icon: appStateSettings["outlinedIcons"] ? Icons.sticky_note_2_outlined : Icons.sticky_note_2_rounded,
+        //         ),
+        //       ],
+        //     ),
+        //   ),
+
+        //   Padding(
+        //     padding: const EdgeInsetsDirectional.symmetric(horizontal: 20, vertical: 10),
+        //     child: Row(
+        //       children: [
+        //         Flexible(
+        //           child: Button(
+        //             expandedLayout: true,
+        //             label: "reset".tr(),
+        //             onTap: () {
+        //               widget.clearSearchFilters();
+        //               popRoute(context);
+        //             },
+        //             color: Theme.of(context).colorScheme.tertiaryContainer,
+        //             textColor: Theme.of(context).colorScheme.onTertiaryContainer,
+        //           ),
+        //         ),
+        //         SizedBox(width: 13),
+        //         Flexible(
+        //           child: Button(
+        //             expandedLayout: true,
+        //             label: "apply".tr(),
+        //             onTap: () {
+        //               popRoute(context);
+        //             },
+        //           ),
+        //         ),
+        //       ],
+        //     ),
+        //   ),
+      ],
+    );
+  }
+}
+
+class AppliedFilterChips extends StatelessWidget {
+  const AppliedFilterChips({required this.searchFilter, this.openFiltersSelection, this.clearSearchFilters, super.key});
+
+  final FilterTransactionsModel searchFilter;
+  final VoidCallback? openFiltersSelection;
+  final VoidCallback? clearSearchFilters;
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> children = [];
+
+    // Title contains
+    if (searchFilter.titleContains != null) {
+      children.add(
+        AppliedFilterChip(
+          label: 'Title contains: ${searchFilter.titleContains}',
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+
+    // Accounts
+    if (searchFilter.accounts.isNotEmpty) {
+      children.add(
+        SingleChildScrollView(
+          // padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: searchFilter.accounts.map((acc) {
+              return AppliedFilterChip(
+                label: acc.name,
+                customBorderColor: Theme.of(context).colorScheme.primary,
+                openFiltersSelection: openFiltersSelection,
+              );
+            }).toList(),
+          ),
+        ),
+      );
+    }
+
+    // AMCGenres
+    if (searchFilter.amcGenres.isNotEmpty) {
+      children.add(
+        SingleChildScrollView(
+          // padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: searchFilter.amcGenres.map((genre) {
+              return AppliedFilterChip(
+                label: genre.name,
+                customBorderColor: genre.color,
+                openFiltersSelection: openFiltersSelection,
+              );
+            }).toList(),
+          ),
+        ),
+      );
+    }
+
+    // AMCs
+    if (searchFilter.amcs.isNotEmpty) {
+      children.add(
+        SingleChildScrollView(
+          // padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: searchFilter.amcs.map((amc) {
+              return AppliedFilterChip(
+                label: amc.name,
+                customBorderColor: Theme.of(context).colorScheme.secondary,
+                openFiltersSelection: openFiltersSelection,
+              );
+            }).toList(),
+          ),
+        ),
+      );
+    }
+
+    // Amount range
+    if (searchFilter.amountRange != null) {
+      children.add(
+        AppliedFilterChip(
+          label: '${searchFilter.amountRange!.start} - ${searchFilter.amountRange!.end}',
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+
+    // Transaction types
+    if (searchFilter.transactionTypes.isNotEmpty) {
+      children.add(
+        SingleChildScrollView(
+          // padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: searchFilter.amcGenres.map((type) {
+              return AppliedFilterChip(
+                label: type.name,
+                customBorderColor: type.color,
+                openFiltersSelection: openFiltersSelection,
+              );
+            }).toList(),
+          ),
+        ),
+      );
+    }
+
+    // Date and time range
+    if (searchFilter.dateTimeRange != null) {
+      children.add(
+        AppliedFilterChip(
+          label: '${searchFilter.dateTimeRange!.start.toReadable()} - ${searchFilter.dateTimeRange!.end.toReadable()}',
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+
+    // Notes contains
+    if (searchFilter.noteContains != null) {
+      children.add(
+        AppliedFilterChip(
+          label: 'Title contains: ${searchFilter.noteContains}',
+          openFiltersSelection: openFiltersSelection,
+        ),
+      );
+    }
+
+    return Column(
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(child: Text('Filters', overflow: TextOverflow.ellipsis)),
+            IconButton(icon: Icon(Icons.close_rounded), iconSize: 14, onPressed: clearSearchFilters),
+          ],
+        ),
+        AnimatedSwitcher(
+          duration: 300.ms,
+          child: children.isNotEmpty
+              ? Column(
+                  children: children.map((child) {
+                    return AnimatedSize(curve: Curves.easeInOutCubicEmphasized, duration: 1000.ms, child: child);
+                  }).toList(),
+                )
+              : SizedBox(),
+        ),
+      ],
     );
   }
 }
@@ -1454,7 +1276,7 @@ class AppliedFilterChips extends StatelessWidget {
 class AppliedFilterChip extends StatelessWidget {
   const AppliedFilterChip({
     required this.label,
-    required this.openFiltersSelection,
+    this.openFiltersSelection,
     this.icon,
     this.customBorderColor,
     super.key,
@@ -1463,7 +1285,7 @@ class AppliedFilterChip extends StatelessWidget {
   final Color? customBorderColor;
   final String label;
   final IconData? icon;
-  final VoidCallback openFiltersSelection;
+  final VoidCallback? openFiltersSelection;
 
   @override
   Widget build(BuildContext context) {

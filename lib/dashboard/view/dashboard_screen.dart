@@ -200,7 +200,7 @@ class _DashboardContentsState extends State<_DashboardContents> {
 
         BlocBuilder<DashboardCubit, DashboardState>(
           builder: (context, state) {
-            return _RecentTransactions(dateRange);
+            return _RecentTransactions(period: dateRange);
           },
         ),
       ],
