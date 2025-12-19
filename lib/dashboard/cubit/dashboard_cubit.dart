@@ -26,9 +26,10 @@ class DashboardCubit extends Cubit<DashboardState> {
     emit(const DashboardLoadingState());
     try {
       final transactionStats = await _repository.getTransactionStats();
-      final recentTransactions = await _repository.getTransactions(dateRange: dateRange, limit: limit);
+      // final recentTransactions = await _repository.getTransactions(dateRange: dateRange, limit: limit);
 
-      emit(DashboardLoadedState(stats: transactionStats, recentTransactions: recentTransactions));
+      // emit(DashboardLoadedState(stats: transactionStats, recentTransactions: recentTransactions));
+      emit(DashboardLoadedState(stats: transactionStats));
     } on Exception catch (error) {
       emit(DashboardErrorState(error.toString()));
     }
@@ -45,9 +46,10 @@ class DashboardCubit extends Cubit<DashboardState> {
 
       try {
         final transactionStats = await _repository.getTransactionStats();
-        final transactions = await _repository.getTransactions(dateRange: dateRange, limit: limit);
+        // final transactions = await _repository.getTransactions(dateRange: dateRange, limit: limit);
 
-        emit(DashboardLoadedState(stats: transactionStats, recentTransactions: transactions));
+        // emit(DashboardLoadedState(stats: transactionStats, recentTransactions: transactions));
+        emit(DashboardLoadedState(stats: transactionStats));
       } on Exception catch (error) {
         emit(DashboardErrorState(error.toString()));
       } finally {

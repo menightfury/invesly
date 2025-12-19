@@ -1,7 +1,22 @@
 part of '../dashboard_screen.dart';
 
-class _AccountsList extends StatelessWidget {
+class _AccountsList extends StatefulWidget {
   const _AccountsList({super.key});
+
+  @override
+  State<_AccountsList> createState() => _AccountsListState();
+}
+
+class _AccountsListState extends State<_AccountsList> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch accounts
+    final cubit = context.read<AccountsCubit>();
+    if (!cubit.state.isLoaded) {
+      cubit.fetchAccounts();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,6 +28,7 @@ class _AccountsList extends StatelessWidget {
         alignment: Alignment.centerLeft,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
+          clipBehavior: Clip.none,
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: BlocBuilder<AccountsCubit, AccountsState>(
@@ -34,10 +50,9 @@ class _AccountsList extends StatelessWidget {
                 children: <Widget>[
                   // ~~~ Accounts ~~~
                   ...List.generate(
-                    accounts?.length ?? 1, // dummy count for shimmer effect
+                    accounts?.length ?? 2, // dummy count for shimmer effect
                     (index) {
                       final account = accounts?.elementAt(index);
-
                       return Shimmer(
                         isLoading: isLoading,
                         child: account == null
@@ -53,8 +68,10 @@ class _AccountsList extends StatelessWidget {
                                   $logger.i('rebuilding $account');
                                   return ChoiceChip(
                                     showCheckmark: false,
-                                    onSelected: (selected) =>
-                                        selected ? context.read<AppCubit>().updatePrimaryAccount(account.id) : null,
+                                    onSelected: (selected) {
+                                      // update primary account
+                                      selected ? context.read<AppCubit>().updatePrimaryAccount(account.id) : null;
+                                    },
                                     labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 8.0),
                                     selected: isCurrentAccount,
                                     avatar: CircleAvatar(backgroundImage: AssetImage(account.avatarSrc)),

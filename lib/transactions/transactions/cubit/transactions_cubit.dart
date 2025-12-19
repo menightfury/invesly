@@ -18,7 +18,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
   StreamSubscription<TableChangeEvent>? _subscription;
 
   /// Fetch transaction (on initial load, on transactions change)
-  Future<void> fetchTransactions({DateTimeRange<DateTime>? dateRange, int? limit}) async {
+  Future<void> fetchTransactions({String? accountId, DateTimeRange<DateTime>? dateRange, int? limit}) async {
     // DateTimeRange? dateRange;
     // if (start != null || end != null) {
     //   dateRange = DateTimeRange(start: start ?? DateTime(1970), end: end ?? DateTime.now());
@@ -26,7 +26,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     // Get initial transactions
     emit(state.copyWith(status: TransactionsStatus.loading));
     try {
-      final transactions = await _repository.getTransactions(dateRange: dateRange, limit: limit);
+      final transactions = await _repository.getTransactions(accountId: accountId, dateRange: dateRange, limit: limit);
 
       emit(state.copyWith(status: TransactionsStatus.loaded, transactions: transactions));
     } on Exception catch (err) {
@@ -44,7 +44,11 @@ class TransactionsCubit extends Cubit<TransactionsState> {
       _subscription?.pause();
 
       try {
-        final transactions = await _repository.getTransactions(dateRange: dateRange, limit: limit);
+        final transactions = await _repository.getTransactions(
+          accountId: accountId,
+          dateRange: dateRange,
+          limit: limit,
+        );
 
         emit(state.copyWith(status: TransactionsStatus.loaded, transactions: transactions));
       } on Exception catch (err) {

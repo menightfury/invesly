@@ -8,11 +8,11 @@ class _RecentTransactions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DashboardCubit, DashboardState>(
+    return BlocBuilder<TransactionsCubit, TransactionsState>(
       builder: (context, state) {
         late final List<Widget> tiles;
         if (state.isLoaded) {
-          final rts = (state as DashboardLoadedState).recentTransactions;
+          final rts = state.transactions;
           if (rts.isEmpty) {
             tiles = [
               SectionTile(
@@ -61,7 +61,7 @@ class _RecentTransactions extends StatelessWidget {
               icon: const Icon(Icons.swap_vert_rounded),
               tiles: tiles,
             ),
-            if (state is DashboardLoadedState && state.recentTransactions.isNotEmpty)
+            if (state.isLoaded && state.transactions.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: FilledButton.tonalIcon(

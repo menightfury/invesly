@@ -4,8 +4,10 @@ import 'dart:math';
 import 'package:intl/intl.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
+import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
@@ -158,9 +160,9 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
           initialChildSize: 0.65,
           builder: (context, scrollController) {
             return TransactionFiltersSelection(
-              setSearchFilters: setSearchFilters,
-              searchFilters: searchFilters,
-              clearSearchFilters: clearSearchFilters,
+              // setSearchFilters: setSearchFilters,
+              selectedFilter: searchFilters,
+              // clearSearchFilters: clearSearchFilters,
             );
           },
         );
@@ -478,66 +480,70 @@ List<DateTimeRange> createDateTimeRanges(ParsedDateTimeQuery? parsed) {
   return ranges;
 }
 
-// class HighlightStringInList extends TextEditingController {
-//   final Pattern pattern;
+class HighlightStringInList extends TextEditingController {
+  final Pattern pattern;
 
-//   HighlightStringInList({String? initialText}) : pattern = RegExp(r'\b[^,]+(?=|$)') {
-//     this.text = initialText ?? '';
-//   }
+  HighlightStringInList({String? initialText}) : pattern = RegExp(r'\b[^,]+(?=|$)') {
+    this.text = initialText ?? '';
+  }
 
-//   @override
-//   TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
-//     if (text.contains(", ") == false) return TextSpan(style: style, text: text);
-//     List<InlineSpan> children = [];
-//     text.splitMapJoin(
-//       pattern,
-//       onMatch: (Match match) {
-//         children.add(
-//           TextSpan(
-//             text: match[0] ?? "",
-//             style: TextStyle(
-//               color: Theme.of(context).colorScheme.onPrimary,
-//               backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-//             ),
-//           ),
-//         );
-//         return match[0] ?? "";
-//       },
-//       onNonMatch: (String text) {
-//         children.add(TextSpan(text: text, style: style));
-//         return text;
-//       },
-//     );
-//     return TextSpan(style: style, children: children);
-//   }
-// }
+  @override
+  TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
+    if (text.contains(", ") == false) return TextSpan(style: style, text: text);
+    List<InlineSpan> children = [];
+    text.splitMapJoin(
+      pattern,
+      onMatch: (Match match) {
+        children.add(
+          TextSpan(
+            text: match[0] ?? "",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary,
+              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+            ),
+          ),
+        );
+        return match[0] ?? "";
+      },
+      onNonMatch: (String text) {
+        children.add(TextSpan(text: text, style: style));
+        return text;
+      },
+    );
+    return TextSpan(style: style, children: children);
+  }
+}
 
 class TransactionFiltersSelection extends StatefulWidget {
-  const TransactionFiltersSelection({
-    required this.searchFilters,
-    required this.setSearchFilters,
-    required this.clearSearchFilters,
-    super.key,
-  });
+  const TransactionFiltersSelection({this.selectedFilter, this.setSearchFilters, this.clearSearchFilters, super.key});
 
-  final FilterTransactionsModel searchFilters;
-  final Function(SearchFilters searchFilters) setSearchFilters;
-  final Function() clearSearchFilters;
+  final FilterTransactionsModel? selectedFilter;
+  final Function(FilterTransactionsModel searchFilters)? setSearchFilters;
+  final Function()? clearSearchFilters;
 
   @override
   State<TransactionFiltersSelection> createState() => _TransactionFiltersSelectionState();
 }
 
 class _TransactionFiltersSelectionState extends State<TransactionFiltersSelection> {
-  late FilterTransactionsModel selectedFilters = widget.searchFilters;
+  late FilterTransactionsModel? selectedFilter = widget.selectedFilter;
   late ScrollController titleContainsScrollController = ScrollController();
   late TextEditingController titleContainsController = HighlightStringInList(
-    initialText: selectedFilters.titleContains,
+    initialText: selectedFilter?.titleContains,
   );
 
-  void setSearchFilters() {
-    widget.setSearchFilters(selectedFilters);
-    setState(() {});
+  // void setSearchFilters() {
+  //   widget.setSearchFilters(selectedFilters);
+  //   setState(() {});
+  // }
+
+  @override
+  void initState() {
+    super.initState();
+    final accountsCubit = context.read<AccountsCubit>();
+    if (accountsCubit.state is! AccountsLoadedState) {
+      accountsCubit.fetchAccounts();
+    }
   }
 
   @override
@@ -551,27 +557,56 @@ class _TransactionFiltersSelectionState extends State<TransactionFiltersSelectio
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        //   SelectCategory(
-        //     horizontalList: true,
-        //     showSelectedAllCategoriesIfNoneSelected: true,
-        //     addButton: false,
-        //     selectedCategories: selectedFilters.categoryPks,
-        //     setSelectedCategories: (List<String>? categories) async {
-        //       selectedFilters.categoryPks = categories ?? [];
-        //       if (selectedFilters.categoryPks.length <= 0) selectedFilters.subcategoryPks = [];
+        // ~ Accounts
+        BlocBuilder<AccountsCubit, AccountsState>(
+          builder: (context, state) {
+            final isLoading = state.isLoading;
+            final isError = state.isError;
+            final accounts = state.isLoaded ? (state as AccountsLoadedState).accounts : null;
 
-        //       // Remove any subcategories that are selected that no longer
-        //       // have the primary category selected
-        //       for (String subCategoryPk in ([...selectedFilters.subcategoryPks ?? []])) {
-        //         TransactionCategory subCategory = await database.getCategoryInstance(subCategoryPk);
-        //         if ((categories ?? []).contains(subCategory.mainCategoryPk) == false) {
-        //           (selectedFilters.subcategoryPks ?? []).remove(subCategoryPk);
-        //         }
-        //       }
+            // return SingleChildScrollView(
+            //   padding: const EdgeInsets.only(bottom: 16.0),
+            //   child: Row(
+            //     crossAxisAlignment: CrossAxisAlignment.start,
+            //     children: List.generate(
+            //       accounts?.length ?? 2, // dummy count for shimmer effect
+            //       (index) {
+            //         final account = accounts?.elementAt(index);
+            //         return Shimmer(
+            //           isLoading: isLoading,
+            //           child: ListTile(
+            //             leading: CircleAvatar(foregroundImage: account != null ? AssetImage(account.avatarSrc) : null),
+            //             title: isLoading || isError
+            //                 ? Skeleton(height: 24.0, color: isError ? context.colors.error : null)
+            //                 : Text(account?.name ?? ''),
+            //             trailing:  selectedFilter.accounts.contains(account)  ? const Icon(Icons.check_rounded) : null,
+            //             onTap: account != null ? () => widget.onPickup?.call(account) : null,
+            //           ),
+            //         );
+            //       },
+            //     ),
+            //   ),
+            // );
 
-        //       setSearchFilters();
-        //     },
-        //   ),
+            return Shimmer(
+              isLoading: isLoading,
+              child: InveslyChoiceChips<String>(
+                options: List.generate(accounts?.length ?? 2, (index) {
+                  final account = accounts?.elementAt(index);
+                  return InveslyChipData(
+                    label: account != null
+                        ? Text(account.name)
+                        : Skeleton(color: isError ? context.colors.error : null),
+                    icon: CircleAvatar(foregroundImage: account != null ? AssetImage(account.avatarSrc) : null),
+                    value: account?.id ?? '',
+                  );
+                }),
+                selected: accounts?.map((acc) => acc.id).toSet(),
+                wrapped: false,
+              ),
+            );
+          },
+        ),
         //   SelectCategory(
         //     horizontalList: true,
         //     showSelectedAllCategoriesIfNoneSelected: true,

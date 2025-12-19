@@ -22,6 +22,7 @@ import 'package:invesly/dashboard/cubit/dashboard_cubit.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
+import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:invesly/transactions/transactions/transactions_page.dart';
 
 part 'widgets/accounts.dart';
@@ -39,82 +40,82 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final ScrollController _scrollController = ScrollController();
-  @override
-  void initState() {
-    super.initState();
-    context.read<AccountsCubit>().fetchAccounts();
-  }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = context.textTheme;
     return Scaffold(
       body: SafeArea(
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            SliverAppBar(
-              leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 48.0)),
-              titleSpacing: 0.0,
-              actions: <Widget>[
-                // ~~~ User avatar ~~~
-                GestureDetector(
-                  onTap: () => context.push(const SettingsScreen()),
-                  child: BlocSelector<AppCubit, AppState, InveslyUser?>(
-                    selector: (state) => state.user,
-                    builder: (context, currentUser) {
-                      return currentUser.isNotNullOrEmpty
-                          ? InveslyUserCircleAvatar(user: currentUser!)
-                          : CircleAvatar(child: const Icon(Icons.person_rounded));
-                    },
+        child: BlocProvider(
+          create: (context) => TransactionsCubit(repository: context.read<TransactionRepository>()),
+          child: CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              SliverAppBar(
+                leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 48.0)),
+                titleSpacing: 0.0,
+                actions: <Widget>[
+                  // ~~~ User avatar ~~~
+                  GestureDetector(
+                    onTap: () => context.push(const SettingsScreen()),
+                    child: BlocSelector<AppCubit, AppState, InveslyUser?>(
+                      selector: (state) => state.user,
+                      builder: (context, currentUser) {
+                        return currentUser.isNotNullOrEmpty
+                            ? InveslyUserCircleAvatar(user: currentUser!)
+                            : CircleAvatar(child: const Icon(Icons.person_rounded));
+                      },
+                    ),
                   ),
-                ),
-              ],
-              actionsPadding: EdgeInsets.only(right: 16.0),
-            ),
+                ],
+                actionsPadding: EdgeInsets.only(right: 16.0),
+              ),
 
-            SliverList(
-              delegate: SliverChildListDelegate.fixed([
-                // ~~~ Greetings ~~~
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        DateTime.now().greetingsMsg,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.headlineSmall,
-                      ),
-                      BlocSelector<AppCubit, AppState, InveslyUser?>(
-                        selector: (state) => state.user,
-                        builder: (context, currentUser) {
-                          return Text(
-                            currentUser.isNotNullOrEmpty ? currentUser!.name : 'Investor',
-                            overflow: TextOverflow.ellipsis,
-                            style: textTheme.headlineMedium,
-                          );
-                        },
-                      ),
-                    ],
+              SliverList(
+                delegate: SliverChildListDelegate.fixed([
+                  // ~~~ Greetings ~~~
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          DateTime.now().greetingsMsg,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.headlineSmall,
+                        ),
+                        BlocSelector<AppCubit, AppState, InveslyUser?>(
+                          selector: (state) => state.user,
+                          builder: (context, currentUser) {
+                            return Text(
+                              currentUser.isNotNullOrEmpty ? currentUser!.name : 'Investor',
+                              overflow: TextOverflow.ellipsis,
+                              style: textTheme.headlineMedium,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const Gap(16.0),
+                  const Gap(16.0),
 
-                // ~~~ Accounts ~~~
-                _AccountsList(),
-                const Gap(16.0),
+                  // ~~~ Accounts ~~~
+                  _AccountsList(),
+                  const Gap(16.0),
 
-                // ~~~ Stats, Recent transactions etc. ~~~
-                BlocProvider(
-                  create: (context) => DashboardCubit(repository: context.read<TransactionRepository>()),
-                  child: _DashboardContents(),
-                ),
-                const Gap(80.0),
-              ]),
-            ),
-          ],
+                  // ~~~ Stats, Recent transactions etc. ~~~
+                  BlocProvider(
+                    create: (context) => DashboardCubit(
+                      repository: context.read<TransactionRepository>(),
+                    ), // TODO: Remove DashboardCubit completely
+                    child: _DashboardContents(),
+                  ),
+                  const Gap(80.0),
+                ]),
+              ),
+            ],
+          ),
         ),
       ),
       // ~~~ Add transaction button ~~~
@@ -187,7 +188,10 @@ class _DashboardContentsState extends State<_DashboardContents> {
     final startOfYear = DateTime(now.year, 1, 1);
     // final endOfMonth = DateTime(now.year, now.month + 1, 0);
     dateRange = DateTimeRange(start: startOfYear, end: now);
-    context.read<DashboardCubit>().fetchTransactionStats(dateRange: dateRange, limit: 3);
+    context.read<DashboardCubit>().fetchTransactionStats(
+      dateRange: dateRange,
+      limit: 3,
+    ); // TODO: Remove dashboard cubit completely
   }
 
   @override
@@ -197,9 +201,15 @@ class _DashboardContentsState extends State<_DashboardContents> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _CategoriesWidget(),
-
-        BlocBuilder<DashboardCubit, DashboardState>(
-          builder: (context, state) {
+        BlocSelector<AppCubit, AppState, String?>(
+          selector: (state) => state.primaryAccountId,
+          builder: (context, primaryAccountId) {
+            // fetch recent transactions
+            context.read<TransactionsCubit>().fetchTransactions(
+              // dateRange: dateRange,
+              accountId: primaryAccountId,
+              limit: 3,
+            );
             return _RecentTransactions(period: dateRange);
           },
         ),

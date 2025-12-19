@@ -25,7 +25,7 @@ class AppStyle {
       canvasColor: colorScheme.secondaryContainer,
       cardColor: colorScheme.secondaryContainer,
       colorScheme: colorScheme,
-      fontFamily: GoogleFonts.firaSansCondensed().fontFamily,
+      fontFamily: GoogleFonts.slabo27px(fontWeight: FontWeight.w400).fontFamily,
       // fontFamily: _primaryFont,
       dividerColor: colorScheme.primary.withAlpha(50),
       textTheme: TextTheme(

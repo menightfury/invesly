@@ -17,7 +17,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
     super.key,
     required this.options,
     // this.optionsBuilder,
-    required this.selected,
+    Set<T>? selected,
     this.onChanged,
     this.clearable = false,
     this.color,
@@ -27,8 +27,9 @@ class InveslyChoiceChips<T> extends StatelessWidget {
     this.onDeleted,
     this.deleteIcon,
   }) : multiselect = true,
+       _selected = selected ?? const {},
        assert(options.isNotEmpty),
-       assert(selected.isNotEmpty || clearable);
+       assert((selected != null && selected.isNotEmpty) || clearable);
 
   /// Single-select choice chips
   InveslyChoiceChips.single({
@@ -45,7 +46,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
     this.onDeleted,
     this.deleteIcon,
   }) : multiselect = false,
-       selected = {selected}.whereType<T>().toSet(),
+       _selected = selected == null ? const {} : {selected}.whereType<T>().toSet(),
        onChanged = onChanged != null ? ((Set<T> values) => onChanged.call(values.firstOrNull)) : null,
        assert(options.isNotEmpty),
        assert(selected != null || clearable);
@@ -53,7 +54,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
   final List<InveslyChipData<T>> options;
   // final WidgetBuilder? optionsBuilder;
   final ValueChanged<Set<T>>? onChanged;
-  final Set<T> selected;
+  final Set<T> _selected;
 
   /// empty selection is allowed or not, default is false i.e. not allowed
   final bool clearable;
@@ -72,7 +73,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
     if (!_enabled) {
       return;
     }
-    final bool onlySelectedSegment = selected.length == 1 && selected.contains(optionValue);
+    final bool onlySelectedSegment = _selected.length == 1 && _selected.contains(optionValue);
     final bool validChange = clearable || !onlySelectedSegment;
 
     if (validChange) {
@@ -80,13 +81,13 @@ class InveslyChoiceChips<T> extends StatelessWidget {
       final Set<T> pressedOption = <T>{optionValue};
       late final Set<T> updatedOption;
       if (toggle) {
-        updatedOption = selected.contains(optionValue)
-            ? selected.difference(pressedOption)
-            : selected.union(pressedOption);
+        updatedOption = _selected.contains(optionValue)
+            ? _selected.difference(pressedOption)
+            : _selected.union(pressedOption);
       } else {
         updatedOption = pressedOption;
       }
-      if (!setEquals(updatedOption, selected)) {
+      if (!setEquals(updatedOption, _selected)) {
         onChanged?.call(updatedOption);
       }
     }
@@ -109,6 +110,8 @@ class InveslyChoiceChips<T> extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       clipBehavior: Clip.none,
+      physics: const BouncingScrollPhysics(),
+      // padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: List.generate(childCount, (index) {
@@ -123,7 +126,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
   }
 
   Widget _buildItem(BuildContext context, InveslyChipData<T> option) {
-    final isSelected = selected.contains(option.value);
+    final isSelected = _selected.contains(option.value);
 
     return FilterChip(
       selected: isSelected,
