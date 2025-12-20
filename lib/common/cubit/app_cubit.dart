@@ -38,10 +38,6 @@ class AppCubit extends HydratedCubit<AppState> {
     emit(state.copyWith(isPrivateMode: value));
   }
 
-  // void updateGapiAccessToken(AccessToken? accessToken) {
-  //   emit(state.copyWith(gapiAccessToken: () => accessToken));
-  // }
-
   void updateDateFormat(String dateFormat) {
     emit(state.copyWith(dateFormat: () => dateFormat));
   }

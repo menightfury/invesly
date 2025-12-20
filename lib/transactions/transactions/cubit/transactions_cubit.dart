@@ -19,6 +19,10 @@ class TransactionsCubit extends Cubit<TransactionsState> {
 
   /// Fetch transaction (on initial load, on transactions change)
   Future<void> fetchTransactions({String? accountId, DateTimeRange<DateTime>? dateRange, int? limit}) async {
+    // Cancel any existing subscription
+    await _subscription?.cancel();
+    _subscription = null;
+
     // DateTimeRange? dateRange;
     // if (start != null || end != null) {
     //   dateRange = DateTimeRange(start: start ?? DateTime(1970), end: end ?? DateTime.now());
@@ -88,6 +92,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
   @override
   Future<void> close() {
     _subscription?.cancel();
+    _subscription = null;
     return super.close();
   }
 }

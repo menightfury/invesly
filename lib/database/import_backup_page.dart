@@ -215,7 +215,7 @@ class _DriveImportBackupPageState extends State<_DriveImportBackupPage> {
         if (fileContent == null || fileContent.isEmpty) {
           throw Exception('Error reading backup file from Google Drive.');
         }
-        await backupRepository.writeDatabaseFile(fileContent);
+        await backupRepository.writeDatabase(fileContent);
       }); // TODO: implement loadingMessage: 'Restoring backup...'
       if (!context.mounted) {
         return;

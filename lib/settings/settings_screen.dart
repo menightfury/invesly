@@ -298,17 +298,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 const Gap(16.0),
 
+                // ~~~ Backup & Restore Section ~~~
                 Section(
                   title: const Text('Backup & Restore'),
-                  subTitle: const Text('Last backup: 2023-10-01'),
+                  subTitle: const Text('Last backup: 2023-10-01'), // TODO: Update date
                   // icon: const Icon(Icons.import_export_rounded),
                   tiles: [
+                    // ~ Import from CSV file ~
                     SectionTile.navigation(
                       icon: const Icon(Icons.restore_rounded),
                       title: const Text('Manual import'),
                       subtitle: const Text('Import transaction from a .csv file.'),
                       onTap: () => context.push(const ImportTransactionsScreen()),
                     ),
+
+                    // ~ Export to CSV file ~
                     SectionTile(
                       title: const Text('Export transactions'),
                       icon: const Icon(Icons.backup_outlined),
@@ -343,10 +347,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         }
                       },
                     ),
+
+                    // ~ Backup database locally ~
                     SectionTile(
                       title: Text('Backup locally'),
                       icon: const Icon(Icons.import_export_rounded),
-                      subtitle: Text('This will create a new backup file locally.'),
+                      subtitle: Text('This will create a new backup file in local storage.'),
                       onTap: () async {
                         late final SnackBar snackBar;
                         try {
@@ -355,7 +361,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           //   return;
                           // }
 
-                          final file = await context.read<BackupRestoreRepository>().exportDatabaseFile();
+                          final file = await context.read<BackupRestoreRepository>().exportDatabase();
                           if (file != null) {
                             snackBar = SnackBar(
                               content: Text('File saved successfully, ${file.path}'),
@@ -380,40 +386,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         }
                       },
                     ),
+
+                    // ~ Restore database from local storage ~
+                    SectionTile(
+                      title: const Text('Restore from local storage'),
+                      icon: const Icon(Icons.restore_page_outlined),
+                      subtitle: const Text(
+                        'Restore your data from a previously saved backup. This action will overwrite your current data.',
+                      ),
+                      onTap: () async {},
+                    ),
+
+                    // ~ Backup database to Google drive ~
                     SectionTile(
                       title: const Text('Backup to Google Drive'),
                       icon: const Icon(Icons.backup_outlined),
                       subtitle: const Text('Backup your data in a new backup file to Google Drive.'),
                       onTap: () => _onBackupToDrivePressed(context),
                     ),
+
+                    // ~ Restore database from Google drive ~
                     SectionTile(
                       title: const Text('Restore from Google Drive'),
                       icon: const Icon(Icons.restore_page_outlined),
                       subtitle: const Text(
                         'Restore your data from a previously saved backup. This action will overwrite your current data.',
                       ),
-                      onTap: () async {
-                        await startLoginFlow(context);
-                        if (context.mounted) {
-                          DriveImportBackupPage.showModal(context);
-                        }
-                      },
-                      // onTap: () async {
-                      //   var accessToken = context.read<AppCubit>().state.user?.gapiAccessToken;
-                      //   if (accessToken == null) {
-                      //     // final user = await context.read<AuthRepository>().signInWithGoogle();
-                      //     final user = await AuthRepository.instance.signInWithGoogle();
-                      //     if (user == null) {
-                      //       $logger.w('Google sign-in failed');
-                      //       return;
-                      //     }
-                      //     // accessToken = await context.read<AuthRepository>().getAccessToken(user);
-                      //     accessToken = await AuthRepository.instance.getAccessToken(user);
-                      //   }
-                      //   // final files = await context.read<AuthRepository>().getDriveFiles(accessToken);
-                      //   final files = await AuthRepository.instance.getDriveFiles(accessToken);
-                      //   $logger.i(files);
-                      // },
+                      onTap: () => _onRestoreFromDrivePressed(context),
                     ),
                   ],
                 ),
@@ -502,6 +501,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // await context.read<AuthRepository>().saveFileInDrive(accessToken: accessToken, file: file);
       await AuthRepository.instance.saveFileInDrive(accessToken: accessToken, file: file);
       $logger.i('Backup created successfully');
+    } catch (err) {
+      $logger.e(err);
+    }
+  }
+
+  Future<void> _onRestoreFromDrivePressed(BuildContext context) async {
+    gapis.AccessToken? accessToken = context.read<AppCubit>().state.user?.gapiAccessToken;
+
+    try {
+      if (accessToken == null) {
+        final user = await startLoginFlow(context);
+        accessToken = user.gapiAccessToken;
+      }
+      if (accessToken == null || !context.mounted) {
+        $logger.w('Google sign-in failed');
+        return;
+      }
+      DriveImportBackupPage.showModal(context);
     } catch (err) {
       $logger.e(err);
     }

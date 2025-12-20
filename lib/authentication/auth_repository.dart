@@ -211,6 +211,7 @@ class AuthRepository {
       await for (var data in media.stream) {
         dataStore.insertAll(dataStore.length, data);
       }
+      
       return dataStore;
     } catch (err) {
       $logger.e(err);

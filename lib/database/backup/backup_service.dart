@@ -25,22 +25,17 @@ class BackupRestoreRepository {
 
   //   return await getTemporaryDirectory();
   // }
-  // AppDB db = AppDB.instance;
 
   File get databaseFile => File(_api.dbPath);
 
-  Future<File?> exportDatabaseFile() async {
+  Future<File?> exportDatabase() async {
     // final dir = await _getDownloadsDirectory();
     String? path = await FilePicker.platform.getDirectoryPath();
     if (path == null || path.isEmpty) {
       return null;
     }
 
-    $logger.i('File Size ${(databaseFile.lengthSync() / 1e+6).toString()}');
-
-    final dateTime = DateTime.now().toUtc();
-    final fileName = 'invesly-${dateTime.millisecondsSinceEpoch}.db';
-    final file = File(p.join(path, fileName));
+    final destFile = File(p.join(path, 'invesly-${DateTime.now().toUtc().millisecondsSinceEpoch}.db'));
     // final dir = await getApplicationDocumentsDirectory();
     // final destination = Directory(p.join(dir.path, fileName));
     // if ((await destination.exists())) {
@@ -57,69 +52,35 @@ class BackupRestoreRepository {
     //   }
     // }
 
-    return await databaseFile.copy(file.path);
+    return await databaseFile.copy(destFile.path);
   }
 
-  // Future<void> downloadDatabaseFile() async {
-  //   List<int> dbFileInBytes = await File(await db.databasePath).readAsBytes();
+  Future<List<int>?> getFileContent() async {
+    FilePickerResult? result;
 
-  //   String downloadPath = await getDownloadPath();
-  //   downloadPath = path.join(downloadPath, "invesly-${DateFormat('yyyyMMdd-Hms').format(DateTime.now())}.db");
+    try {
+      result = await FilePicker.platform.pickFiles(
+        type: Platform.isWindows ? FileType.custom : FileType.any,
+        allowedExtensions: ['db', 'sqlite3'],
+        allowMultiple: false,
+      );
+    } catch (e) {
+      throw Exception(e.toString());
+    }
 
-  //   File downloadFile = File(downloadPath);
+    if (result != null) {
+      File selectedFile = File(result.files.single.path!);
 
-  //   await downloadFile.writeAsBytes(dbFileInBytes);
-  // }
+      try {
+        final currentDBContent = await selectedFile.readAsBytes();
+        return currentDBContent;
+      } catch (e) {
+        throw Exception('The database is invalid or could not be read');
+      }
+    }
+  }
 
-  // Future<bool> importDatabase() async {
-  //   FilePickerResult? result;
-
-  //   try {
-  //     result = await FilePicker.platform.pickFiles(
-  //       type: Platform.isWindows ? FileType.custom : FileType.any,
-  //       allowedExtensions: Platform.isWindows ? ['db'] : null,
-  //       allowMultiple: false,
-  //     );
-  //   } catch (e) {
-  //     throw Exception(e.toString());
-  //   }
-
-  //   if (result != null) {
-  //     File selectedFile = File(result.files.single.path!);
-
-  //     // Delete the previous database
-  //     String dbPath = await db.databasePath;
-
-  //     final currentDBContent = await File(dbPath).readAsBytes();
-
-  //     // Load the new database
-  //     await File(dbPath).writeAsBytes(await selectedFile.readAsBytes(), mode: FileMode.write);
-
-  //     try {
-  //       final dbVersion = int.parse((await AppDataService.instance.getAppDataItem(AppDataKey.dbVersion).first)!);
-
-  //       if (dbVersion < db.schemaVersion) {
-  //         await db.migrateDB(dbVersion, db.schemaVersion);
-  //       }
-
-  //       db.markTablesUpdated(db.allTables);
-  //     } catch (e) {
-  //       // Reset the DB as it was
-  //       await File(dbPath).writeAsBytes(currentDBContent, mode: FileMode.write);
-  //       db.markTablesUpdated(db.allTables);
-
-  //       debugPrint('Error\n: $e');
-
-  //       throw Exception('The database is invalid or could not be read');
-  //     }
-
-  //     return true;
-  //   }
-
-  //   return false;
-  // }
-
-  Future<void> writeDatabaseFile(List<int> fileContent) async {
+  Future<void> writeDatabase(List<int> fileContent) async {
     try {
       // sqflite - copy from assets (for optimizing performance, asset is copied only once)
       // should happen only first time the application is launched copy from asset
@@ -143,68 +104,6 @@ class BackupRestoreRepository {
       Exception('Error saving backup to device');
     }
   }
-
-  // bool openDatabaseCorruptedPopup(BuildContext context) {
-  //   if (isDatabaseCorrupted) {
-  //     openPopup(
-  //       context,
-  //       icon: appStateSettings["outlinedIcons"] ? Icons.heart_broken_outlined : Icons.heart_broken_rounded,
-  //       title: '"database-corrupted".tr()',
-  //       description: '"database-corrupted-description".tr()',
-  //       descriptionWidget: CodeBlock(text: databaseCorruptedError),
-  //       barrierDismissible: false,
-  //       onSubmit: () async {
-  //         popRoute(context);
-  //         await importDB(context, ignoreOverwriteWarning: true);
-  //       },
-  //       onSubmitLabel: '"import-backup".tr()',
-  //       onCancel: () async {
-  //         popRoute(context);
-  //         await openLoadingPopupTryCatch(() async {
-  //           await forceDeleteDB();
-  //           await sharedPreferences.clear();
-  //         });
-  //         restartAppPopup(context);
-  //       },
-  //       onCancelLabel: '"reset".tr()',
-  //     );
-  //     // Lock the side navigation
-  //     lockAppWaitForRestart = true;
-  //     appStateKey.currentState?.refreshAppState();
-  //     return true;
-  //   }
-  //   return false;
-  // }
-
-  // bool openBackupReminderPopupCheck(BuildContext context) {
-  //   if ((appStateSettings["currentUserEmail"] == null || appStateSettings["currentUserEmail"] == "") &&
-  //       ((appStateSettings["numLogins"] + 1) % 7 == 0) &&
-  //       appStateSettings["canShowBackupReminderPopup"] == true) {
-  //     openPopup(
-  //       context,
-  //       icon: MoreIcons.google_drive,
-  //       iconScale: 0.9,
-  //       title: "backup-your-data-reminder".tr(),
-  //       description: "backup-your-data-reminder-description".tr() + " " + "google-drive".tr(),
-  //       onSubmitLabel: "backup".tr().capitalizeFirst,
-  //       onSubmit: () async {
-  //         popRoute(context);
-  //         await signInAndSync(context, next: () {});
-  //       },
-  //       onCancelLabel: "never".tr().capitalizeFirst,
-  //       onCancel: () async {
-  //         popRoute(context);
-  //         await updateSettings("canShowBackupReminderPopup", false, updateGlobalState: false);
-  //       },
-  //       onExtraLabel: 'Later',
-  //       onExtra: () {
-  //         popRoute(context);
-  //       },
-  //     );
-  //     return true;
-  //   }
-  //   return false;
-  // }
 
   static List<List<dynamic>> processCsv(String csvData) {
     return const CsvToListConverter().convert(csvData, eol: '\n');
