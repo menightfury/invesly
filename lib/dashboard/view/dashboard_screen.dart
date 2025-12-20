@@ -11,15 +11,13 @@ import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
-import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
 import 'package:invesly/common/presentations/animations/shimmer.dart';
+import 'package:invesly/common/presentations/components/add_transaction_button.dart';
 import 'package:invesly/common/presentations/widgets/circle_avatar.dart';
-import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/dashboard/cubit/dashboard_cubit.dart';
-import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
@@ -119,54 +117,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
       // ~~~ Add transaction button ~~~
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: null,
-        onPressed: () => _handleNewTransactionPressed(context),
-        icon: const Icon(Icons.add_rounded),
-        extendedPadding: const EdgeInsetsDirectional.only(start: 16.0, end: 16.0),
-        extendedIconLabelSpacing: 0.0,
-        label: ScrollToHide(
-          scrollController: _scrollController,
-          hideAxis: Axis.horizontal,
-          child: const Padding(padding: EdgeInsets.only(left: 8.0), child: Text('New transaction')),
-        ),
-      ),
+      floatingActionButton: AddTransactionButton(scrollController: _scrollController),
     );
-  }
-
-  void _handleNewTransactionPressed(BuildContext context) async {
-    final accountsState = context.read<AccountsCubit>().state;
-
-    // Load accounts if not loaded
-    if (accountsState is AccountsInitialState) {
-      await context.read<AccountsCubit>().fetchAccounts();
-    }
-    if (!context.mounted) return;
-    if (accountsState is AccountsErrorState) {
-      // showErrorDialog(context);
-      return;
-    }
-    if (accountsState is AccountsLoadedState) {
-      if (accountsState.accounts.isEmpty) {
-        final confirmed = await showConfirmDialog(
-          context,
-          title: 'Oops!',
-          icon: const Icon(Icons.warning_amber_rounded),
-          content: const Text(
-            'You must have at least one no-archived account before you can start creating transactions',
-          ),
-          confirmText: 'Continue',
-        );
-
-        if (!context.mounted) return;
-        if (confirmed ?? false) {
-          context.push(const EditAccountScreen());
-        }
-        return;
-      }
-
-      context.push(const EditTransactionScreen());
-    }
   }
 }
 

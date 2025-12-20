@@ -3,15 +3,11 @@ import 'dart:math';
 
 import 'package:intl/intl.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
-import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
-import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
 import 'package:invesly/common/presentations/animations/shimmer.dart';
-import 'package:invesly/common/presentations/widgets/popups.dart';
+import 'package:invesly/common/presentations/components/add_transaction_button.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:invesly/transactions/transactions/filter_transactions_model.dart';
@@ -44,41 +40,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
     context.read<AccountsCubit>().fetchAccounts();
   }
 
-  void _handleNewTransactionPressed(BuildContext context) async {
-    final accountsState = context.read<AccountsCubit>().state;
-
-    // Load accounts if not loaded
-    if (accountsState is AccountsInitialState) {
-      await context.read<AccountsCubit>().fetchAccounts();
-    }
-    if (!context.mounted) return;
-    if (accountsState is AccountsErrorState) {
-      // showErrorDialog(context);
-      return;
-    }
-    if (accountsState is AccountsLoadedState) {
-      if (accountsState.accounts.isEmpty) {
-        final confirmed = await showConfirmDialog(
-          context,
-          title: 'Oops!',
-          icon: const Icon(Icons.warning_amber_rounded),
-          content: const Text(
-            'You must have at least one no-archived account before you can start creating transactions',
-          ),
-          confirmText: 'Continue',
-        );
-
-        if (!context.mounted) return;
-        if (confirmed ?? false) {
-          context.push(const EditAccountScreen());
-        }
-        return;
-      }
-
-      context.push(const EditTransactionScreen());
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,18 +59,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
         ),
       ),
       // ~~~ Add transaction button ~~~
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: null,
-        onPressed: () => _handleNewTransactionPressed(context),
-        icon: const Icon(Icons.add_rounded),
-        extendedPadding: const EdgeInsetsDirectional.only(start: 16.0, end: 16.0),
-        extendedIconLabelSpacing: 0.0,
-        label: ScrollToHide(
-          scrollController: _scrollController,
-          hideAxis: Axis.horizontal,
-          child: const Padding(padding: EdgeInsets.only(left: 8.0), child: Text('New transaction')),
-        ),
-      ),
+      floatingActionButton: AddTransactionButton(scrollController: _scrollController),
     );
   }
 }
@@ -124,10 +74,6 @@ class _PageContent extends StatefulWidget {
 }
 
 class __PageContentState extends State<_PageContent> with TickerProviderStateMixin {
-  //   void refreshState() {
-  //     setState(() {});
-  //   }
-
   late AnimationController _animationControllerSearch;
   //   final _debouncer = Debouncer(milliseconds: 500);
   late FilterTransactionsModel searchFilters;

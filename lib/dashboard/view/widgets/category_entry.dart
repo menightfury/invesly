@@ -68,101 +68,99 @@ class CategoryEntry extends StatelessWidget {
                 ),
                 Container(width: 15),
                 Expanded(
-                  child: Container(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(child: Text(genre.name)),
-                            SizedBox(width: 10),
-                            categorySpent == 0
-                                ? SizedBox.shrink()
-                                : Transform.translate(
-                                    offset: Offset(3, 0),
-                                    child: Transform.rotate(
-                                      angle: categorySpent >= 0 ? pi : 0,
-                                      child: Icon(
-                                        Icons.arrow_drop_down_rounded,
-                                        // color: showIncomeExpenseIcons
-                                        //     ? categorySpent > 0
-                                        //           ? getColor(context, "incomeAmount")
-                                        //           : getColor(context, "expenseAmount")
-                                        //     : getColor(context, "black"),
-                                      ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(child: Text(genre.name)),
+                          SizedBox(width: 10),
+                          categorySpent == 0
+                              ? SizedBox.shrink()
+                              : Transform.translate(
+                                  offset: Offset(3, 0),
+                                  child: Transform.rotate(
+                                    angle: categorySpent >= 0 ? pi : 0,
+                                    child: Icon(
+                                      Icons.arrow_drop_down_rounded,
+                                      // color: showIncomeExpenseIcons
+                                      //     ? categorySpent > 0
+                                      //           ? getColor(context, "incomeAmount")
+                                      //           : getColor(context, "expenseAmount")
+                                      //     : getColor(context, "black"),
                                     ),
                                   ),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  amountSpent.toString(),
-                                  // fontWeight: FontWeight.bold,
-                                  // fontSize: 20,
-                                  // textColor: isOverspent
-                                  //     ? overSpentColor ?? getColor(context, "expenseAmount")
-                                  //     : showIncomeExpenseIcons && categorySpent != 0
-                                  //     ? categorySpent > 0
-                                  //           ? getColor(context, "incomeAmount")
-                                  //           : getColor(context, "expenseAmount")
-                                  //     : getColor(context, "black"),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 1),
-                        Row(
-                          children: [
-                            Expanded(
-                              child:
-                                  // categoryBudgetLimit != null ?
-                                  Padding(
-                                    padding: const EdgeInsetsDirectional.only(top: 3, end: 13, bottom: 3),
-                                    child: ThinProgress(
-                                      backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                                      color: Theme.of(context).colorScheme.primary,
-                                      progress: percentSpent,
-                                      dotProgress: todayPercent == null ? null : (todayPercent ?? 0) / 100,
-                                    ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                amountSpent.toString(),
+                                // fontWeight: FontWeight.bold,
+                                // fontSize: 20,
+                                // textColor: isOverspent
+                                //     ? overSpentColor ?? getColor(context, "expenseAmount")
+                                //     : showIncomeExpenseIcons && categorySpent != 0
+                                //     ? categorySpent > 0
+                                //           ? getColor(context, "incomeAmount")
+                                //           : getColor(context, "expenseAmount")
+                                //     : getColor(context, "black"),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 1),
+                      Row(
+                        children: [
+                          Expanded(
+                            child:
+                                // categoryBudgetLimit != null ?
+                                Padding(
+                                  padding: const EdgeInsetsDirectional.only(top: 3, end: 13, bottom: 3),
+                                  child: ThinProgress(
+                                    backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                                    color: Theme.of(context).colorScheme.primary,
+                                    progress: percentSpent,
+                                    dotProgress: todayPercent == null ? null : (todayPercent ?? 0) / 100,
                                   ),
-                              // : Builder(
-                              //     builder: (context) {
-                              //       String percentString = convertToPercent(
-                              //         percentSpent * 100,
-                              //         useLessThanZero: true,
-                              //       );
-                              //       String text =
-                              //           percentString +
-                              //           (isSubcategory
-                              //               ? "of-category".toLowerCase()
-                              //               : getPercentageAfterText == null
-                              //               ? ""
-                              //               : getPercentageAfterText!(categorySpent));
+                                ),
+                            // : Builder(
+                            //     builder: (context) {
+                            //       String percentString = convertToPercent(
+                            //         percentSpent * 100,
+                            //         useLessThanZero: true,
+                            //       );
+                            //       String text =
+                            //           percentString +
+                            //           (isSubcategory
+                            //               ? "of-category".toLowerCase()
+                            //               : getPercentageAfterText == null
+                            //               ? ""
+                            //               : getPercentageAfterText!(categorySpent));
 
-                              //       return Text(
-                              //         text,
-                              //         // fontSize: 14,
-                              //         // textColor: selected
-                              //         //     ? getColor(context, "black").withOpacity(0.4)
-                              //         //     : getColor(context, "textLight"),
-                              //       );
-                              //     },
-                              //   ),
-                            ),
-                            Text(
-                              max(transactionCount, 0).toString() +
-                                  (transactionCount == 1 ? "transaction" : "transactions"),
-                              // fontSize: 14,
-                              // textColor: selected
-                              //     ? getColor(context, "black").withOpacity(0.4)
-                              //     : getColor(context, "textLight"),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                            //       return Text(
+                            //         text,
+                            //         // fontSize: 14,
+                            //         // textColor: selected
+                            //         //     ? getColor(context, "black").withOpacity(0.4)
+                            //         //     : getColor(context, "textLight"),
+                            //       );
+                            //     },
+                            //   ),
+                          ),
+                          Text(
+                            max(transactionCount, 0).toString() +
+                                (transactionCount == 1 ? "transaction" : "transactions"),
+                            // fontSize: 14,
+                            // textColor: selected
+                            //     ? getColor(context, "black").withOpacity(0.4)
+                            //     : getColor(context, "textLight"),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -213,15 +211,15 @@ class CategoryEntry extends StatelessWidget {
 }
 
 class CategoryIconPercent extends StatelessWidget {
-  CategoryIconPercent({
-    Key? key,
+  const CategoryIconPercent({
+    super.key,
     required this.genre,
     this.size = 30,
     required this.percent,
     this.insetPadding = 23,
     required this.progressBackgroundColor,
     required this.percentageOffset,
-  }) : super(key: key);
+  });
 
   final AmcGenre genre;
   final double size;
@@ -244,7 +242,7 @@ class CategoryIconPercent extends StatelessWidget {
         //       width: size - 3,
         //     ),
         //     opacity: 0.8,
-        //     color: HexColor(category.colour),
+        //     color: HexColor(category.color),
         //     offset: Offset(0, 0),
         //     sigma: 1,
         //   ),
@@ -267,7 +265,7 @@ class CategoryIconPercent extends StatelessWidget {
 
         AnimatedSwitcher(
           duration: Duration(milliseconds: 300),
-          child: Container(
+          child: SizedBox(
             key: ValueKey(progressBackgroundColor.toString()),
             height: size + insetPadding,
             width: size + insetPadding,
@@ -290,7 +288,13 @@ class ThinProgress extends StatelessWidget {
   final double progress;
   final double? dotProgress;
 
-  const ThinProgress({required this.color, required this.backgroundColor, required this.progress, this.dotProgress});
+  const ThinProgress({
+    required this.color,
+    required this.backgroundColor,
+    required this.progress,
+    this.dotProgress,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
