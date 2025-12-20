@@ -7,7 +7,7 @@ import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/database/backup/backup_service.dart';
+import 'package:invesly/database/backup/backup_repository.dart';
 import 'package:invesly/intro/splash_page.dart';
 
 class DriveImportBackupPage extends StatelessWidget {
@@ -203,19 +203,19 @@ class _DriveImportBackupPageState extends State<_DriveImportBackupPage> {
 
   Future<void> _onRestorePressed(BuildContext context, drive.File file) async {
     widget.onComplete?.call(true);
-    // final authRepository = context.read<AuthRepository>();
-    final authRepository = AuthRepository.instance;
-    final backupRepository = context.read<BackupRestoreRepository>();
 
     try {
       await showLoadingDialog<void>(context, () async {
         // // Delete drive files -- Testing only
         // await authRepository.deleteBackups(accessToken);
-        final fileContent = await authRepository.getDriveFileContent(accessToken: _accessToken!, fileId: file.id!);
+        final fileContent = await AuthRepository.instance.getDriveFileContent(
+          accessToken: _accessToken!,
+          fileId: file.id!,
+        );
         if (fileContent == null || fileContent.isEmpty) {
           throw Exception('Error reading backup file from Google Drive.');
         }
-        await backupRepository.writeDatabase(fileContent);
+        await BackupRepository.instance.writeDatabase(fileContent);
       }); // TODO: implement loadingMessage: 'Restoring backup...'
       if (!context.mounted) {
         return;

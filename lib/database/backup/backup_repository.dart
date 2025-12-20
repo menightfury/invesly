@@ -5,10 +5,20 @@ import 'package:csv/csv.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
-class BackupRestoreRepository {
-  BackupRestoreRepository(InveslyApi api) : _api = api;
+class BackupRepository {
+  // singleton api instance
+  static BackupRepository? _instance;
+  static BackupRepository get instance {
+    assert(_instance != null, 'Please make sure to initialize before getting repository');
+    return _instance!;
+  }
+
+  factory BackupRepository.initialize(InveslyApi api) {
+    _instance ??= BackupRepository._(api);
+    return _instance!;
+  }
+  const BackupRepository._(this._api);
 
   final InveslyApi _api;
 
@@ -28,6 +38,23 @@ class BackupRestoreRepository {
 
   File get databaseFile => File(_api.dbPath);
 
+  // ~ Export related methods
+  // Select a directory for exporting database or csv
+  Future<String?> selectDirectory() async {
+    try {
+      // final dir = await _getDownloadsDirectory();
+      final path = await FilePicker.platform.getDirectoryPath();
+      if (path == null || path.isEmpty) {
+        return null;
+      }
+
+      return path;
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  // Export database
   Future<File?> exportDatabase() async {
     // final dir = await _getDownloadsDirectory();
     String? path = await FilePicker.platform.getDirectoryPath();
@@ -55,31 +82,68 @@ class BackupRestoreRepository {
     return await databaseFile.copy(destFile.path);
   }
 
-  Future<List<int>?> getFileContent() async {
-    FilePickerResult? result;
-
+  // Export CSV
+  Future<File?> exportCsv(String csvData, String directoryPath) async {
+    final file = File(p.join(directoryPath, 'transactions-${DateTime.now().millisecondsSinceEpoch}.csv'));
     try {
-      result = await FilePicker.platform.pickFiles(
-        type: Platform.isWindows ? FileType.custom : FileType.any,
-        allowedExtensions: ['db', 'sqlite3'],
-        allowMultiple: false,
-      );
-    } catch (e) {
-      throw Exception(e.toString());
-    }
-
-    if (result != null) {
-      File selectedFile = File(result.files.single.path!);
-
-      try {
-        final currentDBContent = await selectedFile.readAsBytes();
-        return currentDBContent;
-      } catch (e) {
-        throw Exception('The database is invalid or could not be read');
-      }
+      return await file.writeAsString(csvData, flush: true);
+    } catch (err) {
+      throw Exception(err.toString());
     }
   }
 
+  // ~ Import related methods
+  // Select a database file for importing
+  Future<File?> selectDbFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['db', 'sqlite3'],
+        allowMultiple: false,
+      );
+      if (result == null) return null;
+
+      return File(result.files.single.path!);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  // Select a CSV file for importing
+  Future<File?> selectCsvFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: Platform.isWindows ? FileType.custom : FileType.any,
+        allowedExtensions: ['csv'],
+        allowMultiple: false,
+      );
+      if (result == null) return null;
+
+      return File(result.files.single.path!);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  // Read file content as bytes
+  Future<List<int>> getFileContentAsBytes(File file) async {
+    try {
+      return await file.readAsBytes();
+    } catch (e) {
+      throw Exception('The file is invalid or could not be read');
+    }
+  }
+
+  // Read file content as String
+  Future<String> getFileContentAsString(File file) async {
+    try {
+      return await file.readAsString();
+    } catch (e) {
+      throw Exception('The file is invalid or could not be read');
+    }
+  }
+
+  // (Over) Write database file
   Future<void> writeDatabase(List<int> fileContent) async {
     try {
       // sqflite - copy from assets (for optimizing performance, asset is copied only once)
@@ -95,35 +159,12 @@ class BackupRestoreRepository {
 
       // write and flush the bytes written
       await File(_api.dbPath).writeAsBytes(fileContent, flush: true);
-      // }
-      // else {
-      //   $logger.d('Database exists. No need to overwrite.');
-      // }
     } catch (e) {
-      $logger.e('Error saving backup to device: $e');
-      Exception('Error saving backup to device');
+      throw Exception('Error saving backup to device');
     }
   }
 
   static List<List<dynamic>> processCsv(String csvData) {
     return const CsvToListConverter().convert(csvData, eol: '\n');
-  }
-
-  static Future<File?> exportCsv(String csvData) async {
-    // final dir = await _getDownloadsDirectory();
-    String? path = await FilePicker.platform.getDirectoryPath();
-    if (path == null || path.isEmpty) {
-      return null;
-    }
-    final fileName = 'transactions-${DateTime.now().millisecondsSinceEpoch}.csv';
-    // final file = File(p.join(dir.path, fileName));
-    final file = File(p.join(path, fileName));
-
-    try {
-      return await file.writeAsString(csvData, flush: true);
-    } catch (err) {
-      $logger.e(err);
-      return null;
-    }
   }
 }

@@ -7,7 +7,7 @@ import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/database/backup/backup_service.dart';
+import 'package:invesly/database/backup/backup_repository.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
@@ -40,7 +40,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
     try {
       final csvString = await File(result.files.first.path!).readAsString();
-      final parsedCSV = BackupRestoreRepository.processCsv(csvString);
+      final parsedCSV = BackupRepository.processCsv(csvString);
 
       final firstRowLength = parsedCSV.first.length;
 

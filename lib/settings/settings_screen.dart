@@ -2,7 +2,9 @@
 
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
+import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/database/import_backup_page.dart';
+import 'package:invesly/intro/splash_page.dart';
 import 'package:path/path.dart';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
@@ -19,7 +21,7 @@ import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/database/backup/backup_service.dart';
+import 'package:invesly/database/backup/backup_repository.dart';
 import 'package:invesly/settings/import_transactions/import_transactions_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
@@ -312,40 +314,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onTap: () => context.push(const ImportTransactionsScreen()),
                     ),
 
-                    // ~ Export to CSV file ~
+                    // ~ Export as CSV file ~
                     SectionTile(
                       title: const Text('Export transactions'),
                       icon: const Icon(Icons.backup_outlined),
-                      subtitle: const Text('Export transactions locally to .csv file.'),
-                      onTap: () async {
-                        late final SnackBar snackBar;
-                        try {
-                          final csvData = await context.read<TransactionRepository>().transactionsToCsv();
-                          final file = await BackupRestoreRepository.exportCsv(csvData);
-                          if (file != null) {
-                            final fileName = basename(file.path);
-                            snackBar = SnackBar(
-                              content: Text('$fileName saved successfully to ${file.parent.path}'),
-                              backgroundColor: Colors.teal,
-                            );
-                          } else {
-                            snackBar = const SnackBar(
-                              content: Text('Error in saving file'),
-                              backgroundColor: Colors.deepOrange,
-                            );
-                          }
-                        } catch (err) {
-                          $logger.e(err);
-                          snackBar = const SnackBar(
-                            content: Text('Error in saving file'),
-                            backgroundColor: Colors.deepOrange,
-                          );
-                        }
-
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                        }
-                      },
+                      subtitle: const Text('Export transactions locally as .csv file.'),
+                      onTap: () => _onExportAsCsvPressed(context),
                     ),
 
                     // ~ Backup database locally ~
@@ -353,38 +327,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: Text('Backup locally'),
                       icon: const Icon(Icons.import_export_rounded),
                       subtitle: Text('This will create a new backup file in local storage.'),
-                      onTap: () async {
-                        late final SnackBar snackBar;
-                        try {
-                          // String? path = await FilePicker.platform.getDirectoryPath();
-                          // if (path == null || path.isEmpty || !context.mounted) {
-                          //   return;
-                          // }
-
-                          final file = await context.read<BackupRestoreRepository>().exportDatabase();
-                          if (file != null) {
-                            snackBar = SnackBar(
-                              content: Text('File saved successfully, ${file.path}'),
-                              backgroundColor: Colors.teal,
-                            );
-                          } else {
-                            snackBar = SnackBar(
-                              content: Text('Error in saving file'),
-                              backgroundColor: Colors.deepOrange,
-                            );
-                          }
-                        } catch (err) {
-                          $logger.e(err);
-                          snackBar = SnackBar(
-                            content: Text('Error in saving file'),
-                            backgroundColor: Colors.deepOrange,
-                          );
-                        }
-
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                        }
-                      },
+                      onTap: () => _onBackupDatabasePressed(context),
                     ),
 
                     // ~ Restore database from local storage ~
@@ -394,7 +337,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: const Text(
                         'Restore your data from a previously saved backup. This action will overwrite your current data.',
                       ),
-                      onTap: () async {},
+                      onTap: () => _onRestoreFromDatabasePressed(context),
                     ),
 
                     // ~ Backup database to Google drive ~
@@ -497,7 +440,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         $logger.w('Google sign-in failed');
         return;
       }
-      final file = context.read<BackupRestoreRepository>().databaseFile;
+      final file = BackupRepository.instance.databaseFile;
       // await context.read<AuthRepository>().saveFileInDrive(accessToken: accessToken, file: file);
       await AuthRepository.instance.saveFileInDrive(accessToken: accessToken, file: file);
       $logger.i('Backup created successfully');
@@ -521,6 +464,85 @@ class _SettingsScreenState extends State<SettingsScreen> {
       DriveImportBackupPage.showModal(context);
     } catch (err) {
       $logger.e(err);
+    }
+  }
+
+  Future<void> _onExportAsCsvPressed(BuildContext context) async {
+    late final SnackBar snackBar;
+    try {
+      final csvData = await context.read<TransactionRepository>().transactionsToCsv();
+      final file = await BackupRepository.instance.exportCsv(
+        csvData,
+        '/path/to/local/storage',
+      ); // TODO: get path to storage
+      if (file != null) {
+        final fileName = basename(file.path);
+        snackBar = SnackBar(
+          content: Text('$fileName saved successfully to ${file.parent.path}'),
+          backgroundColor: Colors.teal,
+        );
+      } else {
+        snackBar = const SnackBar(content: Text('Error in saving file'), backgroundColor: Colors.deepOrange);
+      }
+    } catch (err) {
+      $logger.e(err);
+      snackBar = const SnackBar(content: Text('Error in saving file'), backgroundColor: Colors.deepOrange);
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
+  Future<void> _onBackupDatabasePressed(BuildContext context) async {
+    late final SnackBar snackBar;
+    try {
+      // String? path = await FilePicker.platform.getDirectoryPath();
+      // if (path == null || path.isEmpty || !context.mounted) {
+      //   return;
+      // }
+
+      final file = await BackupRepository.instance.exportDatabase();
+      if (file != null) {
+        snackBar = SnackBar(content: Text('File saved successfully, ${file.path}'), backgroundColor: Colors.teal);
+      } else {
+        snackBar = SnackBar(content: Text('Error in saving file'), backgroundColor: Colors.deepOrange);
+      }
+    } catch (err) {
+      $logger.e(err);
+      snackBar = SnackBar(content: Text('Error in saving file'), backgroundColor: Colors.deepOrange);
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
+  Future<void> _onRestoreFromDatabasePressed(BuildContext context) async {
+    final backupRepo = BackupRepository.instance;
+    try {
+      final sourceFile = await backupRepo.selectDbFile();
+      if (sourceFile == null || !context.mounted) {
+        // TODO: Show error message - No file is selected
+        return;
+      }
+
+      await showLoadingDialog<void>(context, () async {
+        final fileContent = await backupRepo.getFileContentAsBytes(sourceFile);
+        if (fileContent.isEmpty) {
+          // TODO: Show error message - File is empty
+          return;
+        }
+
+        await backupRepo.writeDatabase(fileContent);
+      }); // TODO: implement loadingMessage: 'Restoring backup...'
+      if (!context.mounted) {
+        return;
+      }
+      await context.go(SplashPage());
+    } catch (err) {
+      // TODO: Show error message - General
+      // await showAlertDialog(context, title: 'Error', content: '$err');
     }
   }
 }

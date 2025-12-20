@@ -3,7 +3,7 @@ import 'package:path_provider/path_provider.dart';
 // import 'connectivity/cubit/internet_cubit.dart';
 
 import 'package:invesly/authentication/auth_repository.dart';
-import 'package:invesly/database/backup/backup_service.dart';
+import 'package:invesly/database/backup/backup_repository.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/intro/splash_page.dart';
 
@@ -34,15 +34,13 @@ class InveslyApp extends StatelessWidget {
     final api = Bootstrap.instance.api;
     // initialize all repositories here
     AuthRepository.initialize();
+    BackupRepository.initialize(api);
     final accountRepository = AccountRepository(api);
     AmcRepository.initialize(api);
 
     return MultiRepositoryProvider(
       providers: [
-        // RepositoryProvider<AuthRepository>(create: (_) => AuthRepository()),
-        RepositoryProvider<BackupRestoreRepository>(create: (_) => BackupRestoreRepository(api)),
         RepositoryProvider<AccountRepository>.value(value: accountRepository),
-        // RepositoryProvider(create: (_) => AmcRepository(api)),
         RepositoryProvider(create: (_) => TransactionRepository(api)),
       ],
       child: MultiBlocProvider(
