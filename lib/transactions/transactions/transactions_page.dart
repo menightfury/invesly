@@ -430,7 +430,7 @@ class HighlightStringInList extends TextEditingController {
   final Pattern pattern;
 
   HighlightStringInList({String? initialText}) : pattern = RegExp(r'\b[^,]+(?=|$)') {
-    this.text = initialText ?? '';
+    text = initialText ?? '';
   }
 
   @override
