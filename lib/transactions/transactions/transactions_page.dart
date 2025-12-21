@@ -443,10 +443,7 @@ class HighlightStringInList extends TextEditingController {
         children.add(
           TextSpan(
             text: match[0] ?? "",
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-            ),
+            style: TextStyle(color: context.colors.onPrimary, backgroundColor: context.colors.primary.withAlpha(256)),
           ),
         );
         return match[0] ?? "";

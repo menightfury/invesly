@@ -2,8 +2,10 @@
 
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart';
+import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
 
 import 'package:invesly/authentication/auth_repository.dart';
+import 'package:invesly/authentication/auth_ui_functions.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
@@ -183,17 +185,21 @@ class _DriveImportBackupPageState extends State<_DriveImportBackupPage> {
 
   Future<List<drive.File>?> _getDriveFiles(BuildContext context) async {
     try {
-      // if (_accessToken == null) {
-      //   final user = await startLoginFlow(context, true);
-      //   _accessToken = user.gapiAccessToken;
-      // }
       if (_accessToken == null) {
-        throw Exception('Error getting AccessToken.');
+        final user = await startLoginFlow(context);
+        _accessToken = user.gapiAccessToken;
+        if (_accessToken == null || !context.mounted) {
+          throw Exception('Google sign-in failed');
+        }
       }
       return await AuthRepository.instance.getDriveFiles(_accessToken!);
     } catch (err) {
       $logger.e(err);
-      throw Exception('Error getting drive files: $err');
+      if (err is gapis.AccessDeniedException && context.mounted) {
+        await startLoginFlow(context, true);
+      }
+      if (!context.mounted) return null;
+      return await _getDriveFiles(context);
     }
   }
 

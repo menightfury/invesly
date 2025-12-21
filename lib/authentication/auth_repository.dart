@@ -194,8 +194,8 @@ class AuthRepository {
       // } else {
       //   // openSnackbar(SnackbarMessage(title: e.toString(), icon: Icons.error_rounded));
       // }
+      rethrow;
     }
-    return null;
   }
 
   Future<List<int>?> getDriveFileContent({required gapis.AccessToken accessToken, required String fileId}) async {
@@ -211,7 +211,7 @@ class AuthRepository {
       await for (var data in media.stream) {
         dataStore.insertAll(dataStore.length, data);
       }
-      
+
       return dataStore;
     } catch (err) {
       $logger.e(err);
@@ -380,30 +380,8 @@ class AuthRepository {
   //   }
   // }
 
-  Future<void> saveFileInDrive({
-    required gapis.AccessToken accessToken,
-    required File file,
-    // bool? silentBackup,
-    // bool deleteOldBackups = false,
-    // String? clientIDForSync,
-  }) async {
-    // try {
-    //   if (silentBackup == false || silentBackup == null) {
-    //     loadingIndeterminateKey.currentState?.setVisibility(true);
-    //   }
-    //   await backupSettings();
-    // } catch (e) {
-    //   if (silentBackup == false || silentBackup == null) {
-    //     maybePopRoute(context);
-    //   }
-    //   openSnackbar(SnackbarMessage(title: e.toString(), icon: Icons.error_rounded));
-    // }
-
+  Future<void> saveFileInDrive({required gapis.AccessToken accessToken, required File file}) async {
     try {
-      // if (deleteOldBackups) await deleteRecentBackups(context, appStateSettings["backupLimit"], silentDelete: true);
-
-      // final currentDBFileInfo = await getCurrentDBFileInfo();
-
       final driveApi = _driveApi ?? await getDriveApi(accessToken);
       $logger.i('File Size ${(file.lengthSync() / 1e+6).toString()}');
       final dbFileBytes = await file.readAsBytes();
@@ -415,23 +393,7 @@ class AuthRepository {
         modifiedTime: dateTime,
         parents: ['appDataFolder'],
       );
-
-      // if (clientIDForSync != null)
-      // driveFile.name = getCurrentDeviceSyncBackupFileName(clientIDForSync: clientIDForSync);
-
       await driveApi.files.create(driveFile, uploadMedia: media);
-
-      // if (clientIDForSync == null)
-      //   // openSnackbar(
-      //   //   SnackbarMessage(title: '"backup-created".tr()', description: driveFile.name, icon: Icons.backup_rounded),
-      //   // );
-      //   if (clientIDForSync == null)
-      //     await updateSettings(
-      //       "lastBackup",
-      //       DateTime.now().toString(),
-      //       pagesNeedingRefresh: [],
-      //       updateGlobalState: false,
-      //     );
     } catch (e) {
       if (e is DetailedApiRequestError && e.status == 401) {
         $logger.e('Unauthorized error while creating backup: $e');
@@ -441,6 +403,7 @@ class AuthRepository {
         // await refreshGoogleSignIn();
       } else {
         $logger.e(e);
+        rethrow;
         // openSnackbar(
         //   SnackbarMessage(title: e.toString(), icon: Icons.error_rounded),
         // );

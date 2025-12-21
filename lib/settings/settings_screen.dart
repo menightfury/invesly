@@ -432,13 +432,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     try {
       if (accessToken == null) {
-        final user = await startLoginFlow(context);
-        // if (accessToken_ == null) return;
+        final user = await startLoginFlow(context, true);
         accessToken = user.gapiAccessToken;
-      }
-      if (accessToken == null || !context.mounted) {
-        $logger.w('Google sign-in failed');
-        return;
+        if (accessToken == null || !context.mounted) {
+          $logger.w('Google sign-in failed'); //TODO: Show error message
+          return;
+        }
       }
       final file = BackupRepository.instance.databaseFile;
       // await context.read<AuthRepository>().saveFileInDrive(accessToken: accessToken, file: file);
@@ -446,6 +445,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       $logger.i('Backup created successfully');
     } catch (err) {
       $logger.e(err);
+      if (err is gapis.AccessDeniedException && context.mounted) {
+        await startLoginFlow(context, true);
+      }
     }
   }
 
@@ -456,15 +458,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (accessToken == null) {
         final user = await startLoginFlow(context);
         accessToken = user.gapiAccessToken;
+        if (accessToken == null || !context.mounted) {
+          $logger.e('Google sign-in failed');
+          return;
+        }
       }
-      if (accessToken == null || !context.mounted) {
-        $logger.w('Google sign-in failed');
-        return;
-      }
-      DriveImportBackupPage.showModal(context);
     } catch (err) {
       $logger.e(err);
     }
+    if (!context.mounted) return;
+    DriveImportBackupPage.showModal(context);
   }
 
   Future<void> _onExportAsCsvPressed(BuildContext context) async {

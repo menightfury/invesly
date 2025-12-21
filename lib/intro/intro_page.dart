@@ -7,9 +7,9 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/import_backup_page.dart';
 import 'package:invesly/dashboard/view/dashboard_screen.dart';
 
-const _kPaddingTop = 56.0;
+const _kPaddingTop = 48.0;
 const _kImageSize = 156.0;
-const _kSpaceFromHeaderToImage = 64.0;
+const _kSpaceFromHeaderToImage = 56.0;
 
 class IntroPage extends StatefulWidget {
   const IntroPage({super.key});
@@ -160,7 +160,7 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
 
             // ~ Image
             Padding(
-              padding: const EdgeInsets.only(top: _kPaddingTop + _kSpaceFromHeaderToImage + 30.0),
+              padding: const EdgeInsets.only(top: _kPaddingTop + _kSpaceFromHeaderToImage + 24.0),
               child: SlideTransition(
                 position: _offsetAnimation,
                 child: Stack(
