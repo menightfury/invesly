@@ -11,8 +11,10 @@ class _RecentTransactions extends StatelessWidget {
     return BlocBuilder<TransactionsCubit, TransactionsState>(
       builder: (context, state) {
         late final List<Widget> tiles;
-        if (state.isLoaded) {
-          final rts = state.transactions;
+        if (state.isError || state.transactions == null) {
+          tiles = [SectionTile(title: Text(state.errorMsg ?? 'Some error has been occurred! Please try again later.'))];
+        } else if (state.isLoaded) {
+          final rts = state.transactions!;
           if (rts.isEmpty) {
             tiles = [
               SectionTile(
@@ -61,7 +63,7 @@ class _RecentTransactions extends StatelessWidget {
               icon: const Icon(Icons.swap_vert_rounded),
               tiles: tiles,
             ),
-            if (state.isLoaded && state.transactions.isNotEmpty)
+            if (state.isLoaded && state.transactions!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: FilledButton.tonalIcon(

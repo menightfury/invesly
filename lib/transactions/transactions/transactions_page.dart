@@ -26,14 +26,6 @@ class TransactionsPage extends StatefulWidget {
 }
 
 class _TransactionsPageState extends State<TransactionsPage> {
-  final ScrollController _scrollController = ScrollController();
-  //   _scrollListener(position) {
-  //     double percent = position / (MediaQuery.paddingOf(context).top + 65 + 50);
-  //     if (percent >= 0 && percent <= 1) {
-  //       _animationControllerSearch.value = 1 - percent;
-  //     }
-  //   }
-
   @override
   void initState() {
     super.initState();
@@ -42,24 +34,14 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // scrollToTopButton: true,
-      // scrollToBottomButton: true,
-      // dragDownToDismiss: true,
-      // onScroll: _scrollListener,
-      body: SafeArea(
-        child: BlocProvider(
-          create: (context) {
-            return TransactionsCubit(
-              repository: context.read<TransactionRepository>(),
-              initialFilters: widget.initialFilters,
-            );
-          },
-          child: _PageContent(),
-        ),
-      ),
-      // ~~~ Add transaction button ~~~
-      floatingActionButton: AddTransactionButton(scrollController: _scrollController),
+    return BlocProvider(
+      create: (context) {
+        return TransactionsCubit(
+          repository: context.read<TransactionRepository>(),
+          initialFilters: widget.initialFilters,
+        );
+      },
+      child: _PageContent(),
     );
   }
 }
@@ -74,6 +56,13 @@ class _PageContent extends StatefulWidget {
 }
 
 class __PageContentState extends State<_PageContent> with TickerProviderStateMixin {
+  final ScrollController _scrollController = ScrollController();
+  //   _scrollListener(position) {
+  //     double percent = position / (MediaQuery.paddingOf(context).top + 65 + 50);
+  //     if (percent >= 0 && percent <= 1) {
+  //       _animationControllerSearch.value = 1 - percent;
+  //     }
+  //   }
   late AnimationController _animationControllerSearch;
   //   final _debouncer = Debouncer(milliseconds: 500);
   late FilterTransactionsModel searchFilters;
@@ -150,130 +139,168 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: <Widget>[
-        SliverAppBar(
-          title: const Text('All transactions'),
-          actions: <Widget>[
-            AnimatedSwitcher(
-              duration: Duration(milliseconds: 500),
-              child: IconButton(
-                key: ValueKey(searchFilters.isClear(ignoreDateTimeRange: true)),
-                color: searchFilters.isClear(ignoreDateTimeRange: true) ? null : context.colors.tertiaryContainer,
-                onPressed: () => selectFilters(context),
-                icon: Icon(
-                  Icons.filter_alt_rounded,
-                  color: searchFilters.isClear(ignoreDateTimeRange: true) ? null : context.colors.onTertiaryContainer,
+    return Scaffold(
+      // scrollToTopButton: true,
+      // scrollToBottomButton: true,
+      // dragDownToDismiss: true,
+      // onScroll: _scrollListener,
+      body: SafeArea(
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: <Widget>[
+            SliverAppBar(
+              title: const Text('All transactions'),
+              actions: <Widget>[
+                AnimatedSwitcher(
+                  duration: Duration(milliseconds: 500),
+                  child: IconButton(
+                    key: ValueKey(searchFilters.isClear(ignoreDateTimeRange: true)),
+                    color: searchFilters.isClear(ignoreDateTimeRange: true) ? null : context.colors.tertiaryContainer,
+                    onPressed: () => selectFilters(context),
+                    icon: Icon(
+                      Icons.filter_alt_rounded,
+                      color: searchFilters.isClear(ignoreDateTimeRange: true)
+                          ? null
+                          : context.colors.onTertiaryContainer,
+                    ),
+                  ),
                 ),
-              ),
+              ],
+            ),
+
+            SliverList(
+              delegate: SliverChildListDelegate.fixed([
+                // ~ Applied Filter Chips
+                Padding(
+                  padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),
+                  child: BlocBuilder<TransactionsCubit, TransactionsState>(
+                    builder: (context, state) {
+                      return AppliedFilterChips(
+                        searchFilter: searchFilters,
+                        // openFiltersSelection: () => selectFilters(context),
+                        // clearSearchFilters: clearSearchFilters,
+                      );
+                    },
+                  ),
+                ),
+
+                // ~ Results
+                BlocBuilder<TransactionsCubit, TransactionsState>(
+                  builder: (context, state) {
+                    if (state.isError) {
+                      return Center(
+                        child: Text(state.errorMsg ?? 'Some error has been occurred! Please refresh again.'),
+                      );
+                    }
+
+                    // Grouping transactions by month
+                    final groupTransactions = state.transactions?.groupListsBy<DateTime>(
+                      (rt) => DateTime(rt.investedOn.year, rt.investedOn.month),
+                    );
+                    $logger.d(groupTransactions);
+
+                    // if (rts.isEmpty) {
+                    //   groupedTiles = [
+                    //     SectionTile(
+                    //       title: Center(child: Text('Oops! This is so empty', style: context.textTheme.titleLarge)),
+                    //       subtitle: Center(
+                    //         child: Text(
+                    //           'No transactions have been found for this month.\nAdd a few transactions.',
+                    //           textAlign: TextAlign.center,
+                    //           style: context.textTheme.bodySmall,
+                    //         ),
+                    //       ),
+                    //       contentSpacing: 12.0,
+                    //     ),
+                    //   ];
+                    // }
+
+                    return Column(
+                      children: <Widget>[
+                        ...List.generate(groupTransactions?.length ?? 2, (index) {
+                          // dummy quantity for shimmer effect
+                          final gtEntry = groupTransactions?.entries.elementAt(index);
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                                child: gtEntry != null ? Text(gtEntry.key.toReadable()) : Skeleton(),
+                              ),
+                              Section(
+                                tiles: List.generate(gtEntry?.value.length ?? 4, (i) {
+                                  // dummy quantity for shimmer effect
+                                  final trn = gtEntry?.value.elementAt(i);
+                                  return SectionTile(
+                                    icon: trn != null
+                                        ? CircleAvatar(
+                                            backgroundColor: trn.transactionType.color(context).withAlpha(30),
+                                            child: Icon(
+                                              trn.transactionType.icon,
+                                              color: trn.transactionType.color(context),
+                                            ),
+                                          )
+                                        : Skeleton(height: 24.0, width: 24.0, shape: CircleBorder()),
+                                    title: trn != null
+                                        ? Text(trn.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium)
+                                        : Skeleton(height: 24.0),
+                                    subtitle: trn != null ? Text(trn.investedOn.toReadable()) : Skeleton(height: 12.0),
+                                    trailingIcon: trn != null
+                                        ? BlocSelector<AppCubit, AppState, bool>(
+                                            selector: (state) => state.isPrivateMode,
+                                            builder: (context, isPrivateMode) {
+                                              return CurrencyView(
+                                                amount: trn.totalAmount,
+                                                integerStyle: context.textTheme.headlineSmall?.copyWith(
+                                                  color: trn.transactionType.color(context),
+                                                ),
+                                                privateMode: isPrivateMode,
+                                              );
+                                            },
+                                          )
+                                        : Skeleton(height: 24.0),
+                                    onTap: () {},
+                                  );
+                                }),
+                              ),
+                            ],
+                          );
+                        }),
+                        Tappable(
+                          onTap: () => selectDateRange(context),
+                          color: Colors.transparent,
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.only(start: 10, end: 10, top: 10, bottom: 8),
+                            child: Text(
+                              'All time',
+                              // searchFilters.dateTimeRange == null
+                              //     ? 'all-time'
+                              //     : getWordedDateShortMore(
+                              //             searchFilters.dateTimeRange?.start ?? DateTime.now(),
+                              //             includeYear: true,
+                              //           ) +
+                              //           " – " +
+                              //           getWordedDateShortMore(
+                              //             searchFilters.dateTimeRange?.end ?? DateTime.now(),
+                              //             includeYear: true,
+                              //           ),
+                              style: context.textTheme.bodySmall?.copyWith(color: context.theme.disabledColor),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 56.0),
+              ]),
             ),
           ],
         ),
-
-        SliverList(
-          delegate: SliverChildListDelegate.fixed([
-            // ~ Applied Filter Chips
-            Padding(
-              padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),
-              child: BlocBuilder<TransactionsCubit, TransactionsState>(
-                builder: (context, state) {
-                  return AppliedFilterChips(
-                    searchFilter: searchFilters,
-                    // openFiltersSelection: () => selectFilters(context),
-                    // clearSearchFilters: clearSearchFilters,
-                  );
-                },
-              ),
-            ),
-
-            // ~ Results
-            BlocBuilder<TransactionsCubit, TransactionsState>(
-              builder: (context, state) {
-                late final List<Widget> tiles;
-
-                if (state.isLoaded) {
-                  final rts = state.transactions;
-                  if (rts.isEmpty) {
-                    tiles = [
-                      SectionTile(
-                        title: Center(child: Text('Oops! This is so empty', style: context.textTheme.titleLarge)),
-                        subtitle: Center(
-                          child: Text(
-                            'No transactions have been found for this month.\nAdd a few transactions.',
-                            textAlign: TextAlign.center,
-                            style: context.textTheme.bodySmall,
-                          ),
-                        ),
-                        contentSpacing: 12.0,
-                      ),
-                    ];
-                  } else {
-                    tiles = rts.map((rt) {
-                      return SectionTile(
-                        icon: Icon(rt.transactionType.icon),
-                        title: Text(rt.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
-                        subtitle: Text(rt.investedOn.toReadable()),
-                        trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                          selector: (state) => state.isPrivateMode,
-                          builder: (context, isPrivateMode) {
-                            return CurrencyView(
-                              amount: rt.totalAmount,
-                              integerStyle: context.textTheme.headlineSmall?.copyWith(
-                                color: rt.transactionType.color(context),
-                              ),
-                              privateMode: isPrivateMode,
-                            );
-                          },
-                        ),
-                        onTap: () {},
-                      );
-                    }).toList();
-                  }
-                } else {
-                  tiles = [SectionTile(title: CircularProgressIndicator())];
-                }
-
-                return Column(
-                  children: <Widget>[
-                    Section(
-                      title: const Text('Recent Transactions'),
-                      // subTitle: Text('From ${dateRange.start.toReadable()} to ${dateRange.end.toReadable()}'),
-                      icon: const Icon(Icons.swap_vert_rounded),
-                      tiles: tiles,
-                    ),
-                    // Tappable(
-                    //       // borderRadius: 10,
-                    //       onTap: () => selectDateRange(context),
-                    //       color: Colors.transparent,
-                    //       child: Padding(
-                    //         padding: const EdgeInsetsDirectional.only(start: 10, end: 10, top: 10, bottom: 8),
-                    //         child: Text(
-                    //           'All time',
-                    //           // searchFilters.dateTimeRange == null
-                    //           //     ? 'all-time'
-                    //           //     : getWordedDateShortMore(
-                    //           //             searchFilters.dateTimeRange?.start ?? DateTime.now(),
-                    //           //             includeYear: true,
-                    //           //           ) +
-                    //           //           " – " +
-                    //           //           getWordedDateShortMore(
-                    //           //             searchFilters.dateTimeRange?.end ?? DateTime.now(),
-                    //           //             includeYear: true,
-                    //           //           ),
-                    //           // fontSize: 13,
-                    //           textAlign: TextAlign.center,
-                    //           // textColor: getColor(context, "textLight"),
-                    //         ),
-                    //       ),
-                    //     );
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 56.0),
-          ]),
-        ),
-      ],
+      ),
+      // ~~~ Add transaction button ~~~
+      floatingActionButton: AddTransactionButton(scrollController: _scrollController),
     );
   }
 }

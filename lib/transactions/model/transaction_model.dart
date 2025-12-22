@@ -49,7 +49,7 @@ enum TransactionType {
 
   Color color(BuildContext context) {
     return switch (this) {
-      invested => Colors.deepOrange,
+      invested => Colors.pink,
       redeemed => Colors.teal,
       dividend => Colors.blueAccent,
     };

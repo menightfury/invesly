@@ -25,13 +25,16 @@ class AppStyle {
       canvasColor: colorScheme.secondaryContainer,
       cardColor: colorScheme.secondaryContainer,
       colorScheme: colorScheme,
-      fontFamily: GoogleFonts.slabo27px(fontWeight: FontWeight.w400).fontFamily,
+      fontFamily: GoogleFonts.portLligatSlab(fontWeight: FontWeight.w500).fontFamily,
       // fontFamily: _primaryFont,
       dividerColor: colorScheme.primary.withAlpha(50),
       textTheme: TextTheme(
-        headlineLarge: TextStyle(fontFamily: _headerFont, fontSize: 32.0),
-        headlineMedium: TextStyle(fontFamily: _headerFont, fontSize: 26.0),
-        headlineSmall: TextStyle(fontFamily: _headerFont, fontSize: 22.0),
+        // headlineLarge: TextStyle(fontFamily: _headerFont, fontSize: 32.0),
+        headlineLarge: GoogleFonts.rye(fontSize: 26.0),
+        // headlineMedium: TextStyle(fontFamily: _headerFont, fontSize: 26.0),
+        headlineMedium: GoogleFonts.rye(fontSize: 22.0),
+        // headlineSmall: TextStyle(fontFamily: _headerFont, fontSize: 22.0),
+        headlineSmall: GoogleFonts.rye(fontSize: 20.0),
         titleLarge: TextStyle(fontSize: 20.0), // appbar title
         titleMedium: TextStyle(fontSize: 18.0), // textfield
         bodyLarge: TextStyle(fontSize: 20.0, height: 1.25), // chip, ListTile title,

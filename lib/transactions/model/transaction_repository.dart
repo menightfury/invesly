@@ -49,7 +49,7 @@ class TransactionRepository {
 
     late final List<InveslyTransaction> transactions;
     try {
-      final result = await _api.select(_trnTable).join([_accountTable, _amcTable]).where(filter).toList();
+      final result = await _api.select(_trnTable).join([_accountTable, _amcTable]).where(filter).toList(limit: limit);
       // orderBy: '${_trnTable.dateColumn.title} DESC',
       // limit: showItems,
 
