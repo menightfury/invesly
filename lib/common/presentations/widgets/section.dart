@@ -238,7 +238,7 @@ class SectionTile extends StatelessWidget {
     final Color? color = selected
         ? selectedTileColor ?? tileTheme.selectedTileColor ?? theme.listTileTheme.selectedTileColor
         : tileColor ?? tileTheme.tileColor ?? theme.listTileTheme.tileColor;
-    return color ?? theme.canvasColor;
+    return color ?? theme.canvasColor.lighten(4);
   }
 
   @override

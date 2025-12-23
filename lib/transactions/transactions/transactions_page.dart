@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:intl/intl.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/components/add_transaction_button.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
@@ -197,7 +198,6 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                     final groupTransactions = state.transactions?.groupListsBy<DateTime>(
                       (rt) => DateTime(rt.investedOn.year, rt.investedOn.month),
                     );
-                    $logger.d(groupTransactions);
 
                     // if (rts.isEmpty) {
                     //   groupedTiles = [
@@ -231,10 +231,11 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                 tiles: List.generate(gtEntry?.value.length ?? 4, (i) {
                                   // dummy quantity for shimmer effect
                                   final trn = gtEntry?.value.elementAt(i);
+                                  $logger.e(trn);
                                   return SectionTile(
                                     icon: trn != null
                                         ? CircleAvatar(
-                                            backgroundColor: trn.transactionType.color(context).withAlpha(30),
+                                            backgroundColor: trn.transactionType.color(context).lighten(80),
                                             child: Icon(
                                               trn.transactionType.icon,
                                               color: trn.transactionType.color(context),
@@ -243,22 +244,40 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                         : Skeleton(height: 24.0, width: 24.0, shape: CircleBorder()),
                                     title: trn != null
                                         ? Text(trn.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium)
-                                        : Skeleton(height: 24.0),
-                                    subtitle: trn != null ? Text(trn.investedOn.toReadable()) : Skeleton(height: 12.0),
+                                        : const Skeleton(height: 24.0),
+                                    subtitle: trn != null
+                                        ? Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: <Widget>[
+                                              Text(trn.investedOn.toReadable()),
+                                              Text(trn.account.name),
+                                            ],
+                                          )
+                                        : const Skeleton(height: 12.0),
                                     trailingIcon: trn != null
                                         ? BlocSelector<AppCubit, AppState, bool>(
                                             selector: (state) => state.isPrivateMode,
                                             builder: (context, isPrivateMode) {
-                                              return CurrencyView(
-                                                amount: trn.totalAmount,
-                                                integerStyle: context.textTheme.headlineSmall?.copyWith(
-                                                  color: trn.transactionType.color(context),
-                                                ),
-                                                privateMode: isPrivateMode,
+                                              return Column(
+                                                crossAxisAlignment: CrossAxisAlignment.end,
+                                                children: <Widget>[
+                                                  CurrencyView(
+                                                    amount: trn.totalAmount,
+                                                    integerStyle: context.textTheme.headlineSmall?.copyWith(
+                                                      color: trn.transactionType.color(context),
+                                                    ),
+                                                    privateMode: isPrivateMode,
+                                                  ),
+                                                  Text(
+                                                    '${trn.quantity.toPrecisionString()} • ${trn.rate.toPrecisionString()}',
+                                                    style: context.textTheme.bodySmall,
+                                                  ),
+                                                ],
                                               );
                                             },
                                           )
-                                        : Skeleton(height: 24.0),
+                                        : const Skeleton(height: 24.0),
                                     onTap: () {},
                                   );
                                 }),
