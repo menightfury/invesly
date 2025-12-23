@@ -9,6 +9,7 @@ import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/components/add_transaction_button.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:invesly/transactions/transactions/filter_transactions_model.dart';
@@ -278,7 +279,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                             },
                                           )
                                         : const Skeleton(height: 24.0),
-                                    onTap: () {},
+                                    onTap: () => context.push(EditTransactionScreen(initialTransaction: trn)),
                                   );
                                 }),
                               ),
