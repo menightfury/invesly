@@ -1,6 +1,8 @@
 import 'dart:ui';
+import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'single_digit_flip_counter.dart';
 
 class CurrencyView extends StatelessWidget {
   /// Creates a widget that takes an amount and display it in a localized currency
@@ -8,6 +10,7 @@ class CurrencyView extends StatelessWidget {
   const CurrencyView({
     super.key,
     required this.amount,
+    this.animated = true,
     // this.currency,
     this.locale = 'en_IN',
     this.decimalDigits = 2,
@@ -19,6 +22,8 @@ class CurrencyView extends StatelessWidget {
   });
 
   final num amount;
+
+  final bool animated;
 
   /// If `true` (the default value), the widget will display the amount with a
   /// blurred effect if the user has the private mode activated
@@ -90,6 +95,27 @@ class CurrencyView extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
+
+    // // Row
+    // final integerWidgets = <Widget>[];
+    // for (int i = 0; i < digits.length - fractionDigits; i++) {
+    //   final digit = SingleDigitFlipCounter(
+    //     key: ValueKey(digits.length - i),
+    //     value: digits[i].toDouble(),
+    //     duration: duration,
+    //     curve: curve,
+    //     size: prototypeDigit.size,
+    //     color: color,
+    //     padding: padding,
+    //     // We might want to hide leading zeroes. The way we split digits, only
+    //     // leading zeroes have "true zero" value. E.g. five hundred, 0500 is
+    //     // split into [0, 5, 50, 500]. Since 50 and 500 are not 0, they are
+    //     // always visible. But we should not show 0.48 as .48 so the last
+    //     // zero before decimal point is always visible.
+    //     visible: hideLeadingZeroes ? digits[i] != 0 || i == digits.length - fractionDigits - 1 : true,
+    //   );
+    //   integerWidgets.add(digit);
+    // }
 
     if (privateMode) {
       child = ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 7.0, sigmaY: 7.0), child: child);

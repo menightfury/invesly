@@ -59,7 +59,7 @@ class _AccountsListState extends State<_AccountsList> {
                             ? Skeleton(
                                 color: isError ? context.colors.error : null,
                                 width: 160.0,
-                                height: 50.0,
+                                height: 56.0,
                                 shape: StadiumBorder(),
                               )
                             : BlocSelector<AppCubit, AppState, bool>(
@@ -72,7 +72,7 @@ class _AccountsListState extends State<_AccountsList> {
                                       // update primary account
                                       selected ? context.read<AppCubit>().updatePrimaryAccount(account.id) : null;
                                     },
-                                    labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 8.0),
+                                    labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 12.0),
                                     selected: isCurrentAccount,
                                     avatar: CircleAvatar(backgroundImage: AssetImage(account.avatarSrc)),
                                     label: Text(

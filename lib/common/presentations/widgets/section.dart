@@ -124,7 +124,7 @@ class Section extends StatelessWidget {
               subtitle: subtitleText,
               icon: icon,
               trailingIcon: trailingIcon,
-              tileColor: theme.colorScheme.primaryContainer.darken(5),
+              tileColor: theme.colorScheme.primaryContainer.darken(3),
               borderRadius: hasTiles
                   ? _kBigRadius.copyWith(bottomLeft: _kSmallRadius.bottomLeft, bottomRight: _kSmallRadius.bottomRight)
                   : _kBigRadius,
@@ -238,7 +238,7 @@ class SectionTile extends StatelessWidget {
     final Color? color = selected
         ? selectedTileColor ?? tileTheme.selectedTileColor ?? theme.listTileTheme.selectedTileColor
         : tileColor ?? tileTheme.tileColor ?? theme.listTileTheme.tileColor;
-    return color ?? theme.canvasColor.lighten(4);
+    return color ?? theme.canvasColor.lighten(3);
   }
 
   @override

@@ -38,30 +38,30 @@ class _CategoriesWidgetState extends State<_CategoriesWidget> {
                   icon: const Icon(Icons.pie_chart_rounded),
                   // InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
                   // tiles: AmcGenre.values.map((genre) => _buildGenre(context, genre)).toList(),
-                  trailingIcon: Shimmer(
-                    isLoading: isLoading,
-                    child: totalAmount == null || isLoading
-                        ? Skeleton(color: isError ? context.colors.error : null, height: 24.0)
-                        : BlocSelector<AppCubit, AppState, bool>(
-                            selector: (state) => state.isPrivateMode,
-                            builder: (context, isPrivateMode) {
-                              return CurrencyView(
-                                amount: totalAmount,
-                                integerStyle: textTheme.headlineLarge,
-                                decimalsStyle: textTheme.headlineSmall,
-                                currencyStyle: textTheme.bodyMedium,
-                                privateMode: isPrivateMode,
-                                // compactView: snapshot.data! >= 1_00_00_000
-                              );
-                            },
-                          ),
-                  ),
+                  // trailingIcon: const Icon(Icons.chevron_right)
                   tiles: [
                     SectionTile(
                       title: Shimmer(
                         isLoading: isLoading,
                         child: Column(
                           children: <Widget>[
+                            // ~ Total amount
+                            totalAmount == null || isLoading
+                                ? Skeleton(color: isError ? context.colors.error : null, height: 24.0)
+                                : BlocSelector<AppCubit, AppState, bool>(
+                                    selector: (state) => state.isPrivateMode,
+                                    builder: (context, isPrivateMode) {
+                                      return CurrencyView(
+                                        amount: totalAmount,
+                                        integerStyle: textTheme.headlineLarge,
+                                        decimalsStyle: textTheme.headlineSmall,
+                                        currencyStyle: textTheme.bodyMedium,
+                                        privateMode: isPrivateMode,
+                                        // compactView: snapshot.data! >= 1_00_00_000
+                                      );
+                                    },
+                                  ),
+
                             // ~ Pie chart
                             SizedBox(
                               height: 256.0,

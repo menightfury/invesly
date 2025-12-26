@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
@@ -87,6 +88,12 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     // searchFilters.dateTimeRange = dateTimeRange;
     // searchFilters.searchQuery = savedSearchQuery;
     emit(TransactionsState());
+  }
+
+  void updateSelectedAccounts(Set<InveslyAccount> list) {
+    final currentFilters = state.searchFilters ?? FilterTransactionsModel();
+    final updatedFilters = currentFilters.copyWith(accounts: list.toList());
+    emit(state.copyWith(searchFilters: updatedFilters));
   }
 
   @override

@@ -15,8 +15,14 @@ class TransactionsState extends Equatable {
   final List<InveslyTransaction>? transactions;
   final String? errorMsg;
 
-  TransactionsState copyWith({TransactionsStatus? status, List<InveslyTransaction>? transactions, String? errorMsg}) {
+  TransactionsState copyWith({
+    FilterTransactionsModel? searchFilters,
+    TransactionsStatus? status,
+    List<InveslyTransaction>? transactions,
+    String? errorMsg,
+  }) {
     return TransactionsState(
+      searchFilters: searchFilters ?? this.searchFilters,
       status: status ?? this.status,
       transactions: transactions ?? this.transactions,
       errorMsg: errorMsg ?? this.errorMsg,
@@ -24,7 +30,7 @@ class TransactionsState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, transactions, errorMsg];
+  List<Object?> get props => [searchFilters, status, transactions, errorMsg];
 }
 
 extension TransactionsStateX on TransactionsState {

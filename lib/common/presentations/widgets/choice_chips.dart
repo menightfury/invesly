@@ -132,13 +132,14 @@ class InveslyChoiceChips<T> extends StatelessWidget {
       selected: isSelected,
       onSelected: _enabled ? (isSelected) => _handleChanged(isSelected, option.value) : null,
       label: option.label,
-      avatar: isSelected ? null : option.icon,
+      avatar: option.icon,
       color: color,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       onDeleted: onDeleted != null ? () => onDeleted!(option.value) : null,
       deleteIcon: deleteIcon,
       showCheckmark: showCheckmark,
       clipBehavior: Clip.antiAlias,
+      labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 8.0),
     );
   }
 }
