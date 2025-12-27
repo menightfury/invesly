@@ -377,7 +377,6 @@ class _TransactionFiltersSelectionState extends State<TransactionFiltersSelectio
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         // ~ Accounts
-        Text('Accounts', style: context.textTheme.titleMedium),
         BlocBuilder<AccountsCubit, AccountsState>(
           builder: (context, state) {
             final isLoading = state.isLoading;

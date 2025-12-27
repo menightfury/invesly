@@ -15,7 +15,7 @@ import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/components/add_transaction_button.dart';
 import 'package:invesly/common/presentations/widgets/circle_avatar.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
-import 'package:invesly/common/presentations/widgets/single_digit_flip_counter.dart';
+// import 'package:invesly/common/presentations/widgets/single_digit_flip_counter.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/settings_screen.dart';
 import 'package:invesly/dashboard/cubit/dashboard_cubit.dart';
@@ -25,10 +25,23 @@ import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart'
 import 'package:invesly/transactions/transactions/transactions_page.dart';
 
 part 'widgets/accounts.dart';
-part 'widgets/categories_widget.dart';
+part 'widgets/genre_summeries_widget.dart';
 part 'widgets/recent_transaction_widget.dart';
 part 'widgets/spending_pie_chart.dart';
 part 'widgets/transaction_stat.dart';
+part 'widgets/mutualfund_widget.dart';
+part 'widgets/stock_widget.dart';
+
+enum _AccountsStatus {
+  initial,
+  loading,
+  loaded,
+  error;
+
+  bool get isLoading => this == _AccountsStatus.initial || this == _AccountsStatus.loading;
+  bool get isLoaded => this == _AccountsStatus.loaded;
+  bool get isError => this == _AccountsStatus.error;
+}
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -104,12 +117,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const Gap(16.0),
 
                   // ~~~ Stats, Recent transactions etc. ~~~
-                  BlocProvider(
-                    create: (context) => DashboardCubit(
-                      repository: context.read<TransactionRepository>(),
-                    ), // TODO: Remove DashboardCubit completely
-                    child: _DashboardContents(),
-                  ),
+                  // BlocProvider(
+                  //   create: (context) => DashboardCubit(
+                  //     repository: context.read<TransactionRepository>(),
+                  //   ), // TODO: Remove DashboardCubit completely
+                  //   child:
+                  _DashboardContents(),
+                  // ),
                   const Gap(80.0),
                 ]),
               ),
@@ -131,42 +145,33 @@ class _DashboardContents extends StatefulWidget {
 }
 
 class _DashboardContentsState extends State<_DashboardContents> {
-  late final DateTimeRange<DateTime> dateRange;
-
-  @override
-  void initState() {
-    super.initState();
-    final now = DateTime.now();
-    // final startOfMonth = DateTime(now.year, now.month, 1);
-    final startOfYear = DateTime(now.year, 1, 1);
-    // final endOfMonth = DateTime(now.year, now.month + 1, 0);
-    dateRange = DateTimeRange(start: startOfYear, end: now);
-    context.read<DashboardCubit>().fetchTransactionStats(
-      dateRange: dateRange,
-      limit: 3,
-    ); // TODO: Remove dashboard cubit completely
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   // context.read<DashboardCubit>().fetchTransactionStats(); // TODO: Remove dashboard cubit completely
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      spacing: 16.0,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        _CategoriesWidget(),
-        BlocSelector<AppCubit, AppState, String?>(
-          selector: (state) => state.primaryAccountId,
-          builder: (context, primaryAccountId) {
-            // fetch recent transactions
-            context.read<TransactionsCubit>().fetchTransactions(
-              // dateRange: dateRange,
-              accountId: primaryAccountId,
-              limit: 3,
-            );
-            return _RecentTransactions(period: dateRange);
-          },
-        ),
-      ],
+    return BlocBuilder<AccountsCubit, AccountsState>(
+      builder: (context, accountsState) {
+        final status = accountsState.isError
+            ? _AccountsStatus.error
+            : accountsState.isLoaded
+            ? _AccountsStatus.loaded
+            : _AccountsStatus.loading;
+
+        return Column(
+          spacing: 16.0,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _GenreSummeriesWidget(status),
+            _MutualFundWidget(status),
+            _StockWidget(status),
+            _RecentTransactions(status),
+          ],
+        );
+      },
     );
   }
 }
