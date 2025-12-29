@@ -1,9 +1,7 @@
 part of '../dashboard_screen.dart';
 
 class _GenreSummariesWidget extends StatefulWidget {
-  const _GenreSummariesWidget(this.status, {super.key});
-
-  final _InitializationStatus status;
+  const _GenreSummariesWidget({super.key});
 
   @override
   State<_GenreSummariesWidget> createState() => _GenreSummariesWidgetState();
@@ -23,42 +21,42 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
     return Section(
       title: const Text('Total Investment'),
       icon: const Icon(Icons.pie_chart_rounded),
-      // InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
-      // trailingIcon: const Icon(Icons.chevron_right)
       tiles: [
-        widget.status.isInitialized
-            ? _buildTile(context)
-            : _buildLoadingOrErrorState(context, isError: widget.status.isError),
+        BlocBuilder<AccountsCubit, AccountsState>(
+          builder: (context, accountsState) {
+            if (accountsState.isLoaded) {
+              return _buildTile(context);
+            }
+            return _buildLoadingOrErrorState(context, isError: accountsState.isError);
+          },
+        ),
       ],
     );
   }
 
   Widget _buildLoadingOrErrorState(BuildContext context, {bool isError = false}) {
+    final errorColor = context.colors.error;
     return SectionTile(
       title: Shimmer(
         isLoading: !isError,
         child: Column(
           children: <Widget>[
             // ~ Total amount
-            Skeleton(color: isError ? context.colors.error : null, height: 24.0),
+            Skeleton(color: isError ? errorColor : null, height: 24.0),
 
             // ~ Pie chart
-            SizedBox(height: 224.0, child: Skeleton(color: isError ? context.colors.error : null)),
+            SizedBox(height: 224.0, child: Skeleton(color: isError ? errorColor : null)),
 
             // ~ Genres
             Section(
-              // margin: null,
-              tiles: List.generate(AmcGenre.values.length, (i) {
-                final genre = AmcGenre.fromIndex(i);
+              margin: EdgeInsets.zero,
+              tiles: List.generate(AmcGenre.values.length, (_) {
                 return SectionTile(
                   tileColor: Colors.white.withAlpha(100),
-                  icon: CircleAvatar(
-                    backgroundColor: genre.color.lighten(70),
-                    child: Icon(genre.icon, color: genre.color),
-                  ),
-                  title: Text(genre.title, overflow: TextOverflow.ellipsis),
-                  subtitle: Skeleton(color: isError ? context.colors.error : null),
-                  trailingIcon: Skeleton(color: isError ? context.colors.error : null),
+                  icon: CircleAvatar(backgroundColor: isError ? errorColor : null),
+                  title: Skeleton(color: isError ? errorColor : null),
+                  subtitle: Skeleton(color: isError ? errorColor : null),
+                  trailingIcon: Skeleton(color: isError ? errorColor : null),
                 );
               }),
             ),
@@ -70,21 +68,21 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
 
   Widget _buildTile(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final tractionRepo = context.read<TransactionRepository>();
 
     return SectionTile(
-      title: StreamBuilder(
-        stream: tractionRepo.onDataChanged.asyncMap((event) => tractionRepo.getTransactionStats()),
-        builder: (context, snapshot) {
-          final isLoading = snapshot.connectionState == ConnectionState.waiting;
-          final isError = snapshot.hasError;
+      title: BlocBuilder<TransactionStatCubit, TransactionStatState>(
+        builder: (context, statState) {
+          final isLoading = statState.isLoading;
+          final isError = statState.isError;
 
           return Shimmer(
             isLoading: isLoading,
             child: BlocSelector<AppCubit, AppState, String?>(
               selector: (state) => state.primaryAccountId,
               builder: (context, accountId) {
-                final stats = snapshot.data?.where((stat) => stat.accountId == accountId).toList();
+                final stats = statState is TransactionStatLoadedState
+                    ? statState.stats.where((stat) => stat.accountId == accountId).toList()
+                    : null;
                 final totalAmount = stats?.fold<double>(0, (v, el) => v + el.totalAmount);
                 return Column(
                   children: <Widget>[
@@ -129,7 +127,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                       valueListenable: _selectedCategory,
                       builder: (context, selectedCategory, _) {
                         return Section(
-                          // margin: null,
+                          margin: EdgeInsets.zero,
                           tiles: List.generate(AmcGenre.values.length, (i) {
                             final genre = AmcGenre.fromIndex(i);
                             final isSelected = selectedCategory == genre;
@@ -137,29 +135,33 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
 
                             return SectionTile(
                               tileColor: isSelected ? genre.color : Colors.white.withAlpha(100),
-                              icon: CircleAvatar(
-                                backgroundColor: genre.color.lighten(70),
-                                child: Icon(genre.icon, color: genre.color),
-                              ),
-                              title: Text(
-                                genre.title,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: isSelected ? Colors.white : null),
-                              ),
-                              subtitle: stat == null
+                              icon: isLoading
+                                  ? Skeleton()
+                                  : CircleAvatar(
+                                      backgroundColor: genre.color.lighten(70),
+                                      child: Icon(genre.icon, color: genre.color),
+                                    ),
+                              title: isLoading
+                                  ? Skeleton()
+                                  : Text(
+                                      genre.title,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(color: isSelected ? Colors.white : null),
+                                    ),
+                              subtitle: stats == null
                                   ? Skeleton(color: isError ? context.colors.error : null)
                                   : Text(
-                                      '${stat.numTransactions ?? 0} transactions',
+                                      '${stat?.numTransactions ?? 0} transactions',
                                       style: TextStyle(color: isSelected ? Colors.white : null),
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                              trailingIcon: stat == null
+                              trailingIcon: stats == null
                                   ? Skeleton(color: isError ? context.colors.error : null)
                                   : BlocSelector<AppCubit, AppState, bool>(
                                       selector: (state) => state.isPrivateMode,
                                       builder: (context, isPrivateMode) {
                                         return CurrencyView(
-                                          amount: stat.totalAmount,
+                                          amount: stat?.totalAmount ?? 0,
                                           integerStyle: context.textTheme.headlineMedium?.copyWith(
                                             color: isSelected ? Colors.white : genre.color,
                                           ),

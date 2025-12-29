@@ -18,7 +18,7 @@ import 'package:invesly/common/presentations/widgets/section.dart';
 // import 'package:invesly/common/presentations/widgets/single_digit_flip_counter.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/settings_screen.dart';
-import 'package:invesly/dashboard/cubit/dashboard_cubit.dart';
+import 'package:invesly/transactions/transaction_stat/cubit/transaction_stat_cubit.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
@@ -128,7 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         spacing: 16.0,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          _GenreSummariesWidget(status),
+                          _GenreSummariesWidget(),
                           _MutualFundWidget(status),
                           _StockWidget(status),
                           _RecentTransactions(status),

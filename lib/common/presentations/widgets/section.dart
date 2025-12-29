@@ -46,7 +46,7 @@ class Section extends StatelessWidget {
   final _SectionVariant _variant;
   final List<Widget>? _tiles;
   final IndexedWidgetBuilder? _tileBuilder;
-  final EdgeInsetsGeometry? margin;
+  final EdgeInsetsGeometry margin;
 
   bool get hasTiles => tileCount > 0;
 
@@ -67,6 +67,8 @@ class Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    assert(margin.isNonNegative);
+
     final theme = Theme.of(context);
     final titleText = DefaultTextStyle(
       style: theme.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
@@ -134,11 +136,7 @@ class Section extends StatelessWidget {
       ),
     );
 
-    if (margin != null) {
-      return Padding(padding: margin!, child: child);
-    }
-
-    return child;
+    return Padding(padding: margin, child: child);
   }
 }
 
