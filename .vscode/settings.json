@@ -3,6 +3,7 @@
         "buildcontext",
         "firestore",
         "gapi",
-        "gapis"
+        "gapis",
+        "Invesly"
     ]
 }

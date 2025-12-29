@@ -3,7 +3,7 @@ part of '../dashboard_screen.dart';
 class _RecentTransactions extends StatefulWidget {
   const _RecentTransactions(this.status, {super.key});
 
-  final _AccountsStatus status;
+  final _InitializationStatus status;
 
   @override
   State<_RecentTransactions> createState() => _RecentTransactionsState();

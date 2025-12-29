@@ -1,15 +1,15 @@
 part of '../dashboard_screen.dart';
 
-class _GenreSummeriesWidget extends StatefulWidget {
-  const _GenreSummeriesWidget(this.status, {super.key});
+class _GenreSummariesWidget extends StatefulWidget {
+  const _GenreSummariesWidget(this.status, {super.key});
 
-  final _AccountsStatus status;
+  final _InitializationStatus status;
 
   @override
-  State<_GenreSummeriesWidget> createState() => _GenreSummeriesWidgetState();
+  State<_GenreSummariesWidget> createState() => _GenreSummariesWidgetState();
 }
 
-class _GenreSummeriesWidgetState extends State<_GenreSummeriesWidget> {
+class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
   late final ValueNotifier<AmcGenre?> _selectedCategory;
 
   @override
@@ -20,30 +20,76 @@ class _GenreSummeriesWidgetState extends State<_GenreSummeriesWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     return Section(
       title: const Text('Total Investment'),
       icon: const Icon(Icons.pie_chart_rounded),
       // InveslyDivider.dashed(dashWidth: 2.0, thickness: 2.0),
       // trailingIcon: const Icon(Icons.chevron_right)
       tiles: [
-        StreamBuilder(
-          stream: context.read<TransactionRepository>().onDataChanged,
-          builder: (context, asyncSnapshot) {
-            final isError = widget.status.isError || asyncSnapshot.hasError;
-            final isLoading = widget.status.isLoading || asyncSnapshot.connectionState == ConnectionState.waiting;
-            final stats = asyncSnapshot is DashboardLoadedState
-                ? asyncSnapshot.stats.where((stat) => stat.accountId == accountId).toList()
-                : null;
-            final totalAmount = stats?.fold<double>(0, (v, el) => v + el.totalAmount);
-            return SectionTile(
-              title: Shimmer(
-                isLoading: isLoading,
-                child: Column(
+        widget.status.isInitialized
+            ? _buildTile(context)
+            : _buildLoadingOrErrorState(context, isError: widget.status.isError),
+      ],
+    );
+  }
+
+  Widget _buildLoadingOrErrorState(BuildContext context, {bool isError = false}) {
+    return SectionTile(
+      title: Shimmer(
+        isLoading: !isError,
+        child: Column(
+          children: <Widget>[
+            // ~ Total amount
+            Skeleton(color: isError ? context.colors.error : null, height: 24.0),
+
+            // ~ Pie chart
+            SizedBox(height: 224.0, child: Skeleton(color: isError ? context.colors.error : null)),
+
+            // ~ Genres
+            Section(
+              // margin: null,
+              tiles: List.generate(AmcGenre.values.length, (i) {
+                final genre = AmcGenre.fromIndex(i);
+                return SectionTile(
+                  tileColor: Colors.white.withAlpha(100),
+                  icon: CircleAvatar(
+                    backgroundColor: genre.color.lighten(70),
+                    child: Icon(genre.icon, color: genre.color),
+                  ),
+                  title: Text(genre.title, overflow: TextOverflow.ellipsis),
+                  subtitle: Skeleton(color: isError ? context.colors.error : null),
+                  trailingIcon: Skeleton(color: isError ? context.colors.error : null),
+                );
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTile(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final tractionRepo = context.read<TransactionRepository>();
+
+    return SectionTile(
+      title: StreamBuilder(
+        stream: tractionRepo.onDataChanged.asyncMap((event) => tractionRepo.getTransactionStats()),
+        builder: (context, snapshot) {
+          final isLoading = snapshot.connectionState == ConnectionState.waiting;
+          final isError = snapshot.hasError;
+
+          return Shimmer(
+            isLoading: isLoading,
+            child: BlocSelector<AppCubit, AppState, String?>(
+              selector: (state) => state.primaryAccountId,
+              builder: (context, accountId) {
+                final stats = snapshot.data?.where((stat) => stat.accountId == accountId).toList();
+                final totalAmount = stats?.fold<double>(0, (v, el) => v + el.totalAmount);
+                return Column(
                   children: <Widget>[
                     // ~ Total amount
-                    totalAmount == null || isLoading
+                    totalAmount == null
                         ? Skeleton(color: isError ? context.colors.error : null, height: 24.0)
                         : BlocSelector<AppCubit, AppState, bool>(
                             selector: (state) => state.isPrivateMode,
@@ -78,12 +124,12 @@ class _GenreSummeriesWidgetState extends State<_GenreSummeriesWidget> {
                             ),
                     ),
 
-                    // ~ Categories
+                    // ~ Genres
                     ValueListenableBuilder(
                       valueListenable: _selectedCategory,
                       builder: (context, selectedCategory, _) {
                         return Section(
-                          margin: null,
+                          // margin: null,
                           tiles: List.generate(AmcGenre.values.length, (i) {
                             final genre = AmcGenre.fromIndex(i);
                             final isSelected = selectedCategory == genre;
@@ -100,28 +146,32 @@ class _GenreSummeriesWidgetState extends State<_GenreSummeriesWidget> {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(color: isSelected ? Colors.white : null),
                               ),
-                              subtitle: Text(
-                                '${stat?.numTransactions ?? 0} transactions',
-                                style: TextStyle(color: isSelected ? Colors.white : null),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                                selector: (state) => state.isPrivateMode,
-                                builder: (context, isPrivateMode) {
-                                  return CurrencyView(
-                                    amount: stat?.totalAmount ?? 0.0,
-                                    integerStyle: context.textTheme.headlineMedium?.copyWith(
-                                      color: isSelected ? Colors.white : genre.color,
+                              subtitle: stat == null
+                                  ? Skeleton(color: isError ? context.colors.error : null)
+                                  : Text(
+                                      '${stat.numTransactions ?? 0} transactions',
+                                      style: TextStyle(color: isSelected ? Colors.white : null),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    decimalsStyle: context.textTheme.headlineSmall?.copyWith(
-                                      fontSize: 13.0,
-                                      color: isSelected ? Colors.white : genre.color,
+                              trailingIcon: stat == null
+                                  ? Skeleton(color: isError ? context.colors.error : null)
+                                  : BlocSelector<AppCubit, AppState, bool>(
+                                      selector: (state) => state.isPrivateMode,
+                                      builder: (context, isPrivateMode) {
+                                        return CurrencyView(
+                                          amount: stat.totalAmount,
+                                          integerStyle: context.textTheme.headlineMedium?.copyWith(
+                                            color: isSelected ? Colors.white : genre.color,
+                                          ),
+                                          decimalsStyle: context.textTheme.headlineSmall?.copyWith(
+                                            fontSize: 13.0,
+                                            color: isSelected ? Colors.white : genre.color,
+                                          ),
+                                          currencyStyle: context.textTheme.bodySmall,
+                                          privateMode: isPrivateMode,
+                                        );
+                                      },
                                     ),
-                                    currencyStyle: context.textTheme.bodySmall,
-                                    privateMode: isPrivateMode,
-                                  );
-                                },
-                              ),
                               onTap: () => _selectedCategory.value = genre,
                             );
                           }),
@@ -129,82 +179,12 @@ class _GenreSummeriesWidgetState extends State<_GenreSummeriesWidget> {
                       },
                     ),
                   ],
-                ),
-              ),
-            );
-          },
-        ),
-      ],
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
-
-  // Widget _buildLegendItem(BuildContext context, String label, Color color) {
-  //   return Row(
-  //     mainAxisSize: MainAxisSize.min,
-  //     spacing: 4.0,
-  //     children: <Widget>[
-  //       Container(
-  //         width: 12.0,
-  //         height: 12.0,
-  //         decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-  //       ),
-  //       Text(label, style: context.textTheme.bodySmall?.copyWith(color: context.colors.onSurfaceVariant)),
-  //     ],
-  //   );
-  // }
-
-  // Widget _buildGenre(BuildContext context, AmcGenre genre) {
-  //   return SectionTile(
-  //     onTap: () {},
-  //     borderRadius: BorderRadius.zero,
-  //     title: Stack(
-  //       children: <Widget>[
-  //         Positioned(
-  //           right: -12.0,
-  //           top: -12.0,
-  //           child: Icon(genre.icon, size: 64.0, color: context.colors.secondary.withAlpha(50)),
-  //         ),
-  //         BlocBuilder<AccountsCubit, AccountsState>(
-  //           builder: (context, accountState) {
-  //             return BlocBuilder<DashboardCubit, DashboardState>(
-  //               builder: (context, dashboardState) {
-  //                 final isError = accountState.isError || dashboardState.isError;
-  //                 final isLoading = accountState.isLoading || dashboardState.isLoading;
-  //                 final accounts = accountState.isLoaded ? (accountState as AccountsLoadedState).accounts : null;
-  //                 final stats = dashboardState is DashboardLoadedState
-  //                     ? dashboardState.stats.firstWhereOrNull((stat) => stat.amcGenre == genre)
-  //                     : null;
-  //                 return Column(
-  //                   crossAxisAlignment: CrossAxisAlignment.start,
-  //                   spacing: 12.0,
-  //                   children: <Widget>[
-  //                     Row(
-  //                       children: <Widget>[
-  //                         Expanded(child: Text(genre.title, overflow: TextOverflow.ellipsis)),
-  //                         isLoading
-  //                             ? Skeleton()
-  //                             : BlocSelector<AppCubit, AppState, bool>(
-  //                                 selector: (state) => state.isPrivateMode,
-  //                                 builder: (context, isPrivateMode) {
-  //                                   return CurrencyView(
-  //                                     amount: stats?.totalAmount ?? 0.0,
-  //                                     integerStyle: context.textTheme.headlineMedium,
-  //                                     decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0),
-  //                                     currencyStyle: context.textTheme.bodySmall,
-  //                                     privateMode: isPrivateMode,
-  //                                   );
-  //                                 },
-  //                               ),
-  //                       ],
-  //                     ),
-  //                   ],
-  //                 );
-  //               },
-  //             );
-  //           },
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }

@@ -3,7 +3,7 @@ part of '../dashboard_screen.dart';
 class _StockWidget extends StatefulWidget {
   const _StockWidget(this.status, {super.key});
 
-  final _AccountsStatus status;
+  final _InitializationStatus status;
 
   @override
   State<_StockWidget> createState() => __StockWidgetState();

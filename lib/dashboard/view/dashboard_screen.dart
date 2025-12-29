@@ -32,15 +32,14 @@ part 'widgets/transaction_stat.dart';
 part 'widgets/mutualfund_widget.dart';
 part 'widgets/stock_widget.dart';
 
-enum _AccountsStatus {
-  initial,
-  loading,
-  loaded,
+enum _InitializationStatus {
+  initializing,
+  initialized,
   error;
 
-  bool get isLoading => this == _AccountsStatus.initial || this == _AccountsStatus.loading;
-  bool get isLoaded => this == _AccountsStatus.loaded;
-  bool get isError => this == _AccountsStatus.error;
+  bool get isInitializing => this == _InitializationStatus.initializing;
+  bool get isInitialized => this == _InitializationStatus.initialized;
+  bool get isError => this == _InitializationStatus.error;
 }
 
 class DashboardScreen extends StatefulWidget {
@@ -117,13 +116,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const Gap(16.0),
 
                   // ~~~ Stats, Recent transactions etc. ~~~
-                  // BlocProvider(
-                  //   create: (context) => DashboardCubit(
-                  //     repository: context.read<TransactionRepository>(),
-                  //   ), // TODO: Remove DashboardCubit completely
-                  //   child:
-                  _DashboardContents(),
-                  // ),
+                  BlocBuilder<AccountsCubit, AccountsState>(
+                    builder: (context, accountsState) {
+                      final status = accountsState.isError
+                          ? _InitializationStatus.error
+                          : accountsState.isLoaded
+                          ? _InitializationStatus.initialized
+                          : _InitializationStatus.initializing;
+
+                      return Column(
+                        spacing: 16.0,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          _GenreSummariesWidget(status),
+                          _MutualFundWidget(status),
+                          _StockWidget(status),
+                          _RecentTransactions(status),
+                        ],
+                      );
+                    },
+                  ),
+
                   const Gap(80.0),
                 ]),
               ),
@@ -133,45 +146,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       // ~~~ Add transaction button ~~~
       floatingActionButton: AddTransactionButton(scrollController: _scrollController),
-    );
-  }
-}
-
-class _DashboardContents extends StatefulWidget {
-  const _DashboardContents({super.key});
-
-  @override
-  State<_DashboardContents> createState() => _DashboardContentsState();
-}
-
-class _DashboardContentsState extends State<_DashboardContents> {
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   // context.read<DashboardCubit>().fetchTransactionStats(); // TODO: Remove dashboard cubit completely
-  // }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<AccountsCubit, AccountsState>(
-      builder: (context, accountsState) {
-        final status = accountsState.isError
-            ? _AccountsStatus.error
-            : accountsState.isLoaded
-            ? _AccountsStatus.loaded
-            : _AccountsStatus.loading;
-
-        return Column(
-          spacing: 16.0,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _GenreSummeriesWidget(status),
-            _MutualFundWidget(status),
-            _StockWidget(status),
-            _RecentTransactions(status),
-          ],
-        );
-      },
     );
   }
 }
