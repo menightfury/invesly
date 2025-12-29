@@ -72,8 +72,8 @@ class TransactionRepository {
   }
 
   /// Get transaction statistics
-  Future<List<TransactionStat>> getTransactionStats() async {
-    // final filter = {_trnTable.accountIdColumn: accountId};
+  Future<List<TransactionStat>> getTransactionStats(String accountId) async {
+    final filter = {_trnTable.accountIdColumn: accountId};
 
     late final List<TransactionStat> stats;
     try {
@@ -85,7 +85,7 @@ class TransactionRepository {
             _trnTable.amountColumn.sum('total_amount'),
           ])
           .join([_amcTable])
-          // .where(filter)
+          .where(filter)
           .groupBy([_trnTable.accountIdColumn, _amcTable.genreColumn])
           .toList();
       $logger.w(result);

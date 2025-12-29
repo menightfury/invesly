@@ -1,7 +1,7 @@
 part of '../dashboard_screen.dart';
 
 class _RecentTransactions extends StatefulWidget {
-  const _RecentTransactions(this.status, {super.key});
+  const _RecentTransactions({super.key, this.status = _InitializationStatus.initializing});
 
   final _InitializationStatus status;
 
@@ -10,25 +10,13 @@ class _RecentTransactions extends StatefulWidget {
 }
 
 class _RecentTransactionsState extends State<_RecentTransactions> {
-  late final DateTimeRange<DateTime> period;
-
-  @override
-  void initState() {
-    super.initState();
-    final now = DateTime.now();
-    // final startOfMonth = DateTime(now.year, now.month, 1);
-    final startOfYear = DateTime(now.year, 1, 1);
-    // final endOfMonth = DateTime(now.year, now.month + 1, 0);
-    period = DateTimeRange(start: startOfYear, end: now);
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocSelector<AppCubit, AppState, String?>(
       selector: (state) => state.primaryAccountId,
       builder: (context, accountId) {
         // fetch recent transactions
-        context.read<TransactionsCubit>().fetchTransactions(dateRange: period, accountId: accountId, limit: 5);
+        context.read<TransactionsCubit>().fetchTransactions(accountId: accountId, limit: 5);
 
         return BlocBuilder<TransactionsCubit, TransactionsState>(
           builder: (context, state) {
@@ -71,7 +59,7 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
                         );
                       },
                     ),
-                    onTap: () {},
+                    // onTap: () {},
                   );
                 }).toList();
               }
@@ -83,7 +71,7 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
               children: <Widget>[
                 Section(
                   title: const Text('Recent Transactions'),
-                  subTitle: Text('From ${period.start.toReadable()} to ${period.end.toReadable()}'),
+                  // subTitle: Text('From ${period.start.toReadable()} to ${period.end.toReadable()}'),
                   icon: const Icon(Icons.swap_vert_rounded),
                   tiles: tiles,
                 ),

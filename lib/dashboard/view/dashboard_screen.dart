@@ -55,68 +55,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = context.textTheme;
+    final trnRepository = context.read<TransactionRepository>();
+
     return Scaffold(
       body: SafeArea(
-        child: BlocProvider(
-          create: (context) => TransactionsCubit(repository: context.read<TransactionRepository>()),
-          child: CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              SliverAppBar(
-                leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 48.0)),
-                titleSpacing: 0.0,
-                actions: <Widget>[
-                  // ~~~ User avatar ~~~
-                  GestureDetector(
-                    onTap: () => context.push(const SettingsScreen()),
-                    child: BlocSelector<AppCubit, AppState, InveslyUser?>(
-                      selector: (state) => state.user,
-                      builder: (context, currentUser) {
-                        return currentUser.isNotNullOrEmpty
-                            ? InveslyUserCircleAvatar(user: currentUser!)
-                            : CircleAvatar(child: const Icon(Icons.person_rounded));
-                      },
-                    ),
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            SliverAppBar(
+              leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 48.0)),
+              titleSpacing: 0.0,
+              actions: <Widget>[
+                // ~~~ User avatar ~~~
+                GestureDetector(
+                  onTap: () => context.push(const SettingsScreen()),
+                  child: BlocSelector<AppCubit, AppState, InveslyUser?>(
+                    selector: (state) => state.user,
+                    builder: (context, currentUser) {
+                      return currentUser.isNotNullOrEmpty
+                          ? InveslyUserCircleAvatar(user: currentUser!)
+                          : CircleAvatar(child: const Icon(Icons.person_rounded));
+                    },
                   ),
-                ],
-                actionsPadding: EdgeInsets.only(right: 16.0),
-              ),
+                ),
+              ],
+              actionsPadding: EdgeInsets.only(right: 16.0),
+            ),
 
-              SliverList(
-                delegate: SliverChildListDelegate.fixed([
-                  // ~~~ Greetings ~~~
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Text(
-                          DateTime.now().greetingsMsg,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.headlineSmall,
-                        ),
-                        BlocSelector<AppCubit, AppState, InveslyUser?>(
-                          selector: (state) => state.user,
-                          builder: (context, currentUser) {
-                            return Text(
-                              currentUser.isNotNullOrEmpty ? currentUser!.name : 'Investor',
-                              overflow: TextOverflow.ellipsis,
-                              style: textTheme.headlineMedium,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+            SliverList(
+              delegate: SliverChildListDelegate.fixed([
+                // ~~~ Greetings ~~~
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        DateTime.now().greetingsMsg,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.headlineSmall,
+                      ),
+                      BlocSelector<AppCubit, AppState, InveslyUser?>(
+                        selector: (state) => state.user,
+                        builder: (context, currentUser) {
+                          return Text(
+                            currentUser.isNotNullOrEmpty ? currentUser!.name : 'Investor',
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.headlineMedium,
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                  const Gap(16.0),
+                ),
+                const Gap(16.0),
 
-                  // ~~~ Accounts ~~~
-                  _AccountsList(),
-                  const Gap(16.0),
+                // ~~~ Accounts ~~~
+                _AccountsList(),
+                const Gap(16.0),
 
-                  // ~~~ Stats, Recent transactions etc. ~~~
-                  BlocBuilder<AccountsCubit, AccountsState>(
+                // ~~~ Stats, Recent transactions etc. ~~~
+                MultiBlocProvider(
+                  providers: [
+                    BlocProvider(create: (context) => TransactionsCubit(repository: trnRepository)),
+                    BlocProvider(create: (context) => TransactionStatCubit(repository: trnRepository)),
+                  ],
+                  child: BlocBuilder<AccountsCubit, AccountsState>(
                     builder: (context, accountsState) {
                       final status = accountsState.isError
                           ? _InitializationStatus.error
@@ -128,20 +133,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         spacing: 16.0,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          _GenreSummariesWidget(),
-                          _MutualFundWidget(status),
-                          _StockWidget(status),
-                          _RecentTransactions(status),
+                          _GenreSummariesWidget(status: status),
+                          _MutualFundWidget(status: status),
+                          _StockWidget(status: status),
+                          _RecentTransactions(status: status),
                         ],
                       );
                     },
                   ),
+                ),
 
-                  const Gap(80.0),
-                ]),
-              ),
-            ],
-          ),
+                const Gap(80.0),
+              ]),
+            ),
+          ],
         ),
       ),
       // ~~~ Add transaction button ~~~

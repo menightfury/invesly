@@ -1,7 +1,7 @@
 part of '../dashboard_screen.dart';
 
 class _StockWidget extends StatefulWidget {
-  const _StockWidget(this.status, {super.key});
+  const _StockWidget({this.status = _InitializationStatus.initializing, super.key});
 
   final _InitializationStatus status;
 

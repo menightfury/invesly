@@ -28,6 +28,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     // if (start != null || end != null) {
     //   dateRange = DateTimeRange(start: start ?? DateTime(1970), end: end ?? DateTime.now());
     // }
+
     // Get initial transactions
     emit(state.copyWith(status: TransactionsStatus.loading));
     try {

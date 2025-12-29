@@ -17,11 +17,17 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
   StreamSubscription<TableChangeEvent>? _subscription;
 
   /// Fetch transaction statistics (on initial load, on transactions change)
-  Future<void> fetchTransactionStats() async {
+  Future<void> fetchTransactionStats(String accountId) async {
+    // Cancel any existing subscription
+    await _subscription?.cancel();
+    _subscription = null;
+
     // Get initial transactions
     emit(const TransactionStatLoadingState());
     try {
-      final transactionStats = await _repository.getTransactionStats();
+      // wait for 2 seconds
+      await Future.delayed(2.seconds); // TODO: Remove this
+      final transactionStats = await _repository.getTransactionStats(accountId);
       emit(TransactionStatLoadedState(stats: transactionStats));
     } on Exception catch (error) {
       emit(TransactionStatErrorState(error.toString()));
@@ -38,7 +44,7 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
       _subscription?.pause();
 
       try {
-        final transactionStats = await _repository.getTransactionStats();
+        final transactionStats = await _repository.getTransactionStats(accountId);
         emit(TransactionStatLoadedState(stats: transactionStats));
       } on Exception catch (error) {
         emit(TransactionStatErrorState(error.toString()));

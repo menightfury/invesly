@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:invesly/transactions/transaction_stat/cubit/transaction_stat_cubit.dart';
 import 'package:path_provider/path_provider.dart';
 // import 'connectivity/cubit/internet_cubit.dart';
 
@@ -50,7 +49,7 @@ class InveslyApp extends StatelessWidget {
           // BlocProvider<InternetCubit>(create: (_) => InternetCubit()),
           BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)),
           BlocProvider<AppCubit>(create: (_) => AppCubit()),
-          BlocProvider(create: (_) => TransactionStatCubit(repository: trnRepository)..fetchTransactionStats()),
+          // BlocProvider(create: (_) => TransactionStatCubit(repository: trnRepository)..fetchTransactionStats()),
         ],
         child: const _AppView(),
       ),
