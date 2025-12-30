@@ -79,7 +79,7 @@ class _TransactionSummeryWidget extends StatelessWidget {
         itemCount: transactions.length,
         itemBuilder: (context, index) {
           final transaction = transactions[index];
-          final genre = transaction.amcGenre;
+          final genre = transaction.amc;
           final shareWithinClass = transaction.totalAmount / totalClassAmount;
           final overallShare = transaction.totalAmount / totalInvestedAmount;
 
@@ -171,7 +171,7 @@ class _TransactionSummeryWidget extends StatelessWidget {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: <Widget>[
-                                      Text(transaction.amcGenre.title, style: textTheme.labelSmall),
+                                      Text(transaction.amc.name, style: textTheme.labelSmall),
                                       Text('${(shareWithinClass * 100).toCompact()}%', style: textTheme.labelSmall),
                                     ],
                                   ),

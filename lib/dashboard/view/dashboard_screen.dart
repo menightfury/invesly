@@ -123,21 +123,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                   child: BlocBuilder<AccountsCubit, AccountsState>(
                     builder: (context, accountsState) {
-                      final status = accountsState.isError
-                          ? _InitializationStatus.error
-                          : accountsState.isLoaded
-                          ? _InitializationStatus.initialized
-                          : _InitializationStatus.initializing;
-
-                      return Column(
-                        spacing: 16.0,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          _GenreSummariesWidget(status: status),
-                          _MutualFundWidget(status: status),
-                          _StockWidget(status: status),
-                          _RecentTransactions(status: status),
-                        ],
+                      return BlocSelector<AppCubit, AppState, String?>(
+                        selector: (state) => state.primaryAccountId,
+                        builder: (context, accountId) {
+                          final status = accountsState.isError || accountId == null
+                              ? _InitializationStatus.error
+                              : accountsState.isLoaded
+                              ? _InitializationStatus.initialized
+                              : _InitializationStatus.initializing;
+                          return _DashboardScreenContent(status: status, accountId: accountId);
+                        },
                       );
                     },
                   ),
@@ -151,6 +146,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       // ~~~ Add transaction button ~~~
       floatingActionButton: AddTransactionButton(scrollController: _scrollController),
+    );
+  }
+}
+
+class _DashboardScreenContent extends StatefulWidget {
+  const _DashboardScreenContent({super.key, required this.status, this.accountId});
+
+  final _InitializationStatus status;
+  final String? accountId;
+
+  @override
+  State<_DashboardScreenContent> createState() => _DashboardScreenContentState();
+}
+
+class _DashboardScreenContentState extends State<_DashboardScreenContent> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<TransactionStatCubit>().fetchTransactionStats(widget.accountId);
+    context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, limit: 5);
+  }
+
+  @override
+  void didUpdateWidget(covariant _DashboardScreenContent oldWidget) {
+    if (widget.accountId != oldWidget.accountId) {
+      context.read<TransactionStatCubit>().fetchTransactionStats(widget.accountId);
+      context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, limit: 5);
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      spacing: 16.0,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _GenreSummariesWidget(status: widget.status),
+        _MutualFundWidget(status: widget.status),
+        _StockWidget(status: widget.status),
+        _RecentTransactions(status: widget.status),
+      ],
     );
   }
 }

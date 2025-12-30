@@ -73,36 +73,32 @@ class TransactionRepository {
 
   /// Get transaction statistics
   Future<List<TransactionStat>> getTransactionStats(String accountId) async {
-    final filter = {_trnTable.accountIdColumn: accountId};
-
-    late final List<TransactionStat> stats;
     try {
       final result = await _api
           .select(_trnTable, [
-            _trnTable.accountIdColumn.alias('account_id'),
-            _amcTable.genreColumn.alias('genre'),
+            ..._amcTable.columns,
             _trnTable.idColumn.count('num_transactions'),
             _trnTable.amountColumn.sum('total_amount'),
           ])
           .join([_amcTable])
-          .where(filter)
-          .groupBy([_trnTable.accountIdColumn, _amcTable.genreColumn])
+          .where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
+          .groupBy([_amcTable.nameColumn])
           .toList();
       $logger.w(result);
-      stats = result.map<TransactionStat>((map) {
+      final stats = result.map<TransactionStat>((map) {
         return TransactionStat(
-          accountId: map['account_id'] as String,
-          amcGenre: AmcGenre.fromName(map['genre'] as String) ?? AmcGenre.misc,
+          accountId: accountId,
+          amc: InveslyAmc.fromDb(_amcTable.fromMap(map)),
           numTransactions: map['num_transactions'] as int,
           totalAmount: (map['total_amount'] as num).toDouble(),
         );
       }).toList();
+      return stats;
     } on Exception catch (err) {
       $logger.e(err);
-      stats = List<TransactionStat>.empty();
+      rethrow;
+      // stats = List<TransactionStat>.empty();
     }
-
-    return stats;
   }
 
   /// Add or update a transaction

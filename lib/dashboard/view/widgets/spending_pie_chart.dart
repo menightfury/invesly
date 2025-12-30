@@ -100,21 +100,26 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
   }
 
   List<PieChartSectionData> _buildSections(List<TransactionStat> stats) {
-    final totalAmount = stats.fold<double>(0, (v, el) => v + el.totalAmount);
+    final grandTotalAmount = stats.fold<double>(0, (v, el) => v + el.totalAmount);
     double totalPercentAccumulated = 0;
+
     return List.generate(AmcGenre.values.length, (i) {
       final genre = AmcGenre.fromIndex(i);
-      final stat = stats.singleWhereOrNull((stat) => stat.amcGenre == genre);
+      // final stat = stats.singleWhereOrNull((stat) => stat.amc == genre);
+      final filteredStats = stats.where((stat) => stat.amc.genre == genre);
+      final totalAmount = filteredStats.fold<double>(0, (v, el) => v + el.totalAmount);
+      final percent = grandTotalAmount == 0 ? 0.0 : ((totalAmount) / grandTotalAmount * 100).abs();
+
+      totalPercentAccumulated += percent;
+
       final isTouched = i == touchedIndex;
       final radius = isTouched ? 56.0 : 50.0;
       final widgetScale = isTouched ? 1.3 : 1.0;
-      final percent = ((stat?.totalAmount ?? 0.0) / totalAmount * 100).abs();
-      totalPercentAccumulated += percent;
 
       return PieChartSectionData(
         color: genre.color,
         // value: stat.totalAmount == 0 ? 5 : (stats[i].total / widget.totalSpent).abs(),
-        value: stat?.totalAmount,
+        value: totalAmount,
         showTitle: false,
         radius: radius,
         badgeWidget: _Badge(
