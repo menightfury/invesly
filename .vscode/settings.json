@@ -4,6 +4,7 @@
         "firestore",
         "gapi",
         "gapis",
-        "Invesly"
+        "Invesly",
+        "isin"
     ]
 }

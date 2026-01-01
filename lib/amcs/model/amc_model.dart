@@ -76,36 +76,33 @@ class AmcTag extends Equatable {
 }
 
 class StockTag extends AmcTag {
-  const StockTag(this.sector) : super(sector);
+  const StockTag({required this.sector, this.industry}) : super(sector);
 
   final String sector;
+  final String? industry;
 
   @override
   Map<String, dynamic> toMap() {
-    return {'sector': sector};
+    return <String, dynamic>{'sector': sector, 'industry': industry};
   }
 
   factory StockTag.fromMap(Map<String, dynamic> map) {
     assert(map['sector'] != null, 'Sector must not be null');
-    return StockTag(map['sector'] as String);
+    return StockTag(sector: map['sector'] as String, industry: map['industry'] as String?);
   }
 
   factory StockTag.fromJson(String source) => StockTag.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
-  Set<String> get tags => {sector};
+  Set<String> get tags => {sector, if (industry != null) industry!};
 
   @override
-  List<Object?> get props => [sector];
+  List<Object?> get props => [sector, industry];
 }
 
 class MfTag extends AmcTag {
-  const MfTag(this.category, {this.subCategory, this.plan, this.schemeType}) : super(category);
+  const MfTag({required this.category, this.subCategory, this.plan, this.schemeType}) : super(category);
 
-  // final MfCategory category;
-  // final MfSubCategory? subCategory;
-  // final MfPlan? plan;
-  // final MfSchemeType? schemeType;
   final String category;
   final String? subCategory;
   final String? plan;
@@ -127,7 +124,7 @@ class MfTag extends AmcTag {
     // assert(category != null, 'Invalid category value');
 
     return MfTag(
-      map['category'] as String,
+      category: map['category'] as String,
       // subCategory: map['sub_category'] != null ? MfSubCategory.fromTitle(map['sub_category'] as String) : null,
       subCategory: map['sub_category'] as String?,
       // plan: map['plan'] != null ? MfPlan.fromTitle(map['plan'] as String) : null,
@@ -183,21 +180,6 @@ class InveslyAmc extends AmcInDb {
     this.tag,
   }) : super(genreCode: genre?.name, tagString: tag?.toJson());
 
-  // InveslyAmc.stock({required super.name, required super.code, required super.isin, String? sector})
-  //   : genre = AmcGenre.stock,
-  //     tags = {sector},
-  //     super(id: 'stock-${$uuid.v1()}');
-
-  // InveslyAmc.insurance({required super.name, required super.code, required super.isin, String? plan})
-  //   : genre = AmcGenre.insurance,
-  //     tags = {plan},
-  //     super(id: 'insurance-${$uuid.v1()}');
-
-  // InveslyAmc.misc({required super.name, required super.code, required super.isin, String? tag})
-  //   : genre = AmcGenre.misc,
-  //     tags = {tag},
-  //     super(id: 'misc-${$uuid.v1()}');
-
   /// Genre of the AMC i.e. mf, stock, insurance, misc etc.
   final AmcGenre? genre;
 
@@ -216,8 +198,8 @@ class InveslyAmc extends AmcInDb {
     if (amcGenre != null && (tagString?.isNotEmpty ?? false)) {
       tag = switch (amcGenre) {
         AmcGenre.mf => MfTag.fromJson(tagString!),
-        AmcGenre.stock => AmcTag.fromJson(tagString!),
-        AmcGenre.insurance => AmcTag.fromJson(tagString!),
+        AmcGenre.stock => StockTag.fromJson(tagString!),
+        AmcGenre.insurance => InsuranceTag.fromJson(tagString!),
         _ => AmcTag.fromJson(tagString!),
       };
     }
@@ -304,69 +286,3 @@ extension StringEscaped on String {
         .toLowerCase();
   }
 }
-
-// ~ Mutual Fund specific enums
-// enum MfPlan {
-//   growth('Growth'),
-//   dividend('Dividend');
-
-//   const MfPlan(this.title);
-
-//   final String title;
-
-//   static MfPlan? fromTitle(String plan) {
-//     return MfPlan.values.firstWhereOrNull((e) => e.title == plan);
-//   }
-// }
-
-// enum MfSchemeType {
-//   direct('Direct'),
-//   regular('Regular');
-
-//   const MfSchemeType(this.title);
-
-//   final String title;
-
-//   static MfSchemeType? fromTitle(String type) {
-//     return MfSchemeType.values.firstWhereOrNull((e) => e.title == type);
-//   }
-// }
-
-// enum MfCategory {
-//   equity('Equity'),
-//   debt('Debt'),
-//   hybrid('Hybrid'),
-//   other('Other');
-
-//   const MfCategory(this.title);
-
-//   final String title;
-
-//   static MfCategory? fromTitle(String category) {
-//     return MfCategory.values.firstWhereOrNull((e) => e.title == category);
-//   }
-// }
-
-// enum MfSubCategory {
-//   large('Large cap'),
-//   mid('Mid cap'),
-//   largeMid('Large & Mid cap'),
-//   small('Small cap'),
-//   multiCap('Multi cap'),
-//   focused('Focused'),
-//   flexi('Flexi cap'),
-//   sectoral('Sectoral/Thematic'),
-//   eIndex('Index'),
-//   hybrid('Balanced/Hybrid'),
-//   etf('ETF'),
-//   taxSaving('Tax Saving (ELSS)'),
-//   other('Other');
-
-//   const MfSubCategory(this.title);
-
-//   final String title;
-
-//   static MfSubCategory? fromTitle(String? subCategory) {
-//     return MfSubCategory.values.firstWhereOrNull((e) => e.title == subCategory);
-//   }
-// }
