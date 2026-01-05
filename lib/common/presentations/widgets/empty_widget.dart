@@ -67,15 +67,16 @@ class EmptyWidgetPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // size: 256*0.85, 256
     final fillPaint = Paint()
       ..style = PaintingStyle.fill
-      ..color = color.lighten(30);
+      ..color = color.withAlpha(100);
 
     final path1 =
         'M 15.75 97.88 C 14.65 98.01 13.65 97.24 13.52 96.14 L 4.74 24.68 C 4.61 23.58 5.39 22.58 6.49 22.4465'
         'L 15.5364 21.3352 L 21.0545 20.6576 L 21.5 82.5 L 71.4 83 L 72.0928 88.9596'
         'C 72.2198 90.0518 71.4413 91.0417 70.3499 91.1757 L 15.7472 97.88 Z';
-    final path = getPathDataFromSvgPath(path1);
+    final path = getPathDataFromSvgPath(size: size, viewBox: Size(87, 102), svgPath: path1);
     canvas.drawPath(path, fillPaint);
   }
 
