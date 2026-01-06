@@ -4,59 +4,50 @@ import 'dart:ui';
 
 import 'package:path_parsing/path_parsing.dart';
 
-Path getPathDataFromSvgPath({required Size size, required Size viewBox, required String svgPath}) {
+Path getPathDataFromSvgPath(String svgPath, {Size? viewBox, Size? size}) {
   if (svgPath.isEmpty) {
     return Path();
   }
 
   final parser = SvgPathStringSource(svgPath);
   final normalizer = SvgPathNormalizer();
-  final pathProxy = _PathPrinter(size, viewBox);
+  final pathProxy = _PathProxyImpl(viewBox, size);
   for (final PathSegmentData seg in parser.parseSegments()) {
     normalizer.emitSegment(seg, pathProxy);
   }
   return pathProxy.path;
 }
 
-/// A [PathProxy] that dumps Flutter `Path` commands to the console.
-class _PathPrinter extends PathProxy {
-  _PathPrinter([Size? size, Size? viewBox])
+class _PathProxyImpl implements PathProxy {
+  _PathProxyImpl([Size? viewBox, Size? size])
     : path = Path(),
-      size = size ?? Size(100, 100),
-      viewBox = viewBox ?? Size(100, 100);
+      _size = size ?? viewBox ?? Size(1.0, 1.0),
+      _viewBox = viewBox ?? size ?? Size(1.0, 1.0);
 
   final Path path;
-  final Size size;
-  final Size viewBox;
+  final Size _viewBox;
+  final Size _size;
+
+  double get _scaleX => _size.width / _viewBox.width;
+  double get _scaleY => _size.height / _viewBox.height;
 
   @override
   void close() {
-    // print('Path.close();');
     path.close();
   }
 
   @override
   void cubicTo(double x1, double y1, double x2, double y2, double x3, double y3) {
-    // print('Path.cubicTo($x1, $y1, $x2, $y2, $x3, $y3);');
-    path.cubicTo(
-      x1 * size.width / viewBox.width,
-      y1 * size.height / viewBox.height,
-      x2 * size.width / viewBox.width,
-      y2 * size.height / viewBox.height,
-      x3 * size.width / viewBox.width,
-      y3 * size.height / viewBox.height,
-    );
+    path.cubicTo(x1 * _scaleX, y1 * _scaleY, x2 * _scaleX, y2 * _scaleY, x3 * _scaleX, y3 * _scaleY);
   }
 
   @override
   void lineTo(double x, double y) {
-    // print('Path.lineTo($x, $y);');
-    path.lineTo(x * size.width / viewBox.width, y * size.height / viewBox.height);
+    path.lineTo(x * _scaleX, y * _scaleY);
   }
 
   @override
   void moveTo(double x, double y) {
-    // print('Path.moveTo($x, $y);');
-    path.moveTo(x * size.width / viewBox.width, y * size.height / viewBox.height);
+    path.moveTo(x * _scaleX, y * _scaleY);
   }
 }

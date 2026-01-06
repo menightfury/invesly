@@ -6,7 +6,6 @@ import 'package:fl_chart/fl_chart.dart';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
-import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
@@ -122,11 +121,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     BlocProvider(create: (context) => TransactionStatCubit(repository: trnRepository)),
                   ],
                   child: BlocBuilder<AccountsCubit, AccountsState>(
+                    // TODO: Remove this Bloc and Assign to Individual widgets
                     builder: (context, accountsState) {
                       return BlocSelector<AppCubit, AppState, String?>(
                         selector: (state) => state.primaryAccountId,
                         builder: (context, accountId) {
-                          final status = accountsState.isError || accountId == null
+                          final status = accountsState.isError
                               ? _InitializationStatus.error
                               : accountsState.isLoaded
                               ? _InitializationStatus.initialized
@@ -164,17 +164,24 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
   @override
   void initState() {
     super.initState();
-    context.read<TransactionStatCubit>().fetchTransactionStats(widget.accountId);
-    context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, limit: 5);
+    _getStats();
   }
 
   @override
   void didUpdateWidget(covariant _DashboardScreenContent oldWidget) {
     if (widget.accountId != oldWidget.accountId) {
-      context.read<TransactionStatCubit>().fetchTransactionStats(widget.accountId);
-      context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, limit: 5);
+      _getStats();
     }
     super.didUpdateWidget(oldWidget);
+  }
+
+  void _getStats() {
+    final accountState = context.read<AccountsCubit>().state;
+    if ((widget.accountId?.isEmpty ?? true) || !accountState.idExists(widget.accountId!)) {
+      return;
+    }
+    context.read<TransactionStatCubit>().fetchTransactionStats(widget.accountId!);
+    context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, limit: 5);
   }
 
   @override
@@ -183,23 +190,23 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
       spacing: 16.0,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        _GenreSummariesWidget(status: widget.status),
-        _MutualFundWidget(status: widget.status),
-        _StockWidget(status: widget.status),
-        _RecentTransactions(status: widget.status),
+        _GenreSummariesWidget(),
+        _MutualFundWidget(initStatus: widget.status),
+        _StockWidget(initStatus: widget.status),
+        _RecentTransactions(initStatus: widget.status),
       ],
     );
   }
 }
 
-class EmptyAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const EmptyAppBar({super.key});
+// class EmptyAppBar extends StatelessWidget implements PreferredSizeWidget {
+//   const EmptyAppBar({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container();
+//   }
 
-  @override
-  Size get preferredSize => const Size.fromHeight(0.0);
-}
+//   @override
+//   Size get preferredSize => const Size.fromHeight(0.0);
+// }

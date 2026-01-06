@@ -1,9 +1,9 @@
 part of '../dashboard_screen.dart';
 
 class _RecentTransactions extends StatefulWidget {
-  const _RecentTransactions({super.key, this.status = _InitializationStatus.initializing});
+  const _RecentTransactions({super.key, this.initStatus = _InitializationStatus.initializing});
 
-  final _InitializationStatus status;
+  final _InitializationStatus initStatus;
 
   @override
   State<_RecentTransactions> createState() => _RecentTransactionsState();

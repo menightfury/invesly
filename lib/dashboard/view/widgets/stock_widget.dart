@@ -1,9 +1,9 @@
 part of '../dashboard_screen.dart';
 
 class _StockWidget extends StatefulWidget {
-  const _StockWidget({this.status = _InitializationStatus.initializing, super.key});
+  const _StockWidget({this.initStatus = _InitializationStatus.initializing, super.key});
 
-  final _InitializationStatus status;
+  final _InitializationStatus initStatus;
 
   @override
   State<_StockWidget> createState() => _StockWidgetState();
@@ -21,9 +21,9 @@ class _StockWidgetState extends State<_StockWidget> {
         SectionTile(
           title: BlocBuilder<TransactionStatCubit, TransactionStatState>(
             builder: (context, statState) {
-              final isLoading = widget.status.isInitializing || statState.isLoading;
-              final isError = widget.status.isError || statState.isError;
-              final stats = widget.status.isInitialized && statState is TransactionStatLoadedState
+              final isLoading = widget.initStatus.isInitializing || statState.isLoading;
+              final isError = widget.initStatus.isError || statState.isError;
+              final stats = widget.initStatus.isInitialized && statState is TransactionStatLoadedState
                   ? statState.stats.where((stat) => stat.amc.genre == AmcGenre.stock).toList()
                   : null;
               final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
