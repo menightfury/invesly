@@ -30,7 +30,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
               return BlocBuilder<TransactionStatCubit, TransactionStatState>(
                 builder: (context, statState) {
                   final isError = accountsState.isError || statState.isError;
-                  final isLoading = accountsState.isLoading && statState.isLoading;
+                  final isLoading = !isError && (accountsState.isLoading || statState.isLoading);
                   final stats = accountsState.isEmpty
                       ? <TransactionStat>[]
                       : statState is TransactionStatLoadedState
@@ -41,6 +41,8 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                     isLoading: isLoading,
                     child: Column(
                       children: <Widget>[
+                        if (accountsState.isLoaded && statState.isInitial) EmptyWidget(),
+
                         // ~ Total amount
                         totalAmount == null
                             ? Skeleton(color: isError ? context.colors.error : null, height: 24.0)
