@@ -43,7 +43,7 @@ class _AmcOverviewScreenState extends State<AmcOverviewScreen> {
 
               final amc = snapshot.data;
               if (amc == null) {
-                return const EmptyWidget(height: 160.0, label: 'Amc not found!');
+                return const EmptyWidget(height: 160.0, label: Text('Amc not found!'));
               }
 
               // final tags = [amc.plan, amc.sector, amc.subSector].whereNotNull().toList(growable: false);
@@ -157,7 +157,7 @@ class _TransactionListState extends State<_TransactionList> {
 
           final data = snapshot.data;
           if (data == null || data.isEmpty) {
-            return const EmptyWidget(height: 160.0, label: 'No transactions have been found!');
+            return const EmptyWidget(height: 160.0, label: Text('No transactions have been found!'));
           }
 
           return ColumnBuilder(

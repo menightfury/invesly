@@ -30,7 +30,10 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
               return BlocBuilder<TransactionStatCubit, TransactionStatState>(
                 builder: (context, statState) {
                   if (accountsState.isLoaded && statState.isInitial) {
-                    return EmptyWidget();
+                    return EmptyWidget(
+                      color: const Color.fromARGB(255, 85, 240, 90),
+                      label: Text('This is so empty.\n Add some transactions to see stats here.'),
+                    );
                   }
 
                   final isError = accountsState.isError || statState.isError;
