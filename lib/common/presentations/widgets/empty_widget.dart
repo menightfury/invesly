@@ -2,7 +2,7 @@ import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common_libs.dart';
 
 class EmptyWidget extends StatelessWidget {
-  const EmptyWidget({super.key, this.height = 256.0, this.color, this.label, this.onPressed});
+  const EmptyWidget({super.key, this.height = 128.0, this.color, this.label, this.onPressed});
 
   final double height;
   final Widget? label;
@@ -12,7 +12,7 @@ class EmptyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = this.color ?? theme.colorScheme.primary;
+    final color = this.color ?? theme.primaryColor;
     final lightColor = color.withLightness(0.9).toHex();
     final darkColor = color.withLightness(0.25).toHex();
 
@@ -43,7 +43,8 @@ class EmptyWidget extends StatelessWidget {
           //   size: Size(height * 0.8529, height),
           //   painter: EmptyWidgetPainter(color: color ?? theme.colorScheme.primary),
           // ),
-          if (label != null) DefaultTextStyle(style: theme.textTheme.labelMedium!, child: label!),
+          if (label != null)
+            DefaultTextStyle(style: theme.textTheme.labelMedium!, textAlign: TextAlign.center, child: label!),
           if (onPressed != null)
             Padding(
               padding: const EdgeInsets.only(top: 16.0),

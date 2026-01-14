@@ -34,7 +34,8 @@ class TransactionsState extends Equatable {
 }
 
 extension TransactionsStateX on TransactionsState {
-  bool get isLoading => status == TransactionsStatus.initial || status == TransactionsStatus.initial;
+  bool get isInitial => status == TransactionsStatus.initial;
+  bool get isLoading => status == TransactionsStatus.loading;
   bool get isLoaded => status == TransactionsStatus.loaded;
   bool get isError => status == TransactionsStatus.error;
 }

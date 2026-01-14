@@ -31,16 +31,6 @@ part 'widgets/transaction_stat.dart';
 part 'widgets/mutualfund_widget.dart';
 part 'widgets/stock_widget.dart';
 
-enum _InitializationStatus {
-  initializing,
-  initialized,
-  error;
-
-  bool get isInitializing => this == _InitializationStatus.initializing;
-  bool get isInitialized => this == _InitializationStatus.initialized;
-  bool get isError => this == _InitializationStatus.error;
-}
-
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -120,20 +110,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     BlocProvider(create: (context) => TransactionsCubit(repository: trnRepository)),
                     BlocProvider(create: (context) => TransactionStatCubit(repository: trnRepository)),
                   ],
-                  child: BlocBuilder<AccountsCubit, AccountsState>(
-                    // TODO: Remove this Bloc and Assign to Individual widgets
-                    builder: (context, accountsState) {
-                      return BlocSelector<AppCubit, AppState, String?>(
-                        selector: (state) => state.primaryAccountId,
-                        builder: (context, accountId) {
-                          final status = accountsState.isError
-                              ? _InitializationStatus.error
-                              : accountsState.isLoaded
-                              ? _InitializationStatus.initialized
-                              : _InitializationStatus.initializing;
-                          return _DashboardScreenContent(status: status, accountId: accountId);
-                        },
-                      );
+                  child: BlocSelector<AppCubit, AppState, String?>(
+                    selector: (state) => state.primaryAccountId,
+                    builder: (context, accountId) {
+                      return _DashboardScreenContent(accountId: accountId);
                     },
                   ),
                 ),
@@ -151,9 +131,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 class _DashboardScreenContent extends StatefulWidget {
-  const _DashboardScreenContent({super.key, required this.status, this.accountId});
+  const _DashboardScreenContent({super.key, this.accountId});
 
-  final _InitializationStatus status;
   final String? accountId;
 
   @override
@@ -177,6 +156,8 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
 
   void _getStats() {
     final accountState = context.read<AccountsCubit>().state;
+    $logger.e(widget.accountId?.isEmpty ?? true);
+    $logger.e(!accountState.idExists(widget.accountId!));
     if ((widget.accountId?.isEmpty ?? true) || !accountState.idExists(widget.accountId!)) {
       return;
     }
@@ -189,12 +170,7 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
     return Column(
       spacing: 16.0,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        _GenreSummariesWidget(),
-        _MutualFundWidget(initStatus: widget.status),
-        _StockWidget(initStatus: widget.status),
-        _RecentTransactions(initStatus: widget.status),
-      ],
+      children: <Widget>[_GenreSummariesWidget(), _MutualFundWidget(), _StockWidget(), _RecentTransactions()],
     );
   }
 }

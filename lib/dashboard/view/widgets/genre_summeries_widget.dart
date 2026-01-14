@@ -29,11 +29,9 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
             builder: (context, accountsState) {
               return BlocBuilder<TransactionStatCubit, TransactionStatState>(
                 builder: (context, statState) {
-                  if (accountsState.isLoaded && statState.isInitial) {
-                    return EmptyWidget(
-                      color: const Color.fromARGB(255, 85, 240, 90),
-                      label: Text('This is so empty.\n Add some transactions to see stats here.'),
-                    );
+                  $logger.e(statState);
+                  if (accountsState.isLoaded && (statState.isInitial || statState.isEmpty)) {
+                    return EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.'));
                   }
 
                   final isError = accountsState.isError || statState.isError;
@@ -44,6 +42,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                       ? statState.stats
                       : null;
                   final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
+
                   return Shimmer(
                     isLoading: isLoading,
                     child: Column(
