@@ -21,7 +21,7 @@ class _StockWidgetState extends State<_StockWidget> {
             builder: (context, accountsState) {
               return BlocBuilder<TransactionStatCubit, TransactionStatState>(
                 builder: (context, statState) {
-                  if (accountsState.isLoaded && statState.isInitial) {
+                  if (accountsState.isLoaded && (statState.isInitial || statState.isEmpty)) {
                     return EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.'));
                   }
 

@@ -29,7 +29,6 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
             builder: (context, accountsState) {
               return BlocBuilder<TransactionStatCubit, TransactionStatState>(
                 builder: (context, statState) {
-                  $logger.e(statState);
                   if (accountsState.isLoaded && (statState.isInitial || statState.isEmpty)) {
                     return EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.'));
                   }

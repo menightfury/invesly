@@ -38,4 +38,6 @@ extension TransactionsStateX on TransactionsState {
   bool get isLoading => status == TransactionsStatus.loading;
   bool get isLoaded => status == TransactionsStatus.loaded;
   bool get isError => status == TransactionsStatus.error;
+
+  bool get hasTransactions => transactions != null && transactions!.isNotEmpty;
 }

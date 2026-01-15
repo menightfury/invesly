@@ -44,5 +44,6 @@ extension TransactionStatStateX on TransactionStatState {
   bool get isLoaded => this is TransactionStatLoadedState;
   bool get isError => this is TransactionStatErrorState;
 
-  bool get isEmpty => isLoaded && (TransactionStatState as TransactionStatLoadedState).stats.isEmpty;
+  bool get isNotEmpty => isLoaded && (this as TransactionStatLoadedState).stats.isNotEmpty;
+  bool get isEmpty => !isNotEmpty;
 }

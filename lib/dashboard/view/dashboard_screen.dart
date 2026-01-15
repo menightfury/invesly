@@ -155,10 +155,7 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
   }
 
   void _getStats() {
-    final accountState = context.read<AccountsCubit>().state;
-    $logger.e(widget.accountId?.isEmpty ?? true);
-    $logger.e(!accountState.idExists(widget.accountId!));
-    if ((widget.accountId?.isEmpty ?? true) || !accountState.idExists(widget.accountId!)) {
+    if (widget.accountId?.isEmpty ?? true) {
       return;
     }
     context.read<TransactionStatCubit>().fetchTransactionStats(widget.accountId!);

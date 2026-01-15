@@ -16,7 +16,7 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
           builder: (context, trnState) {
             late final List<Widget> tiles;
 
-            if (accountsState.isLoaded && trnState.isInitial) {
+            if (accountsState.isLoaded && (trnState.isInitial || !trnState.hasTransactions)) {
               tiles = <Widget>[
                 SectionTile(
                   title: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')),
