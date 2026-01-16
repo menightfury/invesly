@@ -146,7 +146,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               return BlocSelector<AppCubit, AppState, bool>(
                                 selector: (state) => state.primaryAccountId == account?.id,
                                 builder: (context, isCurrentAccount) {
-                                  $logger.i('rebuilding $account');
                                   return Shimmer(
                                     isLoading: isLoading,
                                     child: SectionTile(
@@ -398,9 +397,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: const Icon(Icons.share_rounded),
                       title: const Text('Share with friends'),
                       subtitle: const Text('Share Invesly with your friends and family'),
-                      onChanged: (value) {
-                        $logger.i('Share with friends: $value');
-                      },
+                      onChanged: (value) {},
                       value: true,
                     ),
                     SectionTile(

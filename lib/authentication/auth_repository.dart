@@ -178,7 +178,6 @@ class AuthRepository {
         $fields: 'files(id, name, modifiedTime, size)',
       );
       final files = fileList.files;
-      $logger.i(files);
       if (files == null || files.isEmpty) {
         return null;
       }
@@ -383,7 +382,6 @@ class AuthRepository {
   Future<void> saveFileInDrive({required gapis.AccessToken accessToken, required File file}) async {
     try {
       final driveApi = _driveApi ?? await getDriveApi(accessToken);
-      $logger.i('File Size ${(file.lengthSync() / 1e+6).toString()}');
       final dbFileBytes = await file.readAsBytes();
 
       final media = drive.Media(file.openRead(), dbFileBytes.length);

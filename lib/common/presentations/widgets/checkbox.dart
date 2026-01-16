@@ -49,7 +49,6 @@ class _EMCheckboxState extends State<EMCheckbox> with SingleTickerProviderStateM
 
     if (widget.value != oldWidget.value) {
       _previousValue = oldWidget.value;
-      $logger.f(_previousValue);
       if (widget.value) {
         _animController.forward();
       } else {
@@ -112,11 +111,10 @@ class _CheckPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     assert(percentage >= 0.0 && percentage <= 1.0);
 
-    final paint =
-        Paint()
-          ..strokeWidth = strokeWidth
-          ..strokeCap = StrokeCap.round
-          ..style = PaintingStyle.stroke;
+    final paint = Paint()
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
 
     final center = Offset(size.width / 2, size.height / 2);
     final d = size.shortestSide - strokeWidth;

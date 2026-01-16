@@ -38,7 +38,6 @@ class AccountsCubit extends Cubit<AccountsState> {
       _subscription?.pause();
       try {
         final accounts = await _repository.getAccounts();
-        $logger.f(accounts);
         emit(AccountsLoadedState(accounts));
       } on Exception catch (error) {
         emit(AccountsErrorState(error.toString()));

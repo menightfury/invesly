@@ -53,7 +53,6 @@ class TransactionRepository {
       // orderBy: '${_trnTable.dateColumn.title} DESC',
       // limit: showItems,
 
-      $logger.f(result);
       if (result.isEmpty) return List<InveslyTransaction>.empty();
 
       transactions = result.map<InveslyTransaction>((map) {
@@ -84,7 +83,6 @@ class TransactionRepository {
           .where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
           .groupBy([_amcTable.nameColumn])
           .toList();
-      $logger.w(result);
       final stats = result.map<TransactionStat>((map) {
         return TransactionStat(
           accountId: accountId,

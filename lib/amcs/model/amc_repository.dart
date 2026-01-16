@@ -33,7 +33,6 @@ class AmcRepository {
   /// Get all amcs
   Future<List<InveslyAmc>> getAllAmcs() async {
     final dbData = await _api.select(_amcTable).toList();
-    // $logger.i(dbData);
     return dbData.map<InveslyAmc>((e) => InveslyAmc.fromDb(_amcTable.fromMap(e))).toList();
   }
 
