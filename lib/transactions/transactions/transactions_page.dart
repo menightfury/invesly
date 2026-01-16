@@ -32,7 +32,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<AccountsCubit>().fetchAccounts();
+    context.read<AccountsCubit>().fetchAccounts(); // TODO: why ??
   }
 
   @override
