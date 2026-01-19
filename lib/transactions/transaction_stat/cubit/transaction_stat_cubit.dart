@@ -17,7 +17,7 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
   StreamSubscription<TableChangeEvent>? _subscription;
 
   /// Fetch transaction statistics (on initial load, on transactions change)
-  Future<void> fetchTransactionStats(String accountId) async {
+  Future<void> fetchTransactionStats(String accountId, {String? amcId}) async {
     // Cancel any existing subscription
     await _subscription?.cancel();
     _subscription = null;

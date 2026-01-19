@@ -28,7 +28,26 @@ class AmcRepository {
 
   // static const String _stockUrl =
   //     'https://www.nseindia.com/api/historical/cm/equity?symbol=ADANIENSOL&from=20-10-2025&to=23-10-2025';
-  // static const String _mfUrl = 'api.mfapi.in';
+  //
+  // static const String _mfUrl = 'https://api.mfapi.in/mf/127042/latest';
+  //   {
+  //   "meta": {
+  //     "fund_house": "Motilal Oswal Mutual Fund",
+  //     "scheme_type": "Open Ended Schemes",
+  //     "scheme_category": "Equity Scheme - Mid Cap Fund",
+  //     "scheme_code": 127042,
+  //     "scheme_name": "Motilal Oswal Midcap Fund-Direct Plan-Growth Option",
+  //     "isin_growth": "INF247L01445",
+  //     "isin_div_reinvestment": null
+  //   },
+  //   "data": [
+  //     {
+  //       "date": "16-01-2026",
+  //       "nav": "112.07910"
+  //     }
+  //   ],
+  //   "status": "SUCCESS"
+  // }
 
   /// Get all amcs
   Future<List<InveslyAmc>> getAllAmcs() async {

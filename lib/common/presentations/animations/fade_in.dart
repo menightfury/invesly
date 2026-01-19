@@ -6,7 +6,7 @@ class FadeIn extends StatefulWidget {
   const FadeIn({
     super.key,
     required this.child,
-    this.duration = const Duration(milliseconds: 200),
+    this.duration = const Duration(milliseconds: 240),
     this.fadeIn = true,
     this.from = const Offset(0, -0.1),
     this.curve = Curves.fastOutSlowIn,
