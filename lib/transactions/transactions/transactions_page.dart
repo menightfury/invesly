@@ -39,10 +39,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) {
-        return TransactionsCubit(
-          repository: context.read<TransactionRepository>(),
-          initialFilters: widget.initialFilters,
-        );
+        return TransactionsCubit(repository: TransactionRepository.instance, initialFilters: widget.initialFilters);
       },
       child: _PageContent(),
     );

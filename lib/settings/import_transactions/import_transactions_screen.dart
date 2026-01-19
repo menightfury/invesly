@@ -26,7 +26,7 @@ class ImportTransactionsScreen extends StatelessWidget {
             accountRepository: context.read<AccountRepository>(),
             // amcRepository: context.read<AmcRepository>(),
             amcRepository: AmcRepository.instance,
-            transactionRepository: context.read<TransactionRepository>(),
+            transactionRepository: TransactionRepository.instance,
           ),
           child: _ImportTransactionsScreen(),
         ),

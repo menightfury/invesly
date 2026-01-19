@@ -44,7 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = context.textTheme;
-    final trnRepository = context.read<TransactionRepository>();
+    final trnRepository = TransactionRepository.instance;
 
     return Scaffold(
       body: SafeArea(

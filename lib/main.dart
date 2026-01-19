@@ -37,12 +37,12 @@ class InveslyApp extends StatelessWidget {
     BackupRepository.initialize(api);
     final accountRepository = AccountRepository(api);
     AmcRepository.initialize(api);
-    final trnRepository = TransactionRepository(api);
+    TransactionRepository.initialize(api);
 
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider<AccountRepository>.value(value: accountRepository),
-        RepositoryProvider<TransactionRepository>.value(value: trnRepository),
+        // RepositoryProvider<TransactionRepository>.value(value: trnRepository),
       ],
       child: MultiBlocProvider(
         providers: [

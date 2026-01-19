@@ -470,7 +470,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _onExportAsCsvPressed(BuildContext context) async {
     late final SnackBar snackBar;
     try {
-      final csvData = await context.read<TransactionRepository>().transactionsToCsv();
+      final csvData = await TransactionRepository.instance.transactionsToCsv();
       final file = await BackupRepository.instance.exportCsv(
         csvData,
         '/path/to/local/storage',

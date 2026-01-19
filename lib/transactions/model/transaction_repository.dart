@@ -9,7 +9,18 @@ import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 
 class TransactionRepository {
-  TransactionRepository(InveslyApi api) : _api = api;
+  // singleton api instance
+  static TransactionRepository? _instance;
+  static TransactionRepository get instance {
+    assert(_instance != null, 'Please make sure to initialize before getting repository');
+    return _instance!;
+  }
+
+  factory TransactionRepository.initialize(InveslyApi api) {
+    _instance ??= TransactionRepository._(api);
+    return _instance!;
+  }
+  const TransactionRepository._(this._api);
 
   final InveslyApi _api;
 
