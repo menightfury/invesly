@@ -22,6 +22,8 @@ import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:invesly/transactions/transactions/transactions_page.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 part 'widgets/accounts.dart';
 part 'widgets/genre_summeries_widget.dart';

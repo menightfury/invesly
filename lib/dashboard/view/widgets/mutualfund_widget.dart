@@ -41,7 +41,7 @@ class _MutualFundWidgetState extends State<_MutualFundWidget> {
                       children: <Widget>[
                         // ~ Total amount
                         totalAmount == null
-                            ? Skeleton(color: isError ? context.colors.error : null, height: 24.0)
+                            ? Skeleton2(color: isError ? context.colors.error : null, height: 24.0)
                             : BlocSelector<AppCubit, AppState, bool>(
                                 selector: (state) => state.isPrivateMode,
                                 builder: (context, isPrivateMode) {
@@ -58,7 +58,7 @@ class _MutualFundWidgetState extends State<_MutualFundWidget> {
 
                         // ~ Holdings
                         stats == null
-                            ? Skeleton(color: isError ? context.colors.error : null, height: 20.0)
+                            ? Skeleton2(color: isError ? context.colors.error : null, height: 20.0)
                             : Text('${stats.length} holdings'),
 
                         // ~ Top three holdings
@@ -75,12 +75,12 @@ class _MutualFundWidgetState extends State<_MutualFundWidget> {
                               //         backgroundColor: genre.color.lighten(70),
                               //         child: Icon(genre.icon, color: genre.color),
                               //       ),
-                              title: stat == null ? Skeleton() : Text(stat.amc.name, overflow: TextOverflow.ellipsis),
+                              title: stat == null ? Skeleton2() : Text(stat.amc.name, overflow: TextOverflow.ellipsis),
                               subtitle: stats == null
-                                  ? Skeleton(color: isError ? context.colors.error : null)
+                                  ? Skeleton2(color: isError ? context.colors.error : null)
                                   : Text('${stat?.numTransactions ?? 0} transactions', overflow: TextOverflow.ellipsis),
                               trailingIcon: stats == null
-                                  ? Skeleton(color: isError ? context.colors.error : null)
+                                  ? Skeleton2(color: isError ? context.colors.error : null)
                                   : BlocSelector<AppCubit, AppState, bool>(
                                       selector: (state) => state.isPrivateMode,
                                       builder: (context, isPrivateMode) {

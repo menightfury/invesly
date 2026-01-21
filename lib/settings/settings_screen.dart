@@ -155,10 +155,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         backgroundImage: account != null ? AssetImage(account.avatarSrc) : null,
                                       ),
                                       title: account == null
-                                          ? Skeleton(color: isError ? context.colors.error : null)
+                                          ? Skeleton2(color: isError ? context.colors.error : null)
                                           : Text(account.name.toSentenceCase(), overflow: TextOverflow.ellipsis),
                                       subtitle: account == null
-                                          ? Skeleton(color: isError ? context.colors.error : null)
+                                          ? Skeleton2(color: isError ? context.colors.error : null)
                                           : isCurrentAccount
                                           ? const Text('Primary account')
                                           : null,

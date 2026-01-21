@@ -228,7 +228,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                             children: <Widget>[
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                                child: gtEntry != null ? Text(gtEntry.key.toReadable()) : Skeleton(),
+                                child: gtEntry != null ? Text(gtEntry.key.toReadable()) : Skeleton2(),
                               ),
                               Section(
                                 tiles: List.generate(gtEntry?.value.length ?? 4, (i) {
@@ -244,10 +244,10 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                               color: trn.transactionType.color(context),
                                             ),
                                           )
-                                        : Skeleton(height: 24.0, width: 24.0, shape: CircleBorder()),
+                                        : Skeleton2(height: 24.0, width: 24.0, shape: CircleBorder()),
                                     title: trn != null
                                         ? Text(trn.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium)
-                                        : const Skeleton(height: 24.0),
+                                        : const Skeleton2(height: 24.0),
                                     subtitle: trn != null
                                         ? Column(
                                             mainAxisSize: MainAxisSize.min,
@@ -257,7 +257,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                               Text(trn.account.name),
                                             ],
                                           )
-                                        : const Skeleton(height: 12.0),
+                                        : const Skeleton2(height: 12.0),
                                     trailingIcon: trn != null
                                         ? BlocSelector<AppCubit, AppState, bool>(
                                             selector: (state) => state.isPrivateMode,
@@ -280,7 +280,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                               );
                                             },
                                           )
-                                        : const Skeleton(height: 24.0),
+                                        : const Skeleton2(height: 24.0),
                                     onTap: () => context.push(EditTransactionScreen(initialTransaction: trn)),
                                   );
                                 }),
@@ -387,7 +387,7 @@ class _TransactionFiltersSelectionState extends State<TransactionFiltersSelectio
                         mainAxisSize: MainAxisSize.min,
                         spacing: 16.0,
                         children: List.generate(2, (_) {
-                          return Skeleton(
+                          return Skeleton2(
                             color: isError ? context.colors.error : null,
                             width: Random().nextDouble() * 150.0 + 200.0,
                             height: 50.0,

@@ -139,7 +139,7 @@ class AmcRepository {
 
     try {
       final client = http.Client();
-      final uri = amc.genre == AmcGenre.stock ? _stockUrl(amc.id) : _mfUrl(amc.id);
+      final uri = amc.genre == AmcGenre.stock ? _stockUrl(amc.id) : _mfUrl(amc.code);
       final response = await client.get(Uri.parse(uri));
 
       if (response.statusCode != 200 && response.body.isEmpty) {
@@ -157,7 +157,7 @@ class AmcRepository {
       }
 
       if (amc.genre == AmcGenre.mf) {
-        final data = (parsed['data'] as List<Object?>).cast<Map<String, String>>();
+        final data = (parsed['data'] as List<Object?>).cast<Map<String, dynamic>>();
         final latestEntry = data.first;
         final dateParts = latestEntry['date'].toString().split('-');
         final date = DateTime(

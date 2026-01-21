@@ -42,32 +42,30 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                       : null;
                   final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
 
-                  return Shimmer(
-                    isLoading: isLoading,
+                  return Skeletonizer(
+                    enabled: isLoading,
                     child: Column(
                       children: <Widget>[
                         // ~ Total amount
-                        totalAmount == null
-                            ? Skeleton(color: isError ? context.colors.error : null, height: 24.0)
-                            : BlocSelector<AppCubit, AppState, bool>(
-                                selector: (state) => state.isPrivateMode,
-                                builder: (context, isPrivateMode) {
-                                  return CurrencyView(
-                                    amount: totalAmount,
-                                    integerStyle: textTheme.headlineLarge,
-                                    decimalsStyle: textTheme.headlineSmall,
-                                    currencyStyle: textTheme.bodyMedium,
-                                    privateMode: isPrivateMode,
-                                    // compactView: snapshot.data! >= 1_00_00_000
-                                  );
-                                },
-                              ),
+                        BlocSelector<AppCubit, AppState, bool>(
+                          selector: (state) => state.isPrivateMode,
+                          builder: (context, isPrivateMode) {
+                            return CurrencyView(
+                              amount: totalAmount ?? 0.0,
+                              integerStyle: textTheme.headlineLarge,
+                              decimalsStyle: textTheme.headlineSmall,
+                              currencyStyle: textTheme.bodyMedium,
+                              privateMode: isPrivateMode,
+                              // compactView: snapshot.data! >= 1_00_00_000
+                            );
+                          },
+                        ),
 
                         // ~ Pie chart
                         SizedBox(
                           height: 224.0,
                           child: stats == null
-                              ? Skeleton(color: isError ? context.colors.error : null)
+                              ? Skeleton2(color: isError ? context.colors.error : null)
                               : ValueListenableBuilder(
                                   valueListenable: _selectedGenre,
                                   builder: (context, selectedCategory, _) {
@@ -99,27 +97,27 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                                 return SectionTile(
                                   tileColor: isSelected ? genre.color : Colors.white.withAlpha(100),
                                   icon: isLoading
-                                      ? Skeleton()
+                                      ? Skeleton2()
                                       : CircleAvatar(
                                           backgroundColor: genre.color.lighten(70),
                                           child: Icon(genre.icon, color: genre.color),
                                         ),
                                   title: isLoading
-                                      ? Skeleton()
+                                      ? Skeleton2()
                                       : Text(
                                           genre.title,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(color: isSelected ? Colors.white : null),
                                         ),
                                   subtitle: stats == null
-                                      ? Skeleton(color: isError ? context.colors.error : null)
+                                      ? Skeleton2(color: isError ? context.colors.error : null)
                                       : Text(
                                           '${numTransactions ?? 0} transactions',
                                           style: TextStyle(color: isSelected ? Colors.white : null),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                   trailingIcon: stats == null
-                                      ? Skeleton(color: isError ? context.colors.error : null)
+                                      ? Skeleton2(color: isError ? context.colors.error : null)
                                       : BlocSelector<AppCubit, AppState, bool>(
                                           selector: (state) => state.isPrivateMode,
                                           builder: (context, isPrivateMode) {

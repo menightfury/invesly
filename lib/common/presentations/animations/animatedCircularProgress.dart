@@ -46,7 +46,7 @@ class _AnimatedCircularProgressState extends State<AnimatedCircularProgress> wit
     _animation = Tween<double>(
       begin: 0,
       end: capPercentage(widget.percent),
-    ).animate(new CurvedAnimation(parent: _animationController, curve: Curves.easeInOutCubicEmphasized));
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOutCubicEmphasized));
     _animationController.forward();
   }
 
@@ -63,7 +63,7 @@ class _AnimatedCircularProgressState extends State<AnimatedCircularProgress> wit
       _animation = Tween<double>(
         begin: oldWidget.percent,
         end: capPercentage(widget.percent),
-      ).animate(new CurvedAnimation(parent: _animationController, curve: Curves.easeInOutCubicEmphasized));
+      ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOutCubicEmphasized));
     }
     super.didUpdateWidget(oldWidget);
   }

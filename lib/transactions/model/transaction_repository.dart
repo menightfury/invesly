@@ -60,6 +60,7 @@ class TransactionRepository {
 
     late final List<InveslyTransaction> transactions;
     try {
+      await Future<void>.delayed(const Duration(seconds: 2)); // TODO: Remove this delay
       final result = await _api.select(_trnTable).join([_accountTable, _amcTable]).where(filter).toList(limit: limit);
       // orderBy: '${_trnTable.dateColumn.title} DESC',
       // limit: showItems,
@@ -84,6 +85,7 @@ class TransactionRepository {
   /// Get transaction statistics
   Future<List<TransactionStat>> getTransactionStats(String accountId) async {
     try {
+      await Future<void>.delayed(const Duration(seconds: 2)); // TODO: Remove this delay
       final result = await _api
           .select(_trnTable, [
             ..._amcTable.columns,
@@ -112,6 +114,7 @@ class TransactionRepository {
 
   /// Add or update a transaction
   Future<void> saveTransaction(TransactionInDb transaction, [bool isNew = true]) async {
+    await Future<void>.delayed(const Duration(seconds: 2)); // TODO: Remove this delay
     if (isNew) {
       await _api.insert(_trnTable, transaction);
     } else {

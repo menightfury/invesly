@@ -69,7 +69,7 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
                     child: ListTile(
                       leading: CircleAvatar(foregroundImage: account != null ? AssetImage(account.avatarSrc) : null),
                       title: isLoading || isError
-                          ? Skeleton(height: 24.0, color: isError ? context.colors.error : null)
+                          ? Skeleton2(height: 24.0, color: isError ? context.colors.error : null)
                           : Text(account?.name ?? ''),
                       trailing: account?.id == widget.accountId ? const Icon(Icons.check_rounded) : null,
                       onTap: account != null ? () => widget.onPickup?.call(account) : null,

@@ -56,7 +56,7 @@ class _AccountsListState extends State<_AccountsList> {
                       return Shimmer(
                         isLoading: isLoading,
                         child: account == null
-                            ? Skeleton(
+                            ? Skeleton2(
                                 color: isError ? context.colors.error : null,
                                 width: 160.0,
                                 height: 56.0,
@@ -99,7 +99,7 @@ class _AccountsListState extends State<_AccountsList> {
                   Shimmer(
                     isLoading: isLoading,
                     child: isLoading
-                        ? Skeleton(
+                        ? Skeleton2(
                             color: isError ? context.colors.error : null,
                             width: 160.0,
                             height: 50.0,
