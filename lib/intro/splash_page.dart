@@ -43,7 +43,7 @@ class _SplashPageState extends State<SplashPage> {
         if (sha != null && sha != appState.amcSha && url != null) {
           // If sha is not same, it means amcs in remote location have changed
           // Fetch and update amcs
-          final amcs = await AmcRepository.instance.fetchAmcsFromNetwork(client, url);
+          final amcs = await AmcRepository.instance.getAmcsFromNetwork(client, url);
           $logger.w(amcs);
           // write amcs to database
           if (amcs != null && amcs.isNotEmpty) {

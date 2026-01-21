@@ -5,7 +5,6 @@ import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/transactions/transaction_stat/cubit/transaction_stat_cubit.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 
 class AmcOverviewScreen extends StatelessWidget {
@@ -22,21 +21,15 @@ class AmcOverviewScreen extends StatelessWidget {
         BlocProvider(create: (context) => AmcOverviewCubit(repository: AmcRepository.instance)),
         BlocProvider(create: (context) => TransactionsCubit(repository: trnRepository)),
       ],
-      child: BlocSelector<AppCubit, AppState, String?>(
-        selector: (state) => state.primaryAccountId,
-        builder: (context, accountId) {
-          return _AmcOverviewScreen(amcId, accountId);
-        },
-      ),
+      child: _AmcOverviewScreen(amcId),
     );
   }
 }
 
 class _AmcOverviewScreen extends StatefulWidget {
-  const _AmcOverviewScreen(this.amcId, this.accountId, {super.key});
+  const _AmcOverviewScreen(this.amcId, {super.key});
 
   final String amcId;
-  final String? accountId;
 
   @override
   State<_AmcOverviewScreen> createState() => _AmcOverviewScreenState();
@@ -54,8 +47,6 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
   void didUpdateWidget(covariant _AmcOverviewScreen oldWidget) {
     if (oldWidget.amcId != widget.amcId) {
       _getAmcOverview();
-    }
-    if (oldWidget.accountId != widget.accountId) {
       _getStats();
     }
     super.didUpdateWidget(oldWidget);
@@ -66,18 +57,23 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
   }
 
   void _getStats() {
-    if (widget.accountId?.isEmpty ?? true) {
+    final accountId = context.read<AppCubit>().state.primaryAccountId;
+    if (accountId?.isEmpty ?? true) {
       return;
     }
-    context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, amcId: widget.amcId);
+    context.read<TransactionsCubit>().fetchTransactions(accountId: accountId, amcId: widget.amcId);
   }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    
+
     return BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
       builder: (context, amcState) {
+        final latestPrice = amcState is AmcOverviewLoadedState && amcState.latestPrice != null
+            ? amcState.latestPrice
+            : null;
+
         return Scaffold(
           appBar: AppBar(
             title: amcState is AmcOverviewLoadedState && amcState.amc != null
@@ -96,32 +92,64 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                   //     ? statState.stats
                   //     : null;
                   // final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
-                  final totalInvested = trnState.hasTransactions
+                  final totalUnits = trnState.hasTransactions
+                      ? trnState.transactions!.fold<double>(0.0, (v, el) => v + el.quantity)
+                      : null;
+                  final totalAmountInvested = trnState.hasTransactions
                       ? trnState.transactions!.fold<double>(0.0, (v, el) => v + el.totalAmount)
-                      : 0.0;
+                      : null;
+
+                  final currentValue = totalUnits != null && (latestPrice?.$2?.isFinite ?? false)
+                      ? totalUnits * latestPrice!.$2!
+                      : null;
+
                   return Section(
                     title: amcState is AmcOverviewLoadedState && amcState.amc != null
                         ? FadeIn(key: Key('amc_loaded'), child: Text(amcState.amc!.name))
                         : Text(widget.amcId),
                     subTitle: Text('Overview'), // TODO: Show amc tags
                     tiles: <Widget>[
-                      _buildDetailRow('Shares', '$totalInvested'),
+                      SectionTile(
+                        title: const Text('No. of units'),
+                        trailingIcon: totalUnits != null ? Text('$totalUnits') : Text('Empty'), // TODO: Fix this
+                      ),
+                      SectionTile(
+                        title: const Text('Current value'),
+                        subtitle: latestPrice != null
+                            ? Text(latestPrice.$1.toReadable())
+                            : Text(DateTime.now().toReadable()),
+                        trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                          selector: (state) => state.isPrivateMode,
+                          builder: (context, isPrivateMode) {
+                            return CurrencyView(
+                              amount: (latestPrice?.$2?.isFinite ?? false) ? totalUnits * latestPrice!.$2! : 0.0,
+                              integerStyle: textTheme.headlineLarge,
+                              decimalsStyle: textTheme.headlineSmall,
+                              currencyStyle: textTheme.bodyMedium,
+                              privateMode: isPrivateMode,
+                              // compactView: snapshot.data! >= 1_00_00_000
+                            );
+                          },
+                        ),
+                      ),
+                      SectionTile(
+                        title: const Text('Invested'),
+                        trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                          selector: (state) => state.isPrivateMode,
+                          builder: (context, isPrivateMode) {
+                            return CurrencyView(
+                              amount: totalAmountInvested,
+                              integerStyle: textTheme.headlineLarge,
+                              decimalsStyle: textTheme.headlineSmall,
+                              currencyStyle: textTheme.bodyMedium,
+                              privateMode: isPrivateMode,
+                              // compactView: snapshot.data! >= 1_00_00_000
+                            );
+                          },
+                        ),
+                      ),
                       _buildDetailRow('Total returns', '+₹1,035.00 (14.79%)', valueColor: Colors.teal.shade500),
                       _buildDetailRow('1D returns', '+₹77.00 (0.97%)', valueColor: Colors.teal.shade500),
-                      _buildDetailRow('Current', '₹8,035.00'),
-                      SectionTile(title: Text('Invested'), trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                                selector: (state) => state.isPrivateMode,
-                                builder: (context, isPrivateMode) {
-                                  return CurrencyView(
-                                    amount: totalInvested,
-                                    integerStyle: textTheme.headlineLarge,
-                                    decimalsStyle: textTheme.headlineSmall,
-                                    currencyStyle: textTheme.bodyMedium,
-                                    privateMode: isPrivateMode,
-                                    // compactView: snapshot.data! >= 1_00_00_000
-                                  );
-                                },
-                              ),),
                       _buildDetailRow('Mkt. price', '₹160.70'),
                       _buildDetailRow('Avg. price', '₹140.00'),
                     ],
