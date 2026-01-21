@@ -169,7 +169,7 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
     return Column(
       spacing: 16.0,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[_GenreSummariesWidget(), _MutualFundWidget(), _StockWidget(), _RecentTransactions()],
+      children: <Widget>[_RecentTransactions(), _GenreSummariesWidget(), _MutualFundWidget(), _StockWidget()],
     );
   }
 }

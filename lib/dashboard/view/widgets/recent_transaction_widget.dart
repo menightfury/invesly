@@ -19,9 +19,9 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
               tiles = <Widget>[
                 SectionTile(title: Text(trnState.errorMsg ?? 'Some error has been occurred! Please try again later.')),
               ];
-            } else if (accountsState.isLoaded) {
+            } else if (accountsState.isLoaded && trnState.isLoaded) {
               if ((accountsState as AccountsLoadedState).accounts.isNotEmpty &&
-                  (trnState.isLoaded && (trnState.transactions?.isNotEmpty ?? false))) {
+                  (trnState.transactions?.isNotEmpty ?? false)) {
                 tiles = trnState.transactions!.map((trn) {
                   return SectionTile(
                     icon: Icon(trn.transactionType.icon),
