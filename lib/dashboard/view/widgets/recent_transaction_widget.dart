@@ -15,40 +15,42 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
         return BlocBuilder<TransactionsCubit, TransactionsState>(
           builder: (context, trnState) {
             late final List<Widget> tiles;
+
             if (accountsState.isError || trnState.isError) {
               tiles = <Widget>[
                 SectionTile(title: Text(trnState.errorMsg ?? 'Some error has been occurred! Please try again later.')),
               ];
-            } else if (accountsState.isLoaded && trnState.isLoaded) {
-              if ((accountsState as AccountsLoadedState).accounts.isNotEmpty &&
-                  (trnState.transactions?.isNotEmpty ?? false)) {
-                tiles = trnState.transactions!.map((trn) {
-                  return SectionTile(
-                    icon: Icon(trn.transactionType.icon),
-                    title: Text(trn.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
-                    subtitle: Text(trn.investedOn.toReadable()),
-                    trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                      selector: (state) => state.isPrivateMode,
-                      builder: (context, isPrivateMode) {
-                        return CurrencyView(
-                          amount: trn.totalAmount,
-                          integerStyle: context.textTheme.headlineSmall?.copyWith(
-                            color: trn.transactionType.color(context),
-                          ),
-                          privateMode: isPrivateMode,
-                        );
-                      },
-                    ),
-                    // onTap: () {},
-                  );
-                }).toList();
-              } else {
-                tiles = <Widget>[
-                  SectionTile(
-                    title: const EmptyWidget(label: Text('This is so empty.\n Add some transactions to see here.')),
+            } else if ((accountsState.isLoaded && (accountsState as AccountsLoadedState).accounts.isEmpty) ||
+                (trnState.isLoaded && (trnState.transactions?.isEmpty ?? true))) {
+              tiles = <Widget>[
+                SectionTile(
+                  title: const EmptyWidget(label: Text('This is so empty.\n Add some transactions to see here.')),
+                ),
+              ];
+            } else if (accountsState.isLoaded &&
+                (accountsState as AccountsLoadedState).accounts.isNotEmpty &&
+                trnState.isLoaded &&
+                (trnState.transactions?.isNotEmpty ?? false)) {
+              tiles = trnState.transactions!.map((trn) {
+                return SectionTile(
+                  icon: Icon(trn.transactionType.icon),
+                  title: Text(trn.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
+                  subtitle: Text(trn.investedOn.toReadable()),
+                  trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                    selector: (state) => state.isPrivateMode,
+                    builder: (context, isPrivateMode) {
+                      return CurrencyView(
+                        amount: trn.totalAmount,
+                        integerStyle: context.textTheme.headlineSmall?.copyWith(
+                          color: trn.transactionType.color(context),
+                        ),
+                        privateMode: isPrivateMode,
+                      );
+                    },
                   ),
-                ];
-              }
+                  // onTap: () {},
+                );
+              }).toList();
             } else {
               tiles = List.generate(5, (index) {
                 return Skeletonizer(child: SectionTile(title: Text('Loading...')));

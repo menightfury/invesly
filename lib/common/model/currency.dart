@@ -17,4 +17,14 @@ class Currency extends Equatable {
 
   @override
   List<Object?> get props => [code, symbol, name];
+
+  Map<String, dynamic> toMap() {
+    return {'code': code, 'symbol': symbol, 'name': name};
+  }
+
+  factory Currency.fromMap(Map<String, dynamic> map) {
+    return Currency(code: map['code'] ?? '', symbol: map['symbol'] ?? '', name: map['name'] ?? '');
+  }
+
+  static const empty = Currency(code: 'INR', symbol: '₹', name: 'Indian Rupee');
 }

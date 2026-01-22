@@ -1,8 +1,12 @@
 import 'dart:ui';
-import 'package:animated_flip_counter/animated_flip_counter.dart';
+// import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'single_digit_flip_counter.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/data/currencies.dart';
+import 'package:invesly/common/model/currency.dart';
+// import 'single_digit_flip_counter.dart';
 
 class CurrencyView extends StatelessWidget {
   /// Creates a widget that takes an amount and display it in a localized currency
@@ -52,75 +56,63 @@ class CurrencyView extends StatelessWidget {
   final _compactLimit = 1000;
   bool get _shouldCompact => compactView && amount.abs() >= _compactLimit;
 
-  NumberFormat _getFormatter() {
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<AppCubit, AppState, Currency?>(
+      selector: (state) => state.currency,
+      builder: (context, appCurrency) {
+        final currency = appCurrency ?? Currencies.defaultCurrency;
+        final formatter = _getFormatter(currency);
+        final formattedNumber = _getFormattedAmountWithoutCurrency(formatter);
+        final parts = formattedNumber.split('.'); // TODO: decimal_separator
+
+        Widget child = Text.rich(
+          TextSpan(
+            style: integerStyle,
+            children: [
+              // Currency symbol
+              TextSpan(text: currency.symbol, style: currencyStyle ?? decimalsStyle ?? integerStyle),
+              // Spacer
+              if (currency.symbol.length > 1) const TextSpan(text: ' '),
+
+              // Integer part
+              TextSpan(text: parts[0], style: integerStyle),
+
+              if (parts.length > 1) ...[
+                // Decimal separator
+                TextSpan(text: '.', style: integerStyle), // TODO: decimal_separator
+                // Decimal part
+                TextSpan(text: parts[1], style: _shouldCompact ? integerStyle : (decimalsStyle ?? integerStyle)),
+              ],
+            ],
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        );
+
+        if (privateMode) {
+          child = ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 7.0, sigmaY: 7.0), child: child);
+        }
+
+        return child;
+      },
+    );
+  }
+
+  NumberFormat _getFormatter(Currency currency) {
     if (_shouldCompact) {
-      final formatter = NumberFormat.compactCurrency(locale: locale, name: '\u20B9', decimalDigits: decimalDigits);
-      // formatter.minimumFractionDigits = _fractionsDigits;
-      // formatter.maximumFractionDigits = _fractionsDigits;
-      return formatter;
+      return NumberFormat.compactCurrency(
+        locale: locale,
+        name: currency.symbol, // Use symbol as name to force symbol display or we can use code
+        decimalDigits: decimalDigits,
+      );
     }
 
-    return NumberFormat.simpleCurrency(locale: locale, name: '\u20B9', decimalDigits: decimalDigits);
+    return NumberFormat.simpleCurrency(locale: locale, name: currency.code, decimalDigits: decimalDigits);
   }
 
   String _getFormattedAmountWithoutCurrency(NumberFormat formatter) {
     final fAmount = formatter.format(amount);
     return fAmount.split(formatter.currencySymbol).join();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final formatter = _getFormatter();
-    final formattedNumber = _getFormattedAmountWithoutCurrency(formatter);
-    final parts = formattedNumber.split('.'); // TODO: decimal_separator
-
-    Widget child = Text.rich(
-      TextSpan(
-        style: integerStyle,
-        children: [
-          // Currency symbol
-          TextSpan(text: formatter.currencySymbol, style: currencyStyle ?? decimalsStyle ?? integerStyle),
-
-          // Integer part
-          TextSpan(text: parts[0], style: integerStyle),
-
-          if (parts.length > 1) ...[
-            // Decimal separator
-            TextSpan(text: '.', style: integerStyle), // TODO: decimal_separator
-            // Decimal part
-            TextSpan(text: parts[1], style: _shouldCompact ? integerStyle : (decimalsStyle ?? integerStyle)),
-          ],
-        ],
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
-
-    // // Row
-    // final integerWidgets = <Widget>[];
-    // for (int i = 0; i < digits.length - fractionDigits; i++) {
-    //   final digit = SingleDigitFlipCounter(
-    //     key: ValueKey(digits.length - i),
-    //     value: digits[i].toDouble(),
-    //     duration: duration,
-    //     curve: curve,
-    //     size: prototypeDigit.size,
-    //     color: color,
-    //     padding: padding,
-    //     // We might want to hide leading zeroes. The way we split digits, only
-    //     // leading zeroes have "true zero" value. E.g. five hundred, 0500 is
-    //     // split into [0, 5, 50, 500]. Since 50 and 500 are not 0, they are
-    //     // always visible. But we should not show 0.48 as .48 so the last
-    //     // zero before decimal point is always visible.
-    //     visible: hideLeadingZeroes ? digits[i] != 0 || i == digits.length - fractionDigits - 1 : true,
-    //   );
-    //   integerWidgets.add(digit);
-    // }
-
-    if (privateMode) {
-      child = ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 7.0, sigmaY: 7.0), child: child);
-    }
-
-    return child;
   }
 }

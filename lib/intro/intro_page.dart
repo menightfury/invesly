@@ -3,9 +3,13 @@ import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
+import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/import_backup_page.dart';
 import 'package:invesly/dashboard/view/dashboard_screen.dart';
+import 'package:invesly/settings/currency_selector_screen.dart';
+import 'package:invesly/common/model/currency.dart';
+import 'package:invesly/common/data/currencies.dart';
 
 const _kPaddingTop = 48.0;
 const _kImageSize = 156.0;
@@ -53,14 +57,32 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
             'With Invesly, you can finally achieve the stress free independence. You will have graphs, statistics, tips and so much',
         imgSrc: 'assets/images/intro/chart.png',
       ),
-      const _PageModel(
+      _PageModel(
         // title: $strings.introMoneyTitle,
         title: 'Manage all your accounts',
         // description: $strings.introMoneyDescription,
         description:
             'Your default currency will be used in reports and general charts. You will be able to change currency later at any time in the application settings',
         imgSrc: 'assets/images/intro/piggybank.png',
-        extra: ListTile(title: Text('Select your currency'), subtitle: Text('Indian rupee')),
+        extra: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: iFormFieldLabelSpacing,
+          children: <Widget>[
+            Text('Select your currency'),
+            BlocSelector<AppCubit, AppState, Currency?>(
+              selector: (state) => state.currency,
+              builder: (context, currency) {
+                final selected = currency ?? Currencies.defaultCurrency;
+                return SectionTile(
+                  icon: const Icon(Icons.currency_dollar_rounded, size: 24.0),
+                  title: Text('${selected.name} (${selected.symbol})'),
+                  onTap: () => context.push(const CurrencySelectorScreen()),
+                  trailingIcon: const Icon(Icons.arrow_forward_ios_rounded, size: 16.0),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       _PageModel(
         // title: $strings.introPayLaterTitle,

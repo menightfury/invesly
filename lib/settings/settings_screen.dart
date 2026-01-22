@@ -14,6 +14,7 @@ import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/auth_ui_functions.dart';
 import 'package:invesly/authentication/user_model.dart';
+import 'package:invesly/common/model/currency.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/widgets/circle_avatar.dart';
@@ -23,6 +24,7 @@ import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_repository.dart';
 import 'package:invesly/settings/import_transactions/import_transactions_screen.dart';
+import 'package:invesly/settings/currency_selector_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -204,11 +206,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         $logger.d(value);
                       },
                     ),
-                    SectionTile(
-                      title: const Text('Currency'),
-                      // title: Text(context.watch<SettingsRepository>().currentLocale.name),
-                      icon: const Icon(Icons.attach_money_rounded),
-                      subtitle: const Text('Choose your preferred currency'),
+                    BlocSelector<AppCubit, AppState, Currency?>(
+                      selector: (state) => state.currency,
+                      builder: (context, currency) {
+                        return SectionTile(
+                          title: const Text('Currency'),
+                          // title: Text(context.watch<SettingsRepository>().currentLocale.name),
+                          icon: const Icon(Icons.attach_money_rounded),
+                          subtitle: Text(
+                            currency != null
+                                ? '${currency.name} (${currency.symbol})'
+                                : 'Choose your preferred currency',
+                          ),
+                          onTap: () => context.push(const CurrencySelectorScreen()),
+                        );
+                      },
                     ),
                     BlocSelector<AppCubit, AppState, bool>(
                       selector: (state) => state.isPrivateMode,
