@@ -302,10 +302,12 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                             cubit.calculate();
                           }
 
+                          final currentState = cubit.state;
+
                           // XOR operation
-                          if (state.leftOperand.isZeroOrEmpty ^ state.rightOperand.isZeroOrEmpty) {
-                            $logger.w(state.rightOperand);
-                            widget.onSubmit?.call(double.tryParse(state.rightOperand) ?? 0.0);
+                          if (currentState.leftOperand.isZeroOrEmpty ^ currentState.rightOperand.isZeroOrEmpty) {
+                            $logger.w(currentState.rightOperand);
+                            widget.onSubmit?.call(double.tryParse(currentState.rightOperand) ?? 0.0);
                           }
                         },
                         label: (state.leftOperand.isZeroOrEmpty || state.rightOperand.isZeroOrEmpty) ? null : '=',

@@ -79,7 +79,7 @@ class CalculatorCubit extends Cubit<CalculatorState> {
 
   /// Handle clearing screen
   void handleClearPressed() {
-    emit(state.copyWith(leftOperand: '', rightOperand: '0', operator: null));
+    emit(const CalculatorState());
   }
 
   /// Handle backspace (delete last character)
