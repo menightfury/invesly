@@ -228,7 +228,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                             children: <Widget>[
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                                child: gtEntry != null ? Text(gtEntry.key.toReadable()) : Skeleton2(),
+                                child: gtEntry != null ? FormattedDate(date: gtEntry.key) : Skeleton2(),
                               ),
                               Section(
                                 tiles: List.generate(gtEntry?.value.length ?? 4, (i) {
@@ -253,7 +253,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                             mainAxisSize: MainAxisSize.min,
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: <Widget>[
-                                              Text(trn.investedOn.toReadable()),
+                                              FormattedDate(date: trn.investedOn),
                                               Text(trn.account.name),
                                             ],
                                           )

@@ -116,8 +116,8 @@ class _DriveImportBackupPageState extends State<_DriveImportBackupPage> {
                       const Gap(8.0),
                       const Text('Backup found!', style: TextStyle(fontWeight: FontWeight.w600)),
                       if (file.modifiedTime != null)
-                        Text(
-                          file.modifiedTime!.toReadable(),
+                        FormattedDate(
+                          date: file.modifiedTime!,
                           style: context.textTheme.labelMedium?.copyWith(color: Colors.grey),
                         ),
 

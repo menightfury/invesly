@@ -111,8 +111,8 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                         SectionTile(
                           title: const Text('Current value'),
                           subtitle: latestPrice != null
-                              ? Text(latestPrice.$1.toReadable())
-                              : Text(DateTime.now().toReadable()),
+                              ? FormattedDate(date: latestPrice.$1)
+                              : FormattedDate(date: DateTime.now()),
                           trailingIcon: BlocSelector<AppCubit, AppState, bool>(
                             selector: (state) => state.isPrivateMode,
                             builder: (context, isPrivateMode) {

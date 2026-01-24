@@ -196,14 +196,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: const Icon(Icons.language_rounded),
                       subtitle: const Text('English'),
                     ),
-                    SectionTile(
-                      title: const Text('Date format'),
-                      // title: Text(context.watch<SettingsRepository>().currentLocale.name),
-                      icon: const Icon(Icons.language_rounded),
-                      subtitle: const Text('English'),
-                      onTap: () async {
-                        final value = await InveslyDateFormatPicker.showModal(context);
-                        $logger.d(value);
+                    BlocSelector<AppCubit, AppState, String?>(
+                      selector: (state) => state.dateFormat,
+                      builder: (context, dateFormat) {
+                        return SectionTile(
+                          title: const Text('Date format'),
+                          icon: const Icon(Icons.calendar_month_rounded),
+                          subtitle: Text(dateFormat ?? 'Default'),
+                          onTap: () async {
+                            final value = await InveslyDateFormatPicker.showModal(context, dateFormat);
+                            if (value != null && context.mounted) {
+                              context.read<AppCubit>().updateDateFormat(value);
+                            }
+                          },
+                        );
                       },
                     ),
                     BlocSelector<AppCubit, AppState, Currency?>(

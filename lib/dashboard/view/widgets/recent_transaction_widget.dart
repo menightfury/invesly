@@ -35,7 +35,7 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
                 return SectionTile(
                   icon: Icon(trn.transactionType.icon),
                   title: Text(trn.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
-                  subtitle: Text(trn.investedOn.toReadable()),
+                  subtitle: FormattedDate(date: trn.investedOn),
                   trailingIcon: BlocSelector<AppCubit, AppState, bool>(
                     selector: (state) => state.isPrivateMode,
                     builder: (context, isPrivateMode) {
