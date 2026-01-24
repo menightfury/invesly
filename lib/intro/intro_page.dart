@@ -68,16 +68,21 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: iFormFieldLabelSpacing,
           children: <Widget>[
-            Text('Select your currency'),
+            const Text('Select your currency'),
             BlocSelector<AppCubit, AppState, Currency?>(
               selector: (state) => state.currency,
               builder: (context, currency) {
                 final selected = currency ?? Currencies.defaultCurrency;
                 return SectionTile(
-                  icon: const Icon(Icons.currency_dollar_rounded, size: 24.0),
+                  icon: CircleAvatar(
+                    backgroundColor: context.theme.primaryColor,
+                    foregroundColor: context.theme.colorScheme.onPrimary,
+                    child: Text(selected.symbol),
+                  ),
                   title: Text('${selected.name} (${selected.symbol})'),
                   onTap: () => context.push(const CurrencySelectorScreen()),
                   trailingIcon: const Icon(Icons.arrow_forward_ios_rounded, size: 16.0),
+                  borderRadius: iCardBorderRadius,
                 );
               },
             ),

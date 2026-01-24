@@ -53,17 +53,25 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
               }).toList();
             } else {
               tiles = List.generate(5, (index) {
-                return Skeletonizer(child: SectionTile(title: Text('Loading...')));
+                return SectionTile(
+                  icon: Icon(Icons.swap_vert_rounded),
+                  title: Text('Loading...', style: context.textTheme.bodyMedium),
+                  subtitle: Text('Loading...'),
+                  trailingIcon: CurrencyView(amount: 0.0, integerStyle: context.textTheme.headlineSmall),
+                );
               });
             }
 
             return Column(
               children: <Widget>[
-                Section(
-                  title: const Text('Recent Transactions'),
-                  // subTitle: Text('From ${period.start.toReadable()} to ${period.end.toReadable()}'),
-                  icon: const Icon(Icons.swap_vert_rounded),
-                  tiles: tiles,
+                Skeletonizer(
+                  enabled: accountsState.isLoading || trnState.isLoading,
+                  child: Section(
+                    title: const Skeleton.keep(child: Text('Recent Transactions')),
+                    // subTitle: Text('From ${period.start.toReadable()} to ${period.end.toReadable()}'),
+                    icon: const Skeleton.keep(child: Icon(Icons.swap_vert_rounded)),
+                    tiles: tiles,
+                  ),
                 ),
                 if (trnState.isLoaded && trnState.transactions!.isNotEmpty)
                   Padding(
