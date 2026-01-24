@@ -1,4 +1,5 @@
 import 'package:invesly/authentication/user_model.dart';
+import 'package:invesly/common/model/currency.dart';
 import 'package:invesly/common_libs.dart';
 
 part 'app_state.dart';
@@ -44,6 +45,10 @@ class AppCubit extends HydratedCubit<AppState> {
 
   void updateAmcSha(String? amcSha) {
     emit(state.copyWith(amcSha: () => amcSha));
+  }
+
+  void updateCurrency(Currency currency) {
+    emit(state.copyWith(currency: () => currency));
   }
 
   @override

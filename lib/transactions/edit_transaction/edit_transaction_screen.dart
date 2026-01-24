@@ -32,7 +32,7 @@ class EditTransactionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) {
-        return EditTransactionCubit(repository: context.read<TransactionRepository>(), initial: initialTransaction);
+        return EditTransactionCubit(repository: TransactionRepository.instance, initial: initialTransaction);
       },
       child: const _EditTransactionScreen(),
     );
@@ -201,7 +201,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> with Si
                                     final label = switch (days) {
                                       0 => 'Today',
                                       1 => 'Yesterday',
-                                      _ => date.toReadable(),
+                                      _ => date.toReadable(context.read<AppCubit>().state.dateFormat),
                                     };
                                     return Text(label, overflow: TextOverflow.ellipsis);
                                   },

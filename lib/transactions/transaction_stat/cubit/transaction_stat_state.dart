@@ -39,7 +39,11 @@ class TransactionStatLoadedState extends TransactionStatState {
 }
 
 extension TransactionStatStateX on TransactionStatState {
-  bool get isLoading => this is TransactionStatInitialState || this is TransactionStatLoadingState;
+  bool get isInitial => this is TransactionStatInitialState;
+  bool get isLoading => this is TransactionStatLoadingState;
   bool get isLoaded => this is TransactionStatLoadedState;
   bool get isError => this is TransactionStatErrorState;
+
+  bool get isNotEmpty => isLoaded && (this as TransactionStatLoadedState).stats.isNotEmpty;
+  bool get isEmpty => isLoaded && (this as TransactionStatLoadedState).stats.isEmpty;
 }

@@ -75,7 +75,7 @@ class Tappable extends StatelessWidget {
               children: <Widget>[
                 ?leading,
                 Flexible(
-                  child: Align(alignment: childAlignment, child: this.child),
+                  child: Align(alignment: childAlignment, child: child),
                 ),
                 ?trailing,
               ],

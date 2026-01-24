@@ -19,6 +19,7 @@ export 'common/presentations/widgets/tappable.dart';
 export 'common/presentations/widgets/tapzoom_effect.dart';
 export 'constants.dart';
 export 'common/presentations/widgets/currency_view.dart';
+export 'common/presentations/widgets/formatted_date.dart';
 export 'common/presentations/widgets/date_picker.dart';
 export 'common/presentations/widgets/empty_widget.dart';
 export 'common/presentations/widgets/error_widget.dart';

@@ -67,7 +67,7 @@ class _TransactionSummeryWidget extends StatelessWidget {
 
   Widget buildTransactionList(BuildContext context, double totalClassAmount) {
     if (transactions.isEmpty) {
-      return EmptyWidget(height: 160.0, label: 'No transactions in ${genre.title.toLowerCase()}');
+      return EmptyWidget(height: 160.0, label: Text('No transactions in ${genre.title.toLowerCase()}'));
     }
 
     final textTheme = Theme.of(context).textTheme;

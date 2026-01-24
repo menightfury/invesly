@@ -36,8 +36,6 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
     emit(const ImportTransactionsState(csvStatus: CsvStatus.loading));
 
-    await Future.delayed(2.seconds); // ! TODO: remove this line
-
     try {
       final csvString = await File(result.files.first.path!).readAsString();
       final parsedCSV = BackupRepository.processCsv(csvString);

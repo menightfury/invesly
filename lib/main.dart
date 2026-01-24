@@ -37,12 +37,12 @@ class InveslyApp extends StatelessWidget {
     BackupRepository.initialize(api);
     final accountRepository = AccountRepository(api);
     AmcRepository.initialize(api);
-    final trnRepository = TransactionRepository(api);
+    TransactionRepository.initialize(api);
 
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider<AccountRepository>.value(value: accountRepository),
-        RepositoryProvider<TransactionRepository>.value(value: trnRepository),
+        // RepositoryProvider<TransactionRepository>.value(value: trnRepository),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -84,9 +84,7 @@ class _AppViewState extends State<_AppView> {
   Widget build(BuildContext context) {
     return
     // BlocListener<InternetCubit, InternetState>(
-    //   listener: (context, state) {
-    //     $logger.d(state);
-    //   },
+    //   listener: (context, state) {},
     //   child:
     BlocBuilder<AppCubit, AppState>(
       buildWhen: (previous, current) {
@@ -95,7 +93,7 @@ class _AppViewState extends State<_AppView> {
             previous.accentColor != current.accentColor;
       },
       builder: (context, state) {
-        $logger.i('Material app rebuilds 😟.');
+        $logger.e('Material app rebuilds 😟.');
 
         return DynamicColorBuilder(
           builder: (lightDynamic, darkDynamic) {

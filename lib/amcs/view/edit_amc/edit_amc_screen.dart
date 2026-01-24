@@ -218,7 +218,6 @@ class __EditViewState extends State<_EditView> {
                                     prefixIcon: const Icon(Icons.style_outlined),
                                     hintText: 'Add custom tag',
                                   ),
-                                  // onSubmitted: (value) => $logger.d(value),
                                 );
                               },
                             ),

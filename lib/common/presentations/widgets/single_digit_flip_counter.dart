@@ -28,7 +28,6 @@ class SingleDigitFlipCounter extends StatelessWidget {
       duration: duration,
       curve: curve,
       builder: (_, value, _) {
-        $logger.d(value);
         final whole = value ~/ 1;
         final decimal = (value - whole) as double;
         final w = size.width + padding.horizontal;

@@ -26,14 +26,32 @@ class AmcRepository {
 
   AmcTable get _amcTable => _api.amcTable;
 
-  // static const String _stockUrl =
-  //     'https://www.nseindia.com/api/historical/cm/equity?symbol=ADANIENSOL&from=20-10-2025&to=23-10-2025';
-  // static const String _mfUrl = 'api.mfapi.in';
+  String _stockUrl(String id) =>
+      'https://www.nseindia.com/api/historical/cm/equity?symbol=$id&from=20-10-2025&to=23-10-2025'; // TODO: Not working
+
+  String _mfUrl(String id) => 'https://api.mfapi.in/mf/$id/latest';
+  //   {
+  //   "meta": {
+  //     "fund_house": "Motilal Oswal Mutual Fund",
+  //     "scheme_type": "Open Ended Schemes",
+  //     "scheme_category": "Equity Scheme - Mid Cap Fund",
+  //     "scheme_code": 127042,
+  //     "scheme_name": "Motilal Oswal Midcap Fund-Direct Plan-Growth Option",
+  //     "isin_growth": "INF247L01445",
+  //     "isin_div_reinvestment": null
+  //   },
+  //   "data": [
+  //     {
+  //       "date": "16-01-2026",
+  //       "nav": "112.07910"
+  //     }
+  //   ],
+  //   "status": "SUCCESS"
+  // }
 
   /// Get all amcs
   Future<List<InveslyAmc>> getAllAmcs() async {
     final dbData = await _api.select(_amcTable).toList();
-    // $logger.i(dbData);
     return dbData.map<InveslyAmc>((e) => InveslyAmc.fromDb(_amcTable.fromMap(e))).toList();
   }
 
@@ -103,7 +121,7 @@ class AmcRepository {
   }
 
   /// Fetch amcs from network
-  Future<List<AmcInDb>?> fetchAmcsFromNetwork(http.Client client, String uri) async {
+  Future<List<AmcInDb>?> getAmcsFromNetwork(http.Client client, String uri) async {
     final response = await client.get(Uri.parse(uri));
 
     if (response.statusCode != 200 && response.body.isEmpty) return null;
@@ -114,5 +132,46 @@ class AmcRepository {
       final parsed = (jsonDecode(body) as List<Object?>).cast<Map<String, dynamic>>();
       return parsed.map<AmcInDb>(AmcTable.instance.fromMap).toList();
     }, response.body);
+  }
+
+  Future<(DateTime, double?)> getLatestPrice(InveslyAmc amc) async {
+    final now = DateTime.now();
+
+    try {
+      final client = http.Client();
+      final uri = amc.genre == AmcGenre.stock ? _stockUrl(amc.id) : _mfUrl(amc.code);
+      final response = await client.get(Uri.parse(uri));
+
+      if (response.statusCode != 200 && response.body.isEmpty) {
+        return (now, null);
+      }
+
+      // If the server did return a 200 OK response, parse the JSON.
+      final parsed = jsonDecode(response.body) as Map<String, dynamic>;
+
+      if (amc.genre == AmcGenre.stock) {
+        // final data = (parsed['data'] as List<Object?>).cast<Map<String, dynamic>>();
+        // final lastEntry = data.last;
+        // return double.tryParse(lastEntry['close'].toString()) ?? 0.0;
+        return (now, null); // Placeholder until actual implementation is done
+      }
+
+      if (amc.genre == AmcGenre.mf) {
+        final data = (parsed['data'] as List<Object?>).cast<Map<String, dynamic>>();
+        final latestEntry = data.first;
+        final dateParts = latestEntry['date'].toString().split('-');
+        final date = DateTime(
+          int.tryParse(dateParts[2]) ?? now.year,
+          int.tryParse(dateParts[1]) ?? now.month,
+          int.tryParse(dateParts[0]) ?? now.day,
+        );
+
+        return (date, double.tryParse(latestEntry['nav'].toString()));
+      }
+
+      return (now, null); // Placeholder until actual implementation is done
+    } catch (e) {
+      throw ('Error fetching current AMC price: $e');
+    }
   }
 }

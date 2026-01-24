@@ -197,7 +197,6 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
                               //     return _AccountWidget(
                               //       account: account,
                               //       onChanged: (val) {
-                              //         $logger.d(val);
                               //         _accounts[index] = val;
                               //       },
                               //     );
@@ -212,7 +211,6 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
                               //     return _AccountWidget2(
                               //       initialValue: account,
                               //       onChanged: (val) {
-                              //         $logger.d(val);
                               //         _accounts[index] = val;
                               //       },
                               //       validator: (value) {
@@ -277,7 +275,6 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
               //         child: _AccountWidget(
               //           account: account,
               //           onChanged: (val) {
-              //             $logger.d(val);
               //             _accounts.elementAt(index) = val;
               //           },
               //         ),
@@ -455,7 +452,6 @@ class _ScrollBasedSliverAppBarContentBuilderState extends State<ScrollBasedSlive
 
   void _positionListener() {
     _opacityNotifier.value = ((_position!.extentBefore - settings.minExtent) / 100).clamp(0.0, 1.0);
-    // $logger.d(_position!.extentBefore - settings.minExtent);
   }
 
   @override
@@ -569,7 +565,7 @@ class _ScrollBasedSliverAppBarContentBuilderState extends State<ScrollBasedSlive
 //                 color: Colors.redAccent.withAlpha(60),
 //                 child: InkWell(
 //                   splashColor: Colors.redAccent.withAlpha(60),
-//                   onTap: () => $logger.d('Deleting account'),
+//                   onTap: () {},
 //                   child: const Padding(
 //                     padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
 //                     child: Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
@@ -699,7 +695,7 @@ class _ScrollBasedSliverAppBarContentBuilderState extends State<ScrollBasedSlive
 //                        color: Colors.redAccent.withAlpha(60),
 //                        child: InkWell(
 //                          splashColor: Colors.redAccent.withAlpha(60),
-//                          onTap: () => $logger.d('Deleting account'),
+//                          onTap: () {},
 //                          child: const Padding(
 //                            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
 //                            child: Icon(Icons.delete_forever_rounded, color: Colors.redAccent),

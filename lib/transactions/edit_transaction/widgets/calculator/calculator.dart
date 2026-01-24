@@ -305,9 +305,9 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                           final currentState = cubit.state;
 
                           // XOR operation
-                          if (currentState.leftOperand.isZeroOrEmpty ^ currentState.rightOperand.isZeroOrEmpty) {
-                            $logger.w(currentState.rightOperand);
-                            widget.onSubmit?.call(double.tryParse(currentState.rightOperand) ?? 0.0);
+                          if (state.leftOperand.isZeroOrEmpty ^ state.rightOperand.isZeroOrEmpty) {
+                            $logger.w(state.rightOperand);
+                            widget.onSubmit?.call(double.tryParse(state.rightOperand) ?? 0.0);
                           }
                         },
                         label: (state.leftOperand.isZeroOrEmpty || state.rightOperand.isZeroOrEmpty) ? null : '=',
@@ -403,7 +403,6 @@ class _NumberDisplayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    $logger.d('Building number displayer for $amount');
     final parts = amount.toString().split('.');
     // final data = NumberFormat.decimalPattern('en_IN').format(amount);
     // final fData = formatAmount(data);

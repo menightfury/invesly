@@ -12,6 +12,7 @@ class AppState extends Equatable {
     // this.gapiAccessToken,
     this.dateFormat,
     this.amcSha,
+    this.currency,
   });
 
   final bool isOnboarded;
@@ -25,6 +26,8 @@ class AppState extends Equatable {
 
   /// AMC SHAs received from github releases - Used to check if the local AMC list is recent or not
   final String? amcSha;
+
+  final Currency? currency;
 
   /// Hide all currency values
   final bool isPrivateMode;
@@ -40,6 +43,7 @@ class AppState extends Equatable {
     // AccessToken? Function()? gapiAccessToken,
     String? Function()? dateFormat,
     String? Function()? amcSha,
+    Currency? Function()? currency,
   }) {
     return AppState(
       isOnboarded: isOnboarded ?? this.isOnboarded,
@@ -52,6 +56,7 @@ class AppState extends Equatable {
       // gapiAccessToken: gapiAccessToken != null ? gapiAccessToken() : this.gapiAccessToken,
       dateFormat: dateFormat != null ? dateFormat() : this.dateFormat,
       amcSha: amcSha != null ? amcSha() : this.amcSha,
+      currency: currency != null ? currency() : this.currency,
     );
   }
 
@@ -67,6 +72,7 @@ class AppState extends Equatable {
     // gapiAccessToken,
     dateFormat,
     amcSha,
+    currency,
   ];
 
   Map<String, dynamic> toMap() {
@@ -81,6 +87,7 @@ class AppState extends Equatable {
       // 'gapiAccessToken': gapiAccessToken?.toJson(),
       'dateFormat': dateFormat,
       'amcShas': amcSha,
+      'currency': currency?.toMap(),
     };
   }
 
@@ -98,6 +105,7 @@ class AppState extends Equatable {
       //     : null,
       dateFormat: map['dateFormat'] as String?,
       amcSha: map['amcShas'] as String?,
+      currency: map['currency'] != null ? Currency.fromMap(map['currency']) : null,
     );
   }
 

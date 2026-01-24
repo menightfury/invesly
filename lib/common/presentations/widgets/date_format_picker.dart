@@ -35,27 +35,35 @@ class InveslyDateFormatPicker extends StatelessWidget {
 
     return SafeArea(
       child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
-              child: Text('Select a date format', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
-            ),
-            Section(
-              tiles: dateFormats.map((data) {
-                // final isSelectionAllowed = !columnsToExclude.contains(data.key);
-                return SectionTile(
-                  title: Text(data),
-                  subtitle: Text(DateFormat(data).format(dateNow)),
-                  onTap: () => context.pop(data),
-                  trailingIcon: data == value ? const Icon(Icons.check_rounded) : null,
-                  // enabled: isSelectionAllowed,
-                  selected: data == value,
-                );
-              }).toList(),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Column(
+            // crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+                child: Text(
+                  'Select a date format',
+                  style: context.textTheme.labelLarge,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Section(
+                tiles: dateFormats.map((data) {
+                  // final isSelectionAllowed = !columnsToExclude.contains(data.key);
+                  return SectionTile(
+                    title: Text(DateFormat(data).format(dateNow)),
+                    subtitle: Text(data),
+                    onTap: () => context.pop(data),
+                    trailingIcon: data == value ? const Icon(Icons.check_rounded) : null,
+                    selectedTileColor: context.theme.primaryColor.withAlpha(125),
+                    // enabled: isSelectionAllowed,
+                    selected: data == value,
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
         ),
       ),
     );

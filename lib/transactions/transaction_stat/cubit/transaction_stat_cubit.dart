@@ -17,7 +17,7 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
   StreamSubscription<TableChangeEvent>? _subscription;
 
   /// Fetch transaction statistics (on initial load, on transactions change)
-  Future<void> fetchTransactionStats(String? accountId) async {
+  Future<void> fetchTransactionStats(String accountId, {String? amcId}) async {
     // Cancel any existing subscription
     await _subscription?.cancel();
     _subscription = null;
@@ -27,10 +27,10 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
     try {
       // wait for 2 seconds
       await Future.delayed(2.seconds); // TODO: Remove this
-      if (accountId == null) {
-        emit(const TransactionStatErrorState('No account has been selected'));
-        return;
-      }
+      // if (accountId == null) {
+      //   emit(const TransactionStatErrorState('No account has been selected'));
+      //   return;
+      // }
       final transactionStats = await _repository.getTransactionStats(accountId);
       emit(TransactionStatLoadedState(stats: transactionStats));
     } on Exception catch (error) {
@@ -48,12 +48,12 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
       _subscription?.pause();
 
       try {
-        if (accountId == null) {
-          emit(const TransactionStatErrorState('No account has been selected'));
-        } else {
-          final transactionStats = await _repository.getTransactionStats(accountId);
-          emit(TransactionStatLoadedState(stats: transactionStats));
-        }
+        // if (accountId == null) {
+        //   emit(const TransactionStatErrorState('No account has been selected'));
+        // } else {
+        final transactionStats = await _repository.getTransactionStats(accountId);
+        emit(TransactionStatLoadedState(stats: transactionStats));
+        // }
       } on Exception catch (error) {
         emit(TransactionStatErrorState(error.toString()));
       } finally {

@@ -1,209 +1,240 @@
-import 'dart:async';
-
-import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
-
-import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
+import 'package:invesly/amcs/view/amc_overview/cubit/amc_overview_cubit.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/presentations/animations/fade_in.dart';
+import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/transactions/model/transaction_repository.dart';
+import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
-class AmcOverviewScreen extends StatefulWidget {
-  const AmcOverviewScreen(this.id, {super.key});
-
-  final String id;
-
-  @override
-  State<AmcOverviewScreen> createState() => _AmcOverviewScreenState();
-}
-
-class _AmcOverviewScreenState extends State<AmcOverviewScreen> {
-  late final Future<InveslyAmc?> amcFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    // amcFuture = context.read<AmcRepository>().getAmcById(widget.id);
-    amcFuture = AmcRepository.instance.getAmcById(widget.id);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = context.textTheme;
-
-    return Scaffold(
-      appBar: AppBar(),
-      body: SafeArea(
-        child: FutureBuilder<InveslyAmc?>(
-          future: amcFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              if (snapshot.hasError) {
-                return const PMErrorWidget();
-              }
-
-              final amc = snapshot.data;
-              if (amc == null) {
-                return const EmptyWidget(height: 160.0, label: 'Amc not found!');
-              }
-
-              // final tags = [amc.plan, amc.sector, amc.subSector].whereNotNull().toList(growable: false);
-              // final tags = amc.tags?.toList() ?? <String>[];
-              final tags = amc.tag?.toMap();
-
-              return Stack(
-                children: <Widget>[
-                  ListView(
-                    padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
-                    children: <Widget>[
-                      // ~ Name
-                      Align(
-                        alignment: Alignment.topLeft,
-                        child: Text(amc.name, style: textTheme.headlineSmall, maxLines: 2),
-                      ),
-                      const SizedBox(height: 16.0),
-
-                      // ~ Tags
-                      if (tags != null && tags.isNotEmpty)
-                        SizedBox(
-                          height: 24.0,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            separatorBuilder: (_, _) => const SizedBox(width: 8.0),
-                            itemBuilder: (context, i) {
-                              final tag = tags.values.elementAt(i);
-                              if (tag == null) return const SizedBox.shrink();
-                              return Center(
-                                child: Material(
-                                  color: const Color.fromARGB(255, 105, 5, 151),
-                                  shape: const StadiumBorder(),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                    child: Text(
-                                      tag,
-                                      style: textTheme.labelMedium?.copyWith(color: Colors.white),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                            itemCount: tags.values.length,
-                          ),
-                        ),
-                      const SizedBox(height: 16.0),
-
-                      // ~ Transaction
-                      _TransactionList(amc.id),
-                    ],
-                  ),
-
-                  // ~ Add transaction button
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0, right: 16.0),
-                      child: ElevatedButton.icon(
-                        onPressed: () => context.push(const EditTransactionScreen()),
-                        icon: const Icon(Icons.add),
-                        label: const Text('Add transaction'),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }
-
-            return const Center(child: CircularProgressIndicator());
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _TransactionList extends StatefulWidget {
-  const _TransactionList(this.amcId, {super.key});
+class AmcOverviewScreen extends StatelessWidget {
+  const AmcOverviewScreen(this.amcId, {super.key});
 
   final String amcId;
 
   @override
-  State<_TransactionList> createState() => _TransactionListState();
+  Widget build(BuildContext context) {
+    final trnRepository = TransactionRepository.instance;
+
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => AmcOverviewCubit(repository: AmcRepository.instance)),
+        BlocProvider(create: (context) => TransactionsCubit(repository: trnRepository)),
+      ],
+      child: _AmcOverviewScreen(amcId),
+    );
+  }
 }
 
-class _TransactionListState extends State<_TransactionList> {
-  late final Future<List<InveslyTransaction>> invsFuture;
+class _AmcOverviewScreen extends StatefulWidget {
+  const _AmcOverviewScreen(this.amcId, {super.key});
 
+  final String amcId;
+
+  @override
+  State<_AmcOverviewScreen> createState() => _AmcOverviewScreenState();
+}
+
+class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
   @override
   void initState() {
     super.initState();
-    // final currentAccount = context.read<SettingsCubit>().state.currentAccount;
-    // if (currentAccount != null) {
-    //   invsFuture = context.read<TransactionRepository>().getTransactions(currentAccount.id, amcId: widget.amcId);
-    // } else {
-    //   invsFuture = Future.value([]);
-    // }
-    invsFuture = Future.value([]);
+    _getAmcOverview();
+    _getStats();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AmcOverviewScreen oldWidget) {
+    if (oldWidget.amcId != widget.amcId) {
+      _getAmcOverview();
+      _getStats();
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  void _getAmcOverview() {
+    context.read<AmcOverviewCubit>().fetchAmcOverview(widget.amcId);
+  }
+
+  void _getStats() {
+    final accountId = context.read<AppCubit>().state.primaryAccountId;
+    if (accountId?.isEmpty ?? true) {
+      return;
+    }
+    context.read<TransactionsCubit>().fetchTransactions(accountId: accountId, amcId: widget.amcId);
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<InveslyTransaction>>(
-      future: invsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasError) {
-            return const PMErrorWidget();
-          }
+    final textTheme = Theme.of(context).textTheme;
 
-          final data = snapshot.data;
-          if (data == null || data.isEmpty) {
-            return const EmptyWidget(height: 160.0, label: 'No transactions have been found!');
-          }
+    return BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
+      builder: (context, amcState) {
+        final latestPrice = amcState is AmcOverviewLoadedState && amcState.latestPrice != null
+            ? amcState.latestPrice
+            : null;
 
-          return ColumnBuilder(
-            itemBuilder: (context, index) {
-              final transaction = data[index];
-              return Slidable(
-                endActionPane: ActionPane(
-                  motion: const ScrollMotion(),
-                  children: [
-                    SlidableAction(
-                      onPressed: (context) {},
-                      backgroundColor: Colors.redAccent,
-                      foregroundColor: Colors.white,
-                      icon: Icons.delete_rounded,
-                      // label: 'Delete',
+        return Scaffold(
+          appBar: AppBar(title: const Text('Holding details')),
+          body: Column(
+            children: <Widget>[
+              BlocBuilder<TransactionsCubit, TransactionsState>(
+                builder: (context, trnState) {
+                  final isError = trnState.isError;
+                  final isLoading = !isError && trnState.isLoading;
+                  // final stats = accountsState.isEmpty
+                  //     ? <TransactionStat>[]
+                  //     : statState is TransactionStatLoadedState
+                  //     ? statState.stats
+                  //     : null;
+                  // final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
+                  final totalUnits = trnState.transactions?.fold<double>(0.0, (v, el) => v + el.quantity);
+                  final totalAmountInvested = trnState.transactions?.fold<double>(0.0, (v, el) => v + el.totalAmount);
+
+                  final currentValue = totalUnits != null && (latestPrice?.$2?.isFinite ?? false)
+                      ? totalUnits * latestPrice!.$2!
+                      : null;
+
+                  return Skeletonizer(
+                    enabled: isLoading,
+                    child: Section(
+                      title: amcState is AmcOverviewLoadedState && amcState.amc != null
+                          ? FadeIn(key: Key('amc_loaded'), child: Text(amcState.amc!.name))
+                          : Text(widget.amcId),
+                      subTitle: Text('Overview'), // TODO: Show amc tags
+                      tiles: <Widget>[
+                        SectionTile(
+                          title: const Text('No. of units'),
+                          trailingIcon: totalUnits != null ? Text('$totalUnits') : const Text('...'), // TODO: Fix this
+                        ),
+                        SectionTile(
+                          title: const Text('Current value'),
+                          subtitle: latestPrice != null
+                              ? FormattedDate(date: latestPrice.$1)
+                              : FormattedDate(date: DateTime.now()),
+                          trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                            selector: (state) => state.isPrivateMode,
+                            builder: (context, isPrivateMode) {
+                              return CurrencyView(
+                                amount: (totalUnits?.isFinite ?? false) && (latestPrice?.$2?.isFinite ?? false)
+                                    ? totalUnits! * latestPrice!.$2!
+                                    : 0.0,
+                                integerStyle: textTheme.headlineLarge,
+                                decimalsStyle: textTheme.headlineSmall,
+                                currencyStyle: textTheme.bodyMedium,
+                                privateMode: isPrivateMode,
+                                // compactView: snapshot.data! >= 1_00_00_000
+                              );
+                            },
+                          ),
+                        ),
+                        SectionTile(
+                          title: const Text('Invested'),
+                          trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                            selector: (state) => state.isPrivateMode,
+                            builder: (context, isPrivateMode) {
+                              return CurrencyView(
+                                amount: totalAmountInvested ?? 0.0,
+                                integerStyle: textTheme.headlineLarge,
+                                decimalsStyle: textTheme.headlineSmall,
+                                currencyStyle: textTheme.bodyMedium,
+                                privateMode: isPrivateMode,
+                                // compactView: snapshot.data! >= 1_00_00_000
+                              );
+                            },
+                          ),
+                        ),
+                        _buildDetailRow('Total returns', '+₹1,035.00 (14.79%)', valueColor: Colors.teal.shade500),
+                        _buildDetailRow('1D returns', '+₹77.00 (0.97%)', valueColor: Colors.teal.shade500),
+                        _buildDetailRow('Mkt. price', '₹160.70'),
+                        _buildDetailRow('Avg. price', '₹140.00'),
+                      ],
                     ),
-                    SlidableAction(
-                      onPressed: (context) => context.push(EditTransactionScreen(initialTransaction: transaction)),
-                      backgroundColor: Colors.amberAccent,
-                      foregroundColor: Colors.black,
-                      icon: Icons.edit_note_rounded,
-                      // label: 'Edit',
-                    ),
-                  ],
-                ),
-                child: ListTile(
-                  leading: transaction.quantity > 0
-                      ? const Icon(Icons.arrow_upward_rounded)
-                      : const Icon(Icons.arrow_downward_rounded),
-                  title: Text(transaction.investedOn.toReadable()),
-                  subtitle: Text('${transaction.quantity} units @ Rs. ${transaction.totalAmount}'),
-                  trailing: Text(
-                    (transaction.quantity * transaction.totalAmount).toStringAsFixed(2),
-                    style: const TextStyle(fontSize: 24.0),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // ~ Holding Transactions Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Text('Holding transactions', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text('Avg price (Invested)', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                    ],
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-                ),
-              );
-            },
-            separatorBuilder: (_, _) => const InveslyDivider(indent: 8.0, colors: [Colors.black12]),
-            itemCount: data.length,
-          );
-        }
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('50 qty', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                          SizedBox(height: 4),
+                          Text('08 Nov \'24', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('₹140.00', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                          SizedBox(height: 4),
+                          Text('(₹7,000.00)', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
 
-        return const Center(child: CircularProgressIndicator());
+              const Spacer(),
+
+              // Buy/Sell Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepOrange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text('Sell', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal.shade500,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text('Buy', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
       },
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
+    return SectionTile(
+      title: Text(label),
+      trailingIcon: Text(value, style: TextStyle(color: valueColor ?? Colors.black)),
     );
   }
 }

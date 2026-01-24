@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class Skeleton extends StatelessWidget {
-  const Skeleton({
+class Skeleton2 extends StatelessWidget {
+  const Skeleton2({
     super.key,
     this.height = 16.0,
     this.width = double.infinity,

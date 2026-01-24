@@ -171,7 +171,12 @@ class ReviewTransactionsPage extends StatelessWidget {
                                             color: context.theme.disabledColor,
                                           ),
                                         ),
-                                        Text(trn.investedOn.toReadable()),
+                                        FormattedDate(
+                                          date: trn.investedOn,
+                                          style: context.textTheme.labelLarge?.copyWith(
+                                            color: context.theme.colorScheme.onSurface,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),

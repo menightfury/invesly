@@ -63,7 +63,6 @@ class EditAmcCubit extends Cubit<EditAmcState> {
       genre: state.genre,
       // tag: state.selectedTags,
     );
-    $logger.i(amc);
 
     try {
       await _repository.saveAmc(amc);

@@ -1,3 +1,4 @@
+import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common_libs.dart';
 
 class InveslyDatePicker extends StatefulWidget {
@@ -61,7 +62,7 @@ class _InveslyDatePickerState extends State<InveslyDatePicker> {
           final label = switch (days) {
             0 => 'Today',
             1 => 'Yesterday',
-            _ => date.toReadable(),
+            _ => date.toReadable(context.read<AppCubit>().state.dateFormat),
           };
 
           return Text(label);

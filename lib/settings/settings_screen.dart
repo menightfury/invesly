@@ -14,6 +14,7 @@ import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/auth_ui_functions.dart';
 import 'package:invesly/authentication/user_model.dart';
+import 'package:invesly/common/model/currency.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/widgets/circle_avatar.dart';
@@ -23,6 +24,7 @@ import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_repository.dart';
 import 'package:invesly/settings/import_transactions/import_transactions_screen.dart';
+import 'package:invesly/settings/currency_selector_screen.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -146,7 +148,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               return BlocSelector<AppCubit, AppState, bool>(
                                 selector: (state) => state.primaryAccountId == account?.id,
                                 builder: (context, isCurrentAccount) {
-                                  $logger.i('rebuilding $account');
                                   return Shimmer(
                                     isLoading: isLoading,
                                     child: SectionTile(
@@ -156,10 +157,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         backgroundImage: account != null ? AssetImage(account.avatarSrc) : null,
                                       ),
                                       title: account == null
-                                          ? Skeleton(color: isError ? context.colors.error : null)
+                                          ? Skeleton2(color: isError ? context.colors.error : null)
                                           : Text(account.name.toSentenceCase(), overflow: TextOverflow.ellipsis),
                                       subtitle: account == null
-                                          ? Skeleton(color: isError ? context.colors.error : null)
+                                          ? Skeleton2(color: isError ? context.colors.error : null)
                                           : isCurrentAccount
                                           ? const Text('Primary account')
                                           : null,
@@ -195,21 +196,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: const Icon(Icons.language_rounded),
                       subtitle: const Text('English'),
                     ),
-                    SectionTile(
-                      title: const Text('Date format'),
-                      // title: Text(context.watch<SettingsRepository>().currentLocale.name),
-                      icon: const Icon(Icons.language_rounded),
-                      subtitle: const Text('English'),
-                      onTap: () async {
-                        final value = await InveslyDateFormatPicker.showModal(context);
-                        $logger.d(value);
+                    BlocSelector<AppCubit, AppState, String?>(
+                      selector: (state) => state.dateFormat,
+                      builder: (context, dateFormat) {
+                        return SectionTile(
+                          title: const Text('Date format'),
+                          icon: const Icon(Icons.calendar_month_rounded),
+                          subtitle: Text(dateFormat ?? 'Default'),
+                          onTap: () async {
+                            final value = await InveslyDateFormatPicker.showModal(context, dateFormat);
+                            if (value != null && context.mounted) {
+                              context.read<AppCubit>().updateDateFormat(value);
+                            }
+                          },
+                        );
                       },
                     ),
-                    SectionTile(
-                      title: const Text('Currency'),
-                      // title: Text(context.watch<SettingsRepository>().currentLocale.name),
-                      icon: const Icon(Icons.attach_money_rounded),
-                      subtitle: const Text('Choose your preferred currency'),
+                    BlocSelector<AppCubit, AppState, Currency?>(
+                      selector: (state) => state.currency,
+                      builder: (context, currency) {
+                        return SectionTile(
+                          title: const Text('Currency'),
+                          // title: Text(context.watch<SettingsRepository>().currentLocale.name),
+                          icon: const Icon(Icons.attach_money_rounded),
+                          subtitle: Text(
+                            currency != null
+                                ? '${currency.name} (${currency.symbol})'
+                                : 'Choose your preferred currency',
+                          ),
+                          onTap: () => context.push(const CurrencySelectorScreen()),
+                        );
+                      },
                     ),
                     BlocSelector<AppCubit, AppState, bool>(
                       selector: (state) => state.isPrivateMode,
@@ -398,9 +415,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: const Icon(Icons.share_rounded),
                       title: const Text('Share with friends'),
                       subtitle: const Text('Share Invesly with your friends and family'),
-                      onChanged: (value) {
-                        $logger.i('Share with friends: $value');
-                      },
+                      onChanged: (value) {},
                       value: true,
                     ),
                     SectionTile(
@@ -473,7 +488,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _onExportAsCsvPressed(BuildContext context) async {
     late final SnackBar snackBar;
     try {
-      final csvData = await context.read<TransactionRepository>().transactionsToCsv();
+      final csvData = await TransactionRepository.instance.transactionsToCsv();
       final file = await BackupRepository.instance.exportCsv(
         csvData,
         '/path/to/local/storage',

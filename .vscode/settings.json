@@ -5,6 +5,7 @@
         "gapi",
         "gapis",
         "Invesly",
-        "isin"
+        "isin",
+        "xirr"
     ]
 }

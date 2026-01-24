@@ -9,7 +9,18 @@ import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 
 class TransactionRepository {
-  TransactionRepository(InveslyApi api) : _api = api;
+  // singleton api instance
+  static TransactionRepository? _instance;
+  static TransactionRepository get instance {
+    assert(_instance != null, 'Please make sure to initialize before getting repository');
+    return _instance!;
+  }
+
+  factory TransactionRepository.initialize(InveslyApi api) {
+    _instance ??= TransactionRepository._(api);
+    return _instance!;
+  }
+  const TransactionRepository._(this._api);
 
   final InveslyApi _api;
 
@@ -49,11 +60,11 @@ class TransactionRepository {
 
     late final List<InveslyTransaction> transactions;
     try {
+      await Future<void>.delayed(const Duration(seconds: 2)); // TODO: Remove this delay
       final result = await _api.select(_trnTable).join([_accountTable, _amcTable]).where(filter).toList(limit: limit);
       // orderBy: '${_trnTable.dateColumn.title} DESC',
       // limit: showItems,
 
-      $logger.f(result);
       if (result.isEmpty) return List<InveslyTransaction>.empty();
 
       transactions = result.map<InveslyTransaction>((map) {
@@ -74,6 +85,7 @@ class TransactionRepository {
   /// Get transaction statistics
   Future<List<TransactionStat>> getTransactionStats(String accountId) async {
     try {
+      await Future<void>.delayed(const Duration(seconds: 2)); // TODO: Remove this delay
       final result = await _api
           .select(_trnTable, [
             ..._amcTable.columns,
@@ -84,7 +96,6 @@ class TransactionRepository {
           .where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
           .groupBy([_amcTable.nameColumn])
           .toList();
-      $logger.w(result);
       final stats = result.map<TransactionStat>((map) {
         return TransactionStat(
           accountId: accountId,
@@ -103,6 +114,7 @@ class TransactionRepository {
 
   /// Add or update a transaction
   Future<void> saveTransaction(TransactionInDb transaction, [bool isNew = true]) async {
+    await Future<void>.delayed(const Duration(seconds: 2)); // TODO: Remove this delay
     if (isNew) {
       await _api.insert(_trnTable, transaction);
     } else {
