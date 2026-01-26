@@ -98,10 +98,10 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
         imgSrc: 'assets/images/intro/locker.png',
         extra: SizedBox(
           width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () => _onSignInPressed(context),
-            icon: const CircleAvatar(radius: 16.0, backgroundImage: AssetImage('assets/images/google_logo.png')),
-            label: const Text('Sign in with Google', textAlign: TextAlign.center),
+          child: FilledButton.tonalIcon(
+            onPressed: () => _onWithoutSignInPressed(context),
+            label: const Icon(Icons.arrow_forward_rounded),
+            icon: const Text('Continue without sign in', textAlign: TextAlign.center),
           ),
         ),
       ),
@@ -256,22 +256,30 @@ class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMix
                 child: ValueListenableBuilder<int>(
                   valueListenable: _currentPage,
                   builder: (context, currentPage, _) {
-                    return FilledButton.tonalIcon(
+                    return FilledButton.icon(
                       onPressed: () {
                         if (currentPage < _pageData.length - 1) {
                           _animateToPage(currentPage + 1);
                           return;
                         }
-                        _onWithoutSignInPressed(context);
+                        _onSignInPressed(context);
                       },
-                      label: const Icon(Icons.arrow_forward_rounded),
+                      label: currentPage == _pageData.length - 1
+                          ? FadeIn(
+                              key: Key('sing_in_with_google_text'),
+                              child: const Text('Sign in with Google', textAlign: TextAlign.center),
+                            )
+                          : FadeIn(key: Key('next_icon'), child: const Icon(Icons.arrow_forward_rounded)),
                       icon: currentPage == _pageData.length - 1
                           ? FadeIn(
-                              key: Key('continue_without_sign_in'),
-                              child: const Text('Continue without sign in', textAlign: TextAlign.center),
+                              key: Key('google_icon'),
+                              child: const CircleAvatar(
+                                radius: 16.0,
+                                backgroundImage: AssetImage('assets/images/google_logo.png'),
+                              ),
                             )
                           : FadeIn(
-                              key: Key('next'),
+                              key: Key('next_text'),
                               child: const Text('Next', textAlign: TextAlign.center),
                             ),
                     );
@@ -309,7 +317,7 @@ class _Page extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: _kSpaceFromHeaderToImage,
       children: <Widget>[
-        Text(data.title, style: TextStyle(fontSize: 28.0, fontWeight: FontWeight.w600)),
+        Text(data.title, style: const TextStyle(fontSize: 28.0, fontWeight: FontWeight.w600)),
         const SizedBox(height: _kImageSize), // space for image
         Expanded(
           child: SingleChildScrollView(
@@ -319,7 +327,7 @@ class _Page extends StatelessWidget {
               children: <Widget>[
                 if (data.description != null) Text(data.description!, style: context.textTheme.labelMedium),
                 ?data.extra,
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
               ],
             ),
           ),
