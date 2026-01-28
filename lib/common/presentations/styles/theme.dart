@@ -166,7 +166,7 @@ class AppStyle {
           shape: const WidgetStatePropertyAll<OutlinedBorder>(
             RoundedRectangleBorder(borderRadius: iButtonBorderRadius),
           ),
-          side: WidgetStatePropertyAll(BorderSide(width: 2.0, color: colorScheme.primary)),
+          side: WidgetStatePropertyAll(BorderSide(width: 1.0, color: colorScheme.outlineVariant)),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(

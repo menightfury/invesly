@@ -1,8 +1,6 @@
 import 'package:invesly/authentication/auth_ui_functions.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
-import 'package:invesly/common/presentations/animations/animated_expanded.dart';
-import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/import_backup_page.dart';
@@ -34,7 +32,7 @@ class _IntroPageState extends State<IntroPage> {
       title: 'Welcome',
       // description: $strings.introWelcomeDescription,
       description:
-          'With Invesly, you can finally achieve the stress free independence. You will have graphs, statistics, tips and so much',
+          'With Invesly, you can finally achieve the stress free independence. You will have graphs, statistics, tips and so much more.',
       imgSrc: 'assets/images/intro/chart.png',
     ),
     _PageModel(
@@ -42,7 +40,7 @@ class _IntroPageState extends State<IntroPage> {
       title: 'Manage all your accounts',
       // description: $strings.introMoneyDescription,
       description:
-          'Your default currency will be used in reports and general charts. You will be able to change currency later at any time in the application settings',
+          'Your default currency will be used in reports and general charts. You will be able to change currency later at any time in the application settings.',
       imgSrc: 'assets/images/intro/piggybank.png',
       extra: _CurrencySelector(),
     ),
@@ -51,16 +49,9 @@ class _IntroPageState extends State<IntroPage> {
       title: 'Safe, protected and reliable',
       // description: $strings.introPayLaterDescription,
       description:
-          'Your data is truly yours. The information is stored in your device and synced with your Google Drive account (optional).\n\nThis makes this app possible to use it without using internet, while at the same time offers to backup and restore your data even if your device is lost or switched. ',
+          'Your data is truly yours. The information is stored in your device and synced with your Google Drive account (optional).\n\nThis makes this app possible to use it without using internet, while at the same time offers to backup and restore your data even if your device is lost or switched.',
       imgSrc: 'assets/images/intro/locker.png',
-      extra: SizedBox(
-        width: double.infinity,
-        child: FilledButton.tonalIcon(
-          onPressed: () => _onWithoutSignInPressed(context),
-          label: const Icon(Icons.arrow_forward_rounded),
-          icon: const Text('Continue without sign in', textAlign: TextAlign.center),
-        ),
-      ),
+      extra: _SigninButtonGroup(),
     ),
   ];
 
@@ -92,9 +83,8 @@ class _IntroPageState extends State<IntroPage> {
           child: child,
         );
       },
-      child: FilledButton.icon(
-        icon: const Text('Next', textAlign: TextAlign.center),
-        label: const Icon(Icons.arrow_forward_rounded),
+      child: IconButton(
+        icon: const Icon(Icons.arrow_forward_rounded),
         onPressed: () {
           if (_currentPage.value < _pageData.length - 1) {
             _animateToPage(_currentPage.value + 1);
@@ -110,37 +100,6 @@ class _IntroPageState extends State<IntroPage> {
 
   void _animateToPage(int index) {
     _pageController.animateToPage(index, duration: 300.ms, curve: Curves.easeInOut);
-  }
-
-  Future<void> _onSignInPressed(BuildContext context) async {
-    final user = await startLoginFlow(context);
-    if (!context.mounted) return;
-    _finalizeSetUp(context, user);
-  }
-
-  void _onWithoutSignInPressed(BuildContext context) {
-    // _finalizeSetUp(context, InveslyUser.empty());
-    _finalizeSetUp(context, null);
-  }
-
-  Future<void> _finalizeSetUp(BuildContext context, InveslyUser? user) async {
-    // late final bool? restoreStatus;
-    if (user.isNullOrEmpty) {
-      // User chose to continue without sign-in
-      // Write initial database file from assets
-      // await context.read<AuthRepository>().writeDatabaseFile();
-    } else {
-      // User signed in successfully
-      // restoreStatus =
-      await DriveImportBackupPage.showModal(context);
-    }
-
-    if (!context.mounted) {
-      return;
-    }
-    context.read<AppCubit>().completeOnboarding();
-    // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
-    context.go(const DashboardScreen());
   }
 
   @override
@@ -200,20 +159,66 @@ class _PageModel {
   final Widget? extra;
 }
 
-class _Page extends StatefulWidget {
-  const _Page(this.data);
+class _Page extends StatelessWidget {
+  const _Page(this.data, {super.key});
 
   final _PageModel data;
 
   @override
-  State<_Page> createState() => _PageState();
+  Widget build(BuildContext context) {
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        if (orientation == Orientation.landscape) {
+          return Row(
+            children: <Widget>[
+              Expanded(child: _PageImage(data.imgSrc)),
+              Expanded(
+                flex: 2,
+                child: Column(
+                  children: <Widget>[
+                    Text(data.title, style: context.textTheme.headlineLarge),
+                    const Gap(24.0),
+                    Text(data.description, textAlign: TextAlign.center),
+                    if (data.extra != null)
+                      Padding(padding: EdgeInsetsGeometry.symmetric(vertical: 16.0), child: data.extra),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
+
+        return Column(
+          children: <Widget>[
+            Spacer(),
+            _PageImage(data.imgSrc),
+            const Gap(40.0),
+            Text(data.title, style: context.textTheme.headlineLarge),
+            const Gap(24.0),
+            Text(data.description, textAlign: TextAlign.center),
+            if (data.extra != null) Padding(padding: EdgeInsetsGeometry.symmetric(vertical: 16.0), child: data.extra),
+            Spacer(flex: 2),
+          ],
+        );
+      },
+    );
+  }
 }
 
-class _PageState extends State<_Page> with SingleTickerProviderStateMixin {
+class _PageImage extends StatefulWidget {
+  const _PageImage(this.imgSrc, {super.key});
+
+  final String imgSrc;
+
+  @override
+  State<_PageImage> createState() => __PageImageState();
+}
+
+class __PageImageState extends State<_PageImage> with SingleTickerProviderStateMixin {
   late final AnimationController _animController;
   late final Animation<Offset> _offsetAnimation;
 
-  static const _kImageSize = 176.0;
+  static const _imageSize = 176.0;
 
   @override
   void initState() {
@@ -233,34 +238,18 @@ class _PageState extends State<_Page> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      // mainAxisSize: MainAxisSize.min,
-      // crossAxisAlignment: CrossAxisAlignment.start,
-      // spacing: _kSpaceFromHeaderToImage,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        // ~ Image
-        SlideTransition(
-          position: _offsetAnimation,
-          child: Stack(
-            children: <Widget>[
-              Material(
-                type: MaterialType.circle,
-                color: context.colors.primaryContainer.withAlpha(128),
-                child: SizedBox.square(dimension: _kImageSize),
-              ),
-              Image.asset(widget.data.imgSrc, height: _kImageSize, width: _kImageSize),
-            ],
+    return SlideTransition(
+      position: _offsetAnimation,
+      child: Stack(
+        children: <Widget>[
+          Material(
+            type: MaterialType.circle,
+            color: context.colors.primaryContainer.withAlpha(128),
+            child: SizedBox.square(dimension: _imageSize),
           ),
-        ),
-        const Gap(40.0),
-        Text(widget.data.title, style: context.textTheme.headlineLarge),
-        const Gap(24.0),
-        Text(widget.data.description, textAlign: TextAlign.center),
-        if (widget.data.extra != null)
-          Padding(padding: EdgeInsetsGeometry.symmetric(vertical: 16.0), child: widget.data.extra),
-        const Gap(48.0),
-      ],
+          Image.asset(widget.imgSrc, height: _imageSize, width: _imageSize),
+        ],
+      ),
     );
   }
 }
@@ -272,39 +261,86 @@ class _CurrencySelector extends StatelessWidget {
       selector: (state) => state.currency,
       builder: (context, currency) {
         final selected = currency ?? Currencies.defaultCurrency;
-        return InkWell(
-          onTap: () => context.push(const CurrencySelectorScreen()),
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: context.colors.outlineVariant),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: context.colors.primaryContainer, shape: BoxShape.circle),
-                  child: Text(
-                    selected.symbol,
-                    style: TextStyle(fontWeight: FontWeight.bold, color: context.colors.onPrimaryContainer),
-                  ),
-                ),
-                const Gap(16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Currency', style: context.textTheme.labelSmall?.copyWith(color: context.colors.secondary)),
-                      Text(selected.name, style: context.textTheme.titleMedium),
-                    ],
-                  ),
-                ),
-                Icon(Icons.keyboard_arrow_down_rounded, color: context.colors.onSurfaceVariant),
-              ],
-            ),
+        return SectionTile(
+          icon: CircleAvatar(
+            backgroundColor: context.theme.primaryColor,
+            foregroundColor: context.theme.colorScheme.onPrimary,
+            child: Text(selected.symbol),
           ),
+          title: Text('Currency', style: context.textTheme.labelSmall?.copyWith(color: context.colors.secondary)),
+          subtitle: Text(selected.name, style: context.textTheme.titleMedium),
+          onTap: () => context.push(const CurrencySelectorScreen()),
+          trailingIcon: Icon(Icons.keyboard_arrow_down_rounded, color: context.colors.onSurfaceVariant),
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: context.colors.outlineVariant),
+            borderRadius: iCardBorderRadius,
+          ),
+          tileColor: context.colors.surface,
+          padding: const EdgeInsets.all(16.0),
+        );
+      },
+    );
+  }
+}
+
+class _SigninButtonGroup extends StatelessWidget {
+  const _SigninButtonGroup({super.key});
+
+  Future<void> _onSignInPressed(BuildContext context) async {
+    final user = await startLoginFlow(context);
+    if (!context.mounted) return;
+    _finalizeSetUp(context, user);
+  }
+
+  void _onWithoutSignInPressed(BuildContext context) {
+    // _finalizeSetUp(context, InveslyUser.empty());
+    _finalizeSetUp(context, null);
+  }
+
+  Future<void> _finalizeSetUp(BuildContext context, InveslyUser? user) async {
+    // late final bool? restoreStatus;
+    if (user.isNullOrEmpty) {
+      // User chose to continue without sign-in
+      // Write initial database file from assets
+      // await context.read<AuthRepository>().writeDatabaseFile();
+    } else {
+      // User signed in successfully
+      // restoreStatus =
+      await DriveImportBackupPage.showModal(context);
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+    context.read<AppCubit>().completeOnboarding();
+    // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
+    context.go(const DashboardScreen());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        return Row(
+          // direction: orientation == Orientation.portrait ? Axis.vertical : Axis.horizontal,
+          spacing: 16.0,
+          children: <Widget>[
+            SizedBox(
+              width: orientation == Orientation.portrait ? double.infinity : null,
+              child: FilledButton.icon(
+                onPressed: () => _onSignInPressed(context),
+                icon: CircleAvatar(radius: 12, child: Image.asset('assets/images/google_logo.png')),
+                label: const Text('Sign in with Google', textAlign: TextAlign.center),
+              ),
+            ),
+            SizedBox(
+              width: orientation == Orientation.portrait ? double.infinity : null,
+              child: OutlinedButton(
+                onPressed: () => _onWithoutSignInPressed(context),
+                child: const Text('Continue without sign in', textAlign: TextAlign.center),
+              ),
+            ),
+          ],
         );
       },
     );

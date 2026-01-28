@@ -1,12 +1,5 @@
-// import 'dart:math' as math;
-
-import 'package:flutter/material.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
-import 'package:invesly/common/extensions/num_extension.dart';
 import 'package:invesly/common_libs.dart';
-
-final _kBigRadius = iCardBorderRadius;
-const _kSmallRadius = iTileBorderRadius;
 
 enum _SectionVariant { scrollable, fixed }
 
@@ -51,15 +44,18 @@ class Section extends StatelessWidget {
   bool get hasTiles => tileCount > 0;
 
   BorderRadius effectiveTileRadius(int index) {
-    BorderRadius tileRadius = _kSmallRadius;
+    BorderRadius tileRadius = iTileBorderRadius;
     // check if the tile is first tile
     if (index == 0 && title == null) {
-      tileRadius = tileRadius.copyWith(topLeft: _kBigRadius.topLeft, topRight: _kBigRadius.topRight);
+      tileRadius = tileRadius.copyWith(topLeft: iCardBorderRadius.topLeft, topRight: iCardBorderRadius.topRight);
     }
 
     // check if the tile is last tile
     if (index == tileCount - 1) {
-      tileRadius = tileRadius.copyWith(bottomLeft: _kBigRadius.bottomLeft, bottomRight: _kBigRadius.bottomRight);
+      tileRadius = tileRadius.copyWith(
+        bottomLeft: iCardBorderRadius.bottomLeft,
+        bottomRight: iCardBorderRadius.bottomRight,
+      );
     }
 
     return tileRadius;
@@ -114,7 +110,7 @@ class Section extends StatelessWidget {
 
     child = Material(
       type: MaterialType.transparency,
-      borderRadius: _kSmallRadius,
+      borderRadius: iTileBorderRadius,
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,8 +124,11 @@ class Section extends StatelessWidget {
               trailingIcon: trailingIcon,
               tileColor: theme.colorScheme.primaryContainer.darken(3),
               borderRadius: hasTiles
-                  ? _kBigRadius.copyWith(bottomLeft: _kSmallRadius.bottomLeft, bottomRight: _kSmallRadius.bottomRight)
-                  : _kBigRadius,
+                  ? iCardBorderRadius.copyWith(
+                      bottomLeft: iTileBorderRadius.bottomLeft,
+                      bottomRight: iTileBorderRadius.bottomRight,
+                    )
+                  : iCardBorderRadius,
             ),
           child,
         ],
@@ -146,10 +145,12 @@ class SectionTile extends StatelessWidget {
   final Widget title;
   final Widget? subtitle;
   final double? contentSpacing;
+  final EdgeInsetsGeometry? padding;
   final Widget? icon;
   final Widget? trailingIcon;
   final Color? tileColor;
   final Color? selectedTileColor;
+  final ShapeBorder? shape;
   final BorderRadius? borderRadius;
   final VoidCallback? _onTap; // for other than switch tile
   final ValueChanged<bool>? _onChanged; // for switch tile only
@@ -163,11 +164,13 @@ class SectionTile extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.contentSpacing,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     this.icon,
     this.trailingIcon,
     this.tileColor,
     this.selectedTileColor,
-    this.borderRadius = _kSmallRadius,
+    this.shape,
+    this.borderRadius = iTileBorderRadius,
     VoidCallback? onTap,
     this.enabled = true,
     this.selected = false,
@@ -181,11 +184,13 @@ class SectionTile extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.contentSpacing,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     this.icon,
     this.trailingIcon,
     this.tileColor,
     this.selectedTileColor,
-    this.borderRadius = _kSmallRadius,
+    this.shape,
+    this.borderRadius = iTileBorderRadius,
     this.enabled = true,
     this.selected = false,
     VoidCallback? onTap,
@@ -199,11 +204,13 @@ class SectionTile extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.contentSpacing,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     this.icon,
     required bool value,
     this.tileColor,
     this.selectedTileColor,
-    this.borderRadius = _kSmallRadius,
+    this.shape,
+    this.borderRadius = iTileBorderRadius,
     this.enabled = true,
     this.selected = false,
     void Function(bool)? onChanged,
@@ -218,11 +225,13 @@ class SectionTile extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.contentSpacing,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     this.icon,
     required bool value,
     this.tileColor,
     this.selectedTileColor,
-    this.borderRadius = _kSmallRadius,
+    this.shape,
+    this.borderRadius = iTileBorderRadius,
     this.enabled = true,
     this.selected = false,
     void Function(bool)? onChanged,
@@ -243,6 +252,7 @@ class SectionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tileTheme = ListTileTheme.of(context);
+    final effectiveShape = shape ?? RoundedRectangleBorder(borderRadius: borderRadius ?? BorderRadius.zero);
 
     final titleText = AnimatedDefaultTextStyle(
       duration: 850.ms,
@@ -280,36 +290,56 @@ class SectionTile extends StatelessWidget {
                 : _onTap
           : null,
       child: SafeArea(
-        child: AnimatedPhysicalModel(
-          curve: Curves.fastOutSlowIn,
-          duration: 600.ms,
+        child: PhysicalShape(
+          // curve: Curves.fastOutSlowIn,
+          // duration: 600.ms,
           clipBehavior: Clip.antiAlias,
           elevation: 0.0,
           color: _tileColor(theme, tileTheme),
           shadowColor: theme.colorScheme.shadow,
-          borderRadius: borderRadius,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 52.0),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                spacing: 16.0,
-                children: <Widget>[
-                  ?icon,
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: contentSpacing ?? 0.0,
-                      children: <Widget>[titleText, ?subtitleText],
+          // borderRadius: borderRadius,
+          clipper: ShapeBorderClipper(shape: effectiveShape, textDirection: Directionality.maybeOf(context)),
+          child: CustomPaint(
+            foregroundPainter: _ShapeBorderPainter(effectiveShape, Directionality.maybeOf(context)),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 52.0),
+              child: Padding(
+                padding: padding ?? EdgeInsets.zero,
+                child: Row(
+                  spacing: 16.0,
+                  children: <Widget>[
+                    ?icon,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: contentSpacing ?? 0.0,
+                        children: <Widget>[titleText, ?subtitleText],
+                      ),
                     ),
-                  ),
-                  ?effectiveTrailingIcon,
-                ],
+                    ?effectiveTrailingIcon,
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
     );
+  }
+}
+
+class _ShapeBorderPainter extends CustomPainter {
+  _ShapeBorderPainter(this.border, this.textDirection);
+  final ShapeBorder border;
+  final TextDirection? textDirection;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    border.paint(canvas, Offset.zero & size, textDirection: textDirection);
+  }
+
+  @override
+  bool shouldRepaint(_ShapeBorderPainter oldDelegate) {
+    return oldDelegate.border != border;
   }
 }
