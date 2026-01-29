@@ -20,6 +20,7 @@ import 'common/cubit/app_cubit.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   Bloc.observer = InveslyBlocObserver();
   await Bootstrap.initialize();
 

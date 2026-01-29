@@ -166,41 +166,17 @@ class _Page extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        if (orientation == Orientation.landscape) {
-          return Row(
-            children: <Widget>[
-              Expanded(child: _PageImage(data.imgSrc)),
-              Expanded(
-                flex: 2,
-                child: Column(
-                  children: <Widget>[
-                    Text(data.title, style: context.textTheme.headlineLarge),
-                    const Gap(24.0),
-                    Text(data.description, textAlign: TextAlign.center),
-                    if (data.extra != null)
-                      Padding(padding: EdgeInsetsGeometry.symmetric(vertical: 16.0), child: data.extra),
-                  ],
-                ),
-              ),
-            ],
-          );
-        }
-
-        return Column(
-          children: <Widget>[
-            Spacer(),
-            _PageImage(data.imgSrc),
-            const Gap(40.0),
-            Text(data.title, style: context.textTheme.headlineLarge),
-            const Gap(24.0),
-            Text(data.description, textAlign: TextAlign.center),
-            if (data.extra != null) Padding(padding: EdgeInsetsGeometry.symmetric(vertical: 16.0), child: data.extra),
-            Spacer(flex: 2),
-          ],
-        );
-      },
+    return Column(
+      children: <Widget>[
+        Spacer(),
+        _PageImage(data.imgSrc),
+        const Gap(40.0),
+        Text(data.title, style: context.textTheme.headlineLarge),
+        const Gap(24.0),
+        Text(data.description, textAlign: TextAlign.center),
+        if (data.extra != null) Padding(padding: EdgeInsetsGeometry.symmetric(vertical: 16.0), child: data.extra),
+        Spacer(flex: 2),
+      ],
     );
   }
 }
@@ -319,30 +295,25 @@ class _SigninButtonGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        return Row(
-          // direction: orientation == Orientation.portrait ? Axis.vertical : Axis.horizontal,
-          spacing: 16.0,
-          children: <Widget>[
-            SizedBox(
-              width: orientation == Orientation.portrait ? double.infinity : null,
-              child: FilledButton.icon(
-                onPressed: () => _onSignInPressed(context),
-                icon: CircleAvatar(radius: 12, child: Image.asset('assets/images/google_logo.png')),
-                label: const Text('Sign in with Google', textAlign: TextAlign.center),
-              ),
-            ),
-            SizedBox(
-              width: orientation == Orientation.portrait ? double.infinity : null,
-              child: OutlinedButton(
-                onPressed: () => _onWithoutSignInPressed(context),
-                child: const Text('Continue without sign in', textAlign: TextAlign.center),
-              ),
-            ),
-          ],
-        );
-      },
+    return Column(
+      spacing: 16.0,
+      children: <Widget>[
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: () => _onSignInPressed(context),
+            icon: CircleAvatar(radius: 12.0, child: Image.asset('assets/images/google_logo.png')),
+            label: const Text('Sign in with Google', textAlign: TextAlign.center),
+          ),
+        ),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: () => _onWithoutSignInPressed(context),
+            child: const Text('Continue without sign in', textAlign: TextAlign.center),
+          ),
+        ),
+      ],
     );
   }
 }
