@@ -13,6 +13,8 @@ class AppState extends Equatable {
     this.dateFormat,
     this.amcSha,
     this.currency,
+    this.lastBackupDate,
+    this.lastRestoreDate,
   });
 
   final bool isOnboarded;
@@ -32,6 +34,9 @@ class AppState extends Equatable {
   /// Hide all currency values
   final bool isPrivateMode;
 
+  final DateTime? lastBackupDate;
+  final DateTime? lastRestoreDate;
+
   AppState copyWith({
     bool? isOnboarded,
     bool? isDarkMode,
@@ -44,6 +49,8 @@ class AppState extends Equatable {
     String? Function()? dateFormat,
     String? Function()? amcSha,
     Currency? Function()? currency,
+    DateTime? lastBackupDate,
+    DateTime? lastRestoreDate,
   }) {
     return AppState(
       isOnboarded: isOnboarded ?? this.isOnboarded,
@@ -57,6 +64,8 @@ class AppState extends Equatable {
       dateFormat: dateFormat != null ? dateFormat() : this.dateFormat,
       amcSha: amcSha != null ? amcSha() : this.amcSha,
       currency: currency != null ? currency() : this.currency,
+      lastBackupDate: lastBackupDate ?? this.lastBackupDate,
+      lastRestoreDate: lastRestoreDate ?? this.lastRestoreDate,
     );
   }
 
@@ -73,6 +82,8 @@ class AppState extends Equatable {
     dateFormat,
     amcSha,
     currency,
+    lastBackupDate,
+    lastRestoreDate,
   ];
 
   Map<String, dynamic> toMap() {
@@ -88,6 +99,8 @@ class AppState extends Equatable {
       'dateFormat': dateFormat,
       'amcShas': amcSha,
       'currency': currency?.toMap(),
+      'lastBackupDate': lastBackupDate?.toIso8601String(),
+      'lastRestoreDate': lastRestoreDate?.toIso8601String(),
     };
   }
 
@@ -106,6 +119,8 @@ class AppState extends Equatable {
       dateFormat: map['dateFormat'] as String?,
       amcSha: map['amcShas'] as String?,
       currency: map['currency'] != null ? Currency.fromMap(map['currency']) : null,
+      lastBackupDate: map['lastBackupDate'] != null ? DateTime.tryParse(map['lastBackupDate']) : null,
+      lastRestoreDate: map['lastRestoreDate'] != null ? DateTime.tryParse(map['lastRestoreDate']) : null,
     );
   }
 
@@ -113,5 +128,6 @@ class AppState extends Equatable {
   String toString() =>
       'SettingsState(isOnboarded: $isOnboarded, isDarkMode: $isDarkMode, user: $user, '
       'primaryAccountId: $primaryAccountId, isDynamicColor: $isDynamicColor, accentColor: $accentColor, '
-      'isPrivateMode: $isPrivateMode, dateFormat: $dateFormat, amcShas: $amcSha)';
+      'isPrivateMode: $isPrivateMode, dateFormat: $dateFormat, amcShas: $amcSha, currency: $currency, '
+      'lastBackupDate: $lastBackupDate, lastRestoreDate: $lastRestoreDate)';
 }

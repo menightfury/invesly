@@ -3,7 +3,7 @@ import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/database/backup/import_backup_page.dart';
+import 'package:invesly/database/backup/restore_drive_backup_page.dart';
 import 'package:invesly/dashboard/view/dashboard_page.dart';
 import 'package:invesly/settings/currency_selector_page.dart';
 import 'package:invesly/common/model/currency.dart';
@@ -261,6 +261,7 @@ class _SigninButtonGroup extends StatelessWidget {
   }
 
   Future<void> _finalizeSetUp(BuildContext context, InveslyUser? user) async {
+    context.read<AppCubit>().completeOnboarding();
     // late final bool? restoreStatus;
     if (user.isNullOrEmpty) {
       // User chose to continue without sign-in
@@ -269,13 +270,10 @@ class _SigninButtonGroup extends StatelessWidget {
     } else {
       // User signed in successfully
       // restoreStatus =
-      await DriveImportBackupPage.showModal(context);
-    }
-
-    if (!context.mounted) {
+      context.go(const RestoreDriveBackupPage());
       return;
     }
-    context.read<AppCubit>().completeOnboarding();
+
     // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
     context.go(const DashboardPage());
   }

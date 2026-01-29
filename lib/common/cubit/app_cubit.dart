@@ -51,6 +51,14 @@ class AppCubit extends HydratedCubit<AppState> {
     emit(state.copyWith(currency: () => currency));
   }
 
+  void updateLastBackupDate(DateTime? lastBackupDate) {
+    emit(state.copyWith(lastBackupDate: lastBackupDate));
+  }
+
+  void updateLastRestoreDate(DateTime? lastRestoreDate) {
+    emit(state.copyWith(lastRestoreDate: lastRestoreDate));
+  }
+
   @override
   AppState fromJson(Map<String, dynamic> json) {
     return AppState.fromMap(json);

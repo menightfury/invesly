@@ -3,7 +3,7 @@
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
 import 'package:invesly/common/presentations/widgets/popups.dart';
-import 'package:invesly/database/backup/import_backup_page.dart';
+import 'package:invesly/database/backup/restore_drive_backup_page.dart';
 import 'package:invesly/intro/splash_page.dart';
 import 'package:path/path.dart';
 
@@ -195,7 +195,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       icon: const Icon(Icons.language_rounded),
                       subtitle: const Text('English'),
-                      onTap: () => context.push(const DriveImportBackupPage()),
+                      onTap: () => context.push(const RestoreDriveBackupPage()),
                     ),
                     BlocSelector<AppCubit, AppState, String?>(
                       selector: (state) => state.dateFormat,
@@ -483,7 +483,7 @@ class _SettingsPageState extends State<SettingsPage> {
       $logger.e(err);
     }
     if (!context.mounted) return;
-    DriveImportBackupPage.showModal(context);
+    context.push(const RestoreDriveBackupPage());
   }
 
   Future<void> _onExportAsCsvPressed(BuildContext context) async {

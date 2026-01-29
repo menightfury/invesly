@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:invesly/amcs/model/amc_repository.dart';
+import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/database/backup/restore_drive_backup_page.dart';
 import 'package:invesly/intro/intro_page.dart';
 import 'package:invesly/main.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
@@ -57,17 +59,15 @@ class _SplashPageState extends State<SplashPage> {
         }
       }
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       if (!appState.isOnboarded) {
         context.go(const IntroPage());
-        return;
+      } else if (appState.user.isNotNullOrEmpty && appState.lastRestoreDate == null) {
+        context.go(const RestoreDriveBackupPage());
+      } else {
+        context.go(const DashboardPage());
       }
-
-      // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
-      context.go(const DashboardPage());
     });
   }
 
