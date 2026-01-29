@@ -9,10 +9,6 @@ import 'package:invesly/settings/currency_selector_screen.dart';
 import 'package:invesly/common/model/currency.dart';
 import 'package:invesly/common/data/currencies.dart';
 
-// const _kPaddingTop = 48.0;
-
-// const _kSpaceFromHeaderToImage = 56.0;
-
 class IntroPage extends StatefulWidget {
   const IntroPage({super.key});
 
@@ -24,30 +20,22 @@ class _IntroPageState extends State<IntroPage> {
   late final PageController _pageController;
   late final ValueNotifier<int> _currentPage;
 
-  // final $strings = $localeService.strings;
-
   List<_PageModel> get _pageData => [
     const _PageModel(
-      // title: $strings.introWelcomeTitle,
       title: 'Welcome',
-      // description: $strings.introWelcomeDescription,
       description:
           'With Invesly, you can finally achieve the stress free independence. You will have graphs, statistics, tips and so much more.',
       imgSrc: 'assets/images/intro/chart.png',
     ),
     _PageModel(
-      // title: $strings.introMoneyTitle,
       title: 'Manage all your accounts',
-      // description: $strings.introMoneyDescription,
       description:
           'Your default currency will be used in reports and general charts. You will be able to change currency later at any time in the application settings.',
       imgSrc: 'assets/images/intro/piggybank.png',
       extra: _CurrencySelector(),
     ),
     _PageModel(
-      // title: $strings.introPayLaterTitle,
       title: 'Safe, protected and reliable',
-      // description: $strings.introPayLaterDescription,
       description:
           'Your data is truly yours. The information is stored in your device and synced with your Google Drive account (optional).\n\nThis makes this app possible to use it without using internet, while at the same time offers to backup and restore your data even if your device is lost or switched.',
       imgSrc: 'assets/images/intro/locker.png',
@@ -77,7 +65,6 @@ class _IntroPageState extends State<IntroPage> {
       builder: (_, pageIndex, child) {
         return AnimatedScale(
           scale: pageIndex == _pageData.length - 1 ? 0.0 : 1.0,
-          // alignment: Alignment.centerRight,
           duration: 240.ms,
           curve: Curves.easeInOut,
           child: child,
