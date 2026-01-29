@@ -2,8 +2,6 @@
 
 import 'dart:math' as math;
 
-import 'package:fl_chart/fl_chart.dart';
-
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -22,8 +20,6 @@ import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:invesly/transactions/transactions/transactions_page.dart';
-import 'package:skeletonizer/skeletonizer.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 part 'widgets/accounts.dart';
 part 'widgets/genre_summeries_widget.dart';
