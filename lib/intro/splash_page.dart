@@ -6,7 +6,7 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/intro/intro_page.dart';
 import 'package:invesly/main.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
-import 'package:invesly/dashboard/view/dashboard_screen.dart';
+import 'package:invesly/dashboard/view/dashboard_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -67,7 +67,7 @@ class _SplashPageState extends State<SplashPage> {
       }
 
       // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
-      context.go(const DashboardScreen());
+      context.go(const DashboardPage());
     });
   }
 
@@ -79,79 +79,80 @@ class _SplashPageState extends State<SplashPage> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: SafeArea(
-        child: Stack(
-          children: [
-            // Centered Branding
-            Align(
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  PhysicalModel(
-                    elevation: 4.0,
-                    borderRadius: BorderRadius.circular(8.0),
-                    clipBehavior: Clip.hardEdge,
-                    color: colorScheme.primaryContainer,
-                    child: SizedBox(
-                      height: 120.0,
-                      width: 120.0,
-                      child: Image.asset('assets/images/app_icon/app_icon.png', fit: BoxFit.cover),
+        child: Column(
+          children: <Widget>[
+            // Branding
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    PhysicalModel(
+                      elevation: 4.0,
+                      borderRadius: BorderRadius.circular(8.0),
+                      clipBehavior: Clip.hardEdge,
+                      color: colorScheme.primaryContainer,
+                      child: SizedBox(
+                        height: 120.0,
+                        width: 120.0,
+                        child: Image.asset('assets/images/app_icon/app_icon.png', fit: BoxFit.cover),
+                      ),
                     ),
-                  ),
-                  const Gap(24.0),
-                  Text(
-                    'Invesly',
-                    style: textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
-                  ),
-                  const Gap(8.0),
-                  Text(
-                    'Your personal portfolio manager',
-                    style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant, letterSpacing: 0.5),
-                  ),
-                ],
+                    const Gap(24.0),
+                    Text(
+                      'Invesly',
+                      style: textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const Gap(8.0),
+                    Text(
+                      'Your personal portfolio manager',
+                      style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant, letterSpacing: 0.5),
+                    ),
+                  ],
+                ),
               ),
             ),
 
             // Footer Disclaimer
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 8.0,
-                  children: <Widget>[
-                    Text(
-                      'Your data will only be stored on your device, and will be safe as long as you don\'t uninstall the app or change phone.',
-                      style: textTheme.labelSmall?.copyWith(color: colorScheme.outline),
-                      textAlign: TextAlign.center,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 8.0,
+                children: <Widget>[
+                  Text(
+                    'Your data will only be stored on your device, and will be safe as long as you don\'t uninstall the app or change phone.',
+                    style: textTheme.labelSmall?.copyWith(color: colorScheme.outline),
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    'To prevent data loss, it is recommended to make a backup regularly from the app settings.',
+                    style: textTheme.labelSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  InveslyDivider(colors: [colorScheme.primaryContainer], thickness: 1.0),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: 'By continuing, you agree to our '),
+                        TextSpan(
+                          text: 'Privacy Policy',
+                          style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600),
+                        ),
+                        TextSpan(text: ' & '),
+                        TextSpan(
+                          text: 'Terms of Use',
+                          style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                      style: textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
                     ),
-                    Text(
-                      'To prevent data loss, it is recommended to make a backup regularly from the app settings.',
-                      style: textTheme.labelSmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    InveslyDivider(colors: [colorScheme.primaryContainer], thickness: 1.0),
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(text: 'By continuing, you agree to our '),
-                          TextSpan(
-                            text: 'Privacy Policy',
-                            style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600),
-                          ),
-                          TextSpan(text: ' & '),
-                          TextSpan(
-                            text: 'Terms of Use',
-                            style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                        style: textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           ],

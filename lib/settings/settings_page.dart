@@ -3,14 +3,14 @@
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
 import 'package:invesly/common/presentations/widgets/popups.dart';
-import 'package:invesly/database/import_backup_page.dart';
+import 'package:invesly/database/backup/import_backup_page.dart';
 import 'package:invesly/intro/splash_page.dart';
 import 'package:path/path.dart';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
-import 'package:invesly/amcs/view/all_amcs_screen.dart';
-import 'package:invesly/amcs/view/edit_amc/edit_amc_screen.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
+import 'package:invesly/amcs/view/all_amcs_page.dart';
+import 'package:invesly/amcs/view/edit_amc/edit_amc_page.dart';
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/auth_ui_functions.dart';
 import 'package:invesly/authentication/user_model.dart';
@@ -23,18 +23,18 @@ import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_repository.dart';
-import 'package:invesly/settings/import_transactions/import_transactions_screen.dart';
-import 'package:invesly/settings/currency_selector_screen.dart';
+import 'package:invesly/settings/import_transactions/import_transactions_page.dart';
+import 'package:invesly/settings/currency_selector_page.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
@@ -107,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               MenuItemButton(
                                 leadingIcon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
-                                onPressed: () => context.push(const EditAccountScreen()),
+                                onPressed: () => context.push(const EditAccountPage()),
                                 child: const Text('Add new account'),
                               ),
                               BlocSelector<AppCubit, AppState, bool>(
@@ -165,7 +165,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           ? const Text('Primary account')
                                           : null,
                                       trailingIcon: IconButton(
-                                        onPressed: () => context.push(EditAccountScreen(initialAccount: account)),
+                                        onPressed: () => context.push(EditAccountPage(initialAccount: account)),
                                         icon: const Icon(Icons.edit_note_rounded),
                                         style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
                                       ),
@@ -190,11 +190,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // icon: const Icon(Icons.settings_outlined),
                   // content: SectionTiles(),
                   tiles: <Widget>[
-                    SectionTile(
+                    SectionTile.navigation(
                       title: const Text('App language'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       icon: const Icon(Icons.language_rounded),
                       subtitle: const Text('English'),
+                      onTap: () => context.push(const DriveImportBackupPage()),
                     ),
                     BlocSelector<AppCubit, AppState, String?>(
                       selector: (state) => state.dateFormat,
@@ -224,7 +225,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ? '${currency.name} (${currency.symbol})'
                                 : 'Choose your preferred currency',
                           ),
-                          onTap: () => context.push(const CurrencySelectorScreen()),
+                          onTap: () => context.push(const CurrencySelectorPage()),
                         );
                       },
                     ),
@@ -245,14 +246,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: const Text('View all AMCs'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       subtitle: const Text('View and manage your Asset Management Companies'),
-                      onTap: () => context.push(const AllAmcsScreen()),
+                      onTap: () => context.push(const AllAmcsPage()),
                     ),
                     SectionTile.navigation(
                       icon: const Icon(Icons.account_balance_outlined),
                       title: const Text('Add AMC'),
                       // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                       subtitle: const Text('Add a new Asset Management Company to your list'),
-                      onTap: () => context.push(const EditAmcScreen()),
+                      onTap: () => context.push(const EditAmcPage()),
                     ),
                   ],
                 ),
@@ -328,7 +329,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: const Icon(Icons.restore_rounded),
                       title: const Text('Manual import'),
                       subtitle: const Text('Import transaction from a .csv file.'),
-                      onTap: () => context.push(const ImportTransactionsScreen()),
+                      onTap: () => context.push(const ImportTransactionsPage()),
                     ),
 
                     // ~ Export as CSV file ~

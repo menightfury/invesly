@@ -1,7 +1,7 @@
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/import_transactions/cubit/import_transactions_cubit.dart';
-import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_page.dart';
 
 class ReviewTransactionsPage extends StatelessWidget {
   const ReviewTransactionsPage({super.key});
@@ -238,7 +238,7 @@ class ReviewTransactionsPage extends StatelessWidget {
                                   backgroundColor: context.colors.secondary,
                                   side: BorderSide.none,
                                   onPressed: () {
-                                    context.push(EditTransactionScreen(initialTransaction: trn));
+                                    context.push(EditTransactionPage(initialTransaction: trn));
                                   },
                                 ),
                                 ActionChip(

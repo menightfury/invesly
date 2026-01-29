@@ -8,8 +8,8 @@ import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-class AmcOverviewScreen extends StatelessWidget {
-  const AmcOverviewScreen(this.amcId, {super.key});
+class AmcOverviewPage extends StatelessWidget {
+  const AmcOverviewPage(this.amcId, {super.key});
 
   final String amcId;
 

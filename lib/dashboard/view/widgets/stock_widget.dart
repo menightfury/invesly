@@ -1,4 +1,4 @@
-part of '../dashboard_screen.dart';
+part of '../dashboard_page.dart';
 
 class _StockWidget extends StatefulWidget {
   const _StockWidget({super.key});

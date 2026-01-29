@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
 import 'package:invesly/common/extensions/buildcontext_extension.dart';
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
-import 'package:invesly/transactions/edit_transaction/edit_transaction_screen.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_page.dart';
 
 class AddTransactionButton extends StatelessWidget {
   const AddTransactionButton({this.scrollController, super.key});
@@ -38,12 +38,12 @@ class AddTransactionButton extends StatelessWidget {
 
         if (!context.mounted) return;
         if (confirmed ?? false) {
-          context.push(const EditAccountScreen());
+          context.push(const EditAccountPage());
         }
         return;
       }
 
-      context.push(const EditTransactionScreen());
+      context.push(const EditTransactionPage());
     }
   }
 

@@ -1,4 +1,4 @@
-part of '../dashboard_screen.dart';
+part of '../dashboard_page.dart';
 
 class _AccountsList extends StatefulWidget {
   const _AccountsList({super.key});
@@ -106,7 +106,7 @@ class _AccountsListState extends State<_AccountsList> {
                             shape: StadiumBorder(),
                           )
                         : ActionChip(
-                            onPressed: () => context.push(const EditAccountScreen()),
+                            onPressed: () => context.push(const EditAccountPage()),
                             avatar: CircleAvatar(
                               backgroundColor: context.colors.primary,
                               child: Icon(Icons.add_rounded, color: context.colors.onPrimary),

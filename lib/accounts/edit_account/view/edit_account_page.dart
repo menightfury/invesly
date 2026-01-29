@@ -3,15 +3,15 @@
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/utils/keyboard.dart';
-import 'package:invesly/dashboard/view/dashboard_screen.dart';
+import 'package:invesly/dashboard/view/dashboard_page.dart';
 
 import 'package:invesly/accounts/edit_account/cubit/edit_account_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/model/account_repository.dart';
 import 'package:invesly/common_libs.dart';
 
-class EditAccountScreen extends StatelessWidget {
-  const EditAccountScreen({super.key, this.initialAccount});
+class EditAccountPage extends StatelessWidget {
+  const EditAccountPage({super.key, this.initialAccount});
 
   final InveslyAccount? initialAccount;
 
@@ -67,7 +67,7 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
           if (context.canPop) {
             context.pop();
           } else {
-            context.go(const DashboardScreen());
+            context.go(const DashboardPage());
           }
           message = const SnackBar(content: Text('Account saved successfully'), backgroundColor: Colors.teal);
         } else if (state.status == EditAccountFormStatus.failure) {

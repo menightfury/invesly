@@ -1,4 +1,4 @@
-part of '../dashboard_screen.dart';
+part of '../dashboard_page.dart';
 
 class _RecentTransactions extends StatefulWidget {
   const _RecentTransactions({super.key});

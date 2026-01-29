@@ -3,8 +3,8 @@ import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/edit_amc/cubit/edit_amc_cubit.dart';
 import 'package:invesly/common_libs.dart';
 
-class EditAmcScreen extends StatelessWidget {
-  const EditAmcScreen({super.key, this.initialAmc});
+class EditAmcPage extends StatelessWidget {
+  const EditAmcPage({super.key, this.initialAmc});
 
   final InveslyAmc? initialAmc;
 

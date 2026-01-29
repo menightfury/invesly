@@ -3,9 +3,9 @@ import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/database/import_backup_page.dart';
-import 'package:invesly/dashboard/view/dashboard_screen.dart';
-import 'package:invesly/settings/currency_selector_screen.dart';
+import 'package:invesly/database/backup/import_backup_page.dart';
+import 'package:invesly/dashboard/view/dashboard_page.dart';
+import 'package:invesly/settings/currency_selector_page.dart';
 import 'package:invesly/common/model/currency.dart';
 import 'package:invesly/common/data/currencies.dart';
 
@@ -232,7 +232,7 @@ class _CurrencySelector extends StatelessWidget {
           ),
           title: Text('Currency', style: context.textTheme.labelSmall?.copyWith(color: context.colors.secondary)),
           subtitle: Text(selected.name, style: context.textTheme.titleMedium),
-          onTap: () => context.push(const CurrencySelectorScreen()),
+          onTap: () => context.push(const CurrencySelectorPage()),
           trailingIcon: Icon(Icons.keyboard_arrow_down_rounded, color: context.colors.onSurfaceVariant),
           shape: RoundedRectangleBorder(
             side: BorderSide(color: context.colors.outlineVariant),
@@ -277,7 +277,7 @@ class _SigninButtonGroup extends StatelessWidget {
     }
     context.read<AppCubit>().completeOnboarding();
     // context.go(AppRouter.initialDeeplink ?? AppRouter.dashboard);
-    context.go(const DashboardScreen());
+    context.go(const DashboardPage());
   }
 
   @override

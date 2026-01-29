@@ -9,7 +9,7 @@ import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/presentations/widgets/async_form_field.dart';
 import 'package:invesly/common/utils/keyboard.dart';
-import 'package:invesly/dashboard/view/dashboard_screen.dart';
+import 'package:invesly/dashboard/view/dashboard_page.dart';
 import 'package:invesly/transactions/edit_transaction/widgets/calculator/calculator.dart';
 
 import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
@@ -22,8 +22,8 @@ import 'package:invesly/transactions/widgets/transaction_type_selector_form_fiel
 
 import 'cubit/edit_transaction_cubit.dart';
 
-class EditTransactionScreen extends StatelessWidget {
-  const EditTransactionScreen({super.key, this.initialTransaction});
+class EditTransactionPage extends StatelessWidget {
+  const EditTransactionPage({super.key, this.initialTransaction});
 
   final InveslyTransaction? initialTransaction;
 
@@ -32,19 +32,19 @@ class EditTransactionScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) =>
           EditTransactionCubit(repository: TransactionRepository.instance, initial: initialTransaction),
-      child: const _EditTransactionScreen(),
+      child: const _EditTransactionPageContent(),
     );
   }
 }
 
-class _EditTransactionScreen extends StatefulWidget {
-  const _EditTransactionScreen({super.key});
+class _EditTransactionPageContent extends StatefulWidget {
+  const _EditTransactionPageContent({super.key});
 
   @override
-  State<_EditTransactionScreen> createState() => __EditTransactionScreenState();
+  State<_EditTransactionPageContent> createState() => _EditTransactionPageContentState();
 }
 
-class __EditTransactionScreenState extends State<_EditTransactionScreen> {
+class _EditTransactionPageContentState extends State<_EditTransactionPageContent> {
   final _formKey = GlobalKey<FormState>();
   late final ValueNotifier<AutovalidateMode> _validateMode;
   late final DateTime _dateNow;
@@ -98,7 +98,7 @@ class __EditTransactionScreenState extends State<_EditTransactionScreen> {
             context.pop();
           } else {
             // context.go(AppRouter.dashboard);
-            context.go(DashboardScreen());
+            context.go(DashboardPage());
           }
           message = const SnackBar(content: Text('Investment saved successfully'), backgroundColor: Colors.teal);
         } else if (state.status == EditTransactionStatus.failed) {

@@ -5,7 +5,7 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_screen.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
@@ -16,7 +16,7 @@ import 'package:invesly/common/presentations/widgets/circle_avatar.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 // import 'package:invesly/common/presentations/widgets/single_digit_flip_counter.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/settings/settings_screen.dart';
+import 'package:invesly/settings/settings_page.dart';
 import 'package:invesly/transactions/transaction_stat/cubit/transaction_stat_cubit.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
@@ -33,14 +33,14 @@ part 'widgets/transaction_stat.dart';
 part 'widgets/mutualfund_widget.dart';
 part 'widgets/stock_widget.dart';
 
-class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+class DashboardPage extends StatefulWidget {
+  const DashboardPage({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardPageState extends State<DashboardPage> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -59,7 +59,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               actions: <Widget>[
                 // ~~~ User avatar ~~~
                 GestureDetector(
-                  onTap: () => context.push(const SettingsScreen()),
+                  onTap: () => context.push(const SettingsPage()),
                   child: BlocSelector<AppCubit, AppState, InveslyUser?>(
                     selector: (state) => state.user,
                     builder: (context, currentUser) {

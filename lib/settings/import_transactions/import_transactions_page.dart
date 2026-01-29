@@ -13,8 +13,8 @@ import 'package:invesly/settings/import_transactions/review_transactions_page.da
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/widgets/transaction_type_selector_form_field.dart';
 
-class ImportTransactionsScreen extends StatelessWidget {
-  const ImportTransactionsScreen({super.key});
+class ImportTransactionsPage extends StatelessWidget {
+  const ImportTransactionsPage({super.key});
 
   @override
   Widget build(BuildContext context) {

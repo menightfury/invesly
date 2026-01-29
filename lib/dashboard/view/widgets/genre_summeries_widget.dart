@@ -1,4 +1,4 @@
-part of '../dashboard_screen.dart';
+part of '../dashboard_page.dart';
 
 class _GenreSummariesWidget extends StatefulWidget {
   const _GenreSummariesWidget({super.key});

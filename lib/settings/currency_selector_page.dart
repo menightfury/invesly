@@ -4,8 +4,8 @@ import 'package:invesly/common/model/currency.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 
-class CurrencySelectorScreen extends StatelessWidget {
-  const CurrencySelectorScreen({super.key});
+class CurrencySelectorPage extends StatelessWidget {
+  const CurrencySelectorPage({super.key});
 
   @override
   Widget build(BuildContext context) {

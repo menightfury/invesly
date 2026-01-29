@@ -15,7 +15,7 @@ class AppStyle {
 
   // data for theme
   // static const _primaryFont = 'Source Sans Pro';
-  static const _headerFont = 'Maragsa';
+  // static const _headerFont = 'Maragsa';
 
   ThemeData getTheme(ColorScheme colorScheme) {
     return ThemeData(
