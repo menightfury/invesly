@@ -25,6 +25,8 @@ export 'common/presentations/widgets/empty_widget.dart';
 export 'common/presentations/widgets/error_widget.dart';
 export 'common/presentations/widgets/month_picker.dart';
 export 'common/presentations/widgets/skeleton.dart';
+export 'common/presentations/widgets/section.dart';
+export 'common/presentations/widgets/circle_avatar.dart';
 
 export 'package:collection/collection.dart';
 export 'package:connectivity_plus/connectivity_plus.dart';

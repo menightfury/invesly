@@ -3,15 +3,17 @@
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/auth_ui_functions.dart';
+import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/presentations/components/google_signin_button.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/dashboard/view/dashboard_page.dart';
 import 'package:invesly/database/backup/backup_repository.dart';
-import 'package:invesly/intro/splash_page.dart';
 
 class RestoreDriveBackupPage extends StatelessWidget {
   const RestoreDriveBackupPage({super.key, this.onComplete});
@@ -52,22 +54,27 @@ class _DriveImportBackupPageState extends State<_DriveImportBackupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Import from Google drive')),
+      appBar: AppBar(title: const Text('Restore from Google drive')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Text(
-                  'Restore from Google Drive',
-                  style: context.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: context.colors.onSurface,
-                  ),
-                ),
+              BlocSelector<AppCubit, AppState, InveslyUser?>(
+                selector: (state) => state.user,
+                builder: (context, currentUser) {
+                  // final user = currentUser ?? InveslyUser.empty();
+                  if (currentUser.isNullOrEmpty) {
+                    return GoogleSigninButton(onSigninComplete: (user) => setState(() {}));
+                  }
+                  return SectionTile(
+                    title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
+                    subtitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
+                    icon: currentUser.isNotNullOrEmpty
+                        ? InveslyUserCircleAvatar(user: currentUser!)
+                        : CircleAvatar(child: const Icon(Icons.person_rounded)),
+                  );
+                },
               ),
               Expanded(
                 child: FutureBuilder<List<drive.File>?>(

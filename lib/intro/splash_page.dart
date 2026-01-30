@@ -109,7 +109,7 @@ class _SplashPageState extends State<SplashPage> {
                     const Gap(8.0),
                     Text(
                       'Your personal portfolio manager',
-                      style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant, letterSpacing: 0.5),
+                      style: TextStyle(color: colorScheme.onSurfaceVariant, letterSpacing: 0.5),
                     ),
                   ],
                 ),

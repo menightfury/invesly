@@ -1,6 +1,7 @@
 import 'package:invesly/authentication/auth_ui_functions.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/presentations/components/google_signin_button.dart';
 import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/restore_drive_backup_page.dart';
@@ -249,11 +250,11 @@ class _CurrencySelector extends StatelessWidget {
 class _SigninButtonGroup extends StatelessWidget {
   const _SigninButtonGroup({super.key});
 
-  Future<void> _onSignInPressed(BuildContext context) async {
-    final user = await startLoginFlow(context);
-    if (!context.mounted) return;
-    _finalizeSetUp(context, user);
-  }
+  // Future<void> _onSignInPressed(BuildContext context) async {
+  //   final user = await startLoginFlow(context);
+  //   if (!context.mounted) return;
+  //   _finalizeSetUp(context, user);
+  // }
 
   void _onWithoutSignInPressed(BuildContext context) {
     // _finalizeSetUp(context, InveslyUser.empty());
@@ -285,11 +286,12 @@ class _SigninButtonGroup extends StatelessWidget {
       children: <Widget>[
         SizedBox(
           width: double.infinity,
-          child: FilledButton.icon(
-            onPressed: () => _onSignInPressed(context),
-            icon: CircleAvatar(radius: 12.0, child: Image.asset('assets/images/google_logo.png')),
-            label: const Text('Sign in with Google', textAlign: TextAlign.center),
-          ),
+          // child: FilledButton.icon(
+          //   onPressed: () => _onSignInPressed(context),
+          //   icon: CircleAvatar(radius: 12.0, child: Image.asset('assets/images/google_logo.png')),
+          //   label: const Text('Sign in with Google', textAlign: TextAlign.center),
+          // ),
+          child: GoogleSigninButton(onSigninComplete: (user) => _finalizeSetUp(context, user)),
         ),
         SizedBox(
           width: double.infinity,
