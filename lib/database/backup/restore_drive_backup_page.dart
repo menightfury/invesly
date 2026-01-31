@@ -3,7 +3,6 @@
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
-import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 
 import 'package:invesly/authentication/auth_repository.dart';
 import 'package:invesly/authentication/auth_ui_functions.dart';
@@ -22,37 +21,6 @@ class RestoreDriveBackupPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _DriveImportBackupPage(key: key, onComplete: onComplete);
-  }
-}
-
-class _DriveImportBackupPage extends StatefulWidget {
-  const _DriveImportBackupPage({super.key, this.onComplete});
-
-  final ValueChanged<bool>? onComplete;
-
-  @override
-  State<_DriveImportBackupPage> createState() => _DriveImportBackupPageState();
-}
-
-class _DriveImportBackupPageState extends State<_DriveImportBackupPage> {
-  late final Future<List<drive.File>?> _files;
-  AccessToken? _accessToken;
-
-  @override
-  void initState() {
-    super.initState();
-    _accessToken = context.read<AppCubit>().state.user?.gapiAccessToken;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _files = _getDriveFiles(context);
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Restore from Google drive')),
       body: SafeArea(
@@ -65,179 +33,37 @@ class _DriveImportBackupPageState extends State<_DriveImportBackupPage> {
                 builder: (context, currentUser) {
                   // final user = currentUser ?? InveslyUser.empty();
                   if (currentUser.isNullOrEmpty) {
-                    return GoogleSigninButton(onSigninComplete: (user) => setState(() {}));
+                    return GoogleSigninButton();
                   }
-                  return SectionTile(
-                    title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
-                    subtitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
-                    icon: currentUser.isNotNullOrEmpty
-                        ? InveslyUserCircleAvatar(user: currentUser!)
-                        : CircleAvatar(child: const Icon(Icons.person_rounded)),
+                  return Column(
+                    children: <Widget>[
+                      SectionTile(
+                        title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
+                        subtitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
+                        icon: currentUser.isNotNullOrEmpty
+                            ? InveslyUserCircleAvatar(user: currentUser!)
+                            : CircleAvatar(child: const Icon(Icons.person_rounded)),
+                      ),
+                      FilledButton.tonal(
+                        onPressed: () async {
+                          await startLogoutFlow(context);
+                          if (!context.mounted) return;
+                          await startLoginFlow(context);
+                        },
+                        child: const Text('Login with another account'),
+                      ),
+                    ],
                   );
                 },
               ),
               Expanded(
-                child: FutureBuilder<List<drive.File>?>(
-                  future: _files,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      if (snapshot.hasError) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Text(
-                              'Error: ${snapshot.error}',
-                              style: TextStyle(color: context.colors.error),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        );
-                      }
-
-                      final files = snapshot.data;
-                      if (files == null || files.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 16.0,
-                            children: <Widget>[
-                              Container(
-                                padding: const EdgeInsets.all(24.0),
-                                decoration: BoxDecoration(
-                                  color: context.colors.surfaceContainerLow,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(Icons.cloud_off_rounded, size: 48.0, color: context.colors.outline),
-                              ),
-                              Text(
-                                'No backups found',
-                                style: context.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: context.colors.onSurface,
-                                ),
-                              ),
-                              TextButton(onPressed: () => _onSkipPressed(context), child: const Text('Skip')),
-                            ],
-                          ),
-                        );
-                      }
-
-                      // find the most recent backup file
-                      final file = files.length > 1
-                          ? files.reduce((a, b) {
-                              final aTime = a.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-                              final bTime = b.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-                              return aTime.isAfter(bTime) ? a : b;
-                            })
-                          : files.first;
-
-                      return Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: <Widget>[
-                            Container(
-                              padding: const EdgeInsets.all(20.0),
-                              decoration: BoxDecoration(
-                                color: context.colors.surfaceContainer,
-                                borderRadius: BorderRadius.circular(24.0),
-                                border: Border.all(color: context.colors.outlineVariant),
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(16.0),
-                                    decoration: BoxDecoration(
-                                      color: context.colors.primaryContainer,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.cloud_done_rounded,
-                                      size: 32.0,
-                                      color: context.colors.onPrimaryContainer,
-                                    ),
-                                  ),
-                                  const Gap(16.0),
-                                  Text(
-                                    'Backup Found',
-                                    style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  const Gap(4.0),
-                                  Text(
-                                    'We found a backup file in your Google Drive.',
-                                    style: context.textTheme.bodyMedium?.copyWith(
-                                      color: context.colors.onSurfaceVariant,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const Gap(24.0),
-                                  Divider(height: 1, color: context.colors.outlineVariant),
-                                  const Gap(16.0),
-                                  _buildInfoRow(
-                                    context,
-                                    icon: Icons.calendar_today_rounded,
-                                    label: 'Last Modified',
-                                    valueWidget: file.modifiedTime != null
-                                        ? FormattedDate(
-                                            date: file.modifiedTime!,
-                                            style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                                          )
-                                        : Text('-', style: context.textTheme.bodyMedium),
-                                  ),
-                                  const Gap(12.0),
-                                  _buildInfoRow(
-                                    context,
-                                    icon: Icons.sd_storage_rounded,
-                                    label: 'Size',
-                                    valueWidget: Text(
-                                      file.size != null && int.tryParse(file.size!) != null
-                                          ? int.parse(file.size!).formatAsBytes(2)
-                                          : '-',
-                                      style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Spacer(),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextButton(
-                                    onPressed: () => _onSkipPressed(context),
-                                    style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
-                                    child: Text('Skip', style: TextStyle(color: context.colors.onSurfaceVariant)),
-                                  ),
-                                ),
-                                const Gap(16.0),
-                                Expanded(
-                                  flex: 2,
-                                  child: FilledButton.icon(
-                                    onPressed: () => _onRestorePressed(context, file),
-                                    icon: const Icon(Icons.restore_rounded),
-                                    label: const Text('Restore Backup'),
-                                    style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
+                child: BlocSelector<AppCubit, AppState, InveslyUser?>(
+                  selector: (state) => state.user,
+                  builder: (context, user) {
+                    if (user.isNullOrEmpty || user!.gapiAccessToken == null) {
+                      return const Center(child: Text('Please login to see drive backups'));
                     }
-
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 16.0,
-                        children: <Widget>[
-                          CircularProgressIndicator(strokeCap: StrokeCap.round),
-                          Text(
-                            'Searching for backups...',
-                            style: context.textTheme.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    );
+                    return _DriveFiles(accessToken: user.gapiAccessToken!);
                   },
                 ),
               ),
@@ -247,17 +73,202 @@ class _DriveImportBackupPageState extends State<_DriveImportBackupPage> {
       ),
     );
   }
+}
+
+class _DriveFiles extends StatefulWidget {
+  const _DriveFiles({super.key, required this.accessToken});
+
+  // final ValueChanged<bool>? onComplete;
+  final AccessToken accessToken;
+
+  @override
+  State<_DriveFiles> createState() => _DriveFilesState();
+}
+
+class _DriveFilesState extends State<_DriveFiles> {
+  late final Future<List<drive.File>?> _files;
+  late final AccessToken _accessToken;
+
+  @override
+  void initState() {
+    super.initState();
+    _accessToken = widget.accessToken;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _files = _getDriveFiles(context);
+  }
+
+  @override
+  void didUpdateWidget(covariant _DriveFiles oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _files = _getDriveFiles(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<drive.File>?>(
+      future: _files,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Error: ${snapshot.error}',
+                  style: TextStyle(color: context.colors.error),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+
+          final files = snapshot.data;
+          if (files == null || files.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 16.0,
+                children: <Widget>[
+                  Container(
+                    padding: const EdgeInsets.all(24.0),
+                    decoration: BoxDecoration(color: context.colors.surfaceContainerLow, shape: BoxShape.circle),
+                    child: Icon(Icons.cloud_off_rounded, size: 48.0, color: context.colors.outline),
+                  ),
+                  Text(
+                    'No backups found',
+                    style: context.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: context.colors.onSurface,
+                    ),
+                  ),
+                  TextButton(onPressed: () => _onSkipPressed(context), child: const Text('Skip')),
+                ],
+              ),
+            );
+          }
+
+          // find the most recent backup file
+          final file = files.length > 1
+              ? files.reduce((a, b) {
+                  final aTime = a.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+                  final bTime = b.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+                  return aTime.isAfter(bTime) ? a : b;
+                })
+              : files.first;
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(20.0),
+                  decoration: BoxDecoration(
+                    color: context.colors.surfaceContainer,
+                    borderRadius: BorderRadius.circular(24.0),
+                    border: Border.all(color: context.colors.outlineVariant),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(color: context.colors.primaryContainer, shape: BoxShape.circle),
+                        child: Icon(Icons.cloud_done_rounded, size: 32.0, color: context.colors.onPrimaryContainer),
+                      ),
+                      const Gap(16.0),
+                      Text('Backup Found', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      const Gap(4.0),
+                      Text(
+                        'We found a backup file in your Google Drive.',
+                        style: context.textTheme.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant),
+                        textAlign: TextAlign.center,
+                      ),
+                      const Gap(24.0),
+                      Divider(height: 1, color: context.colors.outlineVariant),
+                      const Gap(16.0),
+                      _buildInfoRow(
+                        context,
+                        icon: Icons.calendar_today_rounded,
+                        label: 'Last Modified',
+                        valueWidget: file.modifiedTime != null
+                            ? FormattedDate(
+                                date: file.modifiedTime!,
+                                style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                              )
+                            : Text('-', style: context.textTheme.bodyMedium),
+                      ),
+                      const Gap(12.0),
+                      _buildInfoRow(
+                        context,
+                        icon: Icons.sd_storage_rounded,
+                        label: 'Size',
+                        valueWidget: Text(
+                          file.size != null && int.tryParse(file.size!) != null
+                              ? int.parse(file.size!).formatAsBytes(2)
+                              : '-',
+                          style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => _onSkipPressed(context),
+                        style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
+                        child: Text('Skip', style: TextStyle(color: context.colors.onSurfaceVariant)),
+                      ),
+                    ),
+                    const Gap(16.0),
+                    Expanded(
+                      flex: 2,
+                      child: FilledButton.icon(
+                        onPressed: () => _onRestorePressed(context, file),
+                        icon: const Icon(Icons.restore_rounded),
+                        label: const Text('Restore Backup'),
+                        style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 16.0,
+            children: <Widget>[
+              CircularProgressIndicator(strokeCap: StrokeCap.round),
+              Text(
+                'Searching for backups...',
+                style: context.textTheme.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   Future<List<drive.File>?> _getDriveFiles(BuildContext context) async {
     try {
-      if (_accessToken == null) {
-        final user = await startLoginFlow(context);
-        _accessToken = user.gapiAccessToken;
-        if (_accessToken == null || !context.mounted) {
-          throw Exception('Google sign-in failed');
-        }
-      }
-      return await AuthRepository.instance.getDriveFiles(_accessToken!);
+      // if (_accessToken == null) {
+      //   final user = await startLoginFlow(context);
+      //   _accessToken = user.gapiAccessToken;
+      //   if (_accessToken == null || !context.mounted) {
+      //     throw Exception('Google sign-in failed');
+      //   }
+      // }
+      return await AuthRepository.instance.getDriveFiles(_accessToken);
     } catch (err) {
       $logger.e(err);
       if (err is gapis.AccessDeniedException && context.mounted) {
@@ -281,7 +292,7 @@ class _DriveImportBackupPageState extends State<_DriveImportBackupPage> {
         // // Delete drive files -- Testing only
         // await authRepository.deleteBackups(accessToken);
         final fileContent = await AuthRepository.instance.getDriveFileContent(
-          accessToken: _accessToken!,
+          accessToken: _accessToken,
           fileId: file.id!,
         );
         if (fileContent == null || fileContent.isEmpty) {
