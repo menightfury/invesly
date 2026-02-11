@@ -22,52 +22,75 @@ class RestoreDriveBackupPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Restore from Google drive')),
+      appBar: AppBar(
+        title: const Text('Restore from Google drive'),
+        actions: [
+          if (!context.canPop)
+            InkWell(
+              onTap: () => context.go(const DashboardPage()),
+              child: Padding(padding: const EdgeInsets.all(2.0), child: const Text('Skip')),
+            ),
+        ],
+        actionsPadding: const EdgeInsets.only(right: 16.0),
+      ),
+
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: <Widget>[
-              BlocSelector<AppCubit, AppState, InveslyUser?>(
-                selector: (state) => state.user,
-                builder: (context, currentUser) {
-                  // final user = currentUser ?? InveslyUser.empty();
-                  if (currentUser.isNullOrEmpty) {
-                    return GoogleSigninButton();
-                  }
-                  return Column(
-                    children: <Widget>[
-                      SectionTile(
-                        title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
-                        subtitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
-                        icon: currentUser.isNotNullOrEmpty
-                            ? InveslyUserCircleAvatar(user: currentUser!)
-                            : CircleAvatar(child: const Icon(Icons.person_rounded)),
-                      ),
-                      FilledButton.tonal(
-                        onPressed: () async {
-                          await startLogoutFlow(context);
-                          if (!context.mounted) return;
-                          await startLoginFlow(context);
-                        },
-                        child: const Text('Login with another account'),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              Expanded(
-                child: BlocSelector<AppCubit, AppState, InveslyUser?>(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 16.0,
+              children: <Widget>[
+                BlocSelector<AppCubit, AppState, InveslyUser?>(
+                  selector: (state) => state.user,
+                  builder: (context, currentUser) {
+                    // final user = currentUser ?? InveslyUser.empty();
+                    if (currentUser.isNullOrEmpty) {
+                      return GoogleSigninButton();
+                    }
+                    return Column(
+                      children: <Widget>[
+                        SectionTile(
+                          title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
+                          subtitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
+                          icon: currentUser.isNotNullOrEmpty
+                              ? InveslyUserCircleAvatar(user: currentUser!)
+                              : CircleAvatar(child: const Icon(Icons.person_rounded)),
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(color: context.colors.outlineVariant),
+                            borderRadius: iCardBorderRadius,
+                          ),
+                          tileColor: context.colors.surface,
+                          padding: const EdgeInsets.all(16.0),
+                          trailingIcon: FilledButton.tonal(
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                              minimumSize: const Size(0.0, 0.0),
+                            ),
+                            onPressed: () async {
+                              await startLogoutFlow(context);
+                              // if (!context.mounted) return;
+                              // await startLoginFlow(context);
+                            },
+                            child: Text('Sign out', style: context.textTheme.bodySmall),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                BlocSelector<AppCubit, AppState, InveslyUser?>(
                   selector: (state) => state.user,
                   builder: (context, user) {
                     if (user.isNullOrEmpty || user!.gapiAccessToken == null) {
-                      return const Center(child: Text('Please login to see drive backups'));
+                      return Text('Please login to see drive backups');
                     }
-                    return _DriveFiles(accessToken: user.gapiAccessToken!);
+                    return Expanded(child: _DriveFiles(accessToken: user.gapiAccessToken!));
                   },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -145,7 +168,6 @@ class _DriveFilesState extends State<_DriveFiles> {
                       color: context.colors.onSurface,
                     ),
                   ),
-                  TextButton(onPressed: () => _onSkipPressed(context), child: const Text('Skip')),
                 ],
               ),
             );
@@ -218,14 +240,14 @@ class _DriveFilesState extends State<_DriveFiles> {
                 const Spacer(),
                 Row(
                   children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => _onSkipPressed(context),
-                        style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
-                        child: Text('Skip', style: TextStyle(color: context.colors.onSurfaceVariant)),
-                      ),
-                    ),
-                    const Gap(16.0),
+                    // Expanded(
+                    //   child: TextButton(
+                    //     onPressed: () => _onSkipPressed(context),
+                    //     style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
+                    //     child: Text('Skip', style: TextStyle(color: context.colors.onSurfaceVariant)),
+                    //   ),
+                    // ),
+                    // const Gap(16.0),
                     Expanded(
                       flex: 2,
                       child: FilledButton.icon(
@@ -279,10 +301,10 @@ class _DriveFilesState extends State<_DriveFiles> {
     }
   }
 
-  void _onSkipPressed(BuildContext context) {
-    // widget.onComplete?.call(false);
-    _finalizeSetup();
-  }
+  // void _onSkipPressed(BuildContext context) {
+  //   // widget.onComplete?.call(false);
+  //   _finalizeSetup();
+  // }
 
   Future<void> _onRestorePressed(BuildContext context, drive.File file) async {
     // widget.onComplete?.call(true);
