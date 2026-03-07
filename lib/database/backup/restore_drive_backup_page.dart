@@ -42,6 +42,7 @@ class RestoreDriveBackupPage extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               spacing: 16.0,
               children: <Widget>[
+                // ~ Current user or Google signin button
                 BlocSelector<AppCubit, AppState, InveslyUser?>(
                   selector: (state) => state.user,
                   builder: (context, currentUser) {
@@ -49,42 +50,41 @@ class RestoreDriveBackupPage extends StatelessWidget {
                     if (currentUser.isNullOrEmpty) {
                       return GoogleSigninButton();
                     }
-                    return Column(
-                      children: <Widget>[
-                        SectionTile(
-                          title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
-                          subtitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
-                          icon: currentUser.isNotNullOrEmpty
-                              ? InveslyUserCircleAvatar(user: currentUser!)
-                              : CircleAvatar(child: const Icon(Icons.person_rounded)),
-                          shape: RoundedRectangleBorder(
-                            side: BorderSide(color: context.colors.outlineVariant),
-                            borderRadius: iCardBorderRadius,
-                          ),
-                          tileColor: context.colors.surface,
-                          padding: const EdgeInsets.all(16.0),
-                          trailingIcon: FilledButton.tonal(
-                            style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                              minimumSize: const Size(0.0, 0.0),
-                            ),
-                            onPressed: () async {
-                              await startLogoutFlow(context);
-                              // if (!context.mounted) return;
-                              // await startLoginFlow(context);
-                            },
-                            child: Text('Sign out', style: context.textTheme.bodySmall),
-                          ),
+                    return SectionTile(
+                      title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
+                      subtitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
+                      icon: currentUser.isNotNullOrEmpty
+                          ? InveslyUserCircleAvatar(user: currentUser!)
+                          : CircleAvatar(child: const Icon(Icons.person_rounded)),
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(color: context.colors.outlineVariant),
+                        borderRadius: iCardBorderRadius,
+                      ),
+                      tileColor: context.colors.surface,
+                      padding: const EdgeInsets.all(16.0),
+                      trailingIcon: FilledButton.tonal(
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                          minimumSize: const Size(0.0, 0.0),
                         ),
-                      ],
+                        onPressed: () async {
+                          await startLogoutFlow(context);
+                          // if (!context.mounted) return;
+                          // await startLoginFlow(context);
+                        },
+                        child: Text('Sign out', style: context.textTheme.bodySmall),
+                      ),
                     );
                   },
                 ),
                 BlocSelector<AppCubit, AppState, InveslyUser?>(
                   selector: (state) => state.user,
                   builder: (context, user) {
-                    if (user.isNullOrEmpty || user!.gapiAccessToken == null) {
+                    if (user.isNullOrEmpty) {
                       return Text('Please login to see drive backups');
+                    }
+                    if (user!.gapiAccessToken == null) {
+                      return Text('Error getting accesstoken! Please re-login');
                     }
                     return Expanded(child: _DriveFiles(accessToken: user.gapiAccessToken!));
                   },
@@ -109,25 +109,22 @@ class _DriveFiles extends StatefulWidget {
 }
 
 class _DriveFilesState extends State<_DriveFiles> {
-  late final Future<List<drive.File>?> _files;
-  late final AccessToken _accessToken;
+  late Future<List<drive.File>?> _files;
+  // late final AccessToken _accessToken;
 
   @override
   void initState() {
     super.initState();
-    _accessToken = widget.accessToken;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
     _files = _getDriveFiles(context);
+    // _accessToken = widget.accessToken;
   }
 
   @override
   void didUpdateWidget(covariant _DriveFiles oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _files = _getDriveFiles(context);
+    if (widget.accessToken != oldWidget.accessToken) {
+      _files = _getDriveFiles(context);
+    }
   }
 
   @override
@@ -290,7 +287,7 @@ class _DriveFilesState extends State<_DriveFiles> {
       //     throw Exception('Google sign-in failed');
       //   }
       // }
-      return await AuthRepository.instance.getDriveFiles(_accessToken);
+      return await AuthRepository.instance.getDriveFiles(widget.accessToken);
     } catch (err) {
       $logger.e(err);
       if (err is gapis.AccessDeniedException && context.mounted) {
@@ -314,7 +311,7 @@ class _DriveFilesState extends State<_DriveFiles> {
         // // Delete drive files -- Testing only
         // await authRepository.deleteBackups(accessToken);
         final fileContent = await AuthRepository.instance.getDriveFileContent(
-          accessToken: _accessToken,
+          accessToken: widget.accessToken,
           fileId: file.id!,
         );
         if (fileContent == null || fileContent.isEmpty) {

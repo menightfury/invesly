@@ -165,6 +165,6 @@ class BackupRepository {
   }
 
   static List<List<dynamic>> processCsv(String csvData) {
-    return const CsvToListConverter().convert(csvData, eol: '\n');
+    return CsvCodec(lineDelimiter: '\n').decode(csvData);
   }
 }

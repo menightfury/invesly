@@ -137,6 +137,7 @@ class TransactionRepository {
 
     final csvData = transactions.map((trn) => _trnTable.fromModel(trn).values.toList()).toList();
 
-    return const ListToCsvConverter().convert([csvHeader, ...csvData], fieldDelimiter: separator);
+    // return const ListToCsvConverter().convert([csvHeader, ...csvData], fieldDelimiter: separator);
+    return CsvCodec(fieldDelimiter: separator).encode([csvHeader, ...csvData]);
   }
 }
