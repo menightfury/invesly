@@ -170,7 +170,7 @@ class _DriveFilesState extends State<_DriveFiles> {
             );
           }
 
-          // find the most recent backup file
+          // find the most recent three backup file
           // final file = files.length > 1
           //     ? files.reduce((a, b) {
           //         final aTime = a.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
@@ -178,7 +178,12 @@ class _DriveFilesState extends State<_DriveFiles> {
           //         return aTime.isAfter(bTime) ? a : b;
           //       })
           //     : files.first;
-
+          List<drive.File> recentFiles = files;
+          if (files.length > 1) {
+            recentFiles = files.where((file) => file.modifiedTime != null).toList()
+              ..sort((a, b) => b.modifiedTime!.compareTo(a.modifiedTime!))
+              ..take(3).toList();
+          }
           return Column(
             children: <Widget>[
               Expanded(
@@ -212,9 +217,9 @@ class _DriveFilesState extends State<_DriveFiles> {
                         builder: (context, selectedFile, child) {
                           return Section.builder(
                             margin: EdgeInsets.zero,
-                            tileCount: files.length,
+                            tileCount: recentFiles.length,
                             tileBuilder: (context, index) {
-                              final file = files[index];
+                              final file = recentFiles[index];
                               return SectionTile.checkTile(
                                 title: file.name != null ? Text(file.name!) : Text('...'),
                                 subtitle: file.modifiedTime != null
