@@ -84,7 +84,7 @@ class RestoreDriveBackupPage extends StatelessWidget {
                       return Text('Please login to see drive backups');
                     }
                     if (user!.gapiAccessToken == null) {
-                      return Text('Error getting accesstoken! Please re-login');
+                      return Text('Error getting access token! Please re-login');
                     }
                     return Expanded(child: _DriveFiles(accessToken: user.gapiAccessToken!));
                   },
@@ -111,12 +111,14 @@ class _DriveFiles extends StatefulWidget {
 class _DriveFilesState extends State<_DriveFiles> {
   late Future<List<drive.File>?> _files;
   // late final AccessToken _accessToken;
+  late final ValueNotifier<drive.File?> _selectedFile;
 
   @override
   void initState() {
     super.initState();
     _files = _getDriveFiles(context);
     // _accessToken = widget.accessToken;
+    _selectedFile = ValueNotifier(null);
   }
 
   @override
@@ -135,18 +137,16 @@ class _DriveFilesState extends State<_DriveFiles> {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
             return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Error: ${snapshot.error}',
-                  style: TextStyle(color: context.colors.error),
-                  textAlign: TextAlign.center,
-                ),
+              child: Text(
+                'Error: ${snapshot.error}',
+                style: TextStyle(color: context.colors.error),
+                textAlign: TextAlign.center,
               ),
             );
           }
 
           final files = snapshot.data;
+          // ~ No files found
           if (files == null || files.isEmpty) {
             return Center(
               child: Column(
@@ -171,93 +171,116 @@ class _DriveFilesState extends State<_DriveFiles> {
           }
 
           // find the most recent backup file
-          final file = files.length > 1
-              ? files.reduce((a, b) {
-                  final aTime = a.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-                  final bTime = b.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-                  return aTime.isAfter(bTime) ? a : b;
-                })
-              : files.first;
+          // final file = files.length > 1
+          //     ? files.reduce((a, b) {
+          //         final aTime = a.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+          //         final bTime = b.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+          //         return aTime.isAfter(bTime) ? a : b;
+          //       })
+          //     : files.first;
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: <Widget>[
-                Container(
-                  padding: const EdgeInsets.all(20.0),
-                  decoration: BoxDecoration(
-                    color: context.colors.surfaceContainer,
-                    borderRadius: BorderRadius.circular(24.0),
-                    border: Border.all(color: context.colors.outlineVariant),
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
+          return Column(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  children: <Widget>[
+                    PhysicalModel(
+                      shape: BoxShape.circle,
+                      color: context.colors.primaryContainer,
+                      child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(color: context.colors.primaryContainer, shape: BoxShape.circle),
                         child: Icon(Icons.cloud_done_rounded, size: 32.0, color: context.colors.onPrimaryContainer),
                       ),
-                      const Gap(16.0),
-                      Text('Backup Found', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      const Gap(4.0),
-                      Text(
-                        'We found a backup file in your Google Drive.',
-                        style: context.textTheme.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant),
-                        textAlign: TextAlign.center,
-                      ),
-                      const Gap(24.0),
-                      Divider(height: 1, color: context.colors.outlineVariant),
-                      const Gap(16.0),
-                      _buildInfoRow(
-                        context,
-                        icon: Icons.calendar_today_rounded,
-                        label: 'Last Modified',
-                        valueWidget: file.modifiedTime != null
-                            ? FormattedDate(
-                                date: file.modifiedTime!,
-                                style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                              )
-                            : Text('-', style: context.textTheme.bodyMedium),
-                      ),
-                      const Gap(12.0),
-                      _buildInfoRow(
-                        context,
-                        icon: Icons.sd_storage_rounded,
-                        label: 'Size',
-                        valueWidget: Text(
-                          file.size != null && int.tryParse(file.size!) != null
-                              ? int.parse(file.size!).formatAsBytes(2)
-                              : '-',
-                          style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  children: [
-                    // Expanded(
-                    //   child: TextButton(
-                    //     onPressed: () => _onSkipPressed(context),
-                    //     style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
-                    //     child: Text('Skip', style: TextStyle(color: context.colors.onSurfaceVariant)),
-                    //   ),
-                    // ),
+                    ),
+                    const Gap(16.0),
+
+                    Text('Backup Found', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    const Gap(4.0),
+
+                    Text(
+                      'We found a backup file in your Google Drive.',
+                      style: context.textTheme.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant),
+                      textAlign: TextAlign.center,
+                    ),
+                    const Gap(24.0),
+
+                    // InveslyDivider(height: 1, color: context.colors.outlineVariant),
                     // const Gap(16.0),
                     Expanded(
-                      flex: 2,
-                      child: FilledButton.icon(
-                        onPressed: () => _onRestorePressed(context, file),
-                        icon: const Icon(Icons.restore_rounded),
-                        label: const Text('Restore Backup'),
-                        style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
+                      child: ValueListenableBuilder(
+                        valueListenable: _selectedFile,
+                        builder: (context, selectedFile, child) {
+                          return Section.builder(
+                            margin: EdgeInsets.zero,
+                            tileCount: files.length,
+                            tileBuilder: (context, index) {
+                              final file = files[index];
+                              return SectionTile.checkTile(
+                                title: file.name != null ? Text(file.name!) : Text('...'),
+                                subtitle: file.modifiedTime != null
+                                    ? FormattedDate(
+                                        date: file.modifiedTime!,
+                                        style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                                      )
+                                    : Text('-', style: context.textTheme.bodyMedium),
+                                value: selectedFile == file,
+                                onChanged: (isSelected) => _selectedFile.value = isSelected ? file : null,
+                              );
+                            },
+                          );
+                        },
                       ),
                     ),
+                    // _buildInfoRow(
+                    //   context,
+                    //   icon: Icons.calendar_today_rounded,
+                    //   label: 'Last Modified',
+                    //   valueWidget: file.modifiedTime != null
+                    //       ? FormattedDate(
+                    //           date: file.modifiedTime!,
+                    //           style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                    //         )
+                    //       : Text('-', style: context.textTheme.bodyMedium),
+                    // ),
+                    // const Gap(12.0),
+                    // _buildInfoRow(
+                    //   context,
+                    //   icon: Icons.sd_storage_rounded,
+                    //   label: 'Size',
+                    //   valueWidget: Text(
+                    //     file.size != null && int.tryParse(file.size!) != null
+                    //         ? int.parse(file.size!).formatAsBytes(2)
+                    //         : '-',
+                    //     style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                    //   ),
+                    // ),
                   ],
                 ),
-              ],
-            ),
+              ),
+
+              Row(
+                children: [
+                  // Expanded(
+                  //   child: TextButton(
+                  //     onPressed: () => _onSkipPressed(context),
+                  //     style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
+                  //     child: Text('Skip', style: TextStyle(color: context.colors.onSurfaceVariant)),
+                  //   ),
+                  // ),
+                  // const Gap(16.0),
+                  Expanded(
+                    flex: 2,
+                    child: FilledButton.icon(
+                      // onPressed: () => _onRestorePressed(context, file),
+                      onPressed: () {},
+                      icon: const Icon(Icons.restore_rounded),
+                      label: const Text('Restore Backup'),
+                      style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           );
         }
 
@@ -279,6 +302,15 @@ class _DriveFilesState extends State<_DriveFiles> {
   }
 
   Future<List<drive.File>?> _getDriveFiles(BuildContext context) async {
+    await Future.delayed(3.ms);
+    return List.generate(
+      5,
+      (index) => drive.File()
+        ..id = 'file_$index'
+        ..name = 'Backup File $index'
+        ..modifiedTime = DateTime.now().subtract(Duration(days: index))
+        ..size = (100 + index * 50).toString(),
+    );
     try {
       // if (_accessToken == null) {
       //   final user = await startLoginFlow(context);
@@ -289,7 +321,7 @@ class _DriveFilesState extends State<_DriveFiles> {
       // }
       return await AuthRepository.instance.getDriveFiles(widget.accessToken);
     } catch (err) {
-      $logger.e(err);
+      $logger.e(err.runtimeType);
       if (err is gapis.AccessDeniedException && context.mounted) {
         await startLoginFlow(context, true);
       }
@@ -335,20 +367,20 @@ class _DriveFilesState extends State<_DriveFiles> {
     context.go(const DashboardPage());
   }
 
-  Widget _buildInfoRow(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required Widget valueWidget,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, size: 20.0, color: context.colors.onSurfaceVariant),
-        const Gap(12.0),
-        Text(label, style: context.textTheme.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant)),
-        const Spacer(),
-        valueWidget,
-      ],
-    );
-  }
+  // Widget _buildInfoRow(
+  //   BuildContext context, {
+  //   required IconData icon,
+  //   required String label,
+  //   required Widget valueWidget,
+  // }) {
+  //   return Row(
+  //     children: [
+  //       Icon(icon, size: 20.0, color: context.colors.onSurfaceVariant),
+  //       const Gap(12.0),
+  //       Text(label, style: context.textTheme.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant)),
+  //       const Spacer(),
+  //       valueWidget,
+  //     ],
+  //   );
+  // }
 }

@@ -54,7 +54,7 @@ class _SplashPageState extends State<SplashPage> {
           if (!mounted) {
             return;
           }
-          // update amc sha in app state
+          // update amc sha key in app state
           context.read<AppCubit>().updateAmcSha(sha);
         }
       }
