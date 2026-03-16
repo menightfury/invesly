@@ -170,19 +170,11 @@ class _DriveFilesState extends State<_DriveFiles> {
             );
           }
 
-          // find the most recent three backup file
-          // final file = files.length > 1
-          //     ? files.reduce((a, b) {
-          //         final aTime = a.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-          //         final bTime = b.modifiedTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-          //         return aTime.isAfter(bTime) ? a : b;
-          //       })
-          //     : files.first;
           List<drive.File> recentFiles = files;
           if (files.length > 1) {
-            recentFiles = files.where((file) => file.modifiedTime != null).toList()
-              ..sort((a, b) => b.modifiedTime!.compareTo(a.modifiedTime!))
-              ..take(3).toList();
+            final sorted = files.where((file) => file.modifiedTime != null).toList()
+              ..sort((a, b) => b.modifiedTime!.compareTo(a.modifiedTime!));
+            recentFiles = sorted.take(5).toList();
           }
           return Column(
             children: <Widget>[
@@ -203,16 +195,14 @@ class _DriveFilesState extends State<_DriveFiles> {
                     const Gap(4.0),
 
                     Text(
-                      'We found a backup file in your Google Drive.',
+                      'The following backup files have been found in your Google Drive.',
                       style: context.textTheme.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),
                     const Gap(24.0),
 
-                    // InveslyDivider(height: 1, color: context.colors.outlineVariant),
-                    // const Gap(16.0),
                     Expanded(
-                      child: ValueListenableBuilder(
+                      child: ValueListenableBuilder<drive.File?>(
                         valueListenable: _selectedFile,
                         builder: (context, selectedFile, child) {
                           return Section.builder(
@@ -221,13 +211,11 @@ class _DriveFilesState extends State<_DriveFiles> {
                             tileBuilder: (context, index) {
                               final file = recentFiles[index];
                               return SectionTile.checkTile(
-                                title: file.name != null ? Text(file.name!) : Text('...'),
-                                subtitle: file.modifiedTime != null
-                                    ? FormattedDate(
-                                        date: file.modifiedTime!,
-                                        style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                                      )
-                                    : Text('-', style: context.textTheme.bodyMedium),
+                                title: FormattedDate(
+                                  date: file.modifiedTime ?? file.createdTime ?? DateTime.now(),
+                                  style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                subtitle: file.name != null ? Text(file.name!) : const Text('...'),
                                 value: selectedFile == file,
                                 onChanged: (isSelected) => _selectedFile.value = isSelected ? file : null,
                               );
@@ -236,54 +224,23 @@ class _DriveFilesState extends State<_DriveFiles> {
                         },
                       ),
                     ),
-                    // _buildInfoRow(
-                    //   context,
-                    //   icon: Icons.calendar_today_rounded,
-                    //   label: 'Last Modified',
-                    //   valueWidget: file.modifiedTime != null
-                    //       ? FormattedDate(
-                    //           date: file.modifiedTime!,
-                    //           style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                    //         )
-                    //       : Text('-', style: context.textTheme.bodyMedium),
-                    // ),
-                    // const Gap(12.0),
-                    // _buildInfoRow(
-                    //   context,
-                    //   icon: Icons.sd_storage_rounded,
-                    //   label: 'Size',
-                    //   valueWidget: Text(
-                    //     file.size != null && int.tryParse(file.size!) != null
-                    //         ? int.parse(file.size!).formatAsBytes(2)
-                    //         : '-',
-                    //     style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
 
-              Row(
-                children: [
-                  // Expanded(
-                  //   child: TextButton(
-                  //     onPressed: () => _onSkipPressed(context),
-                  //     style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
-                  //     child: Text('Skip', style: TextStyle(color: context.colors.onSurfaceVariant)),
-                  //   ),
-                  // ),
-                  // const Gap(16.0),
-                  Expanded(
-                    flex: 2,
-                    child: FilledButton.icon(
-                      // onPressed: () => _onRestorePressed(context, file),
-                      onPressed: () {},
+              SizedBox(
+                width: double.infinity,
+                child: ValueListenableBuilder<drive.File?>(
+                  valueListenable: _selectedFile,
+                  builder: (context, selectedFile, child) {
+                    return FilledButton.icon(
+                      onPressed: selectedFile != null ? () => _onRestorePressed(context, selectedFile) : null,
                       icon: const Icon(Icons.restore_rounded),
                       label: const Text('Restore Backup'),
-                      style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16.0)),
-                    ),
-                  ),
-                ],
+                      style: FilledButton.styleFrom(padding: const EdgeInsets.all(16.0)),
+                    );
+                  },
+                ),
               ),
             ],
           );
@@ -307,15 +264,6 @@ class _DriveFilesState extends State<_DriveFiles> {
   }
 
   Future<List<drive.File>?> _getDriveFiles(BuildContext context) async {
-    await Future.delayed(3.ms);
-    return List.generate(
-      5,
-      (index) => drive.File()
-        ..id = 'file_$index'
-        ..name = 'Backup File $index'
-        ..modifiedTime = DateTime.now().subtract(Duration(days: index))
-        ..size = (100 + index * 50).toString(),
-    );
     try {
       // if (_accessToken == null) {
       //   final user = await startLoginFlow(context);
@@ -371,21 +319,4 @@ class _DriveFilesState extends State<_DriveFiles> {
     // widget.onComplete?.call(true);
     context.go(const DashboardPage());
   }
-
-  // Widget _buildInfoRow(
-  //   BuildContext context, {
-  //   required IconData icon,
-  //   required String label,
-  //   required Widget valueWidget,
-  // }) {
-  //   return Row(
-  //     children: [
-  //       Icon(icon, size: 20.0, color: context.colors.onSurfaceVariant),
-  //       const Gap(12.0),
-  //       Text(label, style: context.textTheme.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant)),
-  //       const Spacer(),
-  //       valueWidget,
-  //     ],
-  //   );
-  // }
 }
