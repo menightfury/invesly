@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'package:googleapis/businessprofileperformance/v1.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
@@ -27,7 +28,7 @@ class RestoreDriveBackupPage extends StatelessWidget {
         actions: [
           if (!context.canPop)
             InkWell(
-              onTap: () => context.go(const DashboardPage()),
+              onTap: () => _finalizeSetup(context),
               child: Padding(padding: const EdgeInsets.all(2.0), child: const Text('Skip')),
             ),
         ],
@@ -86,7 +87,9 @@ class RestoreDriveBackupPage extends StatelessWidget {
                     if (user!.gapiAccessToken == null) {
                       return Text('Error getting access token! Please re-login');
                     }
-                    return Expanded(child: _DriveFiles(accessToken: user.gapiAccessToken!));
+                    return Expanded(
+                      child: _DriveFiles(accessToken: user.gapiAccessToken!, onComplete: () => _finalizeSetup(context)),
+                    );
                   },
                 ),
               ],
@@ -96,12 +99,17 @@ class RestoreDriveBackupPage extends StatelessWidget {
       ),
     );
   }
+
+  void _finalizeSetup(BuildContext context) {
+    context.read<AppCubit>().updateLastRestoreDate(DateTime.now());
+    context.go(const DashboardPage());
+  }
 }
 
 class _DriveFiles extends StatefulWidget {
-  const _DriveFiles({super.key, required this.accessToken});
+  const _DriveFiles({super.key, required this.accessToken, this.onComplete});
 
-  // final ValueChanged<bool>? onComplete;
+  final VoidCallback? onComplete;
   final AccessToken accessToken;
 
   @override
@@ -293,7 +301,7 @@ class _DriveFilesState extends State<_DriveFiles> {
 
     try {
       await showLoadingDialog<void>(context, () async {
-        // // Delete drive files -- Testing only
+        // ! Delete drive files -- Testing only
         // await authRepository.deleteBackups(accessToken);
         final fileContent = await AuthRepository.instance.getDriveFileContent(
           accessToken: widget.accessToken,
@@ -308,15 +316,15 @@ class _DriveFilesState extends State<_DriveFiles> {
         return;
       }
       // await context.go(SplashPage());
-      _finalizeSetup();
+      widget.onComplete?.call();
     } catch (err) {
       $logger.e(err);
       // await showAlertDialog(context, title: 'Error', content: '$err');
     }
   }
 
-  void _finalizeSetup() {
-    // widget.onComplete?.call(true);
-    context.go(const DashboardPage());
-  }
+  // void _finalizeSetup() {
+  //   // widget.onComplete?.call(true);
+  //   context.go(const DashboardPage());
+  // }
 }
