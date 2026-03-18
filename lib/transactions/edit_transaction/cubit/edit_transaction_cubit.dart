@@ -14,12 +14,15 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
           id: initial?.id,
           account: initial?.account,
           quantity: initial?.quantity,
+          rate: initial?.rate,
           amount: initial?.totalAmount,
+          autoAmount: [AmcGenre.mf, AmcGenre.stock].contains(initial?.amc?.genre ?? AmcGenre.mf),
           type: (initial?.totalAmount.isNegative ?? false) ? TransactionType.redeemed : TransactionType.invested,
           genre: initial?.amc?.genre ?? AmcGenre.mf,
-          autoAmount: [AmcGenre.mf, AmcGenre.stock].contains(initial?.amc?.genre ?? AmcGenre.mf),
+          date: initial?.investedOn ?? DateTime.now(),
           amc: initial?.amc,
           notes: initial?.note,
+          // isPopping: false,
         ),
       );
 

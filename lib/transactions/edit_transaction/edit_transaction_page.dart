@@ -189,7 +189,9 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                       firstDate: DateTime(1990),
                                       lastDate: _dateNow,
                                     );
-                                    if (newDate == null) return null;
+                                    if (newDate == null) {
+                                      return value;
+                                    }
                                     cubit.updateDate(newDate);
                                     return newDate;
                                   },
@@ -211,47 +213,73 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                           ),
 
                           // ~~~ AMC ~~~
-                          AsyncFormField<InveslyAmc>(
-                            initialValue: cubit.state.amc,
-                            validator: (value) {
-                              if (value == null) {
-                                return 'Can\'t be empty';
-                              }
-                              return null;
-                            },
-                            onTapCallback: (value) async {
-                              // final newAmc = await InveslyAmcPickerWidget.showModal(context, value?.id);
-                              final newAmc = await context.push<InveslyAmc>(
-                                InveslyAmcPickerWidget(
-                                  amcId: value?.id,
-                                  genre: cubit.state.genre,
-                                  onPickup: (amc) => context.pop(amc),
-                                ),
-                              );
-                              return newAmc ?? value;
-                            },
-                            onChanged: (value) {
-                              if (value == null) return;
-                              cubit.updateAmc(value);
-                            },
-                            childBuilder: (value) {
-                              if (value == null) {
-                                return const Text('Select AMC', style: TextStyle(color: Colors.grey));
-                              }
-                              return Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(value.name, overflow: TextOverflow.ellipsis),
-                                  Text(
-                                    (value.genre ?? AmcGenre.misc).title,
-                                    style: context.textTheme.labelSmall,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              );
-                            },
-                          ).withLabel('Asset management company (AMC)'),
+                          Column(
+                            spacing: iFormFieldLabelSpacing,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
+                                selector: (state) => state.genre,
+                                builder: (context, genre) {
+                                  final label = switch (genre) {
+                                    AmcGenre.mf => 'Asset management company (AMC)',
+                                    AmcGenre.stock => 'Company',
+                                    AmcGenre.insurance => 'Insurance provider',
+                                    _ => 'Company / Service provider',
+                                  };
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                    child: FadeIn(
+                                      key: ValueKey(label),
+                                      from: Offset(0.0, 0.4),
+                                      child: Text(label, overflow: TextOverflow.ellipsis),
+                                    ),
+                                  );
+                                },
+                              ),
+                              AsyncFormField<InveslyAmc>(
+                                initialValue: cubit.state.amc,
+                                validator: (value) {
+                                  if (value == null) {
+                                    return 'Can\'t be empty';
+                                  }
+                                  return null;
+                                },
+                                onTapCallback: (value) async {
+                                  // final newAmc = await InveslyAmcPickerWidget.showModal(context, value?.id);
+                                  final newAmc = await context.push<InveslyAmc>(
+                                    InveslyAmcPickerWidget(
+                                      amcId: value?.id,
+                                      genre: cubit.state.genre,
+                                      onPickup: (amc) => context.pop(amc),
+                                    ),
+                                  );
+                                  return newAmc ?? value;
+                                },
+                                onChanged: (value) {
+                                  if (value == null) return;
+                                  cubit.updateAmc(value);
+                                },
+                                childBuilder: (value) {
+                                  if (value == null) {
+                                    return const Text('Select AMC', style: TextStyle(color: Colors.grey));
+                                  }
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(value.name, overflow: TextOverflow.ellipsis),
+                                      Text(
+                                        (value.genre ?? AmcGenre.misc).title,
+                                        style: context.textTheme.labelSmall,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
 
                           // ~~~ Units and Amount ~~~
                           BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
@@ -270,8 +298,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                           Expanded(
                                             child: Column(
                                               spacing: iFormFieldLabelSpacing,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start, // CrossAxisAlignment.stretch
+                                              crossAxisAlignment: CrossAxisAlignment.start,
                                               mainAxisSize: MainAxisSize.min,
                                               children: <Widget>[
                                                 BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
