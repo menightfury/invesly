@@ -34,7 +34,7 @@ class AmcSearchCubit extends Cubit<AmcSearchState> {
   }
 
   Future<void> search(String query) async {
-    if (query.isEmpty) return emit(state.copyWith(status: AmcSearchStateStatus.empty));
+    // if (query.isEmpty) return emit(state.copyWith(status: AmcSearchStateStatus.empty));
 
     final key = '${state.searchGenre.name}-${query.toLowerCase()}';
     final cachedResult = _amcCache[key];

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/widgets/cubit/amc_search_cubit.dart';
-import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 
 class InveslyAmcPickerWidget extends StatelessWidget {
@@ -25,7 +24,9 @@ class InveslyAmcPickerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Search Asset Management Company')),
+      appBar: AppBar(
+        title: genre != null ? Text('Search ${genre!.title}') : const Text('Search Companies / Service providers'),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -57,6 +58,8 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
   void initState() {
     super.initState();
     _searchController = TextEditingController()..addListener(textFieldChanged);
+    // initial search
+    textFieldChanged();
   }
 
   @override
@@ -87,20 +90,21 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
           controller: _searchController,
           autofocus: true,
         ),
-        BlocSelector<AmcSearchCubit, AmcSearchState, AmcGenre?>(
-          selector: (state) => state.searchGenre,
-          builder: (context, amcGenre) {
-            return InveslyChoiceChips<AmcGenre>.single(
-              wrapped: false,
-              options: searchChipsData,
-              selected: amcGenre,
-              // onChanged: (value) {
-              //   cubit.updateSearchGenre(value);
-              //   cubit.search(_searchController.text);
-              // },
-            );
-          },
-        ),
+        // ~ Chips for filtering by genre
+        // BlocSelector<AmcSearchCubit, AmcSearchState, AmcGenre?>(
+        //   selector: (state) => state.searchGenre,
+        //   builder: (context, amcGenre) {
+        //     return InveslyChoiceChips<AmcGenre>.single(
+        //       wrapped: false,
+        //       options: searchChipsData,
+        //       selected: amcGenre,
+        //       // onChanged: (value) {
+        //       //   cubit.updateSearchGenre(value);
+        //       //   cubit.search(_searchController.text);
+        //       // },
+        //     );
+        //   },
+        // ),
         Expanded(
           child: BlocBuilder<AmcSearchCubit, AmcSearchState>(
             builder: (context, state) {

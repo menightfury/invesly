@@ -62,7 +62,7 @@ class EditTransactionState extends Equatable {
     TransactionType? type,
     AmcGenre? genre,
     DateTime? date,
-    InveslyAmc? amc,
+    InveslyAmc? Function()? amc,
     String? notes,
     bool? isPopping,
   }) {
@@ -77,7 +77,7 @@ class EditTransactionState extends Equatable {
       type: type ?? this.type,
       genre: genre ?? this.genre,
       date: date ?? this.date,
-      amc: amc ?? this.amc,
+      amc: amc != null ? amc() : this.amc,
       notes: notes ?? this.notes,
       isPopping: isPopping ?? this.isPopping,
     );

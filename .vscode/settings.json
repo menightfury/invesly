@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "buildcontext",
+        "Debouncer",
         "firestore",
         "gapi",
         "gapis",

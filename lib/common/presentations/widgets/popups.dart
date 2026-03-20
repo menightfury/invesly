@@ -300,6 +300,7 @@ Future<bool?> showConfirmDialog(
   Widget? content,
   bool showCancelButton = false,
   String? confirmText,
+  String? cancelText,
   bool canPop = true,
   // VoidCallback? onConfirm,
   // VoidCallback? onCancel,
@@ -315,7 +316,7 @@ Future<bool?> showConfirmDialog(
         actions: <Widget>[
           if (showCancelButton)
             TextButton(
-              child: const Text('Cancel'),
+              child: cancelText != null ? Text(cancelText) : const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context, rootNavigator: true).pop(false);
                 // onCancel?.call();
@@ -323,7 +324,7 @@ Future<bool?> showConfirmDialog(
             ),
           FilledButton.tonalIcon(
             icon: const Icon(Icons.check_rounded),
-            label: Text(confirmText ?? 'Confirm'),
+            label: confirmText != null ? Text(confirmText) : const Text('Confirm'),
             onPressed: () {
               Navigator.of(context, rootNavigator: true).pop(true);
               // onConfirm?.call();
@@ -464,79 +465,34 @@ enum RoutesToPopAfterDelete { none, one, all, preventDelete }
 //   // });
 // }
 
-Future<bool?> showDiscardChangesDialog(
-  BuildContext context, {
-  // VoidCallback? onDiscard,
-  // VoidCallback? onCancel,
-  // previousObject,
-  // currentObject,
-  // bool forceShow = false,
-  bool canPop = true,
-}) async {
-  return showConfirmDialog(
-    context,
-    title: 'Discard Changes?',
-    content: const Text('Are you sure to discard changes?', textAlign: TextAlign.center),
-    icon: const Icon(Icons.warning_rounded),
-    confirmText: 'Discard',
-    showCancelButton: true,
-    canPop: canPop,
-    // onCancel: onCancel,
-    // onConfirm: onDiscard,
+Future<bool?> showDiscardChangesDialog(BuildContext context, {bool canPop = true}) async {
+  return showDialog<bool>(
+    context: context,
+    barrierDismissible: canPop,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Discard Changes ?'),
+        icon: const Icon(Icons.warning_rounded),
+        content: const Text('Are you sure to discard changes?', textAlign: TextAlign.center),
+        actions: <Widget>[
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: context.colors.primaryContainer,
+              foregroundColor: context.colors.onPrimaryContainer,
+            ),
+            child: const Text('Keep Editing'),
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(false),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: context.colors.error,
+              foregroundColor: context.colors.onError,
+            ),
+            child: const Text('Discard'),
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+          ),
+        ],
+      );
+    },
   );
-  // if (forceShow == false && previousObject == currentObject && previousObject != null && currentObject != null) {
-  //   popRoute(context);
-  //   return;
-  // }
-  // if (forceShow == false && previousObject == null) {
-  //   popRoute(context);
-  //   return;
-  // }
-
-  // previousObject = previousObject?.copyWith(dateTimeModified: Value(null));
-
-  // if (forceShow == false &&
-  //     previousObject != null &&
-  //     currentObject != null &&
-  //     previousObject.toString() == currentObject.toString()) {
-  //   popRoute(context);
-  // } else {
-  //   await showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return AlertDialog(
-  //         title: Text('Discard Changes?'),
-  //         icon: Icon(Icons.warning_rounded),
-  //         content: Text('Are you sure to discard changes?'),
-  //         actions: <Widget>[
-  //           TextButton(
-  //             child: const Text('Cancel'),
-  //             onPressed: () {
-  //               Navigator.of(context, rootNavigator: true).pop();
-  //               onCancel?.call();
-  //             },
-  //           ),
-  //           FilledButton.tonalIcon(
-  //             icon: const Icon(Icons.check_rounded),
-  //             label: Text(confirmText ?? 'Confirm'),
-  //             onPressed: () {
-  //               Navigator.of(context, rootNavigator: true).pop();
-  //               onConfirm?.call();
-  //             },
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //     onSubmitLabel: "discard".tr(),
-  //     onSubmit: () async {
-  //       if (onDiscard != null) await onDiscard();
-  //       popRoute(context);
-  //       popRoute(context);
-  //     },
-  //     onCancelLabel: "cancel".tr(),
-  //     onCancel: () {
-  //       popRoute(context);
-  //     },
-  //   );
-  // }
 }

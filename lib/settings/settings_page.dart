@@ -85,62 +85,81 @@ class _SettingsPageState extends State<SettingsPage> {
                       builder: (context, currentUser) {
                         // final user = currentUser ?? InveslyUser.empty();
                         return Section(
-                          title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
-                          subTitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
-                          icon: currentUser.isNotNullOrEmpty
-                              ? InveslyUserCircleAvatar(user: currentUser!)
-                              : CircleAvatar(child: const Icon(Icons.person_rounded)),
-                          trailingIcon: MenuAnchor(
-                            menuChildren: [
-                              BlocSelector<AppCubit, AppState, bool>(
-                                selector: (state) => state.user.isNotNullOrEmpty,
-                                builder: (_, userExists) {
-                                  if (userExists) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return MenuItemButton(
-                                    leadingIcon: Icon(Icons.login_rounded, color: context.theme.primaryColor),
-                                    onPressed: () => startLoginFlow(context),
-                                    child: const Text('Sign in'),
-                                  );
-                                },
-                              ),
-                              MenuItemButton(
-                                leadingIcon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
-                                onPressed: () => context.push(const EditAccountPage()),
-                                child: const Text('Add new account'),
-                              ),
-                              BlocSelector<AppCubit, AppState, bool>(
-                                selector: (state) => state.user.isNullOrEmpty,
-                                builder: (_, userNotExists) {
-                                  if (userNotExists) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return MenuItemButton(
-                                    leadingIcon: Icon(Icons.logout_rounded, color: context.colors.error),
-                                    onPressed: () => startLogoutFlow(context),
-                                    // style: MenuItemButton.styleFrom(
-                                    //   backgroundColor: context.colors.error.withAlpha(0x1F),
-                                    // ),
-                                    child: Text('Sign out', style: TextStyle(color: context.colors.error)),
-                                  );
-                                },
-                              ),
-                            ],
-                            // alignmentOffset: Offset(-130, 0),
-                            style: MenuStyle(
-                              alignment: Alignment(-6.0, -1.0),
-                              shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: iCardBorderRadius)),
+                          // title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
+                          title: Text('Accounts (${accounts?.length ?? 0})'),
+                          // subTitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
+                          // icon: currentUser.isNotNullOrEmpty
+                          //     ? InveslyUserCircleAvatar(user: currentUser!)
+                          //     : CircleAvatar(child: const Icon(Icons.person_rounded)),
+                          trailingIcon: FilledButton.tonalIcon(
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                              minimumSize: const Size(0.0, 0.0),
+                              backgroundColor: context.colors.primary,
+                              foregroundColor: context.colors.onPrimary,
                             ),
-                            builder: (context, controller, child) {
-                              return IconButton(
-                                onPressed: () => controller.isOpen ? controller.close() : controller.open(),
-                                icon: child!,
-                              );
-                            },
-                            child: const Icon(Icons.more_vert),
+                            onPressed: () => context.push(const EditAccountPage()),
+                            label: Text(
+                              'Add new account',
+                              style: context.textTheme.bodySmall?.copyWith(color: context.colors.onPrimary),
+                            ),
+                            icon: Icon(Icons.add_rounded, color: context.colors.onPrimary),
+                            // MenuItemButton(
+                            //       leadingIcon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
+                            //       onPressed: () => context.push(const EditAccountPage()),
+                            //       child: const Text('Add new account'),
+                            //     ),
                           ),
-
+                          // trailingIcon: MenuAnchor(
+                          //   menuChildren: [
+                          //     BlocSelector<AppCubit, AppState, bool>(
+                          //       selector: (state) => state.user.isNotNullOrEmpty,
+                          //       builder: (_, userExists) {
+                          //         if (userExists) {
+                          //           return const SizedBox.shrink();
+                          //         }
+                          //         return MenuItemButton(
+                          //           leadingIcon: Icon(Icons.login_rounded, color: context.theme.primaryColor),
+                          //           onPressed: () => startLoginFlow(context),
+                          //           child: const Text('Sign in'),
+                          //         );
+                          //       },
+                          //     ),
+                          //     MenuItemButton(
+                          //       leadingIcon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
+                          //       onPressed: () => context.push(const EditAccountPage()),
+                          //       child: const Text('Add new account'),
+                          //     ),
+                          //     BlocSelector<AppCubit, AppState, bool>(
+                          //       selector: (state) => state.user.isNullOrEmpty,
+                          //       builder: (_, userNotExists) {
+                          //         if (userNotExists) {
+                          //           return const SizedBox.shrink();
+                          //         }
+                          //         return MenuItemButton(
+                          //           leadingIcon: Icon(Icons.logout_rounded, color: context.colors.error),
+                          //           onPressed: () => startLogoutFlow(context),
+                          //           // style: MenuItemButton.styleFrom(
+                          //           //   backgroundColor: context.colors.error.withAlpha(0x1F),
+                          //           // ),
+                          //           child: Text('Sign out', style: TextStyle(color: context.colors.error)),
+                          //         );
+                          //       },
+                          //     ),
+                          //   ],
+                          //   // alignmentOffset: Offset(-130, 0),
+                          //   style: MenuStyle(
+                          //     alignment: Alignment(-6.0, -1.0),
+                          //     shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: iCardBorderRadius)),
+                          //   ),
+                          //   builder: (context, controller, child) {
+                          //     return IconButton(
+                          //       onPressed: () => controller.isOpen ? controller.close() : controller.open(),
+                          //       icon: child!,
+                          //     );
+                          //   },
+                          //   child: const Icon(Icons.more_vert),
+                          // ),
                           tiles: List.generate(
                             accounts?.length ?? (isLoading ? 2 : 0), // dummy count for shimmer effect
                             (index) {
@@ -167,7 +186,11 @@ class _SettingsPageState extends State<SettingsPage> {
                                       trailingIcon: IconButton(
                                         onPressed: () => context.push(EditAccountPage(initialAccount: account)),
                                         icon: const Icon(Icons.edit_note_rounded),
-                                        style: IconButton.styleFrom(backgroundColor: Colors.black.withAlpha(0x1F)),
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: Colors.black.withAlpha(0x1F),
+                                          padding: const EdgeInsets.all(8.0),
+                                          minimumSize: const Size(0.0, 0.0),
+                                        ),
                                       ),
                                     ),
                                   );

@@ -118,7 +118,9 @@ class _AsyncFormFieldState<T> extends FormFieldState<T> {
   @override
   void didChange(T? value) {
     super.didChange(value);
-    validate();
+    if (_formField.autovalidateMode != AutovalidateMode.disabled) {
+      validate();
+    }
     // Call the onChanged callback if provided
     _formField.onChanged?.call(value);
   }

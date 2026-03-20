@@ -223,7 +223,9 @@ class _DriveFilesState extends State<_DriveFiles> {
                                   date: file.modifiedTime ?? file.createdTime ?? DateTime.now(),
                                   style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                                 ),
-                                subtitle: file.name != null ? Text(file.name!) : const Text('...'),
+                                subtitle: file.size != null && int.tryParse(file.size!) != null
+                                    ? Text(int.parse(file.size!).formatAsBytes(2))
+                                    : const Text('...'),
                                 value: selectedFile == file,
                                 onChanged: (isSelected) => _selectedFile.value = isSelected ? file : null,
                               );

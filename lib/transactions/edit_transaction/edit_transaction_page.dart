@@ -48,6 +48,7 @@ class _EditTransactionPageContent extends StatefulWidget {
 
 class _EditTransactionPageContentState extends State<_EditTransactionPageContent> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  final _amcFieldKey = GlobalKey<FormFieldState<InveslyAmc>>();
   late final DateTime _dateNow;
 
   @override
@@ -168,6 +169,8 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                   onChanged: (value) {
                                     if (value == null) return;
                                     cubit.updateGenre(value);
+                                    cubit.updateAmc(null);
+                                    _amcFieldKey.currentState?.didChange(null);
                                   },
                                 ).withLabel('Investment type'),
                               ),
@@ -238,8 +241,11 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                 },
                               ),
                               AsyncFormField<InveslyAmc>(
+                                key: _amcFieldKey,
+                                autovalidateMode: AutovalidateMode.disabled,
                                 initialValue: cubit.state.amc,
                                 validator: (value) {
+                                  $logger.d('Validating AMC field with value: $value');
                                   if (value == null) {
                                     return 'Can\'t be empty';
                                   }
@@ -467,7 +473,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                             builder: (context, autoAmount) {
                                               return Row(
                                                 children: <Widget>[
-                                                  Text('Auto', style: context.textTheme.labelSmall),
+                                                  Text('Auto calculate', style: context.textTheme.labelSmall),
                                                   SizedBox(
                                                     height: 20.0,
                                                     child: FittedBox(
