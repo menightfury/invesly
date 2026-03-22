@@ -78,6 +78,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
           appBar: AppBar(title: const Text('Holding details')),
           body: Column(
             children: <Widget>[
+              // ~ Overview Section
               BlocBuilder<TransactionsCubit, TransactionsState>(
                 builder: (context, trnState) {
                   final isError = trnState.isError;
