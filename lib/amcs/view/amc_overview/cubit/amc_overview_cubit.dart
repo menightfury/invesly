@@ -20,6 +20,7 @@ class AmcOverviewCubit extends Cubit<AmcOverviewState> {
       final amc = await _repository.getAmcById(amcId);
       final latestPrice = amc != null ? await _repository.getLatestPrice(amc) : null;
 
+      if (isClosed) return;
       emit(AmcOverviewLoadedState(amc: amc, latestPrice: latestPrice));
     } on Exception catch (error) {
       emit(AmcOverviewErrorState(error.toString()));

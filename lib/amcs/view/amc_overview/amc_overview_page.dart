@@ -61,7 +61,9 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
     if (accountId?.isEmpty ?? true) {
       return;
     }
-    context.read<TransactionsCubit>().fetchTransactions(accountId: accountId, amcId: widget.amcId);
+    if (mounted) {
+      context.read<TransactionsCubit>().fetchTransactions(accountId: accountId, amcId: widget.amcId);
+    }
   }
 
   @override
@@ -103,59 +105,67 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
 
                       return Skeletonizer(
                         enabled: isLoading,
-                        child: Section(
-                          title: amcState is AmcOverviewLoadedState && amcState.amc != null
-                              ? FadeIn(key: Key('amc_loaded'), child: Text(amcState.amc!.name))
-                              : Text(widget.amcId),
-                          subTitle: Text('Overview'), // TODO: Show amc tags
-                          tiles: <Widget>[
-                            SectionTile(
-                              title: const Text('No. of units'),
-                              trailingIcon: totalUnits != null
-                                  ? Text('$totalUnits')
-                                  : const Text('...'), // TODO: Fix this
+                        child: Column(
+                          children: <Widget>[
+                            Column(
+                              // title: amcState is AmcOverviewLoadedState && amcState.amc != null
+                              //     ? FadeIn(key: Key('amc_loaded'), child: Text(amcState.amc!.name))
+                              //     : Text(widget.amcId),
+                              // subTitle: Text('Overview'), // TODO: Show amc tags
+                              children: <Widget>[
+                                SectionTile(
+                                  title: const Text('No. of units'),
+                                  trailingIcon: totalUnits != null
+                                      ? Text('$totalUnits')
+                                      : const Text('...'), // TODO: Fix this
+                                ),
+                                SectionTile(
+                                  title: const Text('Current value'),
+                                  subtitle: latestPrice != null
+                                      ? FormattedDate(date: latestPrice.$1)
+                                      : FormattedDate(date: DateTime.now()),
+                                  trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                                    selector: (state) => state.isPrivateMode,
+                                    builder: (context, isPrivateMode) {
+                                      return CurrencyView(
+                                        amount: (totalUnits?.isFinite ?? false) && (latestPrice?.$2?.isFinite ?? false)
+                                            ? totalUnits! * latestPrice!.$2!
+                                            : 0.0,
+                                        integerStyle: textTheme.headlineLarge,
+                                        decimalsStyle: textTheme.headlineSmall,
+                                        currencyStyle: textTheme.bodyMedium,
+                                        privateMode: isPrivateMode,
+                                        // compactView: snapshot.data! >= 1_00_00_000
+                                      );
+                                    },
+                                  ),
+                                ),
+                                SectionTile(
+                                  title: const Text('Invested'),
+                                  trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                                    selector: (state) => state.isPrivateMode,
+                                    builder: (context, isPrivateMode) {
+                                      return CurrencyView(
+                                        amount: totalAmountInvested ?? 0.0,
+                                        integerStyle: textTheme.headlineLarge,
+                                        decimalsStyle: textTheme.headlineSmall,
+                                        currencyStyle: textTheme.bodyMedium,
+                                        privateMode: isPrivateMode,
+                                        // compactView: snapshot.data! >= 1_00_00_000
+                                      );
+                                    },
+                                  ),
+                                ),
+                                _buildDetailRow(
+                                  'Total returns',
+                                  '+₹1,035.00 (14.79%)',
+                                  valueColor: Colors.teal.shade500,
+                                ),
+                                _buildDetailRow('1D returns', '+₹77.00 (0.97%)', valueColor: Colors.teal.shade500),
+                                _buildDetailRow('Mkt. price', '₹160.70'),
+                                _buildDetailRow('Avg. price', '₹140.00'),
+                              ],
                             ),
-                            SectionTile(
-                              title: const Text('Current value'),
-                              subtitle: latestPrice != null
-                                  ? FormattedDate(date: latestPrice.$1)
-                                  : FormattedDate(date: DateTime.now()),
-                              trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                                selector: (state) => state.isPrivateMode,
-                                builder: (context, isPrivateMode) {
-                                  return CurrencyView(
-                                    amount: (totalUnits?.isFinite ?? false) && (latestPrice?.$2?.isFinite ?? false)
-                                        ? totalUnits! * latestPrice!.$2!
-                                        : 0.0,
-                                    integerStyle: textTheme.headlineLarge,
-                                    decimalsStyle: textTheme.headlineSmall,
-                                    currencyStyle: textTheme.bodyMedium,
-                                    privateMode: isPrivateMode,
-                                    // compactView: snapshot.data! >= 1_00_00_000
-                                  );
-                                },
-                              ),
-                            ),
-                            SectionTile(
-                              title: const Text('Invested'),
-                              trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                                selector: (state) => state.isPrivateMode,
-                                builder: (context, isPrivateMode) {
-                                  return CurrencyView(
-                                    amount: totalAmountInvested ?? 0.0,
-                                    integerStyle: textTheme.headlineLarge,
-                                    decimalsStyle: textTheme.headlineSmall,
-                                    currencyStyle: textTheme.bodyMedium,
-                                    privateMode: isPrivateMode,
-                                    // compactView: snapshot.data! >= 1_00_00_000
-                                  );
-                                },
-                              ),
-                            ),
-                            _buildDetailRow('Total returns', '+₹1,035.00 (14.79%)', valueColor: Colors.teal.shade500),
-                            _buildDetailRow('1D returns', '+₹77.00 (0.97%)', valueColor: Colors.teal.shade500),
-                            _buildDetailRow('Mkt. price', '₹160.70'),
-                            _buildDetailRow('Avg. price', '₹140.00'),
                           ],
                         ),
                       );

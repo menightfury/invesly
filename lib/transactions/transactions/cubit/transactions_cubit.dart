@@ -43,7 +43,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
         dateRange: dateRange,
         limit: limit,
       );
-
+      if (isClosed) return;
       emit(state.copyWith(status: TransactionsStatus.loaded, transactions: transactions));
     } on Exception catch (err) {
       emit(state.copyWith(status: TransactionsStatus.error, errorMsg: err.toString()));

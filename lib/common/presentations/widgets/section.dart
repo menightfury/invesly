@@ -108,10 +108,10 @@ class Section extends StatelessWidget {
       child = SizedBox.shrink();
     }
 
-    child = Material(
-      type: MaterialType.transparency,
+    child = ClipRRect(
+      // type: MaterialType.transparency,
       borderRadius: iTileBorderRadius,
-      clipBehavior: Clip.antiAlias,
+      // clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 2.0,
