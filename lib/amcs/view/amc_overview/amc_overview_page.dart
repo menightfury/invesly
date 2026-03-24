@@ -2,7 +2,6 @@ import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/amc_overview/cubit/amc_overview_cubit.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
-import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
@@ -107,65 +106,65 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                         enabled: isLoading,
                         child: Column(
                           children: <Widget>[
-                            Column(
-                              // title: amcState is AmcOverviewLoadedState && amcState.amc != null
-                              //     ? FadeIn(key: Key('amc_loaded'), child: Text(amcState.amc!.name))
-                              //     : Text(widget.amcId),
-                              // subTitle: Text('Overview'), // TODO: Show amc tags
-                              children: <Widget>[
-                                SectionTile(
-                                  title: const Text('No. of units'),
-                                  trailingIcon: totalUnits != null
-                                      ? Text('$totalUnits')
-                                      : const Text('...'), // TODO: Fix this
-                                ),
-                                SectionTile(
-                                  title: const Text('Current value'),
-                                  subtitle: latestPrice != null
-                                      ? FormattedDate(date: latestPrice.$1)
-                                      : FormattedDate(date: DateTime.now()),
-                                  trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                                    selector: (state) => state.isPrivateMode,
-                                    builder: (context, isPrivateMode) {
-                                      return CurrencyView(
-                                        amount: (totalUnits?.isFinite ?? false) && (latestPrice?.$2?.isFinite ?? false)
-                                            ? totalUnits! * latestPrice!.$2!
-                                            : 0.0,
-                                        integerStyle: textTheme.headlineLarge,
-                                        decimalsStyle: textTheme.headlineSmall,
-                                        currencyStyle: textTheme.bodyMedium,
-                                        privateMode: isPrivateMode,
-                                        // compactView: snapshot.data! >= 1_00_00_000
-                                      );
-                                    },
-                                  ),
-                                ),
-                                SectionTile(
-                                  title: const Text('Invested'),
-                                  trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                                    selector: (state) => state.isPrivateMode,
-                                    builder: (context, isPrivateMode) {
-                                      return CurrencyView(
-                                        amount: totalAmountInvested ?? 0.0,
-                                        integerStyle: textTheme.headlineLarge,
-                                        decimalsStyle: textTheme.headlineSmall,
-                                        currencyStyle: textTheme.bodyMedium,
-                                        privateMode: isPrivateMode,
-                                        // compactView: snapshot.data! >= 1_00_00_000
-                                      );
-                                    },
-                                  ),
-                                ),
-                                _buildDetailRow(
-                                  'Total returns',
-                                  '+₹1,035.00 (14.79%)',
-                                  valueColor: Colors.teal.shade500,
-                                ),
-                                _buildDetailRow('1D returns', '+₹77.00 (0.97%)', valueColor: Colors.teal.shade500),
-                                _buildDetailRow('Mkt. price', '₹160.70'),
-                                _buildDetailRow('Avg. price', '₹140.00'),
-                              ],
+                            _SectionWidget(
+                              label: amcState is AmcOverviewLoadedState && amcState.amc != null
+                                  ? FadeIn(key: Key('amc_loaded'), child: Text(amcState.amc!.name))
+                                  : Text(widget.amcId),
+                              value: Text('Overview'), // TODO: Show amc tags
                             ),
+                            _SectionWidget(
+                              label: const Text('No. of units'),
+                              value: totalUnits != null ? Text('$totalUnits') : const Text('...'), // TODO: Fix this
+                            ),
+                            _SectionWidget(
+                              label: const Text('Current value'),
+                              // subtitle: latestPrice != null
+                              //     ? FormattedDate(date: latestPrice.$1)
+                              //     : FormattedDate(date: DateTime.now()),
+                              value: BlocSelector<AppCubit, AppState, bool>(
+                                selector: (state) => state.isPrivateMode,
+                                builder: (context, isPrivateMode) {
+                                  return CurrencyView(
+                                    amount: (totalUnits?.isFinite ?? false) && (latestPrice?.$2?.isFinite ?? false)
+                                        ? totalUnits! * latestPrice!.$2!
+                                        : 0.0,
+                                    integerStyle: textTheme.headlineLarge,
+                                    decimalsStyle: textTheme.headlineSmall,
+                                    currencyStyle: textTheme.bodyMedium,
+                                    privateMode: isPrivateMode,
+                                    // compactView: snapshot.data! >= 1_00_00_000
+                                  );
+                                },
+                              ),
+                            ),
+                            SectionTile(
+                              title: const Text('Invested'),
+                              trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                                selector: (state) => state.isPrivateMode,
+                                builder: (context, isPrivateMode) {
+                                  return CurrencyView(
+                                    amount: totalAmountInvested ?? 0.0,
+                                    integerStyle: textTheme.headlineLarge,
+                                    decimalsStyle: textTheme.headlineSmall,
+                                    currencyStyle: textTheme.bodyMedium,
+                                    privateMode: isPrivateMode,
+                                    // compactView: snapshot.data! >= 1_00_00_000
+                                  );
+                                },
+                              ),
+                            ),
+                            _SectionWidget(
+                              label: const Text('Total returns'),
+                              value: const Text('+₹1,035.00 (14.79%)'),
+                              valueColor: Colors.teal.shade500,
+                            ),
+                            _SectionWidget(
+                              label: const Text('1D returns'),
+                              value: const Text('+₹77.00 (0.97%)'),
+                              valueColor: Colors.teal.shade500,
+                            ),
+                            _SectionWidget(label: const Text('Mkt. price'), value: const Text('₹160.70')),
+                            _SectionWidget(label: const Text('Avg. price'), value: const Text('₹140.00')),
                           ],
                         ),
                       );
@@ -251,37 +250,55 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
       },
     );
   }
+}
 
-  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
+class _SectionWidget extends StatelessWidget {
+  const _SectionWidget({
+    super.key,
+    required this.label,
+    required this.value,
+    this.valueColor,
+    this.borderRadius,
+    this.padding,
+    this.contentSpacing,
+  });
+
+  final Widget label;
+  final Widget value;
+  final Color? valueColor;
+  final BorderRadius? borderRadius;
+  final EdgeInsetsGeometry? padding;
+  final double? contentSpacing;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final labelText = DefaultTextStyle(
+      style: theme.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
+      child: label,
+    );
+
+    final valueText = DefaultTextStyle(
+      style: theme.textTheme.bodySmall!.copyWith(color: theme.colorScheme.secondary),
+      child: value,
+    );
+
     return PhysicalModel(
       // curve: Curves.fastOutSlowIn,
       // duration: 600.ms,
       clipBehavior: Clip.antiAlias,
       elevation: 0.0,
-      color: _tileColor(theme, tileTheme),
+      color: Colors.amber.shade50,
       shadowColor: theme.colorScheme.shadow,
-      // borderRadius: borderRadius,
-      clipper: ShapeBorderClipper(shape: effectiveShape, textDirection: Directionality.maybeOf(context)),
-      child: CustomPaint(
-        foregroundPainter: _ShapeBorderPainter(effectiveShape, Directionality.maybeOf(context)),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 52.0),
-          child: Padding(
-            padding: padding ?? EdgeInsets.zero,
-            child: Row(
-              spacing: 16.0,
-              children: <Widget>[
-                ?icon,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: contentSpacing ?? 0.0,
-                    children: <Widget>[titleText, ?subtitleText],
-                  ),
-                ),
-                ?effectiveTrailingIcon,
-              ],
-            ),
+      borderRadius: borderRadius,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 52.0),
+        child: Padding(
+          padding: padding ?? EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: contentSpacing ?? 0.0,
+            children: <Widget>[labelText, valueText],
           ),
         ),
       ),
