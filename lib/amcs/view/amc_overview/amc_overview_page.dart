@@ -253,9 +253,38 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
   }
 
   Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
-    return SectionTile(
-      title: Text(label),
-      trailingIcon: Text(value, style: TextStyle(color: valueColor ?? Colors.black)),
+    return PhysicalModel(
+      // curve: Curves.fastOutSlowIn,
+      // duration: 600.ms,
+      clipBehavior: Clip.antiAlias,
+      elevation: 0.0,
+      color: _tileColor(theme, tileTheme),
+      shadowColor: theme.colorScheme.shadow,
+      // borderRadius: borderRadius,
+      clipper: ShapeBorderClipper(shape: effectiveShape, textDirection: Directionality.maybeOf(context)),
+      child: CustomPaint(
+        foregroundPainter: _ShapeBorderPainter(effectiveShape, Directionality.maybeOf(context)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 52.0),
+          child: Padding(
+            padding: padding ?? EdgeInsets.zero,
+            child: Row(
+              spacing: 16.0,
+              children: <Widget>[
+                ?icon,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: contentSpacing ?? 0.0,
+                    children: <Widget>[titleText, ?subtitleText],
+                  ),
+                ),
+                ?effectiveTrailingIcon,
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
