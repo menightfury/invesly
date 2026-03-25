@@ -1,6 +1,7 @@
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/amc_overview/cubit/amc_overview_cubit.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
@@ -67,6 +68,8 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
@@ -80,6 +83,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
           body: Stack(
             children: <Widget>[
               ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 children: <Widget>[
                   // ~ Overview Section
                   BlocBuilder<TransactionsCubit, TransactionsState>(
@@ -105,66 +109,123 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                       return Skeletonizer(
                         enabled: isLoading,
                         child: Column(
+                          spacing: 4.0,
                           children: <Widget>[
-                            _SectionWidget(
-                              label: amcState is AmcOverviewLoadedState && amcState.amc != null
-                                  ? FadeIn(key: Key('amc_loaded'), child: Text(amcState.amc!.name))
-                                  : Text(widget.amcId),
-                              value: Text('Overview'), // TODO: Show amc tags
-                            ),
-                            _SectionWidget(
-                              label: const Text('No. of units'),
-                              value: totalUnits != null ? Text('$totalUnits') : const Text('...'), // TODO: Fix this
-                            ),
-                            _SectionWidget(
-                              label: const Text('Current value'),
-                              // subtitle: latestPrice != null
-                              //     ? FormattedDate(date: latestPrice.$1)
-                              //     : FormattedDate(date: DateTime.now()),
-                              value: BlocSelector<AppCubit, AppState, bool>(
-                                selector: (state) => state.isPrivateMode,
-                                builder: (context, isPrivateMode) {
-                                  return CurrencyView(
-                                    amount: (totalUnits?.isFinite ?? false) && (latestPrice?.$2?.isFinite ?? false)
-                                        ? totalUnits! * latestPrice!.$2!
-                                        : 0.0,
-                                    integerStyle: textTheme.headlineLarge,
-                                    decimalsStyle: textTheme.headlineSmall,
-                                    currencyStyle: textTheme.bodyMedium,
-                                    privateMode: isPrivateMode,
-                                    // compactView: snapshot.data! >= 1_00_00_000
-                                  );
-                                },
+                            PhysicalModel(
+                              clipBehavior: Clip.antiAlias,
+                              color: theme.colorScheme.primaryContainer.darken(3),
+                              shadowColor: theme.colorScheme.shadow,
+                              borderRadius: iCardBorderRadius.copyWith(
+                                bottomLeft: iTileBorderRadius.bottomLeft,
+                                bottomRight: iTileBorderRadius.bottomRight,
+                              ),
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(minHeight: 52.0, minWidth: double.infinity),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      amcState is AmcOverviewLoadedState && amcState.amc != null
+                                          ? FadeIn(
+                                              key: Key('amc_loaded'),
+                                              child: Text(
+                                                amcState.amc!.name,
+                                                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                                                textAlign: TextAlign.start,
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 2,
+                                              ),
+                                            )
+                                          : Text(
+                                              widget.amcId,
+                                              style: textTheme.headlineMedium?.copyWith(
+                                                color: theme.colorScheme.onSurface,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                      const Gap(16.0),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: BlocSelector<AppCubit, AppState, bool>(
+                                          selector: (state) => state.isPrivateMode,
+                                          builder: (context, isPrivateMode) {
+                                            return CurrencyView(
+                                              amount:
+                                                  (totalUnits?.isFinite ?? false) &&
+                                                      (latestPrice?.$2?.isFinite ?? false)
+                                                  ? totalUnits! * latestPrice!.$2!
+                                                  : 0.0,
+                                              integerStyle: textTheme.headlineLarge,
+                                              decimalsStyle: textTheme.headlineSmall,
+                                              currencyStyle: textTheme.bodyMedium,
+                                              privateMode: isPrivateMode,
+                                              // compactView: snapshot.data! >= 1_00_00_000
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: Text(
+                                          'Current value on March 19, 2026',
+                                          style: textTheme.labelMedium?.copyWith(color: theme.disabledColor),
+                                          textAlign: TextAlign.end,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-                            SectionTile(
-                              title: const Text('Invested'),
-                              trailingIcon: BlocSelector<AppCubit, AppState, bool>(
-                                selector: (state) => state.isPrivateMode,
-                                builder: (context, isPrivateMode) {
-                                  return CurrencyView(
-                                    amount: totalAmountInvested ?? 0.0,
-                                    integerStyle: textTheme.headlineLarge,
-                                    decimalsStyle: textTheme.headlineSmall,
-                                    currencyStyle: textTheme.bodyMedium,
-                                    privateMode: isPrivateMode,
-                                    // compactView: snapshot.data! >= 1_00_00_000
-                                  );
-                                },
-                              ),
+
+                            Row(
+                              spacing: 4.0,
+                              children: <Widget>[
+                                Expanded(
+                                  child: _SectionWidget(
+                                    label: const Text('No. of units'),
+                                    value: totalUnits != null
+                                        ? Text('$totalUnits')
+                                        : const Text('...'), // TODO: Fix this
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _SectionWidget(
+                                    label: const Text('Invested amount'),
+                                    value: BlocSelector<AppCubit, AppState, bool>(
+                                      selector: (state) => state.isPrivateMode,
+                                      builder: (context, isPrivateMode) {
+                                        return CurrencyView(amount: totalAmountInvested ?? 0.0);
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            _SectionWidget(
-                              label: const Text('Total returns'),
-                              value: const Text('+₹1,035.00 (14.79%)'),
-                              valueColor: Colors.teal.shade500,
+
+                            Row(
+                              children: <Widget>[
+                                _SectionWidget(label: const Text('Mkt. price'), value: const Text('₹160.70')),
+                                _SectionWidget(label: const Text('Avg. price'), value: const Text('₹140.00')),
+                              ],
                             ),
-                            _SectionWidget(
-                              label: const Text('1D returns'),
-                              value: const Text('+₹77.00 (0.97%)'),
-                              valueColor: Colors.teal.shade500,
+
+                            Row(
+                              children: <Widget>[
+                                _SectionWidget(
+                                  label: const Text('Total returns'),
+                                  value: const Text('+ ₹1,035.00 (14.79%)'),
+                                  valueColor: Colors.teal.shade500,
+                                ),
+                                _SectionWidget(
+                                  label: const Text('XIRR'),
+                                  value: const Text('+ 12.97%'),
+                                  valueColor: Colors.teal.shade500,
+                                ),
+                              ],
                             ),
-                            _SectionWidget(label: const Text('Mkt. price'), value: const Text('₹160.70')),
-                            _SectionWidget(label: const Text('Avg. price'), value: const Text('₹140.00')),
                           ],
                         ),
                       );
@@ -288,9 +349,9 @@ class _SectionWidget extends StatelessWidget {
       // duration: 600.ms,
       clipBehavior: Clip.antiAlias,
       elevation: 0.0,
-      color: Colors.amber.shade50,
+      color: theme.canvasColor.lighten(3),
       shadowColor: theme.colorScheme.shadow,
-      borderRadius: borderRadius,
+      borderRadius: borderRadius ?? iTileBorderRadius,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 52.0),
         child: Padding(
