@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/scheduler.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/widgets/cubit/amc_search_cubit.dart';
+import 'package:invesly/common/presentations/widgets/tiny_chip.dart';
 import 'package:invesly/common_libs.dart';
 
 class InveslyAmcPickerWidget extends StatelessWidget {
@@ -90,7 +92,7 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
           controller: _searchController,
           autofocus: true,
         ),
-        // ~ Chips for filtering by genre
+        // // ~ Chips for filtering by genre
         // BlocSelector<AmcSearchCubit, AmcSearchState, AmcGenre?>(
         //   selector: (state) => state.searchGenre,
         //   builder: (context, amcGenre) {
@@ -151,15 +153,12 @@ class _SearchResults extends StatelessWidget {
             spacing: 4.0,
             runSpacing: 4.0,
             children: <Widget>[
-              DecoratedBox(
-                decoration: ShapeDecoration(shape: StadiumBorder(), color: Theme.of(context).colorScheme.primary),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                  child: Text(
-                    (amc.genre ?? AmcGenre.misc).title,
-                    style: context.textTheme.labelSmall?.copyWith(color: Colors.white),
-                  ),
+              TinyChip(
+                title: Text(
+                  (amc.genre ?? AmcGenre.misc).title,
+                  style: context.textTheme.labelSmall?.copyWith(color: Colors.white),
                 ),
+                color: context.colors.primary,
               ),
 
               if (amc.tag?.tags.isNotEmpty ?? false)
@@ -168,16 +167,7 @@ class _SearchResults extends StatelessWidget {
                     return const SizedBox.shrink();
                   }
 
-                  return DecoratedBox(
-                    decoration: ShapeDecoration(
-                      shape: StadiumBorder(),
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                      child: Text(tag, style: context.textTheme.labelSmall?.copyWith()),
-                    ),
-                  );
+                  return TinyChip(title: Text(tag));
                 }),
             ],
           ),

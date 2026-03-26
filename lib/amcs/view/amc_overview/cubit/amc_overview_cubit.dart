@@ -16,7 +16,6 @@ class AmcOverviewCubit extends Cubit<AmcOverviewState> {
   Future<void> fetchAmcOverview(String amcId) async {
     emit(const AmcOverviewLoadingState());
     try {
-      await Future.delayed(2.seconds); // TODO: Remove this
       final amc = await _repository.getAmcById(amcId);
       final latestPrice = amc != null ? await _repository.getLatestPrice(amc) : null;
 

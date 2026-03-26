@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "amcs",
         "buildcontext",
         "Debouncer",
         "firestore",
@@ -9,4 +10,4 @@
         "isin",
         "xirr"
     ]
-} 
+}

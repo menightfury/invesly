@@ -1,8 +1,10 @@
+import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/amc_overview/cubit/amc_overview_cubit.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
+import 'package:invesly/common/presentations/widgets/tiny_chip.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
@@ -70,7 +72,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final textTheme = theme.textTheme;
 
     return BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
       builder: (context, amcState) {
@@ -85,7 +87,90 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
               ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 children: <Widget>[
-                  // ~ Overview Section
+                  // ~ AMC Details
+                  PhysicalModel(
+                    clipBehavior: Clip.antiAlias,
+                    color: colors.primaryContainer.darken(3.0),
+                    shadowColor: colors.shadow,
+                    borderRadius: iCardBorderRadius.copyWith(
+                      bottomLeft: iTileBorderRadius.bottomLeft,
+                      bottomRight: iTileBorderRadius.bottomRight,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 52.0, minWidth: double.infinity),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            amcState is AmcOverviewLoadedState && amcState.amc != null
+                                ? FadeIn(
+                                    key: Key('amc_loaded'),
+                                    child: Text(
+                                      amcState.amc!.name,
+                                      style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                                      textAlign: TextAlign.start,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    widget.amcId,
+                                    style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                                    textAlign: TextAlign.start,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                  ),
+                            Skeletonizer(
+                              enabled: amcState.isLoading || amcState.isInitial,
+                              child: Wrap(
+                                spacing: 4.0,
+                                runSpacing: 4.0,
+                                children: <Widget>[
+                                  if (amcState.isError)
+                                    const TinyChip(
+                                      title: Text('Error loading AMC details', style: TextStyle(color: Colors.white)),
+                                      color: Colors.red,
+                                    ),
+
+                                  if (!amcState.isError) ...[
+                                    TinyChip(
+                                      title: Text(
+                                        amcState is AmcOverviewLoadedState
+                                            ? (amcState.amc?.genre ?? AmcGenre.misc).title
+                                            : 'Loading...', // 'Loading...' text will be replaced by shimmer effect when skeletonizer is enabled
+                                        style: context.textTheme.labelSmall?.copyWith(color: Colors.white),
+                                      ),
+                                      color: context.colors.primary,
+                                    ),
+
+                                    List.generate(
+                                      amcState is AmcOverviewLoadedState
+                                          ? (amcState.amc?.tag?.tags?.length ?? 0)
+                                          : 3, // Default to 3 chips for loading state
+                                      (index) => const Icon(Icons.circle, size: 8, color: Colors.orangeAccent),
+                                    ),
+
+                                    // if (amc.tag?.tags.isNotEmpty ?? false)
+                                    //   ...amc.tag!.tags.map((tag) {
+                                    //     if (tag.isEmpty) {
+                                    //       return const SizedBox.shrink();
+                                    //     }
+
+                                    //     return TinyChip(title: Text(tag));
+                                    //   }),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Gap(4.0),
+
+                  // ~ Stats Section
                   BlocBuilder<TransactionsCubit, TransactionsState>(
                     builder: (context, trnState) {
                       final isError = trnState.isError;
@@ -111,118 +196,64 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                         child: Column(
                           spacing: 4.0,
                           children: <Widget>[
-                            PhysicalModel(
-                              clipBehavior: Clip.antiAlias,
-                              color: theme.colorScheme.primaryContainer.darken(3),
-                              shadowColor: theme.colorScheme.shadow,
-                              borderRadius: iCardBorderRadius.copyWith(
-                                bottomLeft: iTileBorderRadius.bottomLeft,
-                                bottomRight: iTileBorderRadius.bottomRight,
+                            _SectionWidget(
+                              label: FormattedDate(
+                                date: latestPrice?.$1 ?? DateTime.now(),
+                                prefixText: 'Current value as of ',
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
                               ),
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(minHeight: 52.0, minWidth: double.infinity),
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      amcState is AmcOverviewLoadedState && amcState.amc != null
-                                          ? FadeIn(
-                                              key: Key('amc_loaded'),
-                                              child: Text(
-                                                amcState.amc!.name,
-                                                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                                                textAlign: TextAlign.start,
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 2,
-                                              ),
-                                            )
-                                          : Text(
-                                              widget.amcId,
-                                              style: textTheme.headlineMedium?.copyWith(
-                                                color: theme.colorScheme.onSurface,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                      const Gap(16.0),
-                                      Align(
-                                        alignment: Alignment.centerRight,
-                                        child: BlocSelector<AppCubit, AppState, bool>(
-                                          selector: (state) => state.isPrivateMode,
-                                          builder: (context, isPrivateMode) {
-                                            return CurrencyView(
-                                              amount:
-                                                  (totalUnits?.isFinite ?? false) &&
-                                                      (latestPrice?.$2?.isFinite ?? false)
-                                                  ? totalUnits! * latestPrice!.$2!
-                                                  : 0.0,
-                                              integerStyle: textTheme.headlineLarge,
-                                              decimalsStyle: textTheme.headlineSmall,
-                                              currencyStyle: textTheme.bodyMedium,
-                                              privateMode: isPrivateMode,
-                                              // compactView: snapshot.data! >= 1_00_00_000
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      Align(
-                                        alignment: Alignment.centerRight,
-                                        child: Text(
-                                          'Current value on March 19, 2026',
-                                          style: textTheme.labelMedium?.copyWith(color: theme.disabledColor),
-                                          textAlign: TextAlign.end,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              value: BlocSelector<AppCubit, AppState, bool>(
+                                selector: (state) => state.isPrivateMode,
+                                builder: (context, isPrivateMode) {
+                                  return CurrencyView(
+                                    amount: (totalUnits?.isFinite ?? false) && (latestPrice?.$2?.isFinite ?? false)
+                                        ? totalUnits! * latestPrice!.$2!
+                                        : 0.0,
+                                    integerStyle: textTheme.headlineLarge,
+                                    decimalsStyle: textTheme.headlineSmall,
+                                    currencyStyle: textTheme.bodyMedium,
+                                    privateMode: isPrivateMode,
+                                    // compactView: snapshot.data! >= 1_00_00_000
+                                  );
+                                },
                               ),
                             ),
 
-                            Row(
-                              spacing: 4.0,
-                              children: <Widget>[
-                                Expanded(
-                                  child: _SectionWidget(
-                                    label: const Text('No. of units'),
-                                    value: totalUnits != null
-                                        ? Text('$totalUnits')
-                                        : const Text('...'), // TODO: Fix this
+                            GridView.count(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 4.0,
+                              crossAxisSpacing: 4.0,
+                              mainAxisExtent: 96.0,
+                              children: [
+                                _SectionWidget(
+                                  label: const Text('No. of units'),
+                                  value: totalUnits != null ? Text('$totalUnits') : const Text('...'), // TODO: Fix this
+                                ),
+                                _SectionWidget(
+                                  label: const Text('Invested amount'),
+                                  value: BlocSelector<AppCubit, AppState, bool>(
+                                    selector: (state) => state.isPrivateMode,
+                                    builder: (context, isPrivateMode) {
+                                      return CurrencyView(amount: totalAmountInvested ?? 0.0);
+                                    },
                                   ),
                                 ),
-                                Expanded(
-                                  child: _SectionWidget(
-                                    label: const Text('Invested amount'),
-                                    value: BlocSelector<AppCubit, AppState, bool>(
-                                      selector: (state) => state.isPrivateMode,
-                                      builder: (context, isPrivateMode) {
-                                        return CurrencyView(amount: totalAmountInvested ?? 0.0);
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            Row(
-                              children: <Widget>[
                                 _SectionWidget(label: const Text('Mkt. price'), value: const Text('₹160.70')),
                                 _SectionWidget(label: const Text('Avg. price'), value: const Text('₹140.00')),
-                              ],
-                            ),
-
-                            Row(
-                              children: <Widget>[
                                 _SectionWidget(
                                   label: const Text('Total returns'),
                                   value: const Text('+ ₹1,035.00 (14.79%)'),
                                   valueColor: Colors.teal.shade500,
+                                  borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
                                 ),
                                 _SectionWidget(
                                   label: const Text('XIRR'),
                                   value: const Text('+ 12.97%'),
                                   valueColor: Colors.teal.shade500,
+                                  borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
                                 ),
                               ],
                             ),
@@ -320,7 +351,6 @@ class _SectionWidget extends StatelessWidget {
     required this.value,
     this.valueColor,
     this.borderRadius,
-    this.padding,
     this.contentSpacing,
   });
 
@@ -328,19 +358,23 @@ class _SectionWidget extends StatelessWidget {
   final Widget value;
   final Color? valueColor;
   final BorderRadius? borderRadius;
-  final EdgeInsetsGeometry? padding;
   final double? contentSpacing;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final labelText = DefaultTextStyle(
-      style: theme.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
+      style: theme.textTheme.bodyMedium!,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
       child: label,
     );
 
     final valueText = DefaultTextStyle(
-      style: theme.textTheme.bodySmall!.copyWith(color: theme.colorScheme.secondary),
+      style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.w600),
+      textAlign: TextAlign.end,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
       child: value,
     );
 
@@ -352,14 +386,18 @@ class _SectionWidget extends StatelessWidget {
       color: theme.canvasColor.lighten(3),
       shadowColor: theme.colorScheme.shadow,
       borderRadius: borderRadius ?? iTileBorderRadius,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 52.0),
+      child: SizedBox(
+        height: 96.0,
         child: Padding(
-          padding: padding ?? EdgeInsets.zero,
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             spacing: contentSpacing ?? 0.0,
-            children: <Widget>[labelText, valueText],
+            children: <Widget>[
+              labelText,
+              Align(alignment: Alignment.centerRight, child: valueText),
+            ],
           ),
         ),
       ),
