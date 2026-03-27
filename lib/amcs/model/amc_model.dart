@@ -1,87 +1,116 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
+
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 
-abstract class AmcGenre extends Equatable {
-  const AmcGenre({required this.code, required this.title, required this.icon, required this.color});
+enum AmcGenre {
+  mf('Mutual fund'),
+  stock('Stock'),
+  insurance('Insurance'),
+  misc('Miscellaneous');
 
-  final String code;
+  const AmcGenre(this.title);
+
   final String title;
-  final IconData icon;
-  final Color color;
 
-  /// tags is a map of key-value pairs that contain all the relevant information about the AMC based on its genre
-  Map<String, String?> get tags;
-
-  /// tagString is the JSON string representation of the tags map, which can be stored in the database
-  String get tagString => json.encode(tags);
-
-  static AmcGenre? fromCode(String code) {
-    return AmcGenre.values.firstWhereOrNull((e) => e.code == code);
+  static AmcGenre? fromName(String name) {
+    return AmcGenre.values.firstWhereOrNull((e) => e.name == name);
   }
 
-  factory AmcGenre.fromMap(Map<String, dynamic> map) {
-    assert(map['code'] != null, 'Genre code must not be null');
-    final code = map['code'] as String;
-    final genre = AmcGenre.fromCode(code);
-    if (genre == null) {
-      throw ArgumentError('Invalid genre code: $code');
+  static AmcGenre fromTitle(String title) {
+    return AmcGenre.values.firstWhere((e) => e.title == title, orElse: () => AmcGenre.misc);
+  }
+
+  static AmcGenre fromIndex(int index) {
+    if (index < 0 || index > AmcGenre.values.length - 1) {
+      return AmcGenre.values.last; // set default genre to misc
     }
-    return genre;
+
+    return AmcGenre.values[index];
   }
 
-  // static AmcGenre fromTitle(String title) {
-  //   return AmcGenre.values.firstWhere((e) => e.title == title, orElse: () => AmcGenre.misc);
-  // }
+  IconData get icon {
+    return switch (this) {
+      mf => Icons.pie_chart_rounded,
+      stock => Icons.show_chart_rounded,
+      insurance => Icons.security_rounded,
+      misc => Icons.category_rounded,
+    };
+  }
 
-  // static AmcGenre fromIndex(int index) {
-  //   if (index < 0 || index > AmcGenre.values.length - 1) {
-  //     return AmcGenre.values.last; // set default genre to misc
-  //   }
-
-  //   return AmcGenre.values[index];
-  // }
-
-  @override
-  List<Object?> get props => [title, icon, color];
+  Color get color {
+    return switch (this) {
+      mf => Colors.blue,
+      stock => Colors.green,
+      insurance => Colors.orange,
+      misc => Colors.grey,
+    };
+  }
 }
 
-class StockTag extends AmcGenre {
-  const StockTag({this.sector, this.industry})
-    : super(code: 'stock', title: 'Stock', icon: Icons.show_chart_rounded, color: Colors.teal);
+class AmcTag extends Equatable {
+  const AmcTag(this.tag);
 
-  final String? sector;
+  final String tag;
+
+  Map<String, dynamic> toMap() {
+    return {'tag': tag};
+  }
+
+  factory AmcTag.fromMap(Map<String, dynamic> map) {
+    assert(map['tag'] != null, 'Tag must not be null');
+    return AmcTag(map['tag'] as String);
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory AmcTag.fromJson(String source) {
+    return AmcTag.fromMap(json.decode(source) as Map<String, dynamic>);
+  }
+
+  Set<String> get tags => {tag};
+
+  @override
+  List<Object?> get props => [tag];
+}
+
+class StockTag extends AmcTag {
+  const StockTag({required this.sector, this.industry}) : super(sector);
+
+  final String sector;
   final String? industry;
 
+  @override
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{'sector': sector, 'industry': industry};
+  }
+
   factory StockTag.fromMap(Map<String, dynamic> map) {
-    return StockTag(
-      sector: map['sector'] != null ? map['sector'] as String : null,
-      industry: map['industry'] != null ? map['industry'] as String : null,
-    );
+    assert(map['sector'] != null, 'Sector must not be null');
+    return StockTag(sector: map['sector'] as String, industry: map['industry'] as String?);
   }
 
   factory StockTag.fromJson(String source) => StockTag.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
-  Map<String, String?> get tags => {'sector': sector, 'industry': industry};
+  Set<String> get tags => {sector, ?industry};
 
   @override
-  List<Object?> get props => super.props..addAll([sector, industry]);
+  List<Object?> get props => [sector, industry];
 }
 
-class MfTag extends AmcGenre {
-  const MfTag({this.category, this.subCategory, this.plan, this.schemeType})
-    : super(code: 'mf', title: 'Mutual Fund', icon: Icons.pie_chart_rounded, color: Colors.blue);
+class MfTag extends AmcTag {
+  const MfTag({required this.category, this.subCategory, this.plan, this.schemeType}) : super(category);
 
-  final String? category;
+  final String category;
   final String? subCategory;
   final String? plan;
   final String? schemeType;
 
   @override
-  Map<String, String?> get tags {
-    return <String, String?>{
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
       'category': category,
       'sub_category': subCategory,
       'plan': plan,
@@ -90,57 +119,49 @@ class MfTag extends AmcGenre {
   }
 
   factory MfTag.fromMap(Map<String, dynamic> map) {
+    assert(map['category'] != null, 'Category must not be null');
+    // final category = MfCategory.fromTitle(map['category'] as String);
+    // assert(category != null, 'Invalid category value');
+
     return MfTag(
-      category: map['category'] != null ? map['category'] as String : null,
-      subCategory: map['sub_category'] != null ? map['sub_category'] as String : null,
-      plan: map['plan'] != null ? map['plan'] as String : null,
-      schemeType: map['scheme_type'] != null ? map['scheme_type'] as String : null,
+      category: map['category'] as String,
+      // subCategory: map['sub_category'] != null ? MfSubCategory.fromTitle(map['sub_category'] as String) : null,
+      subCategory: map['sub_category'] as String?,
+      // plan: map['plan'] != null ? MfPlan.fromTitle(map['plan'] as String) : null,
+      plan: map['plan'] as String?,
+      // schemeType: map['scheme_type'] != null ? MfSchemeType.fromTitle(map['scheme_type'] as String) : null,
+      schemeType: map['scheme_type'] as String?,
     );
   }
 
   factory MfTag.fromJson(String source) => MfTag.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
-  List<Object?> get props => super.props..addAll([category, subCategory, plan, schemeType]);
-}
-
-class InsuranceTag extends AmcGenre {
-  const InsuranceTag({this.plan})
-    : super(code: 'insurance', title: 'Insurance', icon: Icons.security_rounded, color: Colors.orange);
-
-  final String? plan;
+  Set<String> get tags => {category, ?subCategory, ?plan, ?schemeType};
 
   @override
-  Map<String, String?> get tags => {'plan': plan};
+  List<Object?> get props => [category, subCategory, plan, schemeType];
+}
+
+class InsuranceTag extends AmcTag {
+  const InsuranceTag(this.plan) : super(plan);
+
+  final String plan;
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {'plan': plan};
+  }
 
   factory InsuranceTag.fromMap(Map<String, dynamic> map) {
-    return InsuranceTag(plan: map['plan'] != null ? map['plan'] as String : null);
+    assert(map['plan'] != null, 'Plan must not be null');
+    return InsuranceTag(map['plan'] as String);
   }
 
   factory InsuranceTag.fromJson(String source) => InsuranceTag.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
-  List<Object?> get props => super.props..add(plan);
-}
-
-class MiscellaneousTag extends AmcGenre {
-  const MiscellaneousTag({this.tag})
-    : super(code: 'misc', title: 'Miscellaneous', icon: Icons.category_rounded, color: Colors.grey);
-
-  final String? tag;
-
-  @override
-  Map<String, String?> get tags => {'tag': tag};
-
-  factory MiscellaneousTag.fromMap(Map<String, dynamic> map) {
-    return MiscellaneousTag(tag: map['tag'] != null ? map['tag'] as String : null);
-  }
-
-  factory MiscellaneousTag.fromJson(String source) =>
-      MiscellaneousTag.fromMap(json.decode(source) as Map<String, dynamic>);
-
-  @override
-  List<Object?> get props => super.props..add(tag);
+  List<Object?> get props => [plan];
 }
 
 class InveslyAmc extends AmcInDb {
@@ -149,40 +170,34 @@ class InveslyAmc extends AmcInDb {
     required super.name,
     required super.code,
     required super.isin,
-    required this.genre,
+    this.genre,
     // required this.tags,
-    // this.tag,
-  }) : super(genreCode: genre.code, tagString: genre.tagString);
+    this.tag,
+  }) : super(genreCode: genre?.name, tagString: tag?.toJson());
 
   /// Genre of the AMC i.e. mf, stock, insurance, misc etc.
-  final AmcGenre genre;
+  final AmcGenre? genre;
 
   /// tags is combination of sector, sub-sector, plan, scheme etc.,
   /// tags is saved in database as string separated by commas
-  // final AmcTag? tag;
+  final AmcTag? tag;
 
   factory InveslyAmc.fromDb(AmcInDb amc) {
     // final tags = amc.tagsString?.split(';').map((tag) => tag.trim()).toList();
-    late final AmcGenre amcGenre;
+    AmcGenre? amcGenre;
     if (amc.genreCode?.isNotEmpty ?? false) {
-      amcGenre = switch (amc.genreCode) {
-        'mf' => amc.tagString != null ? MfTag.fromJson(amc.tagString!) : MfTag(),
-        'stock' => amc.tagString != null ? StockTag.fromJson(amc.tagString!) : StockTag(),
-        'insurance' => amc.tagString != null ? InsuranceTag.fromJson(amc.tagString!) : InsuranceTag(),
-        _ => amc.tagString != null ? MiscellaneousTag.fromJson(amc.tagString!) : MiscellaneousTag(),
-      };
-      // amcGenre = AmcGenre.fromCode(amc.genreCode!);
+      amcGenre = AmcGenre.fromName(amc.genreCode!);
     }
     final tagString = amc.tagString;
-    // AmcTag? tag;
-    // if (amcGenre != null && (tagString?.isNotEmpty ?? false)) {
-    //   tag = switch (amcGenre) {
-    //     AmcGenre.mf => MfTag.fromJson(tagString!),
-    //     AmcGenre.stock => StockTag.fromJson(tagString!),
-    //     AmcGenre.insurance => InsuranceTag.fromJson(tagString!),
-    //     _ => AmcTag.fromJson(tagString!),
-    //   };
-    // }
+    AmcTag? tag;
+    if (amcGenre != null && (tagString?.isNotEmpty ?? false)) {
+      tag = switch (amcGenre) {
+        AmcGenre.mf => MfTag.fromJson(tagString!),
+        AmcGenre.stock => StockTag.fromJson(tagString!),
+        AmcGenre.insurance => InsuranceTag.fromJson(tagString!),
+        _ => AmcTag.fromJson(tagString!),
+      };
+    }
 
     return InveslyAmc(
       id: amc.id,
@@ -191,7 +206,7 @@ class InveslyAmc extends AmcInDb {
       isin: amc.isin,
       genre: amcGenre,
       // tags: tags,
-      // tag: tag,
+      tag: tag,
     );
   }
 }
@@ -207,18 +222,9 @@ class AmcInDb extends InveslyDataModel {
   });
 
   final String name;
-
-  /// scheme code for mutual funds, stock code for stocks, plan name for insurance etc.
   final String code;
-
-  /// ISIN is unique for all types of AMCs, so it can be used to identify an AMC across genres
   final String isin;
-
-  /// genre code is the name of the genre enum value, e.g. 'mf', 'stock', 'insurance', 'misc' etc.
   final String? genreCode;
-
-  /// tag string is the JSON string representation of the tag object, which contains all the
-  /// relevant information about the AMC based on its genre
   final String? tagString;
 
   @override

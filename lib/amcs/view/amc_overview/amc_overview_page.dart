@@ -8,6 +8,7 @@ import 'package:invesly/common/presentations/widgets/tiny_chip.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
+import 'package:timelines_plus/timelines_plus.dart';
 
 class AmcOverviewPage extends StatelessWidget {
   const AmcOverviewPage(this.amcId, {super.key});
@@ -68,6 +69,25 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
     }
   }
 
+  List<Widget> _buildAmcTags(AmcOverviewState amcState) {
+    if (amcState is AmcOverviewLoadedState) {
+      final amcTags = amcState.amc?.tag?.tags;
+      if (amcTags == null || amcTags.isEmpty) {
+        return [];
+      }
+
+      return amcTags.map((tag) {
+        if (tag.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return TinyChip(title: Text(tag), color: context.colors.tertiary, titleColor: context.colors.onTertiary);
+      }).toList();
+    }
+
+    return List.filled(3, const Skeleton.leaf(child: TinyChip(title: Text('Loading...'))));
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -102,6 +122,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                         padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 12.0,
                           children: <Widget>[
                             amcState is AmcOverviewLoadedState && amcState.amc != null
                                 ? FadeIn(
@@ -124,42 +145,39 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                             Skeletonizer(
                               enabled: amcState.isLoading || amcState.isInitial,
                               child: Wrap(
-                                spacing: 4.0,
+                                spacing: 6.0,
                                 runSpacing: 4.0,
                                 children: <Widget>[
                                   if (amcState.isError)
-                                    const TinyChip(
-                                      title: Text('Error loading AMC details', style: TextStyle(color: Colors.white)),
-                                      color: Colors.red,
-                                    ),
-
-                                  if (!amcState.isError) ...[
                                     TinyChip(
-                                      title: Text(
-                                        amcState is AmcOverviewLoadedState
-                                            ? (amcState.amc?.genre ?? AmcGenre.misc).title
-                                            : 'Loading...', // 'Loading...' text will be replaced by shimmer effect when skeletonizer is enabled
-                                        style: context.textTheme.labelSmall?.copyWith(color: Colors.white),
+                                      title: const Text('Error loading AMC details'),
+                                      color: context.colors.error,
+                                      titleColor: context.colors.onError,
+                                    ),
+
+                                  if (!amcState.isError)
+                                    Skeleton.leaf(
+                                      child: TinyChip(
+                                        title: Text(
+                                          amcState is AmcOverviewLoadedState
+                                              ? (amcState.amc?.genre ?? AmcGenre.misc).title
+                                              : 'Loading...', // 'Loading...' text will be replaced by shimmer effect when skeletonizer is enabled
+                                        ),
+                                        color: context.colors.primary,
+                                        titleColor: context.colors.onPrimary,
                                       ),
-                                      color: context.colors.primary,
                                     ),
 
-                                    List.generate(
-                                      amcState is AmcOverviewLoadedState
-                                          ? (amcState.amc?.tag?.tags?.length ?? 0)
-                                          : 3, // Default to 3 chips for loading state
-                                      (index) => const Icon(Icons.circle, size: 8, color: Colors.orangeAccent),
-                                    ),
+                                  if (!amcState.isError) ..._buildAmcTags(amcState),
 
-                                    // if (amc.tag?.tags.isNotEmpty ?? false)
-                                    //   ...amc.tag!.tags.map((tag) {
-                                    //     if (tag.isEmpty) {
-                                    //       return const SizedBox.shrink();
-                                    //     }
+                                  // if (amc.tag?.tags.isNotEmpty ?? false)
+                                  //   ...amc.tag!.tags.map((tag) {
+                                  //     if (tag.isEmpty) {
+                                  //       return const SizedBox.shrink();
+                                  //     }
 
-                                    //     return TinyChip(title: Text(tag));
-                                    //   }),
-                                  ],
+                                  //     return TinyChip(title: Text(tag));
+                                  //   }),
                                 ],
                               ),
                             ),
@@ -199,7 +217,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                             _SectionWidget(
                               label: FormattedDate(
                                 date: latestPrice?.$1 ?? DateTime.now(),
-                                prefixText: 'Current value as of ',
+                                prefix: const Skeleton.keep(child: Text('Current value as of ')),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 2,
                               ),
@@ -229,11 +247,11 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                               mainAxisExtent: 96.0,
                               children: [
                                 _SectionWidget(
-                                  label: const Text('No. of units'),
+                                  label: const Skeleton.keep(child: Text('No. of units')),
                                   value: totalUnits != null ? Text('$totalUnits') : const Text('...'), // TODO: Fix this
                                 ),
                                 _SectionWidget(
-                                  label: const Text('Invested amount'),
+                                  label: const Skeleton.keep(child: Text('Invested amount')),
                                   value: BlocSelector<AppCubit, AppState, bool>(
                                     selector: (state) => state.isPrivateMode,
                                     builder: (context, isPrivateMode) {
@@ -241,16 +259,22 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                     },
                                   ),
                                 ),
-                                _SectionWidget(label: const Text('Mkt. price'), value: const Text('₹160.70')),
-                                _SectionWidget(label: const Text('Avg. price'), value: const Text('₹140.00')),
                                 _SectionWidget(
-                                  label: const Text('Total returns'),
+                                  label: const Skeleton.keep(child: Text('Mkt. price')),
+                                  value: const Text('₹160.70'),
+                                ),
+                                _SectionWidget(
+                                  label: const Skeleton.keep(child: Text('Avg. price')),
+                                  value: const Text('₹140.00'),
+                                ),
+                                _SectionWidget(
+                                  label: const Skeleton.keep(child: Text('Total returns')),
                                   value: const Text('+ ₹1,035.00 (14.79%)'),
                                   valueColor: Colors.teal.shade500,
                                   borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
                                 ),
                                 _SectionWidget(
-                                  label: const Text('XIRR'),
+                                  label: const Skeleton.keep(child: Text('XIRR')),
                                   value: const Text('+ 12.97%'),
                                   valueColor: Colors.teal.shade500,
                                   borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
@@ -265,6 +289,18 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                   const Gap(20.0),
 
                   // ~ Holding Transactions Section
+                  SizedBox(
+                    height: 150.0,
+                    child: Timeline.tileBuilder(
+                      builder: TimelineTileBuilder.fromStyle(
+                        contentsAlign: ContentsAlign.alternating,
+                        contentsBuilder: (context, index) =>
+                            Padding(padding: const EdgeInsets.all(24.0), child: Text('Timeline Event $index')),
+                        itemCount: 10,
+                      ),
+                    ),
+                  ),
+
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,

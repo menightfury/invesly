@@ -5,8 +5,8 @@ class FormattedDate extends StatelessWidget {
   const FormattedDate({
     super.key,
     required this.date,
-    this.prefixText,
-    this.suffixText,
+    this.prefix,
+    this.suffix,
     this.style,
     this.textAlign,
     this.overflow,
@@ -14,8 +14,8 @@ class FormattedDate extends StatelessWidget {
   });
 
   final DateTime date;
-  final String? prefixText;
-  final String? suffixText;
+  final Widget? prefix;
+  final Widget? suffix;
   final TextStyle? style;
   final TextAlign? textAlign;
   final TextOverflow? overflow;
@@ -23,15 +23,32 @@ class FormattedDate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final defaultTextStyle = Theme.of(context).textTheme.bodyMedium!;
     return BlocSelector<AppCubit, AppState, String?>(
       selector: (state) => state.dateFormat,
       builder: (context, dateFormat) {
-        return Text(
-          '${prefixText ?? ''}${date.toReadable(dateFormat)}${suffixText ?? ''}',
-          style: style,
-          textAlign: textAlign,
-          overflow: overflow,
-          maxLines: maxLines,
+        Widget? prefixWidget, suffixWidget;
+        if (prefix != null) {
+          prefixWidget = DefaultTextStyle(style: style ?? defaultTextStyle, child: prefix!);
+        }
+
+        if (suffix != null) {
+          suffixWidget = DefaultTextStyle(style: style ?? defaultTextStyle, child: suffix!);
+        }
+
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ?prefixWidget,
+            Text(
+              date.toReadable(dateFormat),
+              style: style ?? defaultTextStyle,
+              textAlign: textAlign,
+              overflow: overflow,
+              maxLines: maxLines,
+            ),
+            ?suffixWidget,
+          ],
         );
       },
     );
