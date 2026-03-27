@@ -154,11 +154,9 @@ class _SearchResults extends StatelessWidget {
             runSpacing: 4.0,
             children: <Widget>[
               TinyChip(
-                title: Text(
-                  (amc.genre ?? AmcGenre.misc).title,
-                  style: context.textTheme.labelSmall?.copyWith(color: Colors.white),
-                ),
+                title: Text((amc.genre ?? AmcGenre.misc).title),
                 color: context.colors.primary,
+                titleColor: context.colors.onPrimary,
               ),
 
               if (amc.tag?.tags.isNotEmpty ?? false)
@@ -167,7 +165,11 @@ class _SearchResults extends StatelessWidget {
                     return const SizedBox.shrink();
                   }
 
-                  return TinyChip(title: Text(tag));
+                  return TinyChip(
+                    title: Text(tag),
+                    color: context.colors.tertiary,
+                    titleColor: context.colors.onTertiary,
+                  );
                 }),
             ],
           ),
