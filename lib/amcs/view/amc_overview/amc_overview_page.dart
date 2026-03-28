@@ -8,7 +8,7 @@ import 'package:invesly/common/presentations/widgets/tiny_chip.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
-import 'package:timelines_plus/timelines_plus.dart';
+import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 class AmcOverviewPage extends StatelessWidget {
   const AmcOverviewPage(this.amcId, {super.key});
@@ -204,10 +204,29 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                         0.0,
                         (v, el) => v + el.totalAmount,
                       );
-
-                      final currentValue = totalUnits != null && (latestPrice?.$2?.isFinite ?? false)
+                      final totalCurrentValue = totalUnits != null && latestPrice?.$2 != null
                           ? totalUnits * latestPrice!.$2!
                           : null;
+
+                      // List<Transaction> transactions = [];
+                      // transactions.add(Transaction.withStringDate(-1000, "2010-01-01"));
+                      // transactions.add(Transaction.withStringDate(1100, "2011-01-01"));
+
+                      final transactionsForXirr = trnState.transactions
+                          ?.map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
+                          .toList();
+                      if (transactionsForXirr != null) {
+                        transactionsForXirr.add(
+                          xf.Transaction(
+                            totalCurrentValue != null && totalCurrentValue > 0 ? -totalCurrentValue : -0.0,
+                            latestPrice?.$1 ?? DateTime.now(),
+                          ),
+                        );
+                      }
+                      final xirr = transactionsForXirr != null && transactionsForXirr.isNotEmpty
+                          ? xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate()
+                          : 0.0;
+                      // expect(result, 0.10);
 
                       return Skeletonizer(
                         enabled: isLoading,
@@ -225,9 +244,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                 selector: (state) => state.isPrivateMode,
                                 builder: (context, isPrivateMode) {
                                   return CurrencyView(
-                                    amount: (totalUnits?.isFinite ?? false) && (latestPrice?.$2?.isFinite ?? false)
-                                        ? totalUnits! * latestPrice!.$2!
-                                        : 0.0,
+                                    amount: totalCurrentValue ?? 0.0,
                                     integerStyle: textTheme.headlineLarge,
                                     decimalsStyle: textTheme.headlineSmall,
                                     currencyStyle: textTheme.bodyMedium,
@@ -246,39 +263,99 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                               crossAxisSpacing: 4.0,
                               mainAxisExtent: 96.0,
                               children: [
+                                // ~ No. of units section
                                 _SectionWidget(
                                   label: const Skeleton.keep(child: Text('No. of units')),
-                                  value: totalUnits != null ? Text('$totalUnits') : const Text('...'), // TODO: Fix this
+                                  value: Text(totalUnits?.toString() ?? '...'),
                                 ),
+
+                                // ~ Invested amount section
                                 _SectionWidget(
                                   label: const Skeleton.keep(child: Text('Invested amount')),
                                   value: BlocSelector<AppCubit, AppState, bool>(
                                     selector: (state) => state.isPrivateMode,
                                     builder: (context, isPrivateMode) {
-                                      return CurrencyView(amount: totalAmountInvested ?? 0.0);
+                                      return CurrencyView(
+                                        amount: totalAmountInvested ?? 0.0,
+                                        privateMode: isPrivateMode,
+                                      );
                                     },
                                   ),
                                 ),
+
+                                // ~ Latest NAV (Mkt. price) sections
                                 _SectionWidget(
-                                  label: const Skeleton.keep(child: Text('Mkt. price')),
-                                  value: const Text('₹160.70'),
+                                  label: Skeleton.keep(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        const Text('Latest NAV'),
+                                        FormattedDate(
+                                          date: latestPrice?.$1 ?? DateTime.now(),
+                                          overflow: TextOverflow.ellipsis,
+                                          style: textTheme.labelSmall?.copyWith(color: theme.disabledColor),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  value: BlocSelector<AppCubit, AppState, bool>(
+                                    selector: (state) => state.isPrivateMode,
+                                    builder: (context, isPrivateMode) {
+                                      return CurrencyView(amount: latestPrice?.$2 ?? 0.0, privateMode: isPrivateMode);
+                                    },
+                                  ),
                                 ),
+
+                                // ~ Avg. price section
                                 _SectionWidget(
                                   label: const Skeleton.keep(child: Text('Avg. price')),
-                                  value: const Text('₹140.00'),
+                                  value: BlocSelector<AppCubit, AppState, bool>(
+                                    selector: (state) => state.isPrivateMode,
+                                    builder: (context, isPrivateMode) {
+                                      return CurrencyView(
+                                        amount: totalAmountInvested != null && totalUnits != null && totalUnits > 0
+                                            ? totalAmountInvested / totalUnits
+                                            : 0.0,
+                                        privateMode: isPrivateMode,
+                                      );
+                                    },
+                                  ),
                                 ),
+
+                                // ~ Total returns sections
                                 _SectionWidget(
                                   label: const Skeleton.keep(child: Text('Total returns')),
-                                  value: const Text('+ ₹1,035.00 (14.79%)'),
+                                  value: BlocSelector<AppCubit, AppState, bool>(
+                                    selector: (state) => state.isPrivateMode,
+                                    builder: (context, isPrivateMode) {
+                                      return CurrencyView(
+                                        amount: totalAmountInvested != null && totalCurrentValue != null
+                                            ? totalCurrentValue - totalAmountInvested
+                                            : 0.0,
+                                        privateMode: isPrivateMode,
+                                      );
+                                    },
+                                  ),
                                   valueColor: Colors.teal.shade500,
                                   borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
                                 ),
+
+                                // ~ XIRR section
                                 _SectionWidget(
                                   label: const Skeleton.keep(child: Text('XIRR')),
-                                  value: const Text('+ 12.97%'),
+                                  value: Text(xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '...'),
                                   valueColor: Colors.teal.shade500,
                                   borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
                                 ),
+
+                                // List<Transaction> transactions = [];
+
+                                // transactions.add(Transaction.withStringDate(-1000, "2010-01-01"));
+                                // transactions.add(Transaction.withStringDate(1100, "2011-01-01"));
+
+                                // final double? result =
+                                // XirrFlutter.withTransactions(transactions).calculate();
+                                // expect(result, 0.10);
                               ],
                             ),
                           ],
@@ -289,18 +366,6 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                   const Gap(20.0),
 
                   // ~ Holding Transactions Section
-                  SizedBox(
-                    height: 150.0,
-                    child: Timeline.tileBuilder(
-                      builder: TimelineTileBuilder.fromStyle(
-                        contentsAlign: ContentsAlign.alternating,
-                        contentsBuilder: (context, index) =>
-                            Padding(padding: const EdgeInsets.all(24.0), child: Text('Timeline Event $index')),
-                        itemCount: 10,
-                      ),
-                    ),
-                  ),
-
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,

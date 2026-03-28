@@ -13,6 +13,7 @@ extension IntX on int {
 }
 
 extension EMDoubleExtension on num {
+  /// Rounds the number to the specified number of decimal places.
   double toPrecision(int decimalPlaces) {
     if (isInfinite || isNaN) {
       return toDouble();
@@ -23,6 +24,7 @@ extension EMDoubleExtension on num {
   }
 
   // TODO: Make better name
+  /// Converts the number to a string with a specified number of decimal places, removing trailing zeros.
   String toPrecisionString() {
     if (this == 0) return isNegative ? '-' : '';
 
@@ -40,6 +42,7 @@ extension EMDoubleExtension on num {
     return string.substring(0, index + 1);
   }
 
+  /// Converts the number to a compact string representation (e.g., 1.2K, 3.4M).
   String toCompact() {
     if (isInfinite || isNaN) {
       return '';
@@ -47,6 +50,7 @@ extension EMDoubleExtension on num {
     return NumberFormat.compact().format(this);
   }
 
+  /// Converts the number to a human-readable string with appropriate byte units (e.g., 1.2 KB, 3.4 MB).
   String formatAsBytes(int decimals) {
     if (this <= 0) return "0 B";
     const suffixes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
