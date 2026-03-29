@@ -267,7 +267,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                                 children: <Widget>[
                                                   CurrencyView(
                                                     amount: trn.totalAmount,
-                                                    integerStyle: context.textTheme.headlineSmall?.copyWith(
+                                                    style: context.textTheme.headlineSmall?.copyWith(
                                                       color: trn.transactionType.color(context),
                                                     ),
                                                     privateMode: isPrivateMode,

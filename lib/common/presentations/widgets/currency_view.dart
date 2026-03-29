@@ -18,7 +18,7 @@ class CurrencyView extends StatelessWidget {
     // this.currency,
     this.locale = 'en_IN',
     this.decimalDigits = 2,
-    this.integerStyle,
+    this.style,
     this.decimalsStyle,
     this.currencyStyle,
     this.privateMode = false,
@@ -38,8 +38,8 @@ class CurrencyView extends StatelessWidget {
   // final Currency? currency;
   final String locale;
 
-  /// Style of the text that corresponds to the integer part of the number to be displayed
-  final TextStyle? integerStyle;
+  /// Style of the text that corresponds to the integer part of the number or the entire number to be displayed
+  final TextStyle? style;
 
   /// Style of the text that corresponds to the decimal part of the number to be displayed.
   /// If not defined, a less prominent style than the integerStyle will be used.
@@ -68,21 +68,21 @@ class CurrencyView extends StatelessWidget {
 
         Widget child = Text.rich(
           TextSpan(
-            style: integerStyle,
+            style: style,
             children: [
               // Currency symbol
-              TextSpan(text: currency.symbol, style: currencyStyle ?? decimalsStyle ?? integerStyle),
+              TextSpan(text: currency.symbol, style: currencyStyle ?? decimalsStyle ?? style),
               // Spacer
               if (currency.symbol.length > 1) const TextSpan(text: ' '),
 
               // Integer part
-              TextSpan(text: parts[0], style: integerStyle),
+              TextSpan(text: parts[0], style: style),
 
               if (parts.length > 1) ...[
                 // Decimal separator
-                TextSpan(text: '.', style: integerStyle), // TODO: decimal_separator
+                TextSpan(text: '.', style: style), // TODO: decimal_separator
                 // Decimal part
-                TextSpan(text: parts[1], style: _shouldCompact ? integerStyle : (decimalsStyle ?? integerStyle)),
+                TextSpan(text: parts[1], style: _shouldCompact ? style : (decimalsStyle ?? style)),
               ],
             ],
           ),

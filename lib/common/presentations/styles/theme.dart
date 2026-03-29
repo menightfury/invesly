@@ -58,7 +58,8 @@ class AppStyle {
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
         scrolledUnderElevation: 1.0,
-        elevation: 0,
+        elevation: 0.5,
+        shadowColor: colorScheme.outline,
         surfaceTintColor: colorScheme.surface,
         systemOverlayStyle: SystemUiOverlayStyle(
           systemNavigationBarColor: colorScheme.surface,

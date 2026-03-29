@@ -1,6 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'package:googleapis/businessprofileperformance/v1.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
@@ -36,64 +35,61 @@ class RestoreDriveBackupPage extends StatelessWidget {
       ),
 
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 16.0,
-              children: <Widget>[
-                // ~ Current user or Google signin button
-                BlocSelector<AppCubit, AppState, InveslyUser?>(
-                  selector: (state) => state.user,
-                  builder: (context, currentUser) {
-                    // final user = currentUser ?? InveslyUser.empty();
-                    if (currentUser.isNullOrEmpty) {
-                      return GoogleSigninButton();
-                    }
-                    return SectionTile(
-                      title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
-                      subtitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
-                      icon: currentUser.isNotNullOrEmpty
-                          ? InveslyUserCircleAvatar(user: currentUser!)
-                          : CircleAvatar(child: const Icon(Icons.person_rounded)),
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(color: context.colors.outlineVariant),
-                        borderRadius: iCardBorderRadius,
+        child: Center(
+          child: ListView(
+            padding: const EdgeInsets.all(16.0),
+            // mainAxisSize: MainAxisSize.min,
+            // spacing: 16.0,
+            children: <Widget>[
+              // ~ Current user or Google signin button
+              BlocSelector<AppCubit, AppState, InveslyUser?>(
+                selector: (state) => state.user,
+                builder: (context, currentUser) {
+                  // final user = currentUser ?? InveslyUser.empty();
+                  if (currentUser.isNullOrEmpty) {
+                    return GoogleSigninButton();
+                  }
+                  return SectionTile(
+                    title: Text(currentUser.isNotNullOrEmpty ? currentUser!.name.toSentenceCase() : 'Investor'),
+                    subtitle: currentUser.isNotNullOrEmpty ? Text(currentUser?.email ?? 'e-mail: NA') : null,
+                    icon: currentUser.isNotNullOrEmpty
+                        ? InveslyUserCircleAvatar(user: currentUser!)
+                        : CircleAvatar(child: const Icon(Icons.person_rounded)),
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(color: context.colors.outlineVariant),
+                      borderRadius: iCardBorderRadius,
+                    ),
+                    tileColor: context.colors.surface,
+                    padding: const EdgeInsets.all(16.0),
+                    trailingIcon: FilledButton.tonal(
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                        minimumSize: const Size(0.0, 0.0),
                       ),
-                      tileColor: context.colors.surface,
-                      padding: const EdgeInsets.all(16.0),
-                      trailingIcon: FilledButton.tonal(
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                          minimumSize: const Size(0.0, 0.0),
-                        ),
-                        onPressed: () async {
-                          await startLogoutFlow(context);
-                          // if (!context.mounted) return;
-                          // await startLoginFlow(context);
-                        },
-                        child: Text('Sign out', style: context.textTheme.bodySmall),
-                      ),
-                    );
-                  },
-                ),
-                BlocSelector<AppCubit, AppState, InveslyUser?>(
-                  selector: (state) => state.user,
-                  builder: (context, user) {
-                    if (user.isNullOrEmpty) {
-                      return Text('Please login to see drive backups');
-                    }
-                    if (user!.gapiAccessToken == null) {
-                      return Text('Error getting access token! Please re-login');
-                    }
-                    return Expanded(
-                      child: _DriveFiles(accessToken: user.gapiAccessToken!, onComplete: () => _finalizeSetup(context)),
-                    );
-                  },
-                ),
-              ],
-            ),
+                      onPressed: () async {
+                        await startLogoutFlow(context);
+                        // if (!context.mounted) return;
+                        // await startLoginFlow(context);
+                      },
+                      child: Text('Sign out', style: context.textTheme.bodySmall),
+                    ),
+                  );
+                },
+              ),
+              const Gap(16.0),
+              BlocSelector<AppCubit, AppState, InveslyUser?>(
+                selector: (state) => state.user,
+                builder: (context, user) {
+                  if (user.isNullOrEmpty) {
+                    return Text('Please login to see drive backups');
+                  }
+                  if (user!.gapiAccessToken == null) {
+                    return Text('Error getting access token! Please re-login');
+                  }
+                  return _DriveFiles(accessToken: user.gapiAccessToken!, onComplete: () => _finalizeSetup(context));
+                },
+              ),
+            ],
           ),
         ),
       ),
@@ -143,6 +139,7 @@ class _DriveFilesState extends State<_DriveFiles> {
       future: _files,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
+          // ~ Error
           if (snapshot.hasError) {
             return Center(
               child: Text(
@@ -185,59 +182,73 @@ class _DriveFilesState extends State<_DriveFiles> {
             recentFiles = sorted.take(5).toList();
           }
           return Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 16.0,
             children: <Widget>[
-              Expanded(
-                child: Column(
-                  children: <Widget>[
-                    PhysicalModel(
-                      shape: BoxShape.circle,
-                      color: context.colors.primaryContainer,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Icon(Icons.cloud_done_rounded, size: 32.0, color: context.colors.onPrimaryContainer),
-                      ),
+              // ~ Backup files
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  PhysicalModel(
+                    shape: BoxShape.circle,
+                    color: context.colors.primaryContainer,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Icon(Icons.cloud_done_rounded, size: 32.0, color: context.colors.onPrimaryContainer),
                     ),
-                    const Gap(16.0),
+                  ),
+                  const Gap(16.0),
 
-                    Text('Backup Found', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                    const Gap(4.0),
+                  Text('Backup Found', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const Gap(4.0),
 
-                    Text(
-                      'The following backup files have been found in your Google Drive.',
-                      style: context.textTheme.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant),
-                      textAlign: TextAlign.center,
-                    ),
-                    const Gap(24.0),
+                  Text(
+                    'The following backup files\nhave been found in your Google Drive.',
+                    style: context.textTheme.bodySmall?.copyWith(color: context.colors.onSurfaceVariant),
+                    textAlign: TextAlign.center,
+                  ),
+                  const Gap(24.0),
 
-                    Expanded(
-                      child: ValueListenableBuilder<drive.File?>(
-                        valueListenable: _selectedFile,
-                        builder: (context, selectedFile, child) {
-                          return Section.builder(
-                            margin: EdgeInsets.zero,
-                            tileCount: recentFiles.length,
-                            tileBuilder: (context, index) {
-                              final file = recentFiles[index];
-                              return SectionTile.checkTile(
-                                title: FormattedDate(
-                                  date: file.modifiedTime ?? file.createdTime ?? DateTime.now(),
-                                  style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                                subtitle: file.size != null && int.tryParse(file.size!) != null
-                                    ? Text(int.parse(file.size!).formatAsBytes(2))
-                                    : const Text('...'),
-                                value: selectedFile == file,
-                                onChanged: (isSelected) => _selectedFile.value = isSelected ? file : null,
-                              );
-                            },
+                  ValueListenableBuilder<drive.File?>(
+                    valueListenable: _selectedFile,
+                    builder: (context, selectedFile, child) {
+                      return Section(
+                        margin: EdgeInsets.zero,
+                        tiles: recentFiles.map((file) {
+                          return SectionTile.checkTile(
+                            title: FormattedDate(
+                              date: file.modifiedTime ?? file.createdTime ?? DateTime.now(),
+                              style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            subtitle: file.size != null && int.tryParse(file.size!) != null
+                                ? Text(int.parse(file.size!).formatAsBytes(2))
+                                : const Text('...'),
+                            value: selectedFile == file,
+                            onChanged: (isSelected) => _selectedFile.value = isSelected ? file : null,
                           );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+                        }).toList(),
+                        // tileCount: recentFiles.length,
+                        // tileBuilder: (context, index) {
+                        //   final file = recentFiles[index];
+                        //   return SectionTile.checkTile(
+                        //     title: FormattedDate(
+                        //       date: file.modifiedTime ?? file.createdTime ?? DateTime.now(),
+                        //       style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                        //     ),
+                        //     subtitle: file.size != null && int.tryParse(file.size!) != null
+                        //         ? Text(int.parse(file.size!).formatAsBytes(2))
+                        //         : const Text('...'),
+                        //     value: selectedFile == file,
+                        //     onChanged: (isSelected) => _selectedFile.value = isSelected ? file : null,
+                        //   );
+                        // },
+                      );
+                    },
+                  ),
+                ],
               ),
 
+              // ~ Restore button
               SizedBox(
                 width: double.infinity,
                 child: ValueListenableBuilder<drive.File?>(

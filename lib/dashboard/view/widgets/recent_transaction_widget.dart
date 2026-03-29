@@ -41,9 +41,7 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
                     builder: (context, isPrivateMode) {
                       return CurrencyView(
                         amount: trn.totalAmount,
-                        integerStyle: context.textTheme.headlineSmall?.copyWith(
-                          color: trn.transactionType.color(context),
-                        ),
+                        style: context.textTheme.headlineSmall?.copyWith(color: trn.transactionType.color(context)),
                         privateMode: isPrivateMode,
                       );
                     },
@@ -57,7 +55,7 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
                   icon: Icon(Icons.swap_vert_rounded),
                   title: Text('Loading...', style: context.textTheme.bodyMedium),
                   subtitle: Text('Loading...'),
-                  trailingIcon: CurrencyView(amount: 0.0, integerStyle: context.textTheme.headlineSmall),
+                  trailingIcon: CurrencyView(amount: 0.0, style: context.textTheme.headlineSmall),
                 );
               });
             }

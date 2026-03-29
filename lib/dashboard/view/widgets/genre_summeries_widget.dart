@@ -52,7 +52,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                           builder: (context, isPrivateMode) {
                             return CurrencyView(
                               amount: totalAmount ?? 0.0,
-                              integerStyle: textTheme.headlineLarge,
+                              style: textTheme.headlineLarge,
                               decimalsStyle: textTheme.headlineSmall,
                               currencyStyle: textTheme.bodyMedium,
                               privateMode: isPrivateMode,
@@ -123,7 +123,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                                           builder: (context, isPrivateMode) {
                                             return CurrencyView(
                                               amount: totalAmount ?? 0.0,
-                                              integerStyle: context.textTheme.headlineMedium?.copyWith(
+                                              style: context.textTheme.headlineMedium?.copyWith(
                                                 color: isSelected ? Colors.white : genre.color,
                                               ),
                                               decimalsStyle: context.textTheme.headlineSmall?.copyWith(

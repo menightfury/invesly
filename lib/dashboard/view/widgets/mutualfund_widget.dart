@@ -47,7 +47,7 @@ class _MutualFundWidgetState extends State<_MutualFundWidget> {
                                 builder: (context, isPrivateMode) {
                                   return CurrencyView(
                                     amount: totalAmount,
-                                    integerStyle: textTheme.headlineLarge,
+                                    style: textTheme.headlineLarge,
                                     decimalsStyle: textTheme.headlineSmall,
                                     currencyStyle: textTheme.bodyMedium,
                                     privateMode: isPrivateMode,
@@ -86,7 +86,7 @@ class _MutualFundWidgetState extends State<_MutualFundWidget> {
                                       builder: (context, isPrivateMode) {
                                         return CurrencyView(
                                           amount: stat?.totalAmount ?? 0,
-                                          integerStyle: context.textTheme.headlineMedium?.copyWith(color: Colors.blue),
+                                          style: context.textTheme.headlineMedium?.copyWith(color: Colors.blue),
                                           decimalsStyle: context.textTheme.headlineSmall?.copyWith(
                                             fontSize: 13.0,
                                             color: Colors.blue,

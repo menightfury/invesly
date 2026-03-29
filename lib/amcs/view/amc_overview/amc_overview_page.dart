@@ -207,11 +207,9 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                       final totalCurrentValue = totalUnits != null && latestPrice?.$2 != null
                           ? totalUnits * latestPrice!.$2!
                           : null;
-
-                      // List<Transaction> transactions = [];
-                      // transactions.add(Transaction.withStringDate(-1000, "2010-01-01"));
-                      // transactions.add(Transaction.withStringDate(1100, "2011-01-01"));
-
+                      final returns = totalAmountInvested != null && totalCurrentValue != null
+                          ? totalCurrentValue - totalAmountInvested
+                          : 0.0;
                       final transactionsForXirr = trnState.transactions
                           ?.map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
                           .toList();
@@ -245,7 +243,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                 builder: (context, isPrivateMode) {
                                   return CurrencyView(
                                     amount: totalCurrentValue ?? 0.0,
-                                    integerStyle: textTheme.headlineLarge,
+                                    style: textTheme.headlineLarge,
                                     decimalsStyle: textTheme.headlineSmall,
                                     currencyStyle: textTheme.bodyMedium,
                                     privateMode: isPrivateMode,
@@ -261,7 +259,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                               crossAxisCount: 2,
                               mainAxisSpacing: 4.0,
                               crossAxisSpacing: 4.0,
-                              mainAxisExtent: 96.0,
+                              mainAxisExtent: 104.0,
                               children: [
                                 // ~ No. of units section
                                 _SectionWidget(
@@ -325,16 +323,28 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                 // ~ Total returns sections
                                 _SectionWidget(
                                   label: const Skeleton.keep(child: Text('Total returns')),
-                                  value: BlocSelector<AppCubit, AppState, bool>(
-                                    selector: (state) => state.isPrivateMode,
-                                    builder: (context, isPrivateMode) {
-                                      return CurrencyView(
-                                        amount: totalAmountInvested != null && totalCurrentValue != null
-                                            ? totalCurrentValue - totalAmountInvested
-                                            : 0.0,
-                                        privateMode: isPrivateMode,
-                                      );
-                                    },
+                                  value: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: <Widget>[
+                                      BlocSelector<AppCubit, AppState, bool>(
+                                        selector: (state) => state.isPrivateMode,
+                                        builder: (context, isPrivateMode) {
+                                          return CurrencyView(
+                                            amount: returns,
+                                            privateMode: isPrivateMode,
+                                            style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+                                          );
+                                        },
+                                      ),
+                                      Text(
+                                        totalAmountInvested != null
+                                            ? '${(returns / totalAmountInvested * 100).toPrecision(2)}%'
+                                            : '0.00%',
+                                        textAlign: TextAlign.right,
+                                        style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+                                      ),
+                                    ],
                                   ),
                                   valueColor: Colors.teal.shade500,
                                   borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
@@ -343,19 +353,13 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                 // ~ XIRR section
                                 _SectionWidget(
                                   label: const Skeleton.keep(child: Text('XIRR')),
-                                  value: Text(xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '...'),
+                                  value: Text(
+                                    xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
+                                    style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+                                  ),
                                   valueColor: Colors.teal.shade500,
                                   borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
                                 ),
-
-                                // List<Transaction> transactions = [];
-
-                                // transactions.add(Transaction.withStringDate(-1000, "2010-01-01"));
-                                // transactions.add(Transaction.withStringDate(1100, "2011-01-01"));
-
-                                // final double? result =
-                                // XirrFlutter.withTransactions(transactions).calculate();
-                                // expect(result, 0.10);
                               ],
                             ),
                           ],
