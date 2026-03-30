@@ -443,6 +443,33 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
               ),
             ],
           ),
+          persistentFooterButtons: <Widget>[
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepOrange,
+                  foregroundColor: Colors.white,
+                  // padding: const EdgeInsets.symmetric(vertical: 16),
+                  // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: const Text('Sell', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const Gap(16.0),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal.shade500,
+                  foregroundColor: Colors.white,
+                  // padding: const EdgeInsets.symmetric(vertical: 16),
+                  // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: const Text('Buy', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
         );
       },
     );
