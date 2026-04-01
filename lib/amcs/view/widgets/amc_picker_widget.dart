@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/scheduler.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/widgets/cubit/amc_search_cubit.dart';
@@ -159,8 +158,8 @@ class _SearchResults extends StatelessWidget {
                 titleColor: context.colors.onPrimary,
               ),
 
-              if (amc.tag?.tags.isNotEmpty ?? false)
-                ...amc.tag!.tags.map((tag) {
+              if (amc.tags.isNotEmpty)
+                ...amc.tags.map((tag) {
                   if (tag.isEmpty) {
                     return const SizedBox.shrink();
                   }

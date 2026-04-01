@@ -45,7 +45,7 @@ class _AllAmcsPageState extends State<AllAmcsPage> {
                   tileColor: index.isEven ? Colors.grey[300] : null,
                   leading: CircleAvatar(child: Text((index + 1).toString())),
                   title: Text(amc.name),
-                  subtitle: Text('ID: ${amc.id}, tags: ${amc.tag?.tags ?? 'N/A'}'),
+                  subtitle: Text('ID: ${amc.id}, tags: ${amc.tagString ?? 'N/A'}'),
                   trailing: Text(amc.genre?.title ?? 'Genre: N/A'),
                   onTap: () => context.push(AmcOverviewPage(amc.id)),
                 );

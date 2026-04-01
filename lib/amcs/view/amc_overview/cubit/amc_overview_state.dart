@@ -19,9 +19,9 @@ class AmcOverviewLoadedState extends AmcOverviewState {
   const AmcOverviewLoadedState({this.amc, this.latestPrice});
 
   final InveslyAmc? amc;
-  final (DateTime, double?)? latestPrice;
+  final LatestPrice? latestPrice;
 
-  AmcOverviewLoadedState copyWith({(DateTime, double?)? latestPrice}) {
+  AmcOverviewLoadedState copyWith({LatestPrice? latestPrice}) {
     return AmcOverviewLoadedState(amc: amc, latestPrice: latestPrice ?? this.latestPrice);
   }
 

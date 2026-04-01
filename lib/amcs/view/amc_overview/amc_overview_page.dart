@@ -71,7 +71,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
 
   List<Widget> _buildAmcTags(AmcOverviewState amcState) {
     if (amcState is AmcOverviewLoadedState) {
-      final amcTags = amcState.amc?.tag?.tags;
+      final amcTags = amcState.amc?.tags;
       if (amcTags == null || amcTags.isEmpty) {
         return [];
       }
@@ -204,8 +204,8 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                         0.0,
                         (v, el) => v + el.totalAmount,
                       );
-                      final totalCurrentValue = totalUnits != null && latestPrice?.$2 != null
-                          ? totalUnits * latestPrice!.$2!
+                      final totalCurrentValue = totalUnits != null && latestPrice?.price != null
+                          ? totalUnits * latestPrice!.price
                           : null;
                       final returns = totalAmountInvested != null && totalCurrentValue != null
                           ? totalCurrentValue - totalAmountInvested
@@ -217,7 +217,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                         transactionsForXirr.add(
                           xf.Transaction(
                             totalCurrentValue != null && totalCurrentValue > 0 ? -totalCurrentValue : -0.0,
-                            latestPrice?.$1 ?? DateTime.now(),
+                            latestPrice?.date ?? DateTime.now(),
                           ),
                         );
                       }
@@ -233,7 +233,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                           children: <Widget>[
                             _SectionWidget(
                               label: FormattedDate(
-                                date: latestPrice?.$1 ?? DateTime.now(),
+                                date: latestPrice?.date ?? DateTime.now(),
                                 prefix: const Skeleton.keep(child: Text('Current value as of ')),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 2,
@@ -289,7 +289,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                       children: <Widget>[
                                         const Text('Latest NAV'),
                                         FormattedDate(
-                                          date: latestPrice?.$1 ?? DateTime.now(),
+                                          date: latestPrice?.date ?? DateTime.now(),
                                           overflow: TextOverflow.ellipsis,
                                           style: textTheme.labelSmall?.copyWith(color: theme.disabledColor),
                                         ),
@@ -299,7 +299,10 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                   value: BlocSelector<AppCubit, AppState, bool>(
                                     selector: (state) => state.isPrivateMode,
                                     builder: (context, isPrivateMode) {
-                                      return CurrencyView(amount: latestPrice?.$2 ?? 0.0, privateMode: isPrivateMode);
+                                      return CurrencyView(
+                                        amount: latestPrice?.price ?? 0.0,
+                                        privateMode: isPrivateMode,
+                                      );
                                     },
                                   ),
                                 ),
