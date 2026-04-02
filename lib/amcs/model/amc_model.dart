@@ -292,7 +292,7 @@ class MfAmcModel extends InveslyAmc {
       int.tryParse(dateParts.isNotEmpty ? dateParts[0] : '') ?? now.day,
     );
     final nav = double.tryParse(latestEntry['nav'].toString());
-    return nav != null ? LatestPrice(date: date, price: nav) : null;
+    return nav != null ? LatestPrice(amc: this, date: date, price: nav) : null;
   }
 }
 
@@ -347,7 +347,7 @@ class StockAmcModel extends InveslyAmc {
     // }
     final priceInfo = response['priceInfo'] as Map<String, dynamic>?;
     final price = priceInfo != null ? double.tryParse(priceInfo['lastPrice']?.toString() ?? '') : null;
-    return price != null ? LatestPrice(date: now, price: price) : null;
+    return price != null ? LatestPrice(amc: this, date: now, price: price) : null;
   }
 }
 

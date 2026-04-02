@@ -135,80 +135,79 @@ class AmcRepository {
 }
 
 class LatestPrice {
+  final AmcInDb amc;
   final DateTime date;
-  final double price;
+  final double? price;
 
-  const LatestPrice({required this.date, required this.price});
+  const LatestPrice({required this.amc, required this.date, required this.price});
+
+  // static String? uri(InveslyAmc amc) {
+  //   return switch (amc.genre) {
+  //     AmcGenre.mf => 'https://api.mfapi.in/mf/${amc.code}/latest',
+  //     AmcGenre.stock => 'https://www.nseindia.com/api/quote-equity?symbol=${amc.code}',
+  //     _ => null,
+  //   };
+  // }
+
+  // factory LatestPrice.fromMfMap(Map<String, dynamic> map) {
+  //   final now = DateTime.now();
+  //   // {
+  //   //   "meta": {
+  //   //     "fund_house": "Motilal Oswal Mutual Fund",
+  //   //     "scheme_type": "Open Ended Schemes",
+  //   //     ...
+  //   //   },
+  //   //   "data": [
+  //   //     {
+  //   //       "date": "16-01-2026",
+  //   //       "nav": "112.07910"
+  //   //     }
+  //   //   ],
+  //   //   "status": "SUCCESS"
+  //   // }
+  //   final data = (map['data'] as List<Object?>?)?.cast<Map<String, dynamic>>();
+  //   if (data == null || data.isEmpty) {
+  //     return LatestPrice(date: now, price: null);
+  //   }
+
+  //   final latestEntry = data.first;
+  //   final dateParts = latestEntry['date'].toString().split('-');
+  //   final date = DateTime(
+  //     int.tryParse(dateParts.length > 2 ? dateParts[2] : '') ?? now.year,
+  //     int.tryParse(dateParts.length > 1 ? dateParts[1] : '') ?? now.month,
+  //     int.tryParse(dateParts.isNotEmpty ? dateParts[0] : '') ?? now.day,
+  //   );
+  //   final nav = double.tryParse(latestEntry['nav'].toString());
+  //   return LatestPrice(date: date, price: nav);
+  // }
+
+  // factory LatestPrice.fromStockMap(Map<String, dynamic> map) {
+  //   // {
+  //   // ...
+  //   //   "priceInfo": {
+  //   //       "lastPrice": 1168.4,
+  //   //       "change": -36.799999999999955,
+  //   //       "pChange": -3.053435114503813,
+  //   //       "previousClose": 1205.2,
+  //   //       "open": 1185.1,
+  //   //       "close": 1161.3,
+  //   //       "basePrice": 1205.2,
+  //   //       ...
+  //   //   },
+  //   // ...
+  //   // }
+  //   final priceInfo = map['priceInfo'] as Map<String, dynamic>?;
+  //   final price = priceInfo != null ? double.tryParse(priceInfo['lastPrice']?.toString() ?? '') : null;
+  //   final date = DateTime.now();
+  //   return LatestPrice(date: date, price: price);
+  // }
 }
 
 // class LatestStockPrice extends LatestPrice {
 //   const LatestStockPrice({required super.date, super.price});
-
-//   factory LatestStockPrice.fromMap(Map<String, dynamic> map) {
-//     // {
-//     // ...
-//     //   "priceInfo": {
-//     //       "lastPrice": 1168.4,
-//     //       "change": -36.799999999999955,
-//     //       "pChange": -3.053435114503813,
-//     //       "previousClose": 1205.2,
-//     //       "open": 1185.1,
-//     //       "close": 1161.3,
-//     //       "basePrice": 1205.2,
-//     //       ...
-//     //   },
-//     // ...
-//     // }
-//     final priceInfo = map['priceInfo'] as Map<String, dynamic>?;
-//     final price = priceInfo != null ? double.tryParse(priceInfo['lastPrice']?.toString() ?? '') : null;
-//     final date = DateTime.now();
-//     return LatestStockPrice(date: date, price: price);
-//   }
-
-//   // @override
-//   // LatestPrice copyWith({DateTime? date, double? price}) {
-//   //   return LatestStockPrice(amc: amc, date: date ?? this.date, price: price ?? this.price);
-//   // }
 // }
 
 // class LatestMfPrice extends LatestPrice {
 //   final double? nav;
-
 //   const LatestMfPrice({required super.date, this.nav}) : super(price: nav);
-
-//   factory LatestMfPrice.fromMap(Map<String, dynamic> map) {
-//     // {
-//     //   "meta": {
-//     //     "fund_house": "Motilal Oswal Mutual Fund",
-//     //     "scheme_type": "Open Ended Schemes",
-//     //     ...
-//     //   },
-//     //   "data": [
-//     //     {
-//     //       "date": "16-01-2026",
-//     //       "nav": "112.07910"
-//     //     }
-//     //   ],
-//     //   "status": "SUCCESS"
-//     // }
-//     final data = (map['data'] as List<Object?>?)?.cast<Map<String, dynamic>>();
-//     if (data == null || data.isEmpty) {
-//       return LatestMfPrice(date: DateTime.now(), nav: null);
-//     }
-//     final latestEntry = data.first;
-//     final dateParts = latestEntry['date'].toString().split('-');
-//     final now = DateTime.now();
-//     final date = DateTime(
-//       int.tryParse(dateParts.length > 2 ? dateParts[2] : '') ?? now.year,
-//       int.tryParse(dateParts.length > 1 ? dateParts[1] : '') ?? now.month,
-//       int.tryParse(dateParts.isNotEmpty ? dateParts[0] : '') ?? now.day,
-//     );
-//     final nav = double.tryParse(latestEntry['nav'].toString());
-//     return LatestMfPrice(date: date, nav: nav);
-//   }
-
-//   // @override
-//   // LatestPrice copyWith({DateTime? date, double? price}) {
-//   //   return LatestMfPrice(amc: amc, date: date ?? this.date, nav: price ?? this.price);
-//   // }
 // }
