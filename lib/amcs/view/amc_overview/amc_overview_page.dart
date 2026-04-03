@@ -1,3 +1,4 @@
+import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -194,12 +195,6 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                               builder: (context, trnState) {
                                 final isError = trnState.isError;
                                 final isLoading = trnState.isLoading;
-                                // final stats = accountsState.isEmpty
-                                //     ? <TransactionStat>[]
-                                //     : statState is TransactionStatLoadedState
-                                //     ? statState.stats
-                                //     : null;
-                                // final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
                                 final totalUnits = trnState.transactions?.fold<double>(0.0, (v, el) => v + el.quantity);
                                 final totalAmountInvested = trnState.transactions?.fold<double>(
                                   0.0,
@@ -214,7 +209,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                 final transactionsForXirr = trnState.transactions
                                     ?.map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
                                     .toList();
-                                if (transactionsForXirr != null) {
+                                if (transactionsForXirr != null && transactionsForXirr.isNotEmpty) {
                                   transactionsForXirr.add(
                                     xf.Transaction(
                                       totalCurrentValue != null && totalCurrentValue > 0 ? -totalCurrentValue : -0.0,
@@ -356,9 +351,9 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                                   },
                                                 ),
                                                 Text(
-                                                  totalAmountInvested != null
-                                                      ? '${(returns / totalAmountInvested * 100).toPrecision(2)}%'
-                                                      : '0.00%',
+                                                  (totalAmountInvested?.isZero ?? true)
+                                                      ? '0.00%'
+                                                      : '${(returns / totalAmountInvested! * 100).toPrecision(2)}%',
                                                   textAlign: TextAlign.right,
                                                   style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
                                                 ),
@@ -413,15 +408,18 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                     return Skeletonizer(
                                       enabled: isLoading,
                                       child: Section(
-                                        tiles: !isLoading ?  transactions != null
-                                            ? transactions.map((trn) => SectionTile()).toList()
+                                        margin: EdgeInsets.zero,
+                                        tiles: !isLoading
+                                            ? (transactions != null && transactions.isNotEmpty)
+                                                  ? transactions.map((trn) => _buildTransaction(trn)).toList()
+                                                  : [SectionTile(title: const Text('No transactions found'))]
                                             : List.filled(
                                                 5,
                                                 const SectionTile(
-                                                  title: Text('50 qty @ ₹140.00'),
-                                                  subtitle: Text('08 Nov \'24'),
+                                                  title: Text('Loading...'),
+                                                  subtitle: Text('Loading...'),
                                                   icon: Icon(Icons.north_east_rounded),
-                                                  trailingIcon: Text('₹7,000.00'),
+                                                  trailingIcon: Text('Loading...'),
                                                 ),
                                               ),
                                       ),
@@ -440,12 +438,12 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                 const InveslyDivider(),
                 // ~ Buy/Sell Buttons
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Row(
                     spacing: 16.0,
                     children: <Widget>[
                       Expanded(
-                        child: ElevatedButton(
+                        child: TextButton(
                           onPressed: () {},
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.deepOrange,
@@ -456,7 +454,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                       ),
 
                       Expanded(
-                        child: ElevatedButton(
+                        child: TextButton(
                           onPressed: () {},
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.teal.shade500,
@@ -473,6 +471,40 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
           ),
         );
       },
+    );
+  }
+
+  SectionTile _buildTransaction(InveslyTransaction trn) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+
+    return SectionTile(
+      title: Text('${trn.quantity} units @ ₹${(trn.rate).toPrecision(2)}'),
+      subtitle: FormattedDate(
+        date: trn.investedOn,
+        style: textTheme.labelSmall?.copyWith(color: theme.disabledColor),
+      ),
+      icon: PhysicalModel(
+        shape: BoxShape.circle,
+        color: trn.totalAmount > 0 ? Colors.teal.shade50 : Colors.red.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Icon(
+            trn.totalAmount > 0 ? Icons.north_east_rounded : Icons.south_east_rounded,
+            color: trn.totalAmount > 0 ? Colors.teal : Colors.red,
+          ),
+        ),
+      ),
+      trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+        selector: (state) => state.isPrivateMode,
+        builder: (context, isPrivateMode) {
+          return CurrencyView(
+            amount: trn.totalAmount,
+            privateMode: isPrivateMode,
+            style: textTheme.titleLarge?.copyWith(color: trn.totalAmount > 0 ? Colors.teal : Colors.red),
+          );
+        },
+      ),
     );
   }
 }
