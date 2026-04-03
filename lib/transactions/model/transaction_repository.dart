@@ -91,6 +91,7 @@ class TransactionRepository {
             ..._amcTable.columns,
             _trnTable.idColumn.count('num_transactions'),
             _trnTable.amountColumn.sum('total_amount'),
+            _trnTable.quantityColumn.sum('total_quantity'),
           ])
           .join([_amcTable])
           .where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
@@ -102,6 +103,7 @@ class TransactionRepository {
           amc: InveslyAmc.fromDb(_amcTable.fromMap(map)),
           numTransactions: map['num_transactions'] as int,
           totalAmount: (map['total_amount'] as num).toDouble(),
+          totalQuantity: (map['total_quantity'] as num).toDouble(),
         );
       }).toList();
       return stats;

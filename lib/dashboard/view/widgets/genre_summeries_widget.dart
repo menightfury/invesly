@@ -135,7 +135,15 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                                             );
                                           },
                                         ),
-                                  onTap: () => _selectedGenre.value = genre,
+                                  onTap: () {
+                                    if (_selectedGenre.value == genre) {
+                                      Navigator.of(context).push(
+                                        GenreDetailsPage.route(genre, filteredStats?.toList() ?? []),
+                                      );
+                                    } else {
+                                      _selectedGenre.value = genre;
+                                    }
+                                  },
                                 );
                               }),
                             );

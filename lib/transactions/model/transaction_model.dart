@@ -225,13 +225,14 @@ class TransactionTable extends TableSchema<TransactionInDb> {
 }
 
 class TransactionStat extends Equatable {
-  const TransactionStat({required this.accountId, required this.amc, this.numTransactions = 0, this.totalAmount = 0.0});
+  const TransactionStat({required this.accountId, required this.amc, this.numTransactions = 0, this.totalAmount = 0.0, this.totalQuantity = 0.0});
 
   final String accountId;
   final InveslyAmc amc;
   final int numTransactions;
   final double totalAmount;
+  final double totalQuantity;
 
   @override
-  List<Object?> get props => [accountId, amc, numTransactions, totalAmount];
+  List<Object?> get props => [accountId, amc, numTransactions, totalAmount, totalQuantity];
 }

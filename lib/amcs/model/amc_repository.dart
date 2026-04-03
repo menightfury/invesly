@@ -19,7 +19,7 @@ class AmcRepository {
     _instance ??= AmcRepository._(api);
     return _instance!;
   }
-  const AmcRepository._(this._api);
+  AmcRepository._(this._api);
 
   final InveslyApi _api;
 
@@ -110,12 +110,23 @@ class AmcRepository {
     }, response.body);
   }
 
+  // final Map<String, LatestPrice> _latestPriceCache = {};
+
   /// Get latest price for an AMC
   Future<LatestPrice?> getLatestPrice(InveslyAmc amc) async {
     if (amc.genre == null) return null;
 
     final uri = amc.latestPriceUri;
     if (uri == null) return null;
+
+    // final cacheKey = amc.id;
+    // if (_latestPriceCache.containsKey(cacheKey)) {
+    //   final cachedPrice = _latestPriceCache[cacheKey]!;
+    //   // Simple cache expiration: 30 minutes
+    //   if (DateTime.now().difference(cachedPrice.date).inMinutes < 30) {
+    //     return cachedPrice;
+    //   }
+    // }
 
     final client = http.Client();
     try {
@@ -127,7 +138,11 @@ class AmcRepository {
 
       // If the server did return a 200 OK response, parse the JSON.
       final parsed = jsonDecode(response.body) as Map<String, dynamic>;
-      return amc.toLatestPrice(parsed);
+      final latestPrice = amc.toLatestPrice(parsed);
+      // if (latestPrice != null) {
+      //   _latestPriceCache[cacheKey] = latestPrice;
+      // }
+      return latestPrice;
     } catch (e) {
       throw ('Error fetching current AMC price: $e');
     }
@@ -140,74 +155,4 @@ class LatestPrice {
   final double? price;
 
   const LatestPrice({required this.amc, required this.date, required this.price});
-
-  // static String? uri(InveslyAmc amc) {
-  //   return switch (amc.genre) {
-  //     AmcGenre.mf => 'https://api.mfapi.in/mf/${amc.code}/latest',
-  //     AmcGenre.stock => 'https://www.nseindia.com/api/quote-equity?symbol=${amc.code}',
-  //     _ => null,
-  //   };
-  // }
-
-  // factory LatestPrice.fromMfMap(Map<String, dynamic> map) {
-  //   final now = DateTime.now();
-  //   // {
-  //   //   "meta": {
-  //   //     "fund_house": "Motilal Oswal Mutual Fund",
-  //   //     "scheme_type": "Open Ended Schemes",
-  //   //     ...
-  //   //   },
-  //   //   "data": [
-  //   //     {
-  //   //       "date": "16-01-2026",
-  //   //       "nav": "112.07910"
-  //   //     }
-  //   //   ],
-  //   //   "status": "SUCCESS"
-  //   // }
-  //   final data = (map['data'] as List<Object?>?)?.cast<Map<String, dynamic>>();
-  //   if (data == null || data.isEmpty) {
-  //     return LatestPrice(date: now, price: null);
-  //   }
-
-  //   final latestEntry = data.first;
-  //   final dateParts = latestEntry['date'].toString().split('-');
-  //   final date = DateTime(
-  //     int.tryParse(dateParts.length > 2 ? dateParts[2] : '') ?? now.year,
-  //     int.tryParse(dateParts.length > 1 ? dateParts[1] : '') ?? now.month,
-  //     int.tryParse(dateParts.isNotEmpty ? dateParts[0] : '') ?? now.day,
-  //   );
-  //   final nav = double.tryParse(latestEntry['nav'].toString());
-  //   return LatestPrice(date: date, price: nav);
-  // }
-
-  // factory LatestPrice.fromStockMap(Map<String, dynamic> map) {
-  //   // {
-  //   // ...
-  //   //   "priceInfo": {
-  //   //       "lastPrice": 1168.4,
-  //   //       "change": -36.799999999999955,
-  //   //       "pChange": -3.053435114503813,
-  //   //       "previousClose": 1205.2,
-  //   //       "open": 1185.1,
-  //   //       "close": 1161.3,
-  //   //       "basePrice": 1205.2,
-  //   //       ...
-  //   //   },
-  //   // ...
-  //   // }
-  //   final priceInfo = map['priceInfo'] as Map<String, dynamic>?;
-  //   final price = priceInfo != null ? double.tryParse(priceInfo['lastPrice']?.toString() ?? '') : null;
-  //   final date = DateTime.now();
-  //   return LatestPrice(date: date, price: price);
-  // }
 }
-
-// class LatestStockPrice extends LatestPrice {
-//   const LatestStockPrice({required super.date, super.price});
-// }
-
-// class LatestMfPrice extends LatestPrice {
-//   final double? nav;
-//   const LatestMfPrice({required super.date, this.nav}) : super(price: nav);
-// }
