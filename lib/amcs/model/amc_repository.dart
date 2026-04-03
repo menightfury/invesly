@@ -148,11 +148,3 @@ class AmcRepository {
     }
   }
 }
-
-class LatestPrice {
-  final AmcInDb amc;
-  final DateTime date;
-  final double? price;
-
-  const LatestPrice({required this.amc, required this.date, required this.price});
-}

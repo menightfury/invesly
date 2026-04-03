@@ -166,8 +166,16 @@ enum AmcGenre {
 // }
 
 abstract class InveslyAmc extends AmcInDb {
-  InveslyAmc({required super.id, required super.name, required super.code, required super.isin, this.genre, this.tag})
-    : super(genreCode: genre?.name, tagString: tag != null ? json.encode(tag) : null);
+  InveslyAmc({
+    required super.id,
+    required super.name,
+    required super.code,
+    required super.isin,
+    this.genre,
+    this.tag,
+    super.latestPriceDate,
+    super.latestPrice,
+  }) : super(genreCode: genre?.name, tagString: tag != null ? json.encode(tag) : null);
 
   /// Genre of the AMC i.e. mf, stock, insurance, misc etc.
   final AmcGenre? genre;
@@ -227,6 +235,8 @@ class MfAmcModel extends InveslyAmc {
     required super.name,
     required super.code,
     required super.isin,
+    super.latestPriceDate,
+    super.latestPrice,
     this.category,
     this.subCategory,
     this.plan,
@@ -252,6 +262,8 @@ class MfAmcModel extends InveslyAmc {
       name: amc.name,
       code: amc.code,
       isin: amc.isin,
+      latestPriceDate: amc.latestPriceDate,
+      latestPrice: amc.latestPrice,
       category: tag?['category'] as String?,
       subCategory: tag?['sub_category'] as String?,
       plan: tag?['plan'] as String?,
@@ -302,6 +314,8 @@ class StockAmcModel extends InveslyAmc {
     required super.name,
     required super.code,
     required super.isin,
+    super.latestPriceDate,
+    super.latestPrice,
     this.sector,
     this.industry,
   }) : super(genre: AmcGenre.stock, tag: {'sector': sector, 'industry': industry});
@@ -320,6 +334,8 @@ class StockAmcModel extends InveslyAmc {
       name: amc.name,
       code: amc.code,
       isin: amc.isin,
+      latestPriceDate: amc.latestPriceDate,
+      latestPrice: amc.latestPrice,
       sector: tag?['sector'] as String?,
       industry: tag?['industry'] as String?,
     );
@@ -352,8 +368,15 @@ class StockAmcModel extends InveslyAmc {
 }
 
 class InsuranceAmcModel extends InveslyAmc {
-  InsuranceAmcModel({required super.id, required super.name, required super.code, required super.isin, this.plan})
-    : super(genre: AmcGenre.insurance, tag: {'plan': plan});
+  InsuranceAmcModel({
+    required super.id,
+    required super.name,
+    required super.code,
+    required super.isin,
+    super.latestPriceDate,
+    super.latestPrice,
+    this.plan,
+  }) : super(genre: AmcGenre.insurance, tag: {'plan': plan});
 
   final String? plan;
 
@@ -363,7 +386,15 @@ class InsuranceAmcModel extends InveslyAmc {
       tag = json.decode(amc.tagString!) as Map<String, dynamic>;
     }
 
-    return InsuranceAmcModel(id: amc.id, name: amc.name, code: amc.code, isin: amc.isin, plan: tag?['plan'] as String?);
+    return InsuranceAmcModel(
+      id: amc.id,
+      name: amc.name,
+      code: amc.code,
+      isin: amc.isin,
+      latestPriceDate: amc.latestPriceDate,
+      latestPrice: amc.latestPrice,
+      plan: tag?['plan'] as String?,
+    );
   }
 
   @override
@@ -374,8 +405,15 @@ class InsuranceAmcModel extends InveslyAmc {
 }
 
 class MiscAmcModel extends InveslyAmc {
-  MiscAmcModel({required super.id, required super.name, required super.code, required super.isin, super.tag})
-    : super(genre: AmcGenre.misc);
+  MiscAmcModel({
+    required super.id,
+    required super.name,
+    required super.code,
+    required super.isin,
+    super.latestPriceDate,
+    super.latestPrice,
+    super.tag,
+  }) : super(genre: AmcGenre.misc);
 
   factory MiscAmcModel.fromDb(AmcInDb amc) {
     Map<String, dynamic>? tag;
@@ -383,7 +421,15 @@ class MiscAmcModel extends InveslyAmc {
       tag = json.decode(amc.tagString!) as Map<String, dynamic>;
     }
 
-    return MiscAmcModel(id: amc.id, name: amc.name, code: amc.code, isin: amc.isin, tag: tag);
+    return MiscAmcModel(
+      id: amc.id,
+      name: amc.name,
+      code: amc.code,
+      isin: amc.isin,
+      latestPriceDate: amc.latestPriceDate,
+      latestPrice: amc.latestPrice,
+      tag: tag,
+    );
   }
 
   @override
@@ -401,6 +447,8 @@ class AmcInDb extends InveslyDataModel {
     required this.isin,
     this.genreCode,
     this.tagString,
+    this.latestPriceDate,
+    this.latestPrice,
   });
 
   final String name;
@@ -408,9 +456,12 @@ class AmcInDb extends InveslyDataModel {
   final String isin;
   final String? genreCode;
   final String? tagString;
+  final DateTime? latestPriceDate;
+  final double? latestPrice;
 
   @override
-  List<Object?> get props => super.props..addAll([name, code, isin, genreCode, tagString]);
+  List<Object?> get props =>
+      super.props..addAll([name, code, isin, genreCode, tagString, latestPriceDate, latestPrice]);
 }
 
 class AmcTable extends TableSchema<AmcInDb> {
@@ -424,9 +475,13 @@ class AmcTable extends TableSchema<AmcInDb> {
   TableColumn<String> get isinColumn => TableColumn('isin', tableName, isUnique: true);
   TableColumn<String> get genreColumn => TableColumn('genre', tableName, isNullable: true);
   TableColumn<String> get tagColumn => TableColumn('tag', tableName, isNullable: true);
+  TableColumn<String> get latestPriceDateColumn => TableColumn('latest_price_date', tableName, isNullable: true);
+  TableColumn<double> get latestPriceColumn =>
+      TableColumn('latest_price', tableName, isNullable: true, type: TableColumnType.real);
 
   @override
-  Set<TableColumn> get columns => super.columns..addAll([nameColumn, codeColumn, isinColumn, genreColumn, tagColumn]);
+  Set<TableColumn> get columns => super.columns
+    ..addAll([nameColumn, codeColumn, isinColumn, genreColumn, tagColumn, latestPriceDateColumn, latestPriceColumn]);
 
   @override
   Map<String, dynamic> fromModel(AmcInDb data) {
@@ -437,6 +492,8 @@ class AmcTable extends TableSchema<AmcInDb> {
       isinColumn.title: data.isin,
       genreColumn.title: data.genreCode,
       tagColumn.title: data.tagString,
+      latestPriceDateColumn.title: data.latestPriceDate?.toIso8601String(),
+      latestPriceColumn.title: data.latestPrice,
     };
   }
 
@@ -449,6 +506,10 @@ class AmcTable extends TableSchema<AmcInDb> {
       isin: map[isinColumn.title] as String,
       genreCode: map[genreColumn.title] as String?,
       tagString: map[tagColumn.title] as String?,
+      latestPriceDate: map[latestPriceDateColumn.title] != null
+          ? DateTime.tryParse(map[latestPriceDateColumn.title] as String)
+          : null,
+      latestPrice: map[latestPriceColumn.title] != null ? (map[latestPriceColumn.title] as num).toDouble() : null,
     );
   }
 }
