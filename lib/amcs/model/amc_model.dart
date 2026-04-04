@@ -1,7 +1,9 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
+import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 
@@ -173,8 +175,9 @@ abstract class InveslyAmc extends AmcInDb {
     required super.isin,
     this.genre,
     this.tag,
-    super.latestPriceDate,
-    super.latestPrice,
+    super.ltp,
+    super.ltpDate,
+    super.ltpFetchDate,
   }) : super(genreCode: genre?.name, tagString: tag != null ? json.encode(tag) : null);
 
   /// Genre of the AMC i.e. mf, stock, insurance, misc etc.
@@ -235,12 +238,13 @@ class MfAmcModel extends InveslyAmc {
     required super.name,
     required super.code,
     required super.isin,
-    super.latestPriceDate,
-    super.latestPrice,
     this.category,
     this.subCategory,
     this.plan,
     this.schemeType,
+    super.ltp,
+    super.ltpDate,
+    super.ltpFetchDate,
   }) : super(
          genre: AmcGenre.mf,
          tag: {'category': category, 'sub_category': subCategory, 'plan': plan, 'scheme_type': schemeType},
@@ -262,12 +266,13 @@ class MfAmcModel extends InveslyAmc {
       name: amc.name,
       code: amc.code,
       isin: amc.isin,
-      latestPriceDate: amc.latestPriceDate,
-      latestPrice: amc.latestPrice,
       category: tag?['category'] as String?,
       subCategory: tag?['sub_category'] as String?,
       plan: tag?['plan'] as String?,
       schemeType: tag?['scheme_type'] as String?,
+      ltp: amc.ltp,
+      ltpDate: amc.ltpDate,
+      ltpFetchDate: amc.ltpFetchDate,
     );
   }
 
@@ -314,10 +319,11 @@ class StockAmcModel extends InveslyAmc {
     required super.name,
     required super.code,
     required super.isin,
-    super.latestPriceDate,
-    super.latestPrice,
     this.sector,
     this.industry,
+    super.ltp,
+    super.ltpDate,
+    super.ltpFetchDate,
   }) : super(genre: AmcGenre.stock, tag: {'sector': sector, 'industry': industry});
 
   final String? sector;
@@ -334,10 +340,11 @@ class StockAmcModel extends InveslyAmc {
       name: amc.name,
       code: amc.code,
       isin: amc.isin,
-      latestPriceDate: amc.latestPriceDate,
-      latestPrice: amc.latestPrice,
       sector: tag?['sector'] as String?,
       industry: tag?['industry'] as String?,
+      ltp: amc.ltp,
+      ltpDate: amc.ltpDate,
+      ltpFetchDate: amc.ltpFetchDate,
     );
   }
 
@@ -373,9 +380,10 @@ class InsuranceAmcModel extends InveslyAmc {
     required super.name,
     required super.code,
     required super.isin,
-    super.latestPriceDate,
-    super.latestPrice,
     this.plan,
+    super.ltp,
+    super.ltpDate,
+    super.ltpFetchDate,
   }) : super(genre: AmcGenre.insurance, tag: {'plan': plan});
 
   final String? plan;
@@ -391,9 +399,10 @@ class InsuranceAmcModel extends InveslyAmc {
       name: amc.name,
       code: amc.code,
       isin: amc.isin,
-      latestPriceDate: amc.latestPriceDate,
-      latestPrice: amc.latestPrice,
       plan: tag?['plan'] as String?,
+      ltp: amc.ltp,
+      ltpDate: amc.ltpDate,
+      ltpFetchDate: amc.ltpFetchDate,
     );
   }
 
@@ -410,9 +419,10 @@ class MiscAmcModel extends InveslyAmc {
     required super.name,
     required super.code,
     required super.isin,
-    super.latestPriceDate,
-    super.latestPrice,
     super.tag,
+    super.ltp,
+    super.ltpDate,
+    super.ltpFetchDate,
   }) : super(genre: AmcGenre.misc);
 
   factory MiscAmcModel.fromDb(AmcInDb amc) {
@@ -426,9 +436,10 @@ class MiscAmcModel extends InveslyAmc {
       name: amc.name,
       code: amc.code,
       isin: amc.isin,
-      latestPriceDate: amc.latestPriceDate,
-      latestPrice: amc.latestPrice,
       tag: tag,
+      ltp: amc.ltp,
+      ltpDate: amc.ltpDate,
+      ltpFetchDate: amc.ltpFetchDate,
     );
   }
 
@@ -447,8 +458,9 @@ class AmcInDb extends InveslyDataModel {
     required this.isin,
     this.genreCode,
     this.tagString,
-    this.latestPriceDate,
-    this.latestPrice,
+    this.ltp,
+    this.ltpDate,
+    this.ltpFetchDate,
   });
 
   final String name;
@@ -456,12 +468,12 @@ class AmcInDb extends InveslyDataModel {
   final String isin;
   final String? genreCode;
   final String? tagString;
-  final DateTime? latestPriceDate;
-  final double? latestPrice;
+  final double? ltp;
+  final DateTime? ltpDate;
+  final DateTime? ltpFetchDate;
 
   @override
-  List<Object?> get props =>
-      super.props..addAll([name, code, isin, genreCode, tagString, latestPriceDate, latestPrice]);
+  List<Object?> get props => super.props..addAll([name, code, isin, genreCode, tagString, ltp, ltpDate, ltpFetchDate]);
 }
 
 class AmcTable extends TableSchema<AmcInDb> {
@@ -475,13 +487,24 @@ class AmcTable extends TableSchema<AmcInDb> {
   TableColumn<String> get isinColumn => TableColumn('isin', tableName, isUnique: true);
   TableColumn<String> get genreColumn => TableColumn('genre', tableName, isNullable: true);
   TableColumn<String> get tagColumn => TableColumn('tag', tableName, isNullable: true);
-  TableColumn<String> get latestPriceDateColumn => TableColumn('latest_price_date', tableName, isNullable: true);
-  TableColumn<double> get latestPriceColumn =>
-      TableColumn('latest_price', tableName, isNullable: true, type: TableColumnType.real);
+  TableColumn<double> get ltpColumn => TableColumn('ltp', tableName, isNullable: true, type: TableColumnType.real);
+  TableColumn<String> get ltpDateColumn => TableColumn('ltp_date', tableName, isNullable: true);
+  TableColumn<String> get ltpFetchDateColumn => TableColumn('ltp_fetch_date', tableName, isNullable: true);
+
+  DateFormat get _dateFormat => DateFormat('yyyy-MM-dd');
 
   @override
   Set<TableColumn> get columns => super.columns
-    ..addAll([nameColumn, codeColumn, isinColumn, genreColumn, tagColumn, latestPriceDateColumn, latestPriceColumn]);
+    ..addAll([
+      nameColumn,
+      codeColumn,
+      isinColumn,
+      genreColumn,
+      tagColumn,
+      ltpColumn,
+      ltpDateColumn,
+      ltpFetchDateColumn,
+    ]);
 
   @override
   Map<String, dynamic> fromModel(AmcInDb data) {
@@ -492,8 +515,9 @@ class AmcTable extends TableSchema<AmcInDb> {
       isinColumn.title: data.isin,
       genreColumn.title: data.genreCode,
       tagColumn.title: data.tagString,
-      latestPriceDateColumn.title: data.latestPriceDate?.toIso8601String(),
-      latestPriceColumn.title: data.latestPrice,
+      ltpColumn.title: data.ltp,
+      ltpDateColumn.title: data.ltpDate != null ? _dateFormat.format(data.ltpDate!) : null,
+      ltpFetchDateColumn.title: data.ltpFetchDate != null ? _dateFormat.format(data.ltpFetchDate!) : null,
     };
   }
 
@@ -506,10 +530,11 @@ class AmcTable extends TableSchema<AmcInDb> {
       isin: map[isinColumn.title] as String,
       genreCode: map[genreColumn.title] as String?,
       tagString: map[tagColumn.title] as String?,
-      latestPriceDate: map[latestPriceDateColumn.title] != null
-          ? DateTime.tryParse(map[latestPriceDateColumn.title] as String)
+      ltp: map[ltpColumn.title] != null ? (map[ltpColumn.title] as num).toDouble() : null,
+      ltpDate: map[ltpDateColumn.title] != null ? _dateFormat.tryParse(map[ltpDateColumn.title] as String) : null,
+      ltpFetchDate: map[ltpFetchDateColumn.title] != null
+          ? _dateFormat.tryParse(map[ltpFetchDateColumn.title] as String)
           : null,
-      latestPrice: map[latestPriceColumn.title] != null ? (map[latestPriceColumn.title] as num).toDouble() : null,
     );
   }
 }
