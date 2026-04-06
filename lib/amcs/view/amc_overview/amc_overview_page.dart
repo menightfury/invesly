@@ -98,8 +98,8 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
 
     return BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
       builder: (context, amcState) {
-        final latestPrice = amcState is AmcOverviewLoadedState && amcState.latestPrice != null
-            ? amcState.latestPrice
+        final latestPrice = amcState is AmcOverviewLoadedState && amcState.amc?.ltp != null
+            ? amcState.amc!.ltp
             : null;
 
         return Scaffold(
