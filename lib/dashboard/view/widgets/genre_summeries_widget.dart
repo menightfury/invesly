@@ -65,7 +65,12 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                         SizedBox(
                           height: 224.0,
                           child: stats == null
-                              ? Skeleton2(color: isError ? context.colors.error : null)
+                              ? Center(
+                                  child: Text(
+                                    'Error fetching data', // Will be replaced by shimmer when loading
+                                    style: TextStyle(color: isError ? context.colors.error : null),
+                                  ),
+                                )
                               : ValueListenableBuilder(
                                   valueListenable: _selectedGenre,
                                   builder: (context, selectedCategory, _) {
@@ -96,50 +101,59 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
 
                                 return SectionTile(
                                   tileColor: isSelected ? genre.color : Colors.white.withAlpha(100),
-                                  icon: isLoading
-                                      ? Skeleton2()
-                                      : CircleAvatar(
-                                          backgroundColor: genre.color.lighten(70),
-                                          child: Icon(genre.icon, color: genre.color),
-                                        ),
-                                  title: isLoading
-                                      ? Skeleton2()
-                                      : Text(
-                                          genre.title,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(color: isSelected ? Colors.white : null),
-                                        ),
+                                  icon: PhysicalModel(
+                                    color: genre.color.lighten(70),
+                                    shape: BoxShape.circle,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Icon(genre.icon, color: genre.color),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    genre.title,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(color: isSelected ? Colors.white : null),
+                                  ),
                                   subtitle: stats == null
-                                      ? Skeleton2(color: isError ? context.colors.error : null)
+                                      ? Text(
+                                          'Error fetching data', // Will be replaced by shimmer when loading
+                                          style: TextStyle(color: isError ? context.colors.error : null),
+                                        )
                                       : Text(
                                           '${numTransactions ?? 0} transactions',
                                           style: TextStyle(color: isSelected ? Colors.white : null),
                                           overflow: TextOverflow.ellipsis,
                                         ),
-                                  trailingIcon: stats == null
-                                      ? Skeleton2(color: isError ? context.colors.error : null)
-                                      : BlocSelector<AppCubit, AppState, bool>(
-                                          selector: (state) => state.isPrivateMode,
-                                          builder: (context, isPrivateMode) {
-                                            return CurrencyView(
-                                              amount: totalAmount ?? 0.0,
-                                              style: context.textTheme.headlineMedium?.copyWith(
-                                                color: isSelected ? Colors.white : genre.color,
-                                              ),
-                                              decimalsStyle: context.textTheme.headlineSmall?.copyWith(
-                                                fontSize: 13.0,
-                                                color: isSelected ? Colors.white : genre.color,
-                                              ),
-                                              currencyStyle: context.textTheme.bodySmall,
-                                              privateMode: isPrivateMode,
-                                            );
-                                          },
+                                  trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                                    selector: (state) => state.isPrivateMode,
+                                    builder: (context, isPrivateMode) {
+                                      return CurrencyView(
+                                        amount: totalAmount ?? 0.0,
+                                        style: context.textTheme.headlineMedium?.copyWith(
+                                          color: isError
+                                              ? context.colors.error
+                                              : isSelected
+                                              ? Colors.white
+                                              : genre.color,
                                         ),
+                                        decimalsStyle: context.textTheme.headlineSmall?.copyWith(
+                                          fontSize: 13.0,
+                                          color: isError
+                                              ? context.colors.error
+                                              : isSelected
+                                              ? Colors.white
+                                              : genre.color,
+                                        ),
+                                        currencyStyle: context.textTheme.bodySmall,
+                                        privateMode: isPrivateMode,
+                                      );
+                                    },
+                                  ),
                                   onTap: () {
                                     if (_selectedGenre.value == genre) {
-                                      Navigator.of(context).push(
-                                        GenreDetailsPage.route(genre, filteredStats?.toList() ?? []),
-                                      );
+                                      Navigator.of(
+                                        context,
+                                      ).push(GenreDetailsPage.route(genre, filteredStats?.toList() ?? []));
                                     } else {
                                       _selectedGenre.value = genre;
                                     }

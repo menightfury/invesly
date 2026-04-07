@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -114,20 +115,15 @@ class AmcRepository {
   // final Map<String, LatestPrice> _latestPriceCache = {};
 
   /// Get latest price for an AMC
-  Future<LatestPrice?> getLatestPrice(InveslyAmc amc) async {
-    if (amc.genre == null) return null;
+  FutureOr<LatestPrice?> getLatestPrice(InveslyAmc amc) async {
+    // if latest price is available and is fetched today, return it
+    if (amc.ltp?.fetchDate.isToday ?? false) {
+      return amc.ltp;
+    }
 
+    // if latest price is not available or is outdated, fetch from network
     final uri = amc.latestPriceUri;
     if (uri == null) return null;
-
-    // final cacheKey = amc.id;
-    // if (_latestPriceCache.containsKey(cacheKey)) {
-    //   final cachedPrice = _latestPriceCache[cacheKey]!;
-    //   // Simple cache expiration: 30 minutes
-    //   if (DateTime.now().difference(cachedPrice.date).inMinutes < 30) {
-    //     return cachedPrice;
-    //   }
-    // }
 
     final client = http.Client();
     try {
@@ -139,10 +135,7 @@ class AmcRepository {
 
       // If the server did return a 200 OK response, parse the JSON.
       final parsed = jsonDecode(response.body) as Map<String, dynamic>;
-      final latestPrice = amc.toLatestPrice(parsed);
-      // if (latestPrice != null) {
-      //   _latestPriceCache[cacheKey] = latestPrice;
-      // }
+      final latestPrice = amc.fromLtpMap(parsed);
       return latestPrice;
     } catch (e) {
       throw ('Error fetching current AMC price: $e');

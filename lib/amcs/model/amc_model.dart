@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
@@ -228,7 +229,7 @@ abstract class InveslyAmc extends AmcInDb {
 
   String? get latestPriceUri;
 
-  LatestPrice? toLatestPrice(Map<String, dynamic> response);
+  LatestPrice? fromLtpMap(Map<String, dynamic> response);
 
   Set<String> get tags => tag != null ? tag!.values.whereType<String>().toSet() : {};
 
@@ -292,7 +293,7 @@ class MfAmcModel extends InveslyAmc {
   String? get latestPriceUri => 'https://api.mfapi.in/mf/$code/latest';
 
   @override
-  LatestPrice? toLatestPrice(Map<String, dynamic> response) {
+  LatestPrice? fromLtpMap(Map<String, dynamic> response) {
     final now = DateTime.now();
     // {
     //   "meta": {
@@ -314,12 +315,7 @@ class MfAmcModel extends InveslyAmc {
     }
 
     final latestEntry = data.first;
-    final dateParts = latestEntry['date'].toString().split('-');
-    final date = DateTime(
-      int.tryParse(dateParts.length > 2 ? dateParts[2] : '') ?? now.year,
-      int.tryParse(dateParts.length > 1 ? dateParts[1] : '') ?? now.month,
-      int.tryParse(dateParts.isNotEmpty ? dateParts[0] : '') ?? now.day,
-    );
+    final date = DateFormat('dd-MM-yyyy').tryParse(latestEntry['date'].toString()) ?? now;
     final nav = double.tryParse(latestEntry['nav'].toString());
     return nav != null ? LatestPrice(date: date, price: nav, fetchDate: now) : null;
   }
@@ -388,7 +384,7 @@ class StockAmcModel extends InveslyAmc {
   String? get latestPriceUri => 'https://www.nseindia.com/api/quote-equity?symbol=$code';
 
   @override
-  LatestPrice? toLatestPrice(Map<String, dynamic> response) {
+  LatestPrice? fromLtpMap(Map<String, dynamic> response) {
     final now = DateTime.now(); // TODO: get actual date from response if available
     // {
     // ...
@@ -468,7 +464,7 @@ class InsuranceAmcModel extends InveslyAmc {
   String? get latestPriceUri => null; // Insurance AMC doesn't have a latest price API
 
   @override
-  LatestPrice? toLatestPrice(Map<String, dynamic> response) => null; // Insurance AMC doesn't have a latest price API, so return null price
+  LatestPrice? fromLtpMap(Map<String, dynamic> response) => null; // Insurance AMC doesn't have a latest price API, so return null price
 
   @override
   InveslyAmc copyWith({
@@ -526,7 +522,7 @@ class MiscAmcModel extends InveslyAmc {
   String? get latestPriceUri => null; // Misc AMC doesn't have a latest price API
 
   @override
-  LatestPrice? toLatestPrice(Map<String, dynamic> response) => null; // Misc AMC doesn't have a latest price API, so return null
+  LatestPrice? fromLtpMap(Map<String, dynamic> response) => null; // Misc AMC doesn't have a latest price API, so return null
 
   @override
   InveslyAmc copyWith({
