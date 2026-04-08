@@ -22,7 +22,7 @@ class GenreDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${genre.title} Details')),
+      appBar: AppBar(title: Text('${genre.title} details')),
       body: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
         builder: (context, state) {
           if (state is GenreDetailsLoadingState) {

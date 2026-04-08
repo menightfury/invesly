@@ -1,10 +1,13 @@
 // ignore_for_file: unused_element
 
+import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:http/http.dart' as http;
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
@@ -37,6 +40,50 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAndUpdateAmcData(context);
+  }
+
+  // check amc status is latest or not
+  Future<void> _checkAndUpdateAmcData(BuildContext context) async {
+    final appState = context.read<AppCubit>().state;
+    final client = http.Client();
+
+    try {
+      final response = await client.get(
+        Uri.parse('https://api.github.com/repos/menightfury/invesly-data/contents/amcs.json'),
+      );
+
+      // If the server did return a 200 OK response, parse the JSON.
+      if (response.statusCode == 200 && response.body.isNotEmpty) {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        final sha = decoded['sha'] as String?;
+        final url = decoded['download_url'] as String?;
+        if (sha != null && sha != appState.amcSha && url != null) {
+          // If sha is not same, it means amcs in remote location have changed
+          // Fetch and update amcs
+          final amcs = await AmcRepository.instance.getAmcsFromNetwork(client, url);
+          $logger.w(amcs);
+          // write amcs to database
+          if (amcs != null && amcs.isNotEmpty) {
+            await AmcRepository.instance.saveAmcs(amcs);
+          }
+          if (!context.mounted) {
+            return;
+          }
+          // update amc sha key in app state
+          context.read<AppCubit>().updateAmcSha(sha);
+        }
+      }
+    } catch (e) {
+      $logger.e('Failed to fetch amc data', error: e);
+    } finally {
+      client.close();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

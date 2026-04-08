@@ -31,34 +31,6 @@ class _SplashPageState extends State<SplashPage> {
     _timer = Timer(2.seconds, () => _completer.complete());
 
     Future.wait<void>([_completer.future, Bootstrap.instance.api.initializeDatabase()]).then((_) async {
-      // check amc status is latest or not
-      final client = http.Client();
-      final response = await client.get(
-        Uri.parse('https://api.github.com/repos/menightfury/invesly-data/contents/amcs.json'),
-      );
-
-      // If the server did return a 200 OK response, parse the JSON.
-      if (response.statusCode == 200 && response.body.isNotEmpty) {
-        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-        final sha = decoded['sha'] as String?;
-        final url = decoded['download_url'] as String?;
-        if (sha != null && sha != appState.amcSha && url != null) {
-          // If sha is not same, it means amcs in remote location have changed
-          // Fetch and update amcs
-          final amcs = await AmcRepository.instance.getAmcsFromNetwork(client, url);
-          $logger.w(amcs);
-          // write amcs to database
-          if (amcs != null && amcs.isNotEmpty) {
-            await AmcRepository.instance.saveAmcs(amcs);
-          }
-          if (!mounted) {
-            return;
-          }
-          // update amc sha key in app state
-          context.read<AppCubit>().updateAmcSha(sha);
-        }
-      }
-
       if (!mounted) return;
 
       if (!appState.isOnboarded) {
