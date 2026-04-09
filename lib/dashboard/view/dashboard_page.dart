@@ -153,7 +153,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 MultiBlocProvider(
                   providers: [
                     BlocProvider(create: (context) => TransactionsCubit(repository: trnRepository)),
-                    BlocProvider(create: (context) => TransactionStatCubit(trnRepository: trnRepository)),
+                    BlocProvider(create: (context) => TransactionStatCubit(trnRepository: trnRepository, amcRepository: AmcRepository.instance)),
                   ],
                   child: BlocSelector<AppCubit, AppState, String?>(
                     selector: (state) => state.primaryAccountId,

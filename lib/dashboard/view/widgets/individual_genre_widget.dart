@@ -15,7 +15,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
     final textTheme = Theme.of(context).textTheme;
 
     return Section(
-      title: Text(widget.genre.name),
+      title: Text(widget.genre.title),
       icon: const Icon(Icons.pie_chart_outline_rounded),
       trailingIcon: GestureDetector(
         onTap: () {

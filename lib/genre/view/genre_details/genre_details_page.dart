@@ -21,26 +21,30 @@ class GenreDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: <Widget>[
-        SliverAppBar(title: Text('${genre.title} details')),
-        SliverList(
-          delegate: SliverChildListDelegate.fixed([
-            BlocSelector<AppCubit, AppState, String?>(
-              selector: (state) => state.primaryAccountId,
-              builder: (context, accountId) {
-                return BlocProvider(
-                  create: (context) => GenreDetailsCubit(
-                    trnRepository: TransactionRepository.instance,
-                    amcRepository: AmcRepository.instance,
-                  ),
-                  child: _GenreDetailsPageContent(accountId: accountId),
-                );
-              },
+    return Scaffold(
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverAppBar(title: Text('${genre.title} details')),
+            SliverList(
+              delegate: SliverChildListDelegate.fixed([
+                BlocSelector<AppCubit, AppState, String?>(
+                  selector: (state) => state.primaryAccountId,
+                  builder: (context, accountId) {
+                    return BlocProvider(
+                      create: (context) => GenreDetailsCubit(
+                        trnRepository: TransactionRepository.instance,
+                        amcRepository: AmcRepository.instance,
+                      ),
+                      child: _GenreDetailsPageContent(accountId: accountId),
+                    );
+                  },
+                ),
+              ]),
             ),
-          ]),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

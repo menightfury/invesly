@@ -95,7 +95,7 @@ class TransactionRepository {
           ])
           .join([_amcTable])
           .where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
-          .groupBy([_amcTable.nameColumn])
+          .groupBy([_amcTable.idColumn])
           .toList();
       final stats = result.map<TransactionStat>((map) {
         return TransactionStat(
