@@ -22,20 +22,12 @@ class TransactionStatErrorState extends TransactionStatState {
 }
 
 class TransactionStatLoadedState extends TransactionStatState {
-  const TransactionStatLoadedState({this.stats = const [], this.recentTransactions = const []});
+  const TransactionStatLoadedState({this.stats = const []});
 
   final List<TransactionStat> stats;
-  final List<InveslyTransaction> recentTransactions;
-
-  TransactionStatLoadedState copyWith({List<TransactionStat>? stats, List<InveslyTransaction>? recentTransactions}) {
-    return TransactionStatLoadedState(
-      stats: stats ?? this.stats,
-      recentTransactions: recentTransactions ?? this.recentTransactions,
-    );
-  }
 
   @override
-  List<Object?> get props => [stats, recentTransactions];
+  List<Object?> get props => [stats];
 }
 
 extension TransactionStatStateX on TransactionStatState {

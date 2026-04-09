@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:invesly/amcs/model/amc_repository.dart';
+import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
@@ -28,13 +29,22 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
     // Get initial transactions
     emit(const TransactionStatLoadingState());
     try {
-      // wait for 2 seconds
-      await Future.delayed(2.seconds); // TODO: Remove this
       // if (accountId == null) {
       //   emit(const TransactionStatErrorState('No account has been selected'));
       //   return;
       // }
       final transactionStats = await _trnRepository.getTransactionStats(accountId);
+      if (transactionStats.isNotEmpty) {
+        for (final stat in transactionStats) {
+          LatestPrice? latestPrice;
+          if (stat.amc.latestPriceUri != null) {
+            latestPrice = await _amcRepository.getLatestPrice(stat.amc);
+          }
+          if (latestPrice != null) {
+            stat.copyWith(amc: stat.amc.copyWith(ltp: latestPrice));
+          }
+        }
+      }
       emit(TransactionStatLoadedState(stats: transactionStats));
     } on Exception catch (error) {
       emit(TransactionStatErrorState(error.toString()));

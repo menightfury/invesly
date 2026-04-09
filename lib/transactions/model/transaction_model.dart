@@ -2,6 +2,7 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/database/table_schema.dart';
@@ -238,6 +239,22 @@ class TransactionStat extends Equatable {
   final int numTransactions;
   final double totalAmount;
   final double totalQuantity;
+
+  TransactionStat copyWith({
+    String? accountId,
+    InveslyAmc? amc,
+    int? numTransactions,
+    double? totalAmount,
+    double? totalQuantity,
+  }) {
+    return TransactionStat(
+      accountId: accountId ?? this.accountId,
+      amc: amc ?? this.amc,
+      numTransactions: numTransactions ?? this.numTransactions,
+      totalAmount: totalAmount ?? this.totalAmount,
+      totalQuantity: totalQuantity ?? this.totalQuantity,
+    );
+  }
 
   @override
   List<Object?> get props => [accountId, amc, numTransactions, totalAmount, totalQuantity];

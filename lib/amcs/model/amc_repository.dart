@@ -125,6 +125,7 @@ class AmcRepository {
     final uri = amc.latestPriceUri;
     if (uri == null) return null;
 
+    LatestPrice? latestPrice = amc.ltp;
     final client = http.Client();
     try {
       final response = await client.get(Uri.parse(uri));
@@ -135,10 +136,10 @@ class AmcRepository {
 
       // If the server did return a 200 OK response, parse the JSON.
       final parsed = jsonDecode(response.body) as Map<String, dynamic>;
-      final latestPrice = amc.fromLtpMap(parsed);
-      return latestPrice;
+      latestPrice = amc.fromLtpMap(parsed);
     } catch (e) {
-      throw ('Error fetching current AMC price: $e');
+      $logger.e('Error fetching latest price');
     }
+    return latestPrice;
   }
 }
