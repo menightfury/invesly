@@ -8,8 +8,8 @@ import 'package:invesly/transactions/model/transaction_repository.dart';
 part 'transaction_stat_state.dart';
 
 class TransactionStatCubit extends Cubit<TransactionStatState> {
-  TransactionStatCubit({required TransactionRepository repository})
-    : _repository = repository,
+  TransactionStatCubit({required TransactionRepository trnRepository})
+    : _repository = trnRepository,
       super(const TransactionStatInitialState());
 
   final TransactionRepository _repository;

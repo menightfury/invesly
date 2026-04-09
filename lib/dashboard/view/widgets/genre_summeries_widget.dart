@@ -101,18 +101,22 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
 
                                 return SectionTile(
                                   tileColor: isSelected ? genre.color : Colors.white.withAlpha(100),
-                                  icon: PhysicalModel(
-                                    color: genre.color.lighten(70),
-                                    shape: BoxShape.circle,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Icon(genre.icon, color: genre.color),
+                                  icon: Skeleton.keep(
+                                    child: PhysicalModel(
+                                      color: genre.color.lighten(70),
+                                      shape: BoxShape.circle,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Icon(genre.icon, color: genre.color),
+                                      ),
                                     ),
                                   ),
-                                  title: Text(
-                                    genre.title,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: isSelected ? Colors.white : null),
+                                  title: Skeleton.keep(
+                                    child: Text(
+                                      genre.title,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(color: isSelected ? Colors.white : null),
+                                    ),
                                   ),
                                   subtitle: stats == null
                                       ? Text(
@@ -151,9 +155,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                                   ),
                                   onTap: () {
                                     if (_selectedGenre.value == genre) {
-                                      Navigator.of(
-                                        context,
-                                      ).push(GenreDetailsPage.route(genre, filteredStats?.toList() ?? []));
+                                      Navigator.of(context).push(GenreDetailsPage.route(genre));
                                     } else {
                                       _selectedGenre.value = genre;
                                     }

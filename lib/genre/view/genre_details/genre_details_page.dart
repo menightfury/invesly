@@ -1,52 +1,107 @@
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/genre/view/genre_details/cubit/genre_details_cubit.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
+import 'package:invesly/transactions/model/transaction_repository.dart';
 
 class GenreDetailsPage extends StatelessWidget {
-  const GenreDetailsPage._({super.key, required this.genre, required this.stats});
+  const GenreDetailsPage({super.key, required this.genre});
 
   final AmcGenre genre;
-  final List<TransactionStat> stats;
 
-  static Route<void> route(AmcGenre genre, List<TransactionStat> stats) {
+  static Route<void> route(AmcGenre genre) {
     return MaterialPageRoute<void>(
-      builder: (_) => BlocProvider(
-        create: (context) => GenreDetailsCubit(repository: AmcRepository.instance)..loadDetails(stats),
-        child: GenreDetailsPage._(genre: genre, stats: stats),
-      ),
+      builder: (_) {
+        return GenreDetailsPage(genre: genre);
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('${genre.title} details')),
-      body: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-        builder: (context, state) {
-          if (state is GenreDetailsLoadingState) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is GenreDetailsErrorState) {
-            return Center(child: Text('Error: ${state.message}'));
-          } else if (state is GenreDetailsLoadedState) {
-            return CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(padding: const EdgeInsets.all(16.0), child: _buildSummary(context, state)),
-                ),
-                SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final item = state.detailsList[index];
-                    return _buildAmcItem(context, item);
-                  }, childCount: state.detailsList.length),
-                ),
-              ],
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverAppBar(title: Text('${genre.title} details')),
+        SliverList(
+          delegate: SliverChildListDelegate.fixed([
+            BlocSelector<AppCubit, AppState, String?>(
+              selector: (state) => state.primaryAccountId,
+              builder: (context, accountId) {
+                return BlocProvider(
+                  create: (context) => GenreDetailsCubit(
+                    trnRepository: TransactionRepository.instance,
+                    amcRepository: AmcRepository.instance,
+                  ),
+                  child: _GenreDetailsPageContent(accountId: accountId),
+                );
+              },
+            ),
+          ]),
+        ),
+      ],
+    );
+  }
+}
+
+class _GenreDetailsPageContent extends StatefulWidget {
+  const _GenreDetailsPageContent({super.key, this.accountId});
+
+  final String? accountId;
+
+  @override
+  State<_GenreDetailsPageContent> createState() => _GenreDetailsPageContentState();
+}
+
+class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
+  @override
+  void initState() {
+    super.initState();
+    _getStats();
+  }
+
+  @override
+  void didUpdateWidget(covariant _GenreDetailsPageContent oldWidget) {
+    if (widget.accountId != oldWidget.accountId) {
+      _getStats();
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  void _getStats() {
+    if (widget.accountId?.isEmpty ?? true) {
+      return;
+    }
+    context.read<GenreDetailsCubit>().loadDetails(widget.accountId!);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+      builder: (context, state) {
+        if (state is GenreDetailsLoadingState) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is GenreDetailsErrorState) {
+          return Center(child: Text('Error: ${state.message}'));
+        } else if (state is GenreDetailsLoadedState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Padding(padding: const EdgeInsets.all(16.0), child: _buildSummary(context, state)),
+              ColumnBuilder(
+                mainAxisSize: MainAxisSize.min,
+                itemBuilder: (context, index) {
+                  final item = state.detailsList[index];
+                  return _buildAmcItem(context, item);
+                },
+                itemCount: state.detailsList.length,
+              ),
+            ],
+          );
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 
@@ -58,7 +113,7 @@ class GenreDetailsPage extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
-          children: [
+          children: <Widget>[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [

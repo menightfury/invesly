@@ -225,7 +225,13 @@ class TransactionTable extends TableSchema<TransactionInDb> {
 }
 
 class TransactionStat extends Equatable {
-  const TransactionStat({required this.accountId, required this.amc, this.numTransactions = 0, this.totalAmount = 0.0, this.totalQuantity = 0.0});
+  const TransactionStat({
+    required this.accountId,
+    required this.amc,
+    this.numTransactions = 0,
+    this.totalAmount = 0.0,
+    this.totalQuantity = 0.0,
+  });
 
   final String accountId;
   final InveslyAmc amc;
