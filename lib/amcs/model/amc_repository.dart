@@ -115,7 +115,7 @@ class AmcRepository {
   // final Map<String, LatestPrice> _latestPriceCache = {};
 
   /// Get latest price for an AMC
-  FutureOr<LatestPrice?> getLatestPrice(InveslyAmc amc) async {
+  Future<LatestPrice?> getLatestPrice(InveslyAmc amc) async {
     // if latest price is available and is fetched today, return it
     if (amc.ltp?.fetchDate.isToday ?? false) {
       return amc.ltp;

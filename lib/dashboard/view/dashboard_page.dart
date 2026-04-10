@@ -28,8 +28,6 @@ part 'widgets/genre_summeries_widget.dart';
 part 'widgets/recent_transaction_widget.dart';
 part 'widgets/spending_pie_chart.dart';
 part 'widgets/transaction_stat.dart';
-// part 'widgets/mutualfund_widget.dart';
-// part 'widgets/stock_widget.dart';
 part 'widgets/individual_genre_widget.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -153,7 +151,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 MultiBlocProvider(
                   providers: [
                     BlocProvider(create: (context) => TransactionsCubit(repository: trnRepository)),
-                    BlocProvider(create: (context) => TransactionStatCubit(trnRepository: trnRepository, amcRepository: AmcRepository.instance)),
+                    BlocProvider(create: (context) => TransactionStatCubit(trnRepository: trnRepository)),
                   ],
                   child: BlocSelector<AppCubit, AppState, String?>(
                     selector: (state) => state.primaryAccountId,
@@ -212,6 +210,7 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
     return Column(
       spacing: 16.0,
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         _GenreSummariesWidget(),
         ...AmcGenre.values.map((genre) => _IndividualGenreWidget(genre)),
@@ -232,3 +231,5 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
 //   @override
 //   Size get preferredSize => const Size.fromHeight(0.0);
 // }
+
+enum DashboardState { loading, loaded, error }

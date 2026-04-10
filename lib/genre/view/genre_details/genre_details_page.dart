@@ -96,10 +96,10 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
               ColumnBuilder(
                 mainAxisSize: MainAxisSize.min,
                 itemBuilder: (context, index) {
-                  final item = state.detailsList[index];
+                  final item = state.stat[index];
                   return _buildAmcItem(context, item);
                 },
-                itemCount: state.detailsList.length,
+                itemCount: state.stat.length,
               ),
             ],
           );
@@ -149,7 +149,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     );
   }
 
-  Widget _buildAmcItem(BuildContext context, AmcGenreDetailsStat item) {
+  Widget _buildAmcItem(BuildContext context, TransactionStat stat) {
     final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -162,13 +162,10 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    item.stat.amc.name,
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                  ),
+                  child: Text(stat.amc.name, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 ),
                 Text(
-                  '${item.stat.numTransactions} trns',
+                  '${stat.numTransactions} transactions',
                   style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
               ],
@@ -182,7 +179,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                   children: [
                     Text('Invested', style: theme.textTheme.labelMedium),
                     CurrencyView(
-                      amount: item.stat.totalAmount,
+                      amount: stat.totalAmount,
                       style: theme.textTheme.bodyLarge,
                       decimalsStyle: theme.textTheme.bodyMedium,
                       currencyStyle: theme.textTheme.bodyMedium,
@@ -195,7 +192,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                   children: [
                     Text('Current Value', style: theme.textTheme.labelMedium),
                     CurrencyView(
-                      amount: item.currentValue,
+                      amount: stat.currentValue,
                       style: theme.textTheme.bodyLarge,
                       decimalsStyle: theme.textTheme.bodyMedium,
                       currencyStyle: theme.textTheme.bodyMedium,

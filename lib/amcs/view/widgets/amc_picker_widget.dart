@@ -30,7 +30,7 @@ class InveslyAmcPickerWidget extends StatelessWidget {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
           child: BlocProvider(
             // create: (context) => AmcSearchCubit(amcRepository: context.read<AmcRepository>()),
             create: (context) => AmcSearchCubit(amcRepository: AmcRepository.instance, genre: genre),

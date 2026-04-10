@@ -16,6 +16,37 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
     _selectedGenre = ValueNotifier<AmcGenre?>(null);
   }
 
+  Widget _buildPieChartSection({required DashboardState state, List<TransactionStat>? stats}) {
+    if (state == DashboardState.error) {
+      return Center(
+        child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),
+      );
+    }
+
+    if (state == DashboardState.loading) {
+      return Center(
+        child: Text(
+          'Loading...', // Will be replaced by shimmer skeleton when loading
+        ),
+      );
+    }
+
+    if (stats == null || stats.isEmpty) {
+      return Center(child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')));
+    }
+
+    return ValueListenableBuilder(
+      valueListenable: _selectedGenre,
+      builder: (context, selectedCategory, _) {
+        return _SpendingPieChart(
+          stats,
+          selectedGenre: _selectedGenre.value,
+          onSelected: (genre) => _selectedGenre.value = genre,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -29,15 +60,9 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
             builder: (context, accountsState) {
               return BlocBuilder<TransactionStatCubit, TransactionStatState>(
                 builder: (context, statState) {
-                  if (accountsState.isLoaded && (statState.isInitial || statState.isEmpty)) {
-                    return EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.'));
-                  }
-
                   final isError = accountsState.isError || statState.isError;
                   final isLoading = !isError && (accountsState.isLoading || statState.isLoading);
-                  final stats = accountsState.isEmpty
-                      ? <TransactionStat>[]
-                      : statState is TransactionStatLoadedState
+                  final stats = accountsState.isNotEmpty && statState is TransactionStatLoadedState
                       ? statState.stats
                       : null;
                   final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
@@ -64,25 +89,14 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                         // ~ Pie chart
                         SizedBox(
                           height: 224.0,
-                          child: stats == null
-                              ? Center(
-                                  child: Text(
-                                    'Error fetching data', // Will be replaced by shimmer when loading
-                                    style: TextStyle(color: isError ? context.colors.error : null),
-                                  ),
-                                )
-                              : ValueListenableBuilder(
-                                  valueListenable: _selectedGenre,
-                                  builder: (context, selectedCategory, _) {
-                                    return _SpendingPieChart(
-                                      stats,
-                                      selectedGenre: _selectedGenre.value,
-                                      onSelected: (genre) {
-                                        _selectedGenre.value = genre;
-                                      },
-                                    );
-                                  },
-                                ),
+                          child: _buildPieChartSection(
+                            state: isError
+                                ? DashboardState.error
+                                : isLoading
+                                ? DashboardState.loading
+                                : DashboardState.loaded,
+                            stats: stats,
+                          ),
                         ),
 
                         // ~ Genres

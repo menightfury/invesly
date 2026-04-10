@@ -25,104 +25,118 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
       ),
       tiles: <Widget>[
         SectionTile(
-          title: BlocBuilder<AccountsCubit, AccountsState>(
-            builder: (context, accountsState) {
-              return BlocBuilder<TransactionStatCubit, TransactionStatState>(
-                builder: (context, statState) {
-                  if (accountsState.isLoaded && (statState.isInitial || statState.isEmpty)) {
-                    return EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.'));
-                  }
+          title: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 100.0),
+            child: BlocBuilder<AccountsCubit, AccountsState>(
+              builder: (context, accountsState) {
+                return BlocBuilder<TransactionStatCubit, TransactionStatState>(
+                  builder: (context, statState) {
+                    final isError = accountsState.isError || statState.isError;
+                    final isLoading = !isError && (accountsState.isLoading || statState.isLoading);
+                    final stats = accountsState.isNotEmpty && statState is TransactionStatLoadedState
+                        ? statState.stats
+                        : null;
+                    final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
+                    stats?.sort((a, b) => b.totalAmount.compareTo(a.totalAmount));
 
-                  final isError = accountsState.isError || statState.isError;
-                  final isLoading = !isError && (accountsState.isLoading || statState.isLoading);
-                  final stats = accountsState.isEmpty
-                      ? <TransactionStat>[]
-                      : statState is TransactionStatLoadedState
-                      ? statState.stats.where((stat) => stat.amc.genre == widget.genre).toList()
-                      : null;
-                  final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
-                  stats?.sort((a, b) => b.totalAmount.compareTo(a.totalAmount));
+                    return Skeletonizer(
+                      enabled: isLoading,
+                      child: Column(
+                        children: <Widget>[
+                          // ~ Total amount
+                          BlocSelector<AppCubit, AppState, bool>(
+                            selector: (state) => state.isPrivateMode,
+                            builder: (context, isPrivateMode) {
+                              return CurrencyView(
+                                amount: totalAmount ?? 0.0,
+                                style: textTheme.headlineLarge?.copyWith(
+                                  color: isError ? context.colors.error : widget.genre.color,
+                                ),
+                                decimalsStyle: textTheme.headlineSmall?.copyWith(
+                                  color: isError ? context.colors.error : widget.genre.color,
+                                ),
+                                currencyStyle: textTheme.bodyMedium?.copyWith(
+                                  color: isError ? context.colors.error : widget.genre.color,
+                                ),
+                                privateMode: isPrivateMode,
+                                // compactView: snapshot.data! >= 1_00_00_000
+                              );
+                            },
+                          ),
 
-                  return Skeletonizer(
-                    enabled: isLoading,
-                    child: Column(
-                      children: <Widget>[
-                        // ~ Total amount
-                        BlocSelector<AppCubit, AppState, bool>(
-                          selector: (state) => state.isPrivateMode,
-                          builder: (context, isPrivateMode) {
-                            return CurrencyView(
-                              amount: totalAmount ?? 0.0,
-                              style: textTheme.headlineLarge?.copyWith(
-                                color: isError ? context.colors.error : widget.genre.color,
-                              ),
-                              decimalsStyle: textTheme.headlineSmall?.copyWith(
-                                color: isError ? context.colors.error : widget.genre.color,
-                              ),
-                              currencyStyle: textTheme.bodyMedium?.copyWith(
-                                color: isError ? context.colors.error : widget.genre.color,
-                              ),
-                              privateMode: isPrivateMode,
-                              // compactView: snapshot.data! >= 1_00_00_000
-                            );
-                          },
-                        ),
+                          // ~ Holdings
+                          Text('${stats?.length ?? 0} holdings'),
 
-                        // ~ Holdings
-                        Text('${stats?.length ?? 0} holdings'),
-
-                        // ~ Top five holdings
-                        Section(
-                          margin: EdgeInsets.zero,
-                          tiles: List.generate(math.min(stats?.length ?? 0, 5), (i) {
-                            final stat = stats?.elementAt(i);
-
-                            return SectionTile(
-                              tileColor: Colors.white.withAlpha(100),
-                              // icon: isLoading
-                              //     ? Skeleton()
-                              //     : CircleAvatar(
-                              //         backgroundColor: genre.color.lighten(70),
-                              //         child: Icon(genre.icon, color: genre.color),
-                              //       ),
-                              title: stat == null ? Skeleton2() : Text(stat.amc.name, overflow: TextOverflow.ellipsis),
-                              subtitle: stats == null
-                                  ? Skeleton2(color: isError ? context.colors.error : null)
-                                  : Text('${stat?.numTransactions ?? 0} transactions', overflow: TextOverflow.ellipsis),
-                              trailingIcon: stats == null
-                                  ? Skeleton2(color: isError ? context.colors.error : null)
-                                  : BlocSelector<AppCubit, AppState, bool>(
-                                      selector: (state) => state.isPrivateMode,
-                                      builder: (context, isPrivateMode) {
-                                        return CurrencyView(
-                                          amount: stat?.totalAmount ?? 0,
-                                          style: context.textTheme.headlineMedium?.copyWith(
-                                            color: isError ? context.colors.error : widget.genre.color,
-                                          ),
-                                          decimalsStyle: context.textTheme.headlineSmall?.copyWith(
-                                            fontSize: 13.0,
-                                            color: isError ? context.colors.error : widget.genre.color,
-                                          ),
-                                          currencyStyle: context.textTheme.bodySmall?.copyWith(
-                                            color: isError ? context.colors.error : widget.genre.color,
-                                          ),
-                                          privateMode: isPrivateMode,
-                                        );
-                                      },
-                                    ),
-                              // onTap: () {},
-                            );
-                          }),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
+                          // ~ Top five holdings
+                          _buildHoldingSection(
+                            state: isError
+                                ? DashboardState.error
+                                : isLoading
+                                ? DashboardState.loading
+                                : DashboardState.loaded,
+                            stats: stats,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildHoldingSection({required DashboardState state, List<TransactionStat>? stats}) {
+    if (state == DashboardState.error) {
+      return Center(
+        child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),
+      );
+    }
+
+    // if (accountsState.isLoaded && (statState.isInitial || statState.isEmpty)) {
+    //   return EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.'));
+    // }
+
+    if (state == DashboardState.loading) {
+      return Center(
+        child: Text(
+          'Loading...', // Will be replaced by shimmer skeleton when loading
+        ),
+      );
+    }
+
+    if (state == DashboardState.loaded && stats != null && stats.isEmpty) {
+      return Center(child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')));
+    }
+
+    return Section(
+      margin: EdgeInsets.zero,
+      tiles: List.generate(math.min(stats?.length ?? 3, 5), (i) {
+        // 3 for dummy skeleton tiles
+        final stat = stats?.elementAt(i);
+
+        return SectionTile(
+          tileColor: Colors.white.withAlpha(100),
+          title: Text(stat?.amc.name ?? 'Loading...', overflow: TextOverflow.ellipsis),
+          subtitle: Text('${stat?.numTransactions ?? 0} transactions', overflow: TextOverflow.ellipsis),
+          trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+            selector: (state) => state.isPrivateMode,
+            builder: (context, isPrivateMode) {
+              return CurrencyView(
+                amount: stat?.totalAmount ?? 0.0,
+                style: context.textTheme.headlineMedium?.copyWith(color: widget.genre.color),
+                decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0, color: widget.genre.color),
+                currencyStyle: context.textTheme.bodySmall?.copyWith(color: widget.genre.color),
+                privateMode: isPrivateMode,
+              );
+            },
+          ),
+          // onTap: () {},
+        );
+      }),
     );
   }
 }

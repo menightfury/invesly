@@ -64,13 +64,21 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
                 (index) {
                   final account = accounts?.elementAt(index);
 
-                  return Shimmer(
-                    isLoading: isLoading,
+                  return Skeletonizer(
+                    enabled: isLoading,
                     child: ListTile(
-                      leading: CircleAvatar(foregroundImage: account != null ? AssetImage(account.avatarSrc) : null),
-                      title: isLoading || isError
-                          ? Skeleton2(height: 24.0, color: isError ? context.colors.error : null)
-                          : Text(account?.name ?? ''),
+                      leading: PhysicalModel(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        child: account != null ? Image.asset(account.avatarSrc) : null,
+                      ),
+                      title: Text(
+                        isError
+                            ? 'Error getting name'
+                            : account?.name ?? 'Loading...', // 'Loading...' will be replaced by skeleton when loading
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: isError ? context.colors.error : null),
+                      ),
                       trailing: account?.id == widget.accountId ? const Icon(Icons.check_rounded) : null,
                       onTap: account != null ? () => widget.onPickup?.call(account) : null,
                     ),

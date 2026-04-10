@@ -240,6 +240,8 @@ class TransactionStat extends Equatable {
   final double totalAmount;
   final double totalQuantity;
 
+  double get currentValue => (amc.ltp?.price ?? 0.0) * totalQuantity;
+
   TransactionStat copyWith({
     String? accountId,
     InveslyAmc? amc,

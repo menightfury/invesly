@@ -20,18 +20,31 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
 
     try {
       final transactionStats = await _trnRepository.getTransactionStats(accountId);
-      final detailsList = <AmcGenreDetailsStat>[];
+      // final detailsList = <AmcGenreDetailsStat>[];
 
       // Fetch latest price for each AMC that has an API
-      for (final stat in transactionStats) {
-        LatestPrice? latestPrice;
-        if (stat.amc.latestPriceUri != null) {
-          latestPrice = await _amcRepository.getLatestPrice(stat.amc);
-        }
-        detailsList.add(AmcGenreDetailsStat(stat: stat, latestPrice: latestPrice));
+      // for (final stat in transactionStats) {
+      //   LatestPrice? latestPrice;
+      //   if (stat.amc.latestPriceUri != null) {
+      //     latestPrice = await _amcRepository.getLatestPrice(stat.amc);
+      //   }
+      //   detailsList.add(AmcGenreDetailsStat(stat: stat, latestPrice: latestPrice));
+      // }
+      final latestPrices = <LatestPrice?>[];
+
+      if (transactionStats.isNotEmpty) {
+        final prices = await Future.wait<LatestPrice?>(
+          transactionStats.map((stat) => _amcRepository.getLatestPrice(stat.amc)),
+        );
+        latestPrices.addAll(prices);
       }
 
-      emit(GenreDetailsLoadedState(detailsList: detailsList));
+      final newTransactionStats = transactionStats.asMap().entries.map((entry) {
+        final stat = entry.value;
+        final latestPrice = latestPrices[entry.key];
+        return stat.copyWith(amc: stat.amc.copyWith(ltp: latestPrice));
+      }).toList();
+      emit(GenreDetailsLoadedState(stat: newTransactionStats));
     } catch (e) {
       emit(GenreDetailsErrorState(e.toString()));
     }

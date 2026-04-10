@@ -12,16 +12,16 @@ class GenreDetailsLoadingState extends GenreDetailsState {
 }
 
 class GenreDetailsLoadedState extends GenreDetailsState {
-  const GenreDetailsLoadedState({required this.detailsList});
+  const GenreDetailsLoadedState({required this.stat});
 
-  final List<AmcGenreDetailsStat> detailsList;
+  final List<TransactionStat> stat;
 
-  double get totalCurrentValue => detailsList.fold<double>(0, (v, el) => v + el.currentValue);
-  double get totalInvested => detailsList.fold<double>(0, (v, el) => v + el.stat.totalAmount);
-  int get totalTransactions => detailsList.fold<int>(0, (v, el) => v + el.stat.numTransactions);
+  double get totalCurrentValue => stat.fold<double>(0, (v, el) => v + el.currentValue);
+  double get totalInvested => stat.fold<double>(0, (v, el) => v + el.totalAmount);
+  int get totalTransactions => stat.fold<int>(0, (v, el) => v + el.numTransactions);
 
   @override
-  List<Object?> get props => [detailsList];
+  List<Object?> get props => [stat];
 }
 
 class GenreDetailsErrorState extends GenreDetailsState {
@@ -33,14 +33,14 @@ class GenreDetailsErrorState extends GenreDetailsState {
   List<Object?> get props => [message];
 }
 
-class AmcGenreDetailsStat extends Equatable {
-  const AmcGenreDetailsStat({required this.stat, this.latestPrice});
+// class AmcGenreDetailsStat extends Equatable {
+//   const AmcGenreDetailsStat({required this.stat, this.latestPrice});
 
-  final TransactionStat stat;
-  final LatestPrice? latestPrice;
+//   final TransactionStat stat;
+//   final LatestPrice? latestPrice;
 
-  double get currentValue => (latestPrice?.price ?? 0.0) * stat.totalQuantity;
+//   double get currentValue => (latestPrice?.price ?? 0.0) * stat.totalQuantity;
 
-  @override
-  List<Object?> get props => [stat, latestPrice];
-}
+//   @override
+//   List<Object?> get props => [stat, latestPrice];
+// }

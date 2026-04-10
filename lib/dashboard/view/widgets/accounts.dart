@@ -21,6 +21,7 @@ class _AccountsListState extends State<_AccountsList> {
   @override
   Widget build(BuildContext context) {
     final appCubit = context.read<AppCubit>();
+    final chipPadding = const EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 12.0);
 
     return SizedBox(
       // height: 120.0,
@@ -45,24 +46,28 @@ class _AccountsListState extends State<_AccountsList> {
                   context.read<AppCubit>().updatePrimaryAccount(accounts!.first.id);
                 }
               }
-              return Row(
-                spacing: 8.0,
-                children: <Widget>[
-                  // ~~~ Accounts ~~~
-                  ...List.generate(
-                    accounts?.length ?? 2, // dummy count for shimmer effect
-                    (index) {
-                      final account = accounts?.elementAt(index);
-                      return Shimmer(
-                        isLoading: isLoading,
-                        child: account == null
-                            ? Skeleton2(
-                                color: isError ? context.colors.error : null,
-                                width: 160.0,
-                                height: 56.0,
-                                shape: StadiumBorder(),
-                              )
-                            : BlocSelector<AppCubit, AppState, bool>(
+              return Skeletonizer(
+                enabled: isLoading,
+                child: isError
+                    ? Chip(
+                        label: Text('Failed to load accounts', style: TextStyle(color: context.colors.error)),
+                        labelPadding: chipPadding,
+                      )
+                    : Row(
+                        spacing: 8.0,
+                        children: <Widget>[
+                          // ~~~ Accounts ~~~
+                          ...List.generate(
+                            accounts?.length ?? 2, // dummy count for shimmer effect
+                            (index) {
+                              final account = accounts?.elementAt(index);
+                              if (account == null) {
+                                return Skeleton.leaf(
+                                  child: Chip(label: const Text('Loading...'), labelPadding: chipPadding),
+                                );
+                              }
+
+                              return BlocSelector<AppCubit, AppState, bool>(
                                 selector: (state) => state.primaryAccountId == account.id,
                                 builder: (context, isCurrentAccount) {
                                   $logger.i('rebuilding $account');
@@ -72,7 +77,7 @@ class _AccountsListState extends State<_AccountsList> {
                                       // update primary account
                                       selected ? context.read<AppCubit>().updatePrimaryAccount(account.id) : null;
                                     },
-                                    labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 12.0),
+                                    labelPadding: chipPadding,
                                     selected: isCurrentAccount,
                                     avatar: CircleAvatar(backgroundImage: AssetImage(account.avatarSrc)),
                                     label: Text(
@@ -90,32 +95,24 @@ class _AccountsListState extends State<_AccountsList> {
                                     side: BorderSide(color: context.colors.primary, width: 1.0),
                                   );
                                 },
-                              ),
-                      );
-                    },
-                  ),
-
-                  // ~~~ Add account ~~~
-                  Shimmer(
-                    isLoading: isLoading,
-                    child: isLoading
-                        ? Skeleton2(
-                            color: isError ? context.colors.error : null,
-                            width: 160.0,
-                            height: 50.0,
-                            shape: StadiumBorder(),
-                          )
-                        : ActionChip(
-                            onPressed: () => context.push(const EditAccountPage()),
-                            avatar: CircleAvatar(
-                              backgroundColor: context.colors.primary,
-                              child: Icon(Icons.add_rounded, color: context.colors.onPrimary),
-                            ),
-                            labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 12.0),
-                            label: Text('Add account', style: TextStyle(color: context.colors.onSecondaryContainer)),
+                              );
+                            },
                           ),
-                  ),
-                ],
+
+                          // ~~~ Add account ~~~
+                          Skeleton.leaf(
+                            child: ActionChip(
+                              onPressed: () => context.push(const EditAccountPage()),
+                              avatar: CircleAvatar(
+                                backgroundColor: context.colors.primary,
+                                child: Icon(Icons.add_rounded, color: context.colors.onPrimary),
+                              ),
+                              labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 12.0),
+                              label: Text('Add account', style: TextStyle(color: context.colors.onSecondaryContainer)),
+                            ),
+                          ),
+                        ],
+                      ),
               );
             },
           ),

@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:invesly/amcs/model/amc_repository.dart';
-import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
@@ -10,13 +8,13 @@ import 'package:invesly/transactions/model/transaction_repository.dart';
 part 'transaction_stat_state.dart';
 
 class TransactionStatCubit extends Cubit<TransactionStatState> {
-  TransactionStatCubit({required TransactionRepository trnRepository, required AmcRepository amcRepository})
+  TransactionStatCubit({required TransactionRepository trnRepository})
     : _trnRepository = trnRepository,
-      _amcRepository = amcRepository,
+      // _amcRepository = amcRepository,
       super(const TransactionStatInitialState());
 
   final TransactionRepository _trnRepository;
-  final AmcRepository _amcRepository;
+  // final AmcRepository _amcRepository;
 
   StreamSubscription<TableChangeEvent>? _subscription;
 
@@ -34,17 +32,17 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
       //   return;
       // }
       final transactionStats = await _trnRepository.getTransactionStats(accountId);
-      if (transactionStats.isNotEmpty) {
-        for (final stat in transactionStats) {
-          LatestPrice? latestPrice;
-          if (stat.amc.latestPriceUri != null) {
-            latestPrice = await _amcRepository.getLatestPrice(stat.amc);
-          }
-          if (latestPrice != null) {
-            stat.copyWith(amc: stat.amc.copyWith(ltp: latestPrice));
-          }
-        }
-      }
+      // if (transactionStats.isNotEmpty) {
+      //   for (final stat in transactionStats) {
+      //     LatestPrice? latestPrice;
+      //     if (stat.amc.latestPriceUri != null) {
+      //       latestPrice = await _amcRepository.getLatestPrice(stat.amc);
+      //     }
+      //     if (latestPrice != null) {
+      //       stat.copyWith(amc: stat.amc.copyWith(ltp: latestPrice));
+      //     }
+      //   }
+      // }
       emit(TransactionStatLoadedState(stats: transactionStats));
     } on Exception catch (error) {
       emit(TransactionStatErrorState(error.toString()));

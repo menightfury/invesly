@@ -46,6 +46,7 @@ extension AccountsStateX on AccountsState {
   bool get isLoaded => this is AccountsLoadedState;
   bool get isError => this is AccountsErrorState;
   bool get isEmpty => isLoaded && (this as AccountsLoadedState).accounts.isEmpty;
+  bool get isNotEmpty => isLoaded && (this as AccountsLoadedState).accounts.isNotEmpty;
 
   bool idExists(String id) {
     return isLoaded &&
