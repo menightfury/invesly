@@ -6,18 +6,12 @@ import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
-import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/components/add_transaction_button.dart';
-import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/edit_transaction/edit_transaction_page.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:invesly/transactions/transactions/filter_transactions_model.dart';
-
-// int roundToNearestNextFifthYear(int year) {
-//   return (((year + 5) / 5).ceil()) * 5;
-// }
 
 class TransactionsPage extends StatefulWidget {
   const TransactionsPage({this.initialFilters, super.key});
@@ -218,100 +212,110 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                     //   ];
                     // }
 
-                    return Column(
-                      children: <Widget>[
-                        ...List.generate(groupTransactions?.length ?? 2, (index) {
-                          // dummy quantity for shimmer effect
-                          final gtEntry = groupTransactions?.entries.elementAt(index);
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                                child: gtEntry != null ? FormattedDate(date: gtEntry.key) : Skeleton2(),
-                              ),
-                              Section(
-                                tiles: List.generate(gtEntry?.value.length ?? 4, (i) {
-                                  // dummy quantity for shimmer effect
-                                  final trn = gtEntry?.value.elementAt(i);
-                                  $logger.e(trn);
-                                  return SectionTile(
-                                    icon: trn != null
-                                        ? CircleAvatar(
-                                            backgroundColor: trn.transactionType.color(context).lighten(80),
-                                            child: Icon(
-                                              trn.transactionType.icon,
-                                              color: trn.transactionType.color(context),
-                                            ),
-                                          )
-                                        : Skeleton2(height: 24.0, width: 24.0, shape: CircleBorder()),
-                                    title: trn != null
-                                        ? Text(trn.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium)
-                                        : const Skeleton2(height: 24.0),
-                                    subtitle: trn != null
-                                        ? Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                    if (state.isLoaded && (state.transactions == null || state.transactions!.isEmpty)) {
+                      return Center(
+                        child: Text(
+                          'No transactions found! Add a few transactions.',
+                          style: context.textTheme.bodyMedium,
+                        ),
+                      );
+                    }
+
+                    return Skeletonizer(
+                      enabled: state.isLoading,
+                      child: Column(
+                        children: <Widget>[
+                          ...List.generate(groupTransactions?.length ?? 2, (index) {
+                            // dummy quantity for shimmer effect
+                            final gtEntry = groupTransactions?.entries.elementAt(index);
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                                  child: gtEntry != null ? FormattedDate(date: gtEntry.key) : Bone.text(),
+                                ),
+                                Section(
+                                  tiles: List.generate(gtEntry?.value.length ?? 4, (i) {
+                                    // dummy quantity for shimmer effect
+                                    final trn = gtEntry?.value.elementAt(i);
+                                    $logger.e(trn);
+                                    return SectionTile(
+                                      icon: trn != null
+                                          ? CircleAvatar(
+                                              backgroundColor: trn.transactionType.color(context).lighten(80),
+                                              child: Icon(
+                                                trn.transactionType.icon,
+                                                color: trn.transactionType.color(context),
+                                              ),
+                                            )
+                                          : Bone.circle(size: 40.0),
+                                      title: Text(trn?.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
+                                      subtitle: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          trn != null ? FormattedDate(date: trn.investedOn) : Bone.text(),
+                                          Text(trn?.account.name ?? 'NULL'),
+                                        ],
+                                      ),
+                                      trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                                        selector: (state) => state.isPrivateMode,
+                                        builder: (context, isPrivateMode) {
+                                          return Column(
+                                            crossAxisAlignment: CrossAxisAlignment.end,
                                             children: <Widget>[
-                                              FormattedDate(date: trn.investedOn),
-                                              Text(trn.account.name),
+                                              trn != null
+                                                  ? CurrencyView(
+                                                      amount: trn.totalAmount,
+                                                      style: context.textTheme.headlineSmall?.copyWith(
+                                                        color: trn.transactionType.color(context),
+                                                      ),
+                                                      privateMode: isPrivateMode,
+                                                    )
+                                                  : Bone.text(style: context.textTheme.headlineSmall),
+                                              trn != null
+                                                  ? Text(
+                                                      '${trn.quantity.toPrecisionString()} • ${trn.rate.toPrecisionString()}',
+                                                      style: context.textTheme.bodySmall,
+                                                    )
+                                                  : Bone.text(style: context.textTheme.bodySmall),
                                             ],
-                                          )
-                                        : const Skeleton2(height: 12.0),
-                                    trailingIcon: trn != null
-                                        ? BlocSelector<AppCubit, AppState, bool>(
-                                            selector: (state) => state.isPrivateMode,
-                                            builder: (context, isPrivateMode) {
-                                              return Column(
-                                                crossAxisAlignment: CrossAxisAlignment.end,
-                                                children: <Widget>[
-                                                  CurrencyView(
-                                                    amount: trn.totalAmount,
-                                                    style: context.textTheme.headlineSmall?.copyWith(
-                                                      color: trn.transactionType.color(context),
-                                                    ),
-                                                    privateMode: isPrivateMode,
-                                                  ),
-                                                  Text(
-                                                    '${trn.quantity.toPrecisionString()} • ${trn.rate.toPrecisionString()}',
-                                                    style: context.textTheme.bodySmall,
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          )
-                                        : const Skeleton2(height: 24.0),
-                                    onTap: () => context.push(EditTransactionPage(initialTransaction: trn)),
-                                  );
-                                }),
+                                          );
+                                        },
+                                      ),
+                                      onTap: () => context.push(EditTransactionPage(initialTransaction: trn)),
+                                    );
+                                  }),
+                                ),
+                              ],
+                            );
+                          }),
+                          Tappable(
+                            onTap: () => selectDateRange(context),
+                            color: Colors.transparent,
+                            child: Padding(
+                              padding: const EdgeInsetsDirectional.only(start: 10, end: 10, top: 10, bottom: 8),
+                              child: Text(
+                                'All time',
+                                // searchFilters.dateTimeRange == null
+                                //     ? 'all-time'
+                                //     : getWordedDateShortMore(
+                                //             searchFilters.dateTimeRange?.start ?? DateTime.now(),
+                                //             includeYear: true,
+                                //           ) +
+                                //           " – " +
+                                //           getWordedDateShortMore(
+                                //             searchFilters.dateTimeRange?.end ?? DateTime.now(),
+                                //             includeYear: true,
+                                //           ),
+                                style: context.textTheme.bodySmall?.copyWith(color: context.theme.disabledColor),
+                                textAlign: TextAlign.center,
                               ),
-                            ],
-                          );
-                        }),
-                        Tappable(
-                          onTap: () => selectDateRange(context),
-                          color: Colors.transparent,
-                          child: Padding(
-                            padding: const EdgeInsetsDirectional.only(start: 10, end: 10, top: 10, bottom: 8),
-                            child: Text(
-                              'All time',
-                              // searchFilters.dateTimeRange == null
-                              //     ? 'all-time'
-                              //     : getWordedDateShortMore(
-                              //             searchFilters.dateTimeRange?.start ?? DateTime.now(),
-                              //             includeYear: true,
-                              //           ) +
-                              //           " – " +
-                              //           getWordedDateShortMore(
-                              //             searchFilters.dateTimeRange?.end ?? DateTime.now(),
-                              //             includeYear: true,
-                              //           ),
-                              style: context.textTheme.bodySmall?.copyWith(color: context.theme.disabledColor),
-                              textAlign: TextAlign.center,
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     );
                   },
                 ),
@@ -379,36 +383,45 @@ class _TransactionFiltersSelectionState extends State<TransactionFiltersSelectio
             final isLoading = state.isLoading;
             final isError = state.isError;
             final accounts = state.isLoaded ? (state as AccountsLoadedState).accounts : null;
-            return Shimmer(
-              isLoading: isLoading,
-              child: accounts == null
-                  ? SingleChildScrollView(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 16.0,
-                        children: List.generate(2, (_) {
-                          return Skeleton2(
-                            color: isError ? context.colors.error : null,
-                            width: Random().nextDouble() * 150.0 + 200.0,
-                            height: 50.0,
-                            shape: StadiumBorder(),
-                          );
-                        }),
-                      ),
-                    )
-                  : InveslyChoiceChips<InveslyAccount>(
-                      options: List.generate(accounts.length, (index) {
-                        final account = accounts.elementAt(index);
-                        return InveslyChipData(
-                          label: Text(account.name),
-                          icon: CircleAvatar(backgroundImage: AssetImage(account.avatarSrc)),
-                          value: account,
-                        );
-                      }),
-                      selected: accounts.toSet(),
-                      wrapped: false,
-                      onChanged: (value) => cubit.updateSelectedAccounts(value),
-                    ),
+
+            if (isError) {
+              return const Center(child: Text('Failed to load accounts'));
+            }
+
+            if (isLoading) {
+              return Skeletonizer(
+                enabled: true,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  clipBehavior: Clip.none,
+                  physics: const NeverScrollableScrollPhysics(),
+                  // padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: List.filled(2, Skeleton.leaf(child: Chip(label: Text('Loading...')))),
+                  ),
+                ),
+              );
+            }
+
+            if (accounts == null || accounts.isEmpty) {
+              return const Center(child: Text('No accounts found'));
+            }
+
+            return InveslyChoiceChips<InveslyAccount>(
+              options: List.generate(accounts.length, (index) {
+                // dummy quantity for shimmer effect
+                final account = accounts.elementAt(index);
+
+                return InveslyChipData(
+                  label: Text(account.name),
+                  icon: CircleAvatar(backgroundImage: AssetImage(account.avatarSrc)),
+                  value: account,
+                );
+              }),
+              selected: accounts.toSet(),
+              wrapped: false,
+              onChanged: (value) => cubit.updateSelectedAccounts(value),
             );
           },
         ),
@@ -1134,16 +1147,12 @@ class AppliedFilterChip extends StatelessWidget {
       child: Tappable(
         onTap: openFiltersSelection,
         // borderRadius: 8,
-        color: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.5),
+        color: context.colors.secondaryContainer.lighten(30),
         child: Container(
           padding: EdgeInsetsDirectional.only(start: 14, end: 14, top: 7, bottom: 7),
           decoration: BoxDecoration(
             borderRadius: BorderRadiusDirectional.circular(8),
-            border: Border.all(
-              color: customBorderColor == null
-                  ? Theme.of(context).colorScheme.secondaryContainer
-                  : customBorderColor!.withOpacity(0.4),
-            ),
+            border: Border.all(color: customBorderColor?.lighten(20) ?? context.colors.secondaryContainer),
           ),
           child: Row(
             children: [

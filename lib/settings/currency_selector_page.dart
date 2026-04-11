@@ -1,7 +1,6 @@
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/data/currencies.dart';
 import 'package:invesly/common/model/currency.dart';
-import 'package:invesly/common/presentations/widgets/section.dart';
 import 'package:invesly/common_libs.dart';
 
 class CurrencySelectorPage extends StatelessWidget {

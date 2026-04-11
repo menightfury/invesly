@@ -11,7 +11,6 @@ import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
-import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common/presentations/components/add_transaction_button.dart';
 // import 'package:invesly/common/presentations/widgets/single_digit_flip_counter.dart';
 import 'package:invesly/common_libs.dart';

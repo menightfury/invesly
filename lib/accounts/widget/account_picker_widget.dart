@@ -1,5 +1,4 @@
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/common/presentations/animations/shimmer.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
 import 'package:invesly/accounts/model/account_model.dart';

@@ -98,9 +98,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
 
     return BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
       builder: (context, amcState) {
-        final latestPrice = amcState is AmcOverviewLoadedState && amcState.amc?.ltp != null
-            ? amcState.amc!.ltp
-            : null;
+        final latestPrice = amcState is AmcOverviewLoadedState && amcState.amc?.ltp != null ? amcState.amc!.ltp : null;
 
         return Scaffold(
           body: SafeArea(
@@ -201,7 +199,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                   (v, el) => v + el.totalAmount,
                                 );
                                 final totalCurrentValue = totalUnits != null && latestPrice?.price != null
-                                    ? totalUnits * latestPrice!.price!
+                                    ? totalUnits * latestPrice!.price
                                     : null;
                                 final returns = totalAmountInvested != null && totalCurrentValue != null
                                     ? totalCurrentValue - totalAmountInvested
