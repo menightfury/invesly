@@ -70,10 +70,10 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
                           // ~ Top five holdings
                           _buildHoldingSection(
                             state: isError
-                                ? DashboardState.error
+                                ? _DashboardState.error
                                 : isLoading
-                                ? DashboardState.loading
-                                : DashboardState.loaded,
+                                ? _DashboardState.loading
+                                : _DashboardState.loaded,
                             stats: stats,
                           ),
                         ],
@@ -89,8 +89,8 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
     );
   }
 
-  Widget _buildHoldingSection({required DashboardState state, List<TransactionStat>? stats}) {
-    if (state == DashboardState.error) {
+  Widget _buildHoldingSection({required _DashboardState state, List<TransactionStat>? stats}) {
+    if (state == _DashboardState.error) {
       return Center(
         child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),
       );
@@ -100,7 +100,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
     //   return EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.'));
     // }
 
-    if (state == DashboardState.loading) {
+    if (state == _DashboardState.loading) {
       return Center(
         child: Text(
           'Loading...', // Will be replaced by shimmer skeleton when loading
@@ -108,7 +108,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
       );
     }
 
-    if (state == DashboardState.loaded && stats != null && stats.isEmpty) {
+    if (state == _DashboardState.loaded && stats != null && stats.isEmpty) {
       return Center(child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')));
     }
 

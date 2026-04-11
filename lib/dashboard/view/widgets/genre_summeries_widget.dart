@@ -16,14 +16,14 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
     _selectedGenre = ValueNotifier<AmcGenre?>(null);
   }
 
-  Widget _buildPieChartSection({required DashboardState state, List<TransactionStat>? stats}) {
-    if (state == DashboardState.error) {
+  Widget _buildPieChartSection({required _DashboardState state, List<TransactionStat>? stats}) {
+    if (state == _DashboardState.error) {
       return Center(
         child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),
       );
     }
 
-    if (state == DashboardState.loading) {
+    if (state == _DashboardState.loading) {
       return Center(
         child: Text(
           'Loading...', // Will be replaced by shimmer skeleton when loading
@@ -91,10 +91,10 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                           height: 224.0,
                           child: _buildPieChartSection(
                             state: isError
-                                ? DashboardState.error
+                                ? _DashboardState.error
                                 : isLoading
-                                ? DashboardState.loading
-                                : DashboardState.loaded,
+                                ? _DashboardState.loading
+                                : _DashboardState.loaded,
                             stats: stats,
                           ),
                         ),

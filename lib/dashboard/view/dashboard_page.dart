@@ -231,4 +231,4 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
 //   Size get preferredSize => const Size.fromHeight(0.0);
 // }
 
-enum DashboardState { loading, loaded, error }
+enum _DashboardState { loading, loaded, error }
