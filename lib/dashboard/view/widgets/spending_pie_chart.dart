@@ -193,7 +193,7 @@ class PinWheelReveal extends StatefulWidget {
   });
 
   @override
-  _PinWheelRevealState createState() => _PinWheelRevealState();
+  State<PinWheelReveal> createState() => _PinWheelRevealState();
 }
 
 class _PinWheelRevealState extends State<PinWheelReveal> with SingleTickerProviderStateMixin {
@@ -207,7 +207,7 @@ class _PinWheelRevealState extends State<PinWheelReveal> with SingleTickerProvid
 
     _controller = AnimationController(duration: widget.duration, vsync: this);
 
-    _animation = Tween(begin: 0.0, end: 1.0).animate(new CurvedAnimation(parent: _controller, curve: widget.curve))
+    _animation = Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: widget.curve))
       ..addListener(() {
         setState(() {
           _fraction = _animation.value;

@@ -26,7 +26,7 @@ part 'widgets/accounts.dart';
 part 'widgets/genre_summeries_widget.dart';
 part 'widgets/recent_transaction_widget.dart';
 part 'widgets/spending_pie_chart.dart';
-part 'widgets/transaction_stat.dart';
+part 'widgets/transaction_summery.dart';
 part 'widgets/individual_genre_widget.dart';
 
 class DashboardPage extends StatefulWidget {
