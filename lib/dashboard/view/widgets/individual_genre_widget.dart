@@ -66,6 +66,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
 
                           // ~ Holdings
                           Text('${stats?.length ?? 0} holdings'),
+                          Gap(16.0),
 
                           // ~ Top five holdings
                           _buildHoldingSection(
@@ -108,7 +109,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
       );
     }
 
-    if (state == _DashboardState.loaded && stats != null && stats.isEmpty) {
+    if (state == _DashboardState.loaded && (stats == null || stats.isEmpty)) {
       return Center(child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')));
     }
 
