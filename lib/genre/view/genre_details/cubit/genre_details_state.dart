@@ -7,21 +7,25 @@ abstract class GenreDetailsState extends Equatable {
   List<Object?> get props => [];
 }
 
+class GenreDetailsInitialState extends GenreDetailsState {
+  const GenreDetailsInitialState();
+}
+
 class GenreDetailsLoadingState extends GenreDetailsState {
   const GenreDetailsLoadingState();
 }
 
 class GenreDetailsLoadedState extends GenreDetailsState {
-  const GenreDetailsLoadedState({required this.stat});
+  const GenreDetailsLoadedState({required this.stats});
 
-  final List<TransactionStat> stat;
+  final List<TransactionStat> stats;
 
-  double get totalCurrentValue => stat.fold<double>(0, (v, el) => v + el.currentValue);
-  double get totalInvested => stat.fold<double>(0, (v, el) => v + el.totalAmount);
-  int get totalTransactions => stat.fold<int>(0, (v, el) => v + el.numTransactions);
+  double get totalCurrentValue => stats.fold<double>(0, (v, el) => v + el.currentValue);
+  double get totalInvested => stats.fold<double>(0, (v, el) => v + el.totalAmount);
+  int get totalTransactions => stats.fold<int>(0, (v, el) => v + el.numTransactions);
 
   @override
-  List<Object?> get props => [stat];
+  List<Object?> get props => [stats];
 }
 
 class GenreDetailsErrorState extends GenreDetailsState {

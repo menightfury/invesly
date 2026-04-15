@@ -10,7 +10,7 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
   GenreDetailsCubit({required TransactionRepository trnRepository, required AmcRepository amcRepository})
     : _trnRepository = trnRepository,
       _amcRepository = amcRepository,
-      super(const GenreDetailsLoadingState());
+      super(const GenreDetailsInitialState());
 
   final TransactionRepository _trnRepository;
   final AmcRepository _amcRepository;
@@ -44,7 +44,7 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
         final latestPrice = latestPrices[entry.key];
         return stat.copyWith(amc: stat.amc.copyWith(ltp: latestPrice));
       }).toList();
-      emit(GenreDetailsLoadedState(stat: newTransactionStats));
+      emit(GenreDetailsLoadedState(stats: newTransactionStats));
     } catch (e) {
       emit(GenreDetailsErrorState(e.toString()));
     }

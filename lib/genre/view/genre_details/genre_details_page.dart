@@ -82,62 +82,72 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
       builder: (context, state) {
+        final isError = state is GenreDetailsErrorState;
+        final isLoading = state is GenreDetailsLoadingState;
+        final stats = state is GenreDetailsLoadedState ? state.stats : null;
+        final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
+
         if (state is GenreDetailsLoadingState) {
           return const Center(child: CircularProgressIndicator());
-        } else if (state is GenreDetailsErrorState) {
+        }
+
+        if (state is GenreDetailsErrorState) {
           return Center(child: Text('Error: ${state.message}'));
-        } else if (state is GenreDetailsLoadedState) {
+        }
+
+        if (state is GenreDetailsLoadedState) {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Padding(padding: const EdgeInsets.all(16.0), child: _buildSummary(context, state)),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildSummaryItem(context, 'Invested', state.totalInvested, theme),
+                            _buildSummaryItem(context, 'Current Value', state.totalCurrentValue, theme),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text('${state.totalTransactions} Total Transactions', style: theme.textTheme.labelLarge),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               ColumnBuilder(
                 mainAxisSize: MainAxisSize.min,
                 itemBuilder: (context, index) {
-                  final item = state.stat[index];
+                  final item = state.stats[index];
                   return _buildAmcItem(context, item);
                 },
-                itemCount: state.stat.length,
+                itemCount: state.stats.length,
               ),
             ],
           );
         }
-        return const SizedBox.shrink();
-      },
-    );
-  }
 
-  Widget _buildSummary(BuildContext context, GenreDetailsLoadedState state) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildSummaryItem(context, 'Invested', state.totalInvested, theme),
-                _buildSummaryItem(context, 'Current Value', state.totalCurrentValue, theme),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text('${state.totalTransactions} Total Transactions', style: theme.textTheme.labelLarge),
-          ],
-        ),
-      ),
+        return Center(child: const Text('No data available'));
+      },
     );
   }
 
   Widget _buildSummaryItem(BuildContext context, String label, double amount, ThemeData theme) {
     return Column(
+      spacing: amount,
       children: [
         Text(label, style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
         CurrencyView(
           amount: amount,
           style: theme.textTheme.headlineSmall,
@@ -158,9 +168,10 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          spacing: 16.0,
+          children: <Widget>[
             Row(
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: Text(stat.amc.name, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 ),
@@ -170,13 +181,13 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+              children: <Widget>[
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Text('Invested', style: theme.textTheme.labelMedium),
                     CurrencyView(
                       amount: stat.totalAmount,
@@ -189,7 +200,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
+                  children: <Widget>[
                     Text('Current Value', style: theme.textTheme.labelMedium),
                     CurrencyView(
                       amount: stat.currentValue,
