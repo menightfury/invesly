@@ -43,10 +43,10 @@ enum AmcGenre {
 
   Color get color {
     return switch (this) {
-      mf => Colors.blue,
-      stock => Colors.green,
-      insurance => Colors.orange,
-      misc => Colors.grey,
+      mf => Color(0xFF00296B),
+      stock => Color(0xFF386641),
+      insurance => Color(0xFFFB5607),
+      misc => Color(0xFF3A0CA3),
     };
   }
 }

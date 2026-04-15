@@ -34,7 +34,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
                     final isError = accountsState.isError || statState.isError;
                     final isLoading = !isError && (accountsState.isLoading || statState.isLoading);
                     final stats = accountsState.isNotEmpty && statState is TransactionStatLoadedState
-                        ? statState.stats
+                        ? statState.stats.where((stat) => stat.amc.genre == widget.genre).toList()
                         : null;
                     final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
                     stats?.sort((a, b) => b.totalAmount.compareTo(a.totalAmount));
@@ -65,7 +65,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
                           ),
 
                           // ~ Holdings
-                          Text('${stats?.length ?? 0} holdings'),
+                          Text('${stats?.length ?? 'No'} holdings'),
                           Gap(16.0),
 
                           // ~ Top five holdings
@@ -97,9 +97,6 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
       );
     }
 
-    // if (accountsState.isLoaded && (statState.isInitial || statState.isEmpty)) {
-    //   return EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.'));
-    // }
 
     if (state == _DashboardState.loading) {
       return Center(

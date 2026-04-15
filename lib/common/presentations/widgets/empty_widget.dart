@@ -2,7 +2,7 @@ import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common_libs.dart';
 
 class EmptyWidget extends StatelessWidget {
-  const EmptyWidget({super.key, this.height = 128.0, this.color, this.label, this.onPressed});
+  const EmptyWidget({super.key, this.height = 100.0, this.color, this.label, this.onPressed});
 
   final double height;
   final Widget? label;
@@ -31,30 +31,34 @@ class EmptyWidget extends StatelessWidget {
         '  <path d="M31 69H57" stroke="$darkColor" stroke-width="2" stroke-linecap="round"/>'
         '</svg>';
 
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(
-            height: height,
-            child: SvgPicture.string(svgString, height: height * 0.75),
-          ),
-          // CustomPaint(
-          //   size: Size(height * 0.8529, height),
-          //   painter: EmptyWidgetPainter(color: color ?? theme.colorScheme.primary),
-          // ),
-          if (label != null)
-            DefaultTextStyle(style: theme.textTheme.labelMedium!, textAlign: TextAlign.center, child: label!),
-          if (onPressed != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0),
-              child: ElevatedButton.icon(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(
+              height: height,
+              child: SvgPicture.string(svgString, height: height),
+            ),
+            // CustomPaint(
+            //   size: Size(height * 0.8529, height),
+            //   painter: EmptyWidgetPainter(color: color ?? theme.colorScheme.primary),
+            // ),
+            if (label != null) ...[
+              Gap(16.0),
+              DefaultTextStyle(style: theme.textTheme.labelMedium!, textAlign: TextAlign.center, child: label!),
+            ],
+            if (onPressed != null) ...[
+              Gap(16.0),
+              ElevatedButton.icon(
                 onPressed: onPressed,
                 icon: const Icon(Icons.add_rounded),
                 label: const Text('Add user'),
               ),
-            ),
-        ],
+            ],
+          ],
+        ),
       ),
     );
   }
