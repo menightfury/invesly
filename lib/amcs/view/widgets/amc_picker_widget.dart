@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/widgets/cubit/amc_search_cubit.dart';
-import 'package:invesly/common/presentations/widgets/tiny_chip.dart';
+import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common_libs.dart';
 
 class InveslyAmcPickerWidget extends StatelessWidget {
@@ -152,7 +152,7 @@ class _SearchResults extends StatelessWidget {
             spacing: 4.0,
             runSpacing: 4.0,
             children: <Widget>[
-              TinyChip(
+              SimpleChip(
                 title: Text((amc.genre ?? AmcGenre.misc).title),
                 color: context.colors.primary,
                 titleColor: context.colors.onPrimary,
@@ -164,7 +164,7 @@ class _SearchResults extends StatelessWidget {
                     return const SizedBox.shrink();
                   }
 
-                  return TinyChip(
+                  return SimpleChip(
                     title: Text(tag),
                     color: context.colors.tertiary,
                     titleColor: context.colors.onTertiary,

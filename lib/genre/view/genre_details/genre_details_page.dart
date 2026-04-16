@@ -25,7 +25,7 @@ class GenreDetailsPage extends StatelessWidget {
       body: SafeArea(
         child: CustomScrollView(
           slivers: <Widget>[
-            SliverAppBar(title: Text('${genre.title} details')),
+            SliverAppBar(title: Text('${genre.title} details'), floating: true, snap: true,),
             SliverList(
               delegate: SliverChildListDelegate.fixed([
                 BlocSelector<AppCubit, AppState, String?>(

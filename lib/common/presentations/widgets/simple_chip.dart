@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class TinyChip extends StatelessWidget {
-  const TinyChip({super.key, required this.title, this.color, this.titleColor});
+class SimpleChip extends StatelessWidget {
+  const SimpleChip({super.key, required this.title, this.color, this.titleColor});
 
   final Widget title;
   final Color? color;

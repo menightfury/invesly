@@ -1,4 +1,3 @@
-import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -7,8 +6,9 @@ import 'package:invesly/amcs/view/amc_overview/cubit/amc_overview_cubit.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
-import 'package:invesly/common/presentations/widgets/tiny_chip.dart';
+import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 
@@ -83,11 +83,11 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
           return const SizedBox.shrink();
         }
 
-        return TinyChip(title: Text(tag), color: context.colors.tertiary, titleColor: context.colors.onTertiary);
+        return SimpleChip(title: Text(tag), color: context.colors.tertiary, titleColor: context.colors.onTertiary);
       }).toList();
     }
 
-    return List.filled(3, const Skeleton.leaf(child: TinyChip(title: Text('Loading...'))));
+    return List.filled(3, const Skeleton.leaf(child: SimpleChip(title: Text('Loading...'))));
   }
 
   @override
@@ -96,25 +96,23 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
     final colors = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
-      builder: (context, amcState) {
-        final latestPrice = amcState is AmcOverviewLoadedState && amcState.amc?.ltp != null ? amcState.amc!.ltp : null;
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: CustomScrollView(
+                slivers: <Widget>[
+                  SliverAppBar(title: const Text('Holding details'), floating: true, snap: true),
 
-        return Scaffold(
-          body: SafeArea(
-            child: Column(
-              children: <Widget>[
-                Expanded(
-                  child: CustomScrollView(
-                    slivers: <Widget>[
-                      SliverAppBar(title: const Text('Holding details'), floating: true, snap: true),
-
-                      SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        sliver: SliverList(
-                          delegate: SliverChildListDelegate.fixed(<Widget>[
-                            // ~ AMC Details
-                            PhysicalModel(
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate.fixed(<Widget>[
+                        // ~ AMC Details
+                        BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
+                          builder: (context, amcState) {
+                            return PhysicalModel(
                               clipBehavior: Clip.antiAlias,
                               color: colors.primaryContainer.darken(3.0),
                               shadowColor: colors.shadow,
@@ -151,7 +149,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
 
                                       // ~ Chips - if Error
                                       if (amcState.isError)
-                                        TinyChip(
+                                        SimpleChip(
                                           title: const Text('Error loading AMC details'),
                                           color: context.colors.error,
                                           titleColor: context.colors.onError,
@@ -166,7 +164,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                             runSpacing: 4.0,
                                             children: <Widget>[
                                               Skeleton.leaf(
-                                                child: TinyChip(
+                                                child: SimpleChip(
                                                   title: Text(
                                                     amcState is AmcOverviewLoadedState
                                                         ? (amcState.amc?.genre ?? AmcGenre.misc).title
@@ -185,11 +183,19 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                   ),
                                 ),
                               ),
-                            ),
-                            const Gap(4.0),
+                            );
+                          },
+                        ),
+                        const Gap(4.0),
 
-                            // ~ Stats Section
-                            BlocBuilder<TransactionsCubit, TransactionsState>(
+                        // ~ Stats Section
+                        BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
+                          builder: (context, amcState) {
+                            final latestPrice = amcState is AmcOverviewLoadedState && amcState.amc?.ltp != null
+                                ? amcState.amc!.ltp
+                                : null;
+
+                            return BlocBuilder<TransactionsCubit, TransactionsState>(
                               builder: (context, trnState) {
                                 final isError = trnState.isError;
                                 final isLoading = trnState.isLoading;
@@ -383,92 +389,92 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                   ),
                                 );
                               },
+                            );
+                          },
+                        ),
+                        const Gap(20.0),
+
+                        // ~ Holding Transactions Section
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 8.0,
+                          children: <Widget>[
+                            const Text('Transactions'),
+                            BlocBuilder<TransactionsCubit, TransactionsState>(
+                              builder: (context, trnState) {
+                                final isLoading = trnState.isLoading;
+                                final isError = trnState.isError;
+                                final transactions = trnState.transactions;
+
+                                if (isError) {
+                                  return Text('Some error occurred! Try again later'); // TODO: Redesign this
+                                }
+
+                                return Skeletonizer(
+                                  enabled: isLoading,
+                                  child: Section(
+                                    margin: EdgeInsets.zero,
+                                    tiles: !isLoading
+                                        ? (transactions != null && transactions.isNotEmpty)
+                                              ? transactions.map((trn) => _buildTransaction(trn)).toList()
+                                              : [SectionTile(title: const Text('No transactions found'))]
+                                        : List.filled(
+                                            5,
+                                            const SectionTile(
+                                              title: Text('Loading...'),
+                                              subtitle: Text('Loading...'),
+                                              icon: Icon(Icons.north_east_rounded),
+                                              trailingIcon: Text('Loading...'),
+                                            ),
+                                          ),
+                                  ),
+                                );
+                              },
                             ),
-                            const Gap(20.0),
-
-                            // ~ Holding Transactions Section
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              spacing: 8.0,
-                              children: <Widget>[
-                                const Text('Transactions'),
-                                BlocBuilder<TransactionsCubit, TransactionsState>(
-                                  builder: (context, trnState) {
-                                    final isLoading = trnState.isLoading;
-                                    final isError = trnState.isError;
-                                    final transactions = trnState.transactions;
-
-                                    if (isError) {
-                                      return Text('Some error occurred! Try again later'); // TODO: Redesign this
-                                    }
-
-                                    return Skeletonizer(
-                                      enabled: isLoading,
-                                      child: Section(
-                                        margin: EdgeInsets.zero,
-                                        tiles: !isLoading
-                                            ? (transactions != null && transactions.isNotEmpty)
-                                                  ? transactions.map((trn) => _buildTransaction(trn)).toList()
-                                                  : [SectionTile(title: const Text('No transactions found'))]
-                                            : List.filled(
-                                                5,
-                                                const SectionTile(
-                                                  title: Text('Loading...'),
-                                                  subtitle: Text('Loading...'),
-                                                  icon: Icon(Icons.north_east_rounded),
-                                                  trailingIcon: Text('Loading...'),
-                                                ),
-                                              ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ]),
+                          ],
                         ),
-                      ),
-                    ],
+                      ]),
+                    ),
                   ),
-                ),
-
-                const InveslyDivider(),
-                // ~ Buy/Sell Buttons
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: Row(
-                    spacing: 16.0,
-                    children: <Widget>[
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepOrange,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Sell'),
-                        ),
-                      ),
-
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal.shade500,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Buy'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+
+            const InveslyDivider(),
+            // ~ Buy/Sell Buttons
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                spacing: 16.0,
+                children: <Widget>[
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepOrange,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Sell'),
+                    ),
+                  ),
+
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal.shade500,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Buy'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
