@@ -1,3 +1,4 @@
+import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -112,10 +113,8 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                         // ~ AMC Details
                         BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
                           builder: (context, amcState) {
-                            return PhysicalModel(
-                              clipBehavior: Clip.antiAlias,
+                            return SimpleCard(
                               color: colors.primaryContainer.darken(3.0),
-                              shadowColor: colors.shadow,
                               borderRadius: iCardBorderRadius.copyWith(
                                 bottomLeft: iTileBorderRadius.bottomLeft,
                                 bottomRight: iTileBorderRadius.bottomRight,

@@ -1,6 +1,7 @@
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/genre/view/genre_details/cubit/genre_details_cubit.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
@@ -25,7 +26,7 @@ class GenreDetailsPage extends StatelessWidget {
       body: SafeArea(
         child: CustomScrollView(
           slivers: <Widget>[
-            SliverAppBar(title: Text('${genre.title} details'), floating: true, snap: true,),
+            SliverAppBar(title: Text('${genre.title} details'), floating: true, snap: true),
             SliverList(
               delegate: SliverChildListDelegate.fixed([
                 BlocSelector<AppCubit, AppState, String?>(
@@ -105,8 +106,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Card(
-                  elevation: 2,
+                child: SimpleCard(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
@@ -146,7 +146,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   Widget _buildSummaryItem(BuildContext context, String label, double amount, ThemeData theme) {
     return Column(
       spacing: amount,
-      children: [
+      children: <Widget>[
         Text(label, style: theme.textTheme.titleMedium),
         CurrencyView(
           amount: amount,
