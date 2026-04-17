@@ -37,10 +37,10 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
 
     return ValueListenableBuilder(
       valueListenable: _selectedGenre,
-      builder: (context, selectedCategory, _) {
+      builder: (context, selectedGenre, _) {
         return _SpendingPieChart(
           stats,
-          selectedGenre: _selectedGenre.value,
+          selectedGenre: selectedGenre,
           onSelected: (genre) => _selectedGenre.value = genre,
         );
       },

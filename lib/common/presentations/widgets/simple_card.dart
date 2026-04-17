@@ -9,6 +9,7 @@ class SimpleCard extends StatelessWidget {
     this.shape,
     this.borderRadius,
     this.margin,
+    this.padding,
     this.clipBehavior,
     this.child,
   }) : assert(elevation == null || elevation >= 0.0);
@@ -20,6 +21,7 @@ class SimpleCard extends StatelessWidget {
   final BorderRadius? borderRadius;
   final Clip? clipBehavior;
   final EdgeInsetsGeometry? margin;
+  final EdgeInsetsGeometry? padding;
   final Widget? child;
 
   @override
@@ -27,6 +29,11 @@ class SimpleCard extends StatelessWidget {
     final theme = Theme.of(context);
     final cardTheme = CardTheme.of(context);
     final effectiveShape = shape ?? RoundedRectangleBorder(borderRadius: borderRadius ?? BorderRadius.zero);
+
+    Widget? content = child;
+    if (padding != null) {
+      content = Padding(padding: padding!, child: content);
+    }
 
     Widget card = PhysicalShape(
       clipBehavior: clipBehavior ?? cardTheme.clipBehavior ?? Clip.antiAlias,
@@ -36,7 +43,7 @@ class SimpleCard extends StatelessWidget {
       shadowColor: shadowColor ?? cardTheme.shadowColor ?? theme.colorScheme.shadow,
       child: CustomPaint(
         foregroundPainter: _ShapeBorderPainter(effectiveShape, Directionality.maybeOf(context)),
-        child: child,
+        child: content,
       ),
     );
 

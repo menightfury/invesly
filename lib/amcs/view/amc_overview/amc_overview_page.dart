@@ -115,6 +115,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                           builder: (context, amcState) {
                             return SimpleCard(
                               color: colors.primaryContainer.darken(3.0),
+                              elevation: 0.0,
                               borderRadius: iCardBorderRadius.copyWith(
                                 bottomLeft: iTileBorderRadius.bottomLeft,
                                 bottomRight: iTileBorderRadius.bottomRight,
@@ -548,10 +549,7 @@ class _SectionWidget extends StatelessWidget {
       child: value,
     );
 
-    return PhysicalModel(
-      // curve: Curves.fastOutSlowIn,
-      // duration: 600.ms,
-      clipBehavior: Clip.antiAlias,
+    return SimpleCard(
       elevation: 0.0,
       color: color ?? theme.canvasColor.lighten(3),
       shadowColor: theme.colorScheme.shadow,
@@ -566,7 +564,7 @@ class _SectionWidget extends StatelessWidget {
             spacing: contentSpacing ?? 0.0,
             children: <Widget>[
               labelText,
-              Align(alignment: Alignment.centerRight, child: valueText),
+              Align(alignment: Alignment.bottomRight, child: valueText),
             ],
           ),
         ),
