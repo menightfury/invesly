@@ -16,7 +16,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
     _selectedGenre = ValueNotifier<AmcGenre?>(null);
   }
 
-  Widget _buildPieChartSection({required _DashboardState state, List<TransactionStat>? stats}) {
+  Widget _buildPieChartSection({required _DashboardState state, List<AmcStat>? stats}) {
     if (state == _DashboardState.error) {
       return Center(
         child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),

@@ -3,7 +3,7 @@ part of '../dashboard_page.dart';
 class _SpendingPieChart extends StatefulWidget {
   const _SpendingPieChart(this.stats, {super.key, this.selectedGenre, this.onSelected});
 
-  final List<TransactionStat> stats;
+  final List<AmcStat> stats;
   final AmcGenre? selectedGenre;
   final ValueChanged<AmcGenre?>? onSelected;
 
@@ -99,7 +99,7 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
     }
   }
 
-  List<PieChartSectionData> _buildSections(List<TransactionStat> stats) {
+  List<PieChartSectionData> _buildSections(List<AmcStat> stats) {
     final grandTotalAmount = stats.fold<double>(0, (v, el) => v + el.totalAmount);
     double totalPercentAccumulated = 0;
 

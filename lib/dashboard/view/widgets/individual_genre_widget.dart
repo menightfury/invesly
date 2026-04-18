@@ -90,13 +90,12 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
     );
   }
 
-  Widget _buildHoldingSection({required _DashboardState state, List<TransactionStat>? stats}) {
+  Widget _buildHoldingSection({required _DashboardState state, List<AmcStat>? stats}) {
     if (state == _DashboardState.error) {
       return Center(
         child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),
       );
     }
-
 
     if (state == _DashboardState.loading) {
       return Center(

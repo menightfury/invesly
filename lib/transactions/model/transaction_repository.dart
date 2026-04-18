@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:csv/csv.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/amcs/model/amc_stat_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/database/table_schema.dart';
@@ -83,7 +84,7 @@ class TransactionRepository {
   }
 
   /// Get transaction statistics
-  Future<List<TransactionStat>> getTransactionStats(String accountId) async {
+  Future<List<AmcStat>> getTransactionStats(String accountId) async {
     try {
       await Future<void>.delayed(const Duration(seconds: 2)); // TODO: Remove this delay
       final result = await _api
@@ -97,8 +98,8 @@ class TransactionRepository {
           .where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
           .groupBy([_amcTable.idColumn])
           .toList();
-      final stats = result.map<TransactionStat>((map) {
-        return TransactionStat(
+      final stats = result.map<AmcStat>((map) {
+        return AmcStat(
           accountId: accountId,
           amc: InveslyAmc.fromDb(_amcTable.fromMap(map)),
           numTransactions: map['num_transactions'] as int,

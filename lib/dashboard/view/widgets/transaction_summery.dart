@@ -10,7 +10,7 @@ class _TransactionSummeryWidget extends StatelessWidget {
 
   final AmcGenre genre;
   final double totalInvestedAmount;
-  final List<TransactionStat> transactions;
+  final List<AmcStat> transactions;
 
   @override
   Widget build(BuildContext context) {

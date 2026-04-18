@@ -24,7 +24,7 @@ class TransactionStatErrorState extends TransactionStatState {
 class TransactionStatLoadedState extends TransactionStatState {
   const TransactionStatLoadedState({this.stats = const []});
 
-  final List<TransactionStat> stats;
+  final List<AmcStat> stats;
 
   @override
   List<Object?> get props => [stats];
