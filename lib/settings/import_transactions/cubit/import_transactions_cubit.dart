@@ -28,7 +28,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
   final TransactionRepository _transactionRepository;
 
   void readFile() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
+    final result = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
     if (result == null || result.files.isEmpty) {
       emit(const ImportTransactionsState(csvStatus: CsvStatus.error, errorMsg: 'No file selected'));
       return;

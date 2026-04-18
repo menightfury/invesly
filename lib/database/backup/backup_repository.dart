@@ -43,7 +43,7 @@ class BackupRepository {
   Future<String?> selectDirectory() async {
     try {
       // final dir = await _getDownloadsDirectory();
-      final path = await FilePicker.platform.getDirectoryPath();
+      final path = await FilePicker.getDirectoryPath();
       if (path == null || path.isEmpty) {
         return null;
       }
@@ -57,7 +57,7 @@ class BackupRepository {
   // Export database
   Future<File?> exportDatabase() async {
     // final dir = await _getDownloadsDirectory();
-    String? path = await FilePicker.platform.getDirectoryPath();
+    String? path = await FilePicker.getDirectoryPath();
     if (path == null || path.isEmpty) {
       return null;
     }
@@ -96,7 +96,7 @@ class BackupRepository {
   // Select a database file for importing
   Future<File?> selectDbFile() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['db', 'sqlite3'],
         allowMultiple: false,
@@ -112,7 +112,7 @@ class BackupRepository {
   // Select a CSV file for importing
   Future<File?> selectCsvFile() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: Platform.isWindows ? FileType.custom : FileType.any,
         allowedExtensions: ['csv'],
         allowMultiple: false,
@@ -165,6 +165,6 @@ class BackupRepository {
   }
 
   static List<List<dynamic>> processCsv(String csvData) {
-    return CsvCodec(lineDelimiter: '\n').decode(csvData);
+    return Csv(lineDelimiter: '\n').decode(csvData);
   }
 }

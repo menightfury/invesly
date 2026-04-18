@@ -14,7 +14,6 @@ import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/components/add_transaction_button.dart';
 // import 'package:invesly/common/presentations/widgets/single_digit_flip_counter.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/dashboard/view/widgets/category_entry.dart';
 import 'package:invesly/settings/settings_page.dart';
 import 'package:invesly/genre/view/genre_details/genre_details_page.dart';
 import 'package:invesly/transactions/transaction_stat/cubit/transaction_stat_cubit.dart';

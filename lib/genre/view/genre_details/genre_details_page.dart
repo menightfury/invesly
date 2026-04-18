@@ -1,3 +1,4 @@
+import 'package:googleapis/apigeeregistry/v1.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
@@ -88,170 +89,191 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-      builder: (context, state) {
-        final isError = state is GenreDetailsErrorState;
-        final isLoading = state is GenreDetailsLoadingState;
-        final stats = state is GenreDetailsLoadedState ? state.stats : null;
-        final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
+      builder: (context, genreDetailsState) {
+        final isError = genreDetailsState is GenreDetailsErrorState;
+        final isLoading = genreDetailsState is GenreDetailsLoadingState;
+        final isLoaded = genreDetailsState is GenreDetailsLoadedState;
+        final stats = genreDetailsState is GenreDetailsLoadedState ? genreDetailsState.stats : null;
 
-        if (state is GenreDetailsLoadingState) {
-          return const Center(child: CircularProgressIndicator());
-        }
+        // final returns = state.totalInvested != null && totalCurrentValue != null
+        //     ? totalCurrentValue - totalAmountInvested
+        //     : 0.0;
+        // final transactionsForXirr = trnState.transactions
+        //     ?.map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
+        //     .toList();
+        // if (transactionsForXirr != null && transactionsForXirr.isNotEmpty) {
+        //   transactionsForXirr.add(
+        //     xf.Transaction(
+        //       totalCurrentValue != null && totalCurrentValue > 0 ? -totalCurrentValue : -0.0,
+        //       latestPrice?.date ?? DateTime.now(),
+        //     ),
+        //   );
+        // }
+        // final xirr = transactionsForXirr != null && transactionsForXirr.isNotEmpty
+        //     ? xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate()
+        //     : 0.0;
 
-        if (state is GenreDetailsErrorState) {
-          return Center(child: Text('Error: ${state.message}'));
-        }
-
-        if (state is GenreDetailsLoadedState) {
-          // final returns = state.totalInvested != null && totalCurrentValue != null
-          //     ? totalCurrentValue - totalAmountInvested
-          //     : 0.0;
-          // final transactionsForXirr = trnState.transactions
-          //     ?.map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
-          //     .toList();
-          // if (transactionsForXirr != null && transactionsForXirr.isNotEmpty) {
-          //   transactionsForXirr.add(
-          //     xf.Transaction(
-          //       totalCurrentValue != null && totalCurrentValue > 0 ? -totalCurrentValue : -0.0,
-          //       latestPrice?.date ?? DateTime.now(),
-          //     ),
-          //   );
-          // }
-          // final xirr = transactionsForXirr != null && transactionsForXirr.isNotEmpty
-          //     ? xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate()
-          //     : 0.0;
-
-          return Skeletonizer(
-            enabled: false, // TODO: isLoading,
-            child: Column(
-              spacing: 4.0,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                // ~ Current Value
-                _SectionWidget(
-                  label: FormattedDate(
-                    date: DateTime.now(), // latestPrice?.date ?? DateTime.now(),
-                    prefix: const Skeleton.keep(child: Text('Current value as of ')),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                  ),
-                  value: BlocSelector<AppCubit, AppState, bool>(
-                    selector: (state) => state.isPrivateMode,
-                    builder: (context, isPrivateMode) {
-                      return CurrencyView(amount: state.totalCurrentValue, privateMode: isPrivateMode);
-                    },
-                  ),
-                  borderRadius: iCardBorderRadius.copyWith(
-                    bottomLeft: iTileBorderRadius.bottomLeft,
-                    bottomRight: iTileBorderRadius.bottomRight,
-                  ),
-                  // color: isError ? colors.errorContainer : null,
-                  // valueColor: isError ? colors.error : null,
+        return Skeletonizer(
+          enabled: isLoading,
+          child: Column(
+            spacing: 4.0,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              // ~ Current Value
+              _SectionWidget(
+                label: FormattedDate(
+                  date: DateTime.now(),
+                  prefix: const Skeleton.keep(child: Text('Current value as of ')),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
-
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 4.0,
-                  crossAxisSpacing: 4.0,
-                  mainAxisExtent: 104.0,
-                  children: <Widget>[
-                    // ~ Holding count
-                    _SectionWidget(
-                      label: const Skeleton.keep(child: Text('No. of holdings')),
-                      value: Text(
-                        // state.holdingCount.toString(),
-                        3.toString(),
-                        textAlign: TextAlign.right,
-                      ),
-                      // color: isError ? colors.errorContainer : null,
-                      // valueColor: isError ? colors.error : null,
-                    ),
-
-                    // ~ Invested amount section
-                    _SectionWidget(
-                      label: const Skeleton.keep(child: Text('Invested amount')),
-                      value: BlocSelector<AppCubit, AppState, bool>(
-                        selector: (state) => state.isPrivateMode,
-                        builder: (context, isPrivateMode) {
-                          return CurrencyView(amount: state.totalInvested, privateMode: isPrivateMode);
-                        },
-                      ),
-                      // color: isError ? colors.errorContainer : null,
-                      // valueColor: isError ? colors.error : null,
-                    ),
-
-                    // ~ Total returns sections
-                    _SectionWidget(
-                      label: const Skeleton.keep(child: Text('Total returns')),
-                      value: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          BlocSelector<AppCubit, AppState, bool>(
-                            selector: (state) => state.isPrivateMode,
-                            builder: (context, isPrivateMode) {
-                              return CurrencyView(
-                                // amount: returns,
-                                amount: 0.0,
-                                privateMode: isPrivateMode,
-                                // style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-                                style: TextStyle(color: Colors.teal),
-                              );
-                            },
-                          ),
-                          Text(
-                            // (totalAmountInvested?.isZero ?? true)
-                            //     ? '0.00%'
-                            //     : '${(returns / totalAmountInvested! * 100).toPrecision(2)}%',
-                            '0.00%',
-                            textAlign: TextAlign.right,
-                            // style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-                            style: TextStyle(color: Colors.teal),
-                          ),
-                        ],
-                      ),
-                      // color: isError ? colors.errorContainer : null,
-                      // valueColor: isError ? colors.error : Colors.teal.shade500,
-                      borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
-                    ),
-
-                    // ~ XIRR section
-                    _SectionWidget(
-                      label: const Skeleton.keep(child: Text('XIRR')),
-                      value: Text(
-                        // xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
-                        '0.00%',
-                        textAlign: TextAlign.right,
-                        // style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-                        style: TextStyle(color: Colors.teal),
-                      ),
-                      // color: isError ? colors.errorContainer : null,
-                      // valueColor: isError ? colors.error : null,
-                      borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
-                    ),
-                  ],
+                value: _buildTotalCurrentAmount(context, genreDetailsState),
+                borderRadius: iCardBorderRadius.copyWith(
+                  bottomLeft: iTileBorderRadius.bottomLeft,
+                  bottomRight: iTileBorderRadius.bottomRight,
                 ),
+                color: isError ? colors.errorContainer : null,
+                valueColor: isError ? colors.error : null,
+              ),
 
-                ColumnBuilder(
-                  mainAxisSize: MainAxisSize.min,
-                  itemBuilder: (context, index) {
-                    final item = state.stats[index];
-                    return _buildAmcItem(context, item);
-                  },
-                  itemCount: state.stats.length,
-                ),
-              ],
-            ),
-          );
-        }
+              GridView.count(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                mainAxisSpacing: 4.0,
+                crossAxisSpacing: 4.0,
+                mainAxisExtent: 104.0,
+                children: <Widget>[
+                  // ~ Holding count
+                  _SectionWidget(
+                    label: const Skeleton.keep(child: Text('No. of holdings')),
+                    value: Text(
+                      // state.holdingCount.toString(),
+                      3.toString(),
+                      textAlign: TextAlign.right,
+                    ),
+                    color: isError ? colors.errorContainer : null,
+                    valueColor: isError ? colors.error : null,
+                  ),
 
-        return Center(child: const Text('No data available'));
+                  // ~ Invested amount section
+                  _SectionWidget(
+                    label: const Skeleton.keep(child: Text('Invested amount')),
+                    value: _buildTotalInvestedAmount(context, genreDetailsState),
+                    color: isError ? colors.errorContainer : null,
+                    valueColor: isError ? colors.error : null,
+                  ),
+
+                  // ~ Total returns sections
+                  _SectionWidget(
+                    label: const Skeleton.keep(child: Text('Total returns')),
+                    value: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        BlocSelector<AppCubit, AppState, bool>(
+                          selector: (state) => state.isPrivateMode,
+                          builder: (context, isPrivateMode) {
+                            return CurrencyView(
+                              // amount: returns,
+                              amount: 0.0,
+                              privateMode: isPrivateMode,
+                              // style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+                              style: TextStyle(color: Colors.teal),
+                            );
+                          },
+                        ),
+                        Text(
+                          // (totalAmountInvested?.isZero ?? true)
+                          //     ? '0.00%'
+                          //     : '${(returns / totalAmountInvested! * 100).toPrecision(2)}%',
+                          '0.00%',
+                          textAlign: TextAlign.right,
+                          // style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+                          style: TextStyle(color: Colors.teal),
+                        ),
+                      ],
+                    ),
+                    // color: isError ? colors.errorContainer : null,
+                    // valueColor: isError ? colors.error : Colors.teal.shade500,
+                    borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+                  ),
+
+                  // ~ XIRR section
+                  _SectionWidget(
+                    label: const Skeleton.keep(child: Text('XIRR')),
+                    value: Text(
+                      // xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
+                      '0.00%',
+                      textAlign: TextAlign.right,
+                      // style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+                      style: TextStyle(color: Colors.teal),
+                    ),
+                    // color: isError ? colors.errorContainer : null,
+                    // valueColor: isError ? colors.error : null,
+                    borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+                  ),
+                ],
+              ),
+
+              ColumnBuilder(
+                mainAxisSize: MainAxisSize.min,
+                itemBuilder: (context, index) {
+                  final item = genreDetailsState.stats[index];
+                  return _buildAmcItem(context, item);
+                },
+                itemCount: genreDetailsState.stats.length,
+              ),
+            ],
+          ),
+        );
       },
     );
+  }
+
+  Widget _buildTotalCurrentAmount(BuildContext context, GenreDetailsState state) {
+    final textTheme = Theme.of(context).textTheme;
+    if (state is GenreDetailsErrorState) {
+      return Text('Error loading data');
+    }
+
+    if (state is GenreDetailsLoadedState) {
+      return BlocSelector<AppCubit, AppState, bool>(
+        selector: (state) => state.isPrivateMode,
+        builder: (context, isPrivateMode) {
+          return CurrencyView(
+            amount: state.totalCurrentValue,
+            style: textTheme.headlineLarge,
+            decimalsStyle: textTheme.headlineSmall,
+            currencyStyle: textTheme.bodyMedium,
+            privateMode: isPrivateMode,
+          );
+        },
+      );
+    }
+
+    return const Text('Loading...');
+  }
+
+  Widget _buildTotalInvestedAmount(BuildContext context, GenreDetailsState state) {
+    if (state is GenreDetailsErrorState) {
+      return Text('Error loading data');
+    }
+
+    if (state is GenreDetailsLoadedState) {
+      return BlocSelector<AppCubit, AppState, bool>(
+        selector: (state) => state.isPrivateMode,
+        builder: (context, isPrivateMode) {
+          return CurrencyView(amount: state.totalInvested, privateMode: isPrivateMode);
+        },
+      );
+    }
+
+    return const Text('Loading...');
   }
 
   Widget _buildSummaryItem(BuildContext context, String label, double amount) {
