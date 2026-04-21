@@ -2,25 +2,21 @@ import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/transactions/model/transaction_model.dart';
-import 'package:invesly/transactions/model/transaction_repository.dart';
 
 part 'genre_details_state.dart';
 
 class GenreDetailsCubit extends Cubit<GenreDetailsState> {
-  GenreDetailsCubit({required TransactionRepository trnRepository, required AmcRepository amcRepository})
-    : _trnRepository = trnRepository,
-      _amcRepository = amcRepository,
+  GenreDetailsCubit({required AmcRepository amcRepository})
+    : _amcRepository = amcRepository,
       super(const GenreDetailsInitialState());
 
-  final TransactionRepository _trnRepository;
   final AmcRepository _amcRepository;
 
   Future<void> loadDetails(String accountId) async {
     emit(const GenreDetailsLoadingState());
 
     try {
-      final transactionStats = await _trnRepository.getTransactionStats(accountId);
+      final transactionStats = await _amcRepository.getStats(accountId);
       // final detailsList = <AmcGenreDetailsStat>[];
 
       // Fetch latest price for each AMC that has an API

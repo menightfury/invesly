@@ -1,21 +1,21 @@
 import 'dart:async';
 
+import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/amc_stat_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
-import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
 part 'transaction_stat_state.dart';
 
 class TransactionStatCubit extends Cubit<TransactionStatState> {
-  TransactionStatCubit({required TransactionRepository trnRepository})
+  TransactionStatCubit({required AmcRepository amcRepository, required TransactionRepository trnRepository})
     : _trnRepository = trnRepository,
-      // _amcRepository = amcRepository,
+      _amcRepository = amcRepository,
       super(const TransactionStatInitialState());
 
   final TransactionRepository _trnRepository;
-  // final AmcRepository _amcRepository;
+  final AmcRepository _amcRepository;
 
   StreamSubscription<TableChangeEvent>? _subscription;
 
@@ -32,7 +32,7 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
       //   emit(const TransactionStatErrorState('No account has been selected'));
       //   return;
       // }
-      final transactionStats = await _trnRepository.getTransactionStats(accountId);
+      final transactionStats = await _amcRepository.getStats(accountId);
       // if (transactionStats.isNotEmpty) {
       //   for (final stat in transactionStats) {
       //     LatestPrice? latestPrice;
@@ -63,7 +63,7 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
         // if (accountId == null) {
         //   emit(const TransactionStatErrorState('No account has been selected'));
         // } else {
-        final transactionStats = await _trnRepository.getTransactionStats(accountId);
+        final transactionStats = await _amcRepository.getStats(accountId);
         emit(TransactionStatLoadedState(stats: transactionStats));
         // }
       } on Exception catch (error) {

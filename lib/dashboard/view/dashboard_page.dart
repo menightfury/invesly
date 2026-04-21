@@ -87,6 +87,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final textTheme = context.textTheme;
+    final amcRepository = AmcRepository.instance;
     final trnRepository = TransactionRepository.instance;
 
     return Scaffold(
@@ -151,7 +152,11 @@ class _DashboardPageState extends State<DashboardPage> {
                 MultiBlocProvider(
                   providers: [
                     BlocProvider(create: (context) => TransactionsCubit(repository: trnRepository)),
-                    BlocProvider(create: (context) => TransactionStatCubit(trnRepository: trnRepository)),
+                    BlocProvider(
+                      create: (context) {
+                        return TransactionStatCubit(trnRepository: trnRepository, amcRepository: amcRepository);
+                      },
+                    ),
                   ],
                   child: BlocSelector<AppCubit, AppState, String?>(
                     selector: (state) => state.primaryAccountId,

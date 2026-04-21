@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:csv/csv.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/amcs/model/amc_stat_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/database/table_schema.dart';
@@ -83,38 +82,6 @@ class TransactionRepository {
     return transactions;
   }
 
-  /// Get transaction statistics
-  Future<List<AmcStat>> getTransactionStats(String accountId) async {
-    try {
-      await Future<void>.delayed(const Duration(seconds: 2)); // TODO: Remove this delay
-      final result = await _api
-          .select(_trnTable, [
-            ..._amcTable.columns,
-            _trnTable.idColumn.count('num_transactions'),
-            _trnTable.amountColumn.sum('total_amount'),
-            _trnTable.quantityColumn.sum('total_quantity'),
-          ])
-          .join([_amcTable])
-          .where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
-          .groupBy([_amcTable.idColumn])
-          .toList();
-      final stats = result.map<AmcStat>((map) {
-        return AmcStat(
-          accountId: accountId,
-          amc: InveslyAmc.fromDb(_amcTable.fromMap(map)),
-          numTransactions: map['num_transactions'] as int,
-          totalAmount: (map['total_amount'] as num).toDouble(),
-          totalQuantity: (map['total_quantity'] as num).toDouble(),
-        );
-      }).toList();
-      return stats;
-    } on Exception catch (err) {
-      $logger.e(err);
-      rethrow;
-      // stats = List<TransactionStat>.empty();
-    }
-  }
-
   /// Add or update a transaction
   Future<void> saveTransaction(TransactionInDb transaction, [bool isNew = true]) async {
     await Future<void>.delayed(const Duration(seconds: 2)); // TODO: Remove this delay
@@ -141,6 +108,6 @@ class TransactionRepository {
     final csvData = transactions.map((trn) => _trnTable.fromModel(trn).values.toList()).toList();
 
     // return const ListToCsvConverter().convert([csvHeader, ...csvData], fieldDelimiter: separator);
-    return CsvCodec(fieldDelimiter: separator).encode([csvHeader, ...csvData]);
+    return Csv(fieldDelimiter: separator).encode([csvHeader, ...csvData]);
   }
 }

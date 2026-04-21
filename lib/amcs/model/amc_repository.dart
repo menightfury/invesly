@@ -4,10 +4,12 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/amcs/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/database/table_schema.dart';
+import 'package:invesly/transactions/model/transaction_model.dart';
 
 class AmcRepository {
   // singleton api instance
@@ -26,8 +28,9 @@ class AmcRepository {
   final InveslyApi _api;
 
   AmcTable get _amcTable => _api.amcTable;
+  TransactionTable get _trnTable => _api.trnTable;
 
-  /// Get all amcs
+  /// Get all amcs - Remove this method in production
   Future<List<InveslyAmc>> getAllAmcs() async {
     final dbData = await _api.select(_amcTable).toList();
     return dbData.map<InveslyAmc>((e) => InveslyAmc.fromDb(_amcTable.fromMap(e))).toList();
@@ -141,5 +144,36 @@ class AmcRepository {
       $logger.e('Error fetching latest price');
     }
     return latestPrice;
+  }
+
+  /// Get statistics of an AMC
+  Future<List<AmcStat>> getStats(String accountId) async {
+    try {
+      final result = await _api
+          .select(_trnTable, [
+            ..._amcTable.columns,
+            _trnTable.idColumn.count('num_transactions'),
+            _trnTable.amountColumn.sum('total_amount'),
+            _trnTable.quantityColumn.sum('total_quantity'),
+          ])
+          .join([_amcTable])
+          .where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
+          .groupBy([_amcTable.idColumn])
+          .toList();
+      final stats = result.map<AmcStat>((map) {
+        return AmcStat(
+          accountId: accountId,
+          amc: InveslyAmc.fromDb(_amcTable.fromMap(map)),
+          numTransactions: map['num_transactions'] as int,
+          totalAmount: (map['total_amount'] as num).toDouble(),
+          totalQuantity: (map['total_quantity'] as num).toDouble(),
+        );
+      }).toList();
+      return stats;
+    } on Exception catch (err) {
+      $logger.e(err);
+      rethrow;
+      // stats = List<TransactionStat>.empty();
+    }
   }
 }

@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:googleapis/apigeeregistry/v1.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/amc_stat_model.dart';
@@ -30,7 +29,7 @@ class GenreDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) {
-        return GenreDetailsCubit(trnRepository: TransactionRepository.instance, amcRepository: AmcRepository.instance);
+        return GenreDetailsCubit(amcRepository: AmcRepository.instance);
       },
       child: Scaffold(
         body: SafeArea(
@@ -39,15 +38,11 @@ class GenreDetailsPage extends StatelessWidget {
               SliverAppBar(title: Text(genre.title), floating: true, snap: true),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate.fixed([
-                    BlocSelector<AppCubit, AppState, String?>(
-                      selector: (state) => state.primaryAccountId,
-                      builder: (context, accountId) {
-                        return _GenreDetailsPageContent(accountId: accountId);
-                      },
-                    ),
-                  ]),
+                sliver: BlocSelector<AppCubit, AppState, String?>(
+                  selector: (state) => state.primaryAccountId,
+                  builder: (context, accountId) {
+                    return _GenreDetailsPageContent(accountId: accountId);
+                  },
                 ),
               ),
             ],
@@ -97,14 +92,12 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     return BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
       builder: (context, genreDetailsState) {
         final isError = genreDetailsState is GenreDetailsErrorState;
-        final isLoading = genreDetailsState is GenreDetailsLoadingState;        
+        final isLoading = genreDetailsState is GenreDetailsLoadingState;
 
         return Skeletonizer(
           enabled: isLoading,
-          child: Column(
-            spacing: 4.0,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
+          child: SliverList(
+            delegate: SliverChildListDelegate.fixed(<Widget>[
               // ~ Current Value
               _SectionWidget(
                 label: FormattedDate(
@@ -121,6 +114,8 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                 color: isError ? colors.errorContainer : null,
                 valueColor: isError ? colors.error : null,
               ),
+
+              const Gap(4.0),
 
               GridView.count(
                 shrinkWrap: true,
@@ -173,19 +168,96 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                 ],
               ),
 
-              // ColumnBuilder(
-              //   mainAxisSize: MainAxisSize.min,
-              //   itemBuilder: (context, index) {
-              //     final item = genreDetailsState.stats[index];
-              //     return _buildAmcItem(context, item);
-              //   },
-              //   itemCount: genreDetailsState.stats.length,
-              // ),
-            ],
+              const Gap(4.0),
+
+              Text('Holdings', style: theme.textTheme.titleMedium),
+
+              _buildHoldings(context, genreDetailsState),
+            ]),
           ),
         );
       },
     );
+  }
+
+  Widget _buildHoldings(BuildContext context, GenreDetailsState genreDetailsState) {
+    final theme = Theme.of(context);
+
+    if (genreDetailsState is GenreDetailsErrorState) {
+      return Text('Error loading data');
+    }
+
+    if (genreDetailsState is GenreDetailsLoadedState) {
+      return ColumnBuilder(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 4.0,
+        itemBuilder: (context, index) {
+          final stat = genreDetailsState.stats[index];
+          return SimpleCard(
+            margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 16.0,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          stat.amc.name,
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Text(
+                        '${stat.numTransactions} transactions',
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text('Invested', style: theme.textTheme.labelMedium),
+                          CurrencyView(
+                            amount: stat.totalAmount,
+                            style: theme.textTheme.bodyLarge,
+                            decimalsStyle: theme.textTheme.bodyMedium,
+                            currencyStyle: theme.textTheme.bodyMedium,
+                            privateMode: false,
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Text('Current Value', style: theme.textTheme.labelMedium),
+                          CurrencyView(
+                            amount: stat.currentValue,
+                            style: theme.textTheme.bodyLarge,
+                            decimalsStyle: theme.textTheme.bodyMedium,
+                            currencyStyle: theme.textTheme.bodyMedium,
+                            privateMode: false,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+          ;
+        },
+        itemCount: genreDetailsState.stats.length,
+      );
+    }
+    return const Text('Loading...');
   }
 
   Widget _buildHoldingCount(BuildContext context, GenreDetailsState state) {
@@ -272,66 +344,6 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     );
   }
 
-  Widget _buildAmcItem(BuildContext context, AmcStat stat) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16.0,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(stat.amc.name, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                ),
-                Text(
-                  '${stat.numTransactions} transactions',
-                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                ),
-              ],
-            ),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text('Invested', style: theme.textTheme.labelMedium),
-                    CurrencyView(
-                      amount: stat.totalAmount,
-                      style: theme.textTheme.bodyLarge,
-                      decimalsStyle: theme.textTheme.bodyMedium,
-                      currencyStyle: theme.textTheme.bodyMedium,
-                      privateMode: false,
-                    ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    Text('Current Value', style: theme.textTheme.labelMedium),
-                    CurrencyView(
-                      amount: stat.currentValue,
-                      style: theme.textTheme.bodyLarge,
-                      decimalsStyle: theme.textTheme.bodyMedium,
-                      currencyStyle: theme.textTheme.bodyMedium,
-                      privateMode: false,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildAmountReturns(BuildContext context, GenreDetailsState state) {
     if (state is GenreDetailsErrorState) {
       return Text('Error loading data');
@@ -374,37 +386,34 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   }
 
   Widget _buildXirr(BuildContext context, GenreDetailsState state) {
-     if (state is GenreDetailsErrorState) {
-      return Text('Error loading data');
-    }
-
-    if (state is GenreDetailsLoadedState) {
-    
-      final transactionsForXirr = state.stats
-            .map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
-            .toList();
-        if (transactionsForXirr.isNotEmpty) {
-          transactionsForXirr.add(
-            xf.Transaction(
-              state.totalCurrentValue > 0 ? -(state.totalCurrentValue) : -0.0,
-              latestPrice?.date ?? DateTime.now(),
-            ),
-          );
-        }
-        final xirr = transactionsForXirr != null && transactionsForXirr.isNotEmpty
-            ? xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate()
-            : 0.0;
-    return Text(
-      // xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
-      '0.00%',
-      textAlign: TextAlign.right,
-      // style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-      style: TextStyle(color: Colors.teal),
-    );
-     }
-
     return const Text('Loading...');
-  }
+    // if (state is GenreDetailsErrorState) {
+    //   return Text('Error loading data');
+    // }
+
+    // if (state is GenreDetailsLoadedState) {
+    //   final transactionsForXirr = state.stats.map((stat) => xf.Transaction(stat.totalAmount, stat.investedOn)).toList();
+    //   if (transactionsForXirr.isNotEmpty) {
+    //     transactionsForXirr.add(
+    //       xf.Transaction(
+    //         state.totalCurrentValue > 0 ? -(state.totalCurrentValue) : -0.0,
+    //         latestPrice?.date ?? DateTime.now(),
+    //       ),
+    //     );
+    //   }
+    //   final xirr = transactionsForXirr != null && transactionsForXirr.isNotEmpty
+    //       ? xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate()
+    //       : 0.0;
+    //   return Text(
+    //     // xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
+    //     '0.00%',
+    //     textAlign: TextAlign.right,
+    //     // style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+    //     style: TextStyle(color: Colors.teal),
+    //   );
+    // }
+
+    // return const Text('Loading...');
   }
 }
 
