@@ -18,7 +18,7 @@ class GenreDetailsLoadingState extends GenreDetailsState {
 class GenreDetailsLoadedState extends GenreDetailsState {
   const GenreDetailsLoadedState({required this.stats});
 
-  final List<AmcStat> stats;
+  final List<AmcTransaction> stats;
 
   double get totalCurrentValue => stats.fold<double>(0, (v, el) => v + el.currentValue);
   double get totalInvested => stats.fold<double>(0, (v, el) => v + el.totalAmount);

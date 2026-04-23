@@ -10,6 +10,7 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/genre/view/genre_details/cubit/genre_details_cubit.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
+import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 class GenreDetailsPage extends StatelessWidget {
@@ -28,8 +29,11 @@ class GenreDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) {
-        return GenreDetailsCubit(amcRepository: AmcRepository.instance);
+      create: (_) {
+        return GenreDetailsCubit(
+          amcRepository: AmcRepository.instance,
+          transactionRepository: TransactionRepository.instance,
+        );
       },
       child: Scaffold(
         body: SafeArea(
@@ -41,7 +45,7 @@ class GenreDetailsPage extends StatelessWidget {
                 sliver: BlocSelector<AppCubit, AppState, String?>(
                   selector: (state) => state.primaryAccountId,
                   builder: (context, accountId) {
-                    return _GenreDetailsPageContent(accountId: accountId);
+                    return _GenreDetailsPageContent(accountId: accountId, genre: genre);
                   },
                 ),
               ),
@@ -54,9 +58,10 @@ class GenreDetailsPage extends StatelessWidget {
 }
 
 class _GenreDetailsPageContent extends StatefulWidget {
-  const _GenreDetailsPageContent({super.key, this.accountId});
+  const _GenreDetailsPageContent({super.key, this.accountId, required this.genre});
 
   final String? accountId;
+  final AmcGenre genre;
 
   @override
   State<_GenreDetailsPageContent> createState() => _GenreDetailsPageContentState();
@@ -81,7 +86,9 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     if (widget.accountId?.isEmpty ?? true) {
       return;
     }
-    context.read<GenreDetailsCubit>().loadDetails(widget.accountId!);
+    if (mounted) {
+      context.read<GenreDetailsCubit>().loadDetails(accountId: widget.accountId!, genre: widget.genre);
+    }
   }
 
   @override
@@ -193,66 +200,8 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
         spacing: 4.0,
         itemBuilder: (context, index) {
           final stat = genreDetailsState.stats[index];
-          return SimpleCard(
-            margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 16.0,
-                children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          stat.amc.name,
-                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      Text(
-                        '${stat.numTransactions} transactions',
-                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text('Invested', style: theme.textTheme.labelMedium),
-                          CurrencyView(
-                            amount: stat.totalAmount,
-                            style: theme.textTheme.bodyLarge,
-                            decimalsStyle: theme.textTheme.bodyMedium,
-                            currencyStyle: theme.textTheme.bodyMedium,
-                            privateMode: false,
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          Text('Current Value', style: theme.textTheme.labelMedium),
-                          CurrencyView(
-                            amount: stat.currentValue,
-                            style: theme.textTheme.bodyLarge,
-                            decimalsStyle: theme.textTheme.bodyMedium,
-                            currencyStyle: theme.textTheme.bodyMedium,
-                            privateMode: false,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-          ;
+          return _HoldingStatCard(stat: stat);
         },
         itemCount: genreDetailsState.stats.length,
       );
@@ -471,6 +420,74 @@ class _SectionWidget extends StatelessWidget {
               Align(alignment: Alignment.bottomRight, child: valueText),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HoldingStatCard extends StatelessWidget {
+  const _HoldingStatCard({super.key, required this.stat});
+
+  final AmcStat stat;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SimpleCard(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 16.0,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(stat.amc.name, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                ),
+                Text(
+                  '${stat.numTransactions} transactions',
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('Invested', style: theme.textTheme.labelMedium),
+                    CurrencyView(
+                      amount: stat.totalAmount,
+                      style: theme.textTheme.bodyLarge,
+                      decimalsStyle: theme.textTheme.bodyMedium,
+                      currencyStyle: theme.textTheme.bodyMedium,
+                      privateMode: false,
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    Text('Current Value', style: theme.textTheme.labelMedium),
+                    CurrencyView(
+                      amount: stat.currentValue,
+                      style: theme.textTheme.bodyLarge,
+                      decimalsStyle: theme.textTheme.bodyMedium,
+                      currencyStyle: theme.textTheme.bodyMedium,
+                      privateMode: false,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

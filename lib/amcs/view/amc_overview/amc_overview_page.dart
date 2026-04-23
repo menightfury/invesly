@@ -20,12 +20,10 @@ class AmcOverviewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final trnRepository = TransactionRepository.instance;
-
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => AmcOverviewCubit(repository: AmcRepository.instance)),
-        BlocProvider(create: (context) => TransactionsCubit(repository: trnRepository)),
+        BlocProvider(create: (_) => AmcOverviewCubit(repository: AmcRepository.instance)),
+        BlocProvider(create: (_) => TransactionsCubit(repository: TransactionRepository.instance)),
       ],
       child: _AmcOverviewScreen(amcId),
     );

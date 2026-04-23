@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
@@ -21,6 +22,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
   /// Fetch transaction (on initial load, on transactions change)
   Future<void> fetchTransactions({
     String? accountId,
+    AmcGenre? genre,
     String? amcId,
     DateTimeRange<DateTime>? dateRange,
     int? limit,
@@ -40,6 +42,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
       final transactions = await _repository.getTransactions(
         accountId: accountId,
         amcId: amcId,
+        genre: genre,
         dateRange: dateRange,
         limit: limit,
       );
@@ -63,6 +66,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
         final transactions = await _repository.getTransactions(
           accountId: accountId,
           amcId: amcId,
+          genre: genre,
           dateRange: dateRange,
           limit: limit,
         );
