@@ -188,33 +188,12 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
 
               const Gap(16.0),
 
-              Skeleton.keep(child: Text('Holdings', style: theme.textTheme.titleMedium)),
-              _buildHoldings(context, genreDetailsState),
+              _HoldingSection(state: genreDetailsState),
             ]),
           ),
         );
       },
     );
-  }
-
-  Widget _buildHoldings(BuildContext context, GenreDetailsState genreDetailsState) {
-    if (genreDetailsState is GenreDetailsErrorState) {
-      return Text('Error loading data');
-    }
-
-    if (genreDetailsState is GenreDetailsLoadedState) {
-      return ColumnBuilder(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 16.0,
-        itemBuilder: (context, index) {
-          final stat = genreDetailsState.stats[index];
-
-          return _HoldingStatCard(stat: stat);
-        },
-        itemCount: genreDetailsState.stats.length,
-      );
-    }
-    return const Text('Loading...');
   }
 
   Widget _buildHoldingCount(BuildContext context, GenreDetailsState state) {
@@ -373,36 +352,57 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
 }
 
 class _HoldingSection extends StatelessWidget {
-  const _HoldingSection({super.key, required this.stat});
+  const _HoldingSection({super.key, required this.state});
 
-  final AmcTransaction stat;
+  final GenreDetailsState state;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    final isLoading = state is GenreDetailsLoadingState;
+    final isError = state is GenreDetailsErrorState;
     return Column(
       mainAxisSize: MainAxisSize.min,
+      spacing: 8.0,
       children: <Widget>[
-        Text(
-          stat.amc?.name ?? 'N/A',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 2,
-        ),
-        Text(
-          '${stat.numTransactions} transactions',
-          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-        ),
+        Skeleton.keep(child: Text('Holdings', style: theme.textTheme.titleMedium)),
+        _buildHoldings(context),
       ],
+    );
+  }
+
+  Widget _buildHoldings(BuildContext context) {
+    if (state is GenreDetailsErrorState) {
+      return Center(
+        child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),
+      );
+    }
+
+    if (state is GenreDetailsLoadedState && (state as GenreDetailsLoadedState).stats.isEmpty) {
+      return Center(child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')));
+    }
+
+    return ColumnBuilder(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 16.0,
+      itemCount: state is GenreDetailsLoadedState
+          ? (state as GenreDetailsLoadedState).stats.length
+          : 2, // 2 for dummy loading
+      itemBuilder: (context, index) {
+        final amcTransaction = state is GenreDetailsLoadedState
+            ? (state as GenreDetailsLoadedState).stats[index]
+            : AmcTransaction(accountId: 'loading');
+
+        return _HoldingStatCard(amcTransaction: amcTransaction);
+      },
     );
   }
 }
 
 class _HoldingStatCard extends StatelessWidget {
-  const _HoldingStatCard({super.key, required this.stat});
+  const _HoldingStatCard({super.key, required this.amcTransaction});
 
-  final AmcTransaction stat;
+  final AmcTransaction amcTransaction;
 
   @override
   Widget build(BuildContext context) {
@@ -429,13 +429,13 @@ class _HoldingStatCard extends StatelessWidget {
                 // spacing: 16.0,
                 children: <Widget>[
                   Text(
-                    stat.amc?.name ?? 'N/A',
+                    amcTransaction.amc?.name ?? 'N/A',
                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
                   ),
                   Text(
-                    '${stat.numTransactions} transactions',
+                    '${amcTransaction.numTransactions} transactions',
                     style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ],
@@ -452,7 +452,7 @@ class _HoldingStatCard extends StatelessWidget {
               child: _SectionWidget(
                 minHeight: 0.0,
                 label: const Text('Invested'),
-                value: CurrencyView(amount: stat.totalAmount, privateMode: false),
+                value: CurrencyView(amount: amcTransaction.totalAmount, privateMode: false),
               ),
             ),
             // ~ Current value
@@ -460,7 +460,7 @@ class _HoldingStatCard extends StatelessWidget {
               child: _SectionWidget(
                 minHeight: 0.0,
                 label: const Text('Current value'),
-                value: CurrencyView(amount: stat.currentValue, privateMode: false),
+                value: CurrencyView(amount: amcTransaction.currentValue, privateMode: false),
               ),
             ),
           ],
@@ -474,8 +474,11 @@ class _HoldingStatCard extends StatelessWidget {
               child: _SectionWidget(
                 minHeight: 0.0,
                 label: const Text('Returns'),
-                value: CurrencyView(amount: stat.currentValue - stat.totalAmount, privateMode: false),
-                valueColor: (stat.currentValue - stat.totalAmount) < 0 ? Colors.red : Colors.teal,
+                value: CurrencyView(
+                  amount: amcTransaction.currentValue - amcTransaction.totalAmount,
+                  privateMode: false,
+                ),
+                valueColor: (amcTransaction.currentValue - amcTransaction.totalAmount) < 0 ? Colors.red : Colors.teal,
                 borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
               ),
             ),
