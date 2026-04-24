@@ -1,7 +1,5 @@
-import 'package:collection/collection.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
-import 'package:invesly/amcs/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/amc_transaction_model.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common_libs.dart';
@@ -29,24 +27,21 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
         return;
       }
 
-      final amcTransactionsMap = groupBy(transactions, (trn) => trn.amc);
+      final amcTransactions = groupBy(transactions, (trn) => trn.amc).entries.map((entry) {
+        return AmcTransaction(accountId: accountId, amc: entry.key, transactions: entry.value);
+      });
 
-      // get latest price where keys are not null
-      final latestPrices = <InveslyAmc, LatestPrice?>{};
-      final amcs = amcTransactionsMap.keys.nonNulls;
+      final amcs = amcTransactions.map((e) => e.amc).nonNulls;
       final prices = await Future.wait<LatestPrice?>(amcs.map((amc) => _amcRepository.getLatestPrice(amc)));
       final latestPriceMap = Map.fromIterables(amcs, prices);
 
-      final amcTransactions = amcTransactionsMap.values.map((entry) {
-        final amc = entry.key;
-        final transactions = entry.value;
-        final latestPrice = amc != null ? latestPrices[amc] : null;
-        return AmcTransaction(amc: amc, transactions: transactions, latestPrice: latestPrice);
+      final newAmcTransactions = amcTransactions.map((e) {
+        return e.copyWith(amc: e.amc?.copyWith(ltp: latestPriceMap[e.amc]));
       }).toList();
 
-      emit(GenreDetailsLoadedState(stats: amcTransactions));
-    } catch (e) {
-      emit(GenreDetailsErrorState(e.toString()));
+      emit(GenreDetailsLoadedState(stats: newAmcTransactions));
+    } catch (err) {
+      emit(GenreDetailsErrorState(err.toString()));
     }
   }
 }
