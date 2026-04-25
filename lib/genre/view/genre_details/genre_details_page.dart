@@ -8,6 +8,7 @@ import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/genre/view/genre_details/cubit/genre_details_cubit.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
+import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 class GenreDetailsPage extends StatelessWidget {
   const GenreDetailsPage({super.key, required this.genre});
@@ -83,7 +84,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
       return;
     }
     if (mounted) {
-      context.read<GenreDetailsCubit>().loadDetails(accountId: widget.accountId!, genre: widget.genre);
+      context.read<GenreDetailsCubit>().loadTransactions(accountId: widget.accountId!, genre: widget.genre);
     }
   }
 
@@ -410,11 +411,12 @@ class _HoldingStatCard extends StatefulWidget {
 
 class _HoldingStatCardState extends State<_HoldingStatCard> {
   late Future<LatestPrice?> ltp;
+  // late Future<double?> currentAmount;
 
   @override
   void initState() {
     super.initState();
-    ltp = _loadLtp();
+    ltp = _getCurrentPrice();
   }
 
   @override
@@ -471,7 +473,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
               child: _SectionWidget(
                 minHeight: 0.0,
                 label: Text('Current value', style: labelStyle),
-                value: FutureBuilder(
+                value: FutureBuilder<LatestPrice?>(
                   future: ltp,
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
@@ -489,7 +491,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                       );
                     }
 
-                    return const SizedBox.shrink();
+                    return const Text('Loading...');
                   },
                 ),
               ),
@@ -502,17 +504,36 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
           children: <Widget>[
             // ~ Returns amount
             Expanded(
-              child: _SectionWidget(
-                minHeight: 0.0,
-                label: Text('Returns', style: labelStyle),
-                value: CurrencyView(
-                  amount: widget.amcTransaction.currentValue - widget.amcTransaction.totalAmount,
-                  privateMode: false,
+              child: Skeleton.leaf(
+                child: _SectionWidget(
+                  minHeight: 0.0,
+                  label: Text('Returns', style: labelStyle),
+                  value: FutureBuilder(
+                    future: ltp,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Text(
+                          'Error loading LTP',
+                          style: TextStyle(color: context.colors.error),
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      }
+
+                      if (snapshot.hasData) {
+                        final currentAmount = snapshot.data!.price * widget.amcTransaction.totalQuantity;
+                        final returns = currentAmount - widget.amcTransaction.totalAmount;
+                        return CurrencyView(
+                          amount: returns,
+                          privateMode: false,
+                          style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+                        );
+                      }
+
+                      return const Text('Loading...');
+                    },
+                  ),
+                  borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
                 ),
-                valueColor: (widget.amcTransaction.currentValue - widget.amcTransaction.totalAmount) < 0
-                    ? Colors.red
-                    : Colors.teal,
-                borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
               ),
             ),
 
@@ -543,25 +564,30 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                       );
                     }
 
+                    if (widget.amcTransaction.transactions.isEmpty) {
+                      return Text('0.00%', style: TextStyle(color: Colors.teal));
+                    }
+
                     if (snapshot.hasData) {
-                      final transactionsForXirr = transactions
+                      final transactionsForXirr = widget.amcTransaction.transactions
                           .map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
                           .toList();
                       if (transactionsForXirr.isNotEmpty) {
-                        transactionsForXirr.add(xf.Transaction(-currentValue, amc!.ltp!.date ?? amc!.ltp!.fetchDate));
+                        final currentAmount = snapshot.data!.price * widget.amcTransaction.totalQuantity;
+                        transactionsForXirr.add(
+                          xf.Transaction(-currentAmount, snapshot.data!.date ?? snapshot.data!.fetchDate),
+                        );
                       }
                       final xirr = transactionsForXirr.isNotEmpty
                           ? xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate()
                           : 0.0;
                       return Text(
-                        stat.transactionsForXirr != null && stat.transactionsForXirr!.isNotEmpty
-                            ? '${(xf.XirrFlutter.withTransactionsAndGuess(stat.transactionsForXirr!, 0.1).calculate() * 100).toPrecision(2)}%'
-                            : '0.00%',
-                        style: TextStyle(color: (stat.currentValue - stat.totalAmount) < 0 ? Colors.red : Colors.teal),
+                        xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
+                        style: TextStyle(color: (xirr ?? 0) < 0 ? Colors.red : Colors.teal),
                       );
                     }
 
-                    return const SizedBox.shrink();
+                    return const Text('Loading...');
                   },
                 ),
                 borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
@@ -573,7 +599,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     );
   }
 
-  Future<LatestPrice?> _loadLtp() async {
+  Future<LatestPrice?> _getCurrentPrice() async {
     final amc = widget.amcTransaction.amc;
     if (amc == null) {
       return null;
@@ -581,6 +607,9 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
 
     try {
       final ltp = await AmcRepository.instance.getLatestPrice(amc);
+      if (mounted && ltp != null) {
+        context.read<GenreDetailsCubit>().updateCurrentAmount(amc.id, ltp.price * widget.amcTransaction.totalQuantity);
+      }
       return ltp;
     } catch (e) {
       // Handle error, maybe return a default LatestPrice or rethrow

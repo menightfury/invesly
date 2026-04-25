@@ -1,7 +1,6 @@
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/amc_transaction_model.dart';
-import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
@@ -16,14 +15,14 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
   final AmcRepository _amcRepository;
   final TransactionRepository _transactionRepository;
 
-  Future<void> loadDetails({required String accountId, required AmcGenre genre}) async {
+  Future<void> loadTransactions({required String accountId, required AmcGenre genre}) async {
     emit(const GenreDetailsLoadingState());
 
     try {
       final transactions = await _transactionRepository.getTransactions(accountId: accountId, genre: genre);
 
       if (transactions.isEmpty) {
-        emit(const GenreDetailsLoadedState(stats: []));
+        emit(const GenreDetailsLoadedState());
         return;
       }
       final amcTransactionsMap = groupBy(transactions, (trn) => trn.amc);
@@ -43,5 +42,16 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
     } catch (err) {
       emit(GenreDetailsErrorState(err.toString()));
     }
+  }
+
+  void updateCurrentAmount(String amcId, double currentAmount) {
+    if (state is! GenreDetailsLoadedState) {
+      return;
+    }
+
+    final loadedState = state as GenreDetailsLoadedState;
+    final amounts = loadedState.currentAmounts;
+
+    emit(loadedState.copyWith(currentAmounts: amounts..addAll({amcId: currentAmount})));
   }
 }

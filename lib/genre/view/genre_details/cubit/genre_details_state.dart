@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'genre_details_cubit.dart';
 
 abstract class GenreDetailsState extends Equatable {
@@ -16,16 +17,21 @@ class GenreDetailsLoadingState extends GenreDetailsState {
 }
 
 class GenreDetailsLoadedState extends GenreDetailsState {
-  const GenreDetailsLoadedState({required this.stats});
+  const GenreDetailsLoadedState({this.stats = const [], this.currentAmounts = const {}});
 
   final List<AmcTransaction> stats;
+  final Map<String, double> currentAmounts;
 
-  double get totalCurrentValue => stats.fold<double>(0, (v, el) => v + el.currentValue);
+  double get totalCurrentValue => currentAmounts.entries.fold<double>(0, (v, el) => v + el.value);
   double get totalInvested => stats.fold<double>(0, (v, el) => v + el.totalAmount);
   int get totalTransactions => stats.fold<int>(0, (v, el) => v + el.numTransactions);
 
   @override
-  List<Object?> get props => [stats];
+  List<Object?> get props => [stats, currentAmounts];
+
+  GenreDetailsLoadedState copyWith({List<AmcTransaction>? stats, Map<String, double>? currentAmounts}) {
+    return GenreDetailsLoadedState(stats: stats ?? this.stats, currentAmounts: currentAmounts ?? this.currentAmounts);
+  }
 }
 
 class GenreDetailsErrorState extends GenreDetailsState {
