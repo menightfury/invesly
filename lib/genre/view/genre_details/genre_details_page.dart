@@ -1,6 +1,7 @@
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/amc_transaction_model.dart';
+import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/widgets/simple_card.dart';
@@ -359,11 +360,10 @@ class _HoldingSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isLoading = state is GenreDetailsLoadingState;
-    final isError = state is GenreDetailsErrorState;
     return Column(
       mainAxisSize: MainAxisSize.min,
-      spacing: 8.0,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 12.0,
       children: <Widget>[
         Skeleton.keep(child: Text('Holdings', style: theme.textTheme.titleMedium)),
         _buildHoldings(context),
@@ -391,7 +391,7 @@ class _HoldingSection extends StatelessWidget {
       itemBuilder: (context, index) {
         final amcTransaction = state is GenreDetailsLoadedState
             ? (state as GenreDetailsLoadedState).stats[index]
-            : AmcTransaction(accountId: 'loading');
+            : const AmcTransaction(accountId: 'loading');
 
         return _HoldingStatCard(amcTransaction: amcTransaction);
       },
@@ -399,15 +399,29 @@ class _HoldingSection extends StatelessWidget {
   }
 }
 
-class _HoldingStatCard extends StatelessWidget {
+class _HoldingStatCard extends StatefulWidget {
   const _HoldingStatCard({super.key, required this.amcTransaction});
 
   final AmcTransaction amcTransaction;
 
   @override
+  State<_HoldingStatCard> createState() => _HoldingStatCardState();
+}
+
+class _HoldingStatCardState extends State<_HoldingStatCard> {
+  late Future<LatestPrice?> ltp;
+
+  @override
+  void initState() {
+    super.initState();
+    ltp = _loadLtp();
+  }
+
+  @override
   Widget build(BuildContext context) {
     const spacing = 2.0;
     final theme = Theme.of(context);
+    final labelStyle = theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -429,15 +443,12 @@ class _HoldingStatCard extends StatelessWidget {
                 // spacing: 16.0,
                 children: <Widget>[
                   Text(
-                    amcTransaction.amc?.name ?? 'N/A',
+                    widget.amcTransaction.amc?.name ?? 'N/A',
                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
                   ),
-                  Text(
-                    '${amcTransaction.numTransactions} transactions',
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                  ),
+                  Text('${widget.amcTransaction.numTransactions} transactions', style: labelStyle),
                 ],
               ),
             ),
@@ -451,16 +462,36 @@ class _HoldingStatCard extends StatelessWidget {
             Expanded(
               child: _SectionWidget(
                 minHeight: 0.0,
-                label: const Text('Invested'),
-                value: CurrencyView(amount: amcTransaction.totalAmount, privateMode: false),
+                label: Text('Invested', style: labelStyle),
+                value: CurrencyView(amount: widget.amcTransaction.totalAmount, privateMode: false),
               ),
             ),
             // ~ Current value
             Expanded(
               child: _SectionWidget(
                 minHeight: 0.0,
-                label: const Text('Current value'),
-                value: CurrencyView(amount: amcTransaction.currentValue, privateMode: false),
+                label: Text('Current value', style: labelStyle),
+                value: FutureBuilder(
+                  future: ltp,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text(
+                        'Error loading LTP',
+                        style: TextStyle(color: context.colors.error),
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    }
+
+                    if (snapshot.hasData) {
+                      return CurrencyView(
+                        amount: snapshot.data!.price * widget.amcTransaction.totalQuantity,
+                        privateMode: false,
+                      );
+                    }
+
+                    return const SizedBox.shrink();
+                  },
+                ),
               ),
             ),
           ],
@@ -473,12 +504,14 @@ class _HoldingStatCard extends StatelessWidget {
             Expanded(
               child: _SectionWidget(
                 minHeight: 0.0,
-                label: const Text('Returns'),
+                label: Text('Returns', style: labelStyle),
                 value: CurrencyView(
-                  amount: amcTransaction.currentValue - amcTransaction.totalAmount,
+                  amount: widget.amcTransaction.currentValue - widget.amcTransaction.totalAmount,
                   privateMode: false,
                 ),
-                valueColor: (amcTransaction.currentValue - amcTransaction.totalAmount) < 0 ? Colors.red : Colors.teal,
+                valueColor: (widget.amcTransaction.currentValue - widget.amcTransaction.totalAmount) < 0
+                    ? Colors.red
+                    : Colors.teal,
                 borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
               ),
             ),
@@ -498,14 +531,39 @@ class _HoldingStatCard extends StatelessWidget {
             Expanded(
               child: _SectionWidget(
                 minHeight: 0.0,
-                label: const Text('XIRR'),
-                value: const Text('0.00%'),
-                // value: Text(
-                //   stat.transactionsForXirr != null && stat.transactionsForXirr!.isNotEmpty
-                //       ? '${(xf.XirrFlutter.withTransactionsAndGuess(stat.transactionsForXirr!, 0.1).calculate() * 100).toPrecision(2)}%'
-                //       : '0.00%',
-                //   style: TextStyle(color: (stat.currentValue - stat.totalAmount) < 0 ? Colors.red : Colors.teal),
-                // ),
+                label: Text('XIRR', style: labelStyle),
+                value: FutureBuilder(
+                  future: ltp,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text(
+                        'Error loading LTP',
+                        style: TextStyle(color: context.colors.error),
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    }
+
+                    if (snapshot.hasData) {
+                      final transactionsForXirr = transactions
+                          .map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
+                          .toList();
+                      if (transactionsForXirr.isNotEmpty) {
+                        transactionsForXirr.add(xf.Transaction(-currentValue, amc!.ltp!.date ?? amc!.ltp!.fetchDate));
+                      }
+                      final xirr = transactionsForXirr.isNotEmpty
+                          ? xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate()
+                          : 0.0;
+                      return Text(
+                        stat.transactionsForXirr != null && stat.transactionsForXirr!.isNotEmpty
+                            ? '${(xf.XirrFlutter.withTransactionsAndGuess(stat.transactionsForXirr!, 0.1).calculate() * 100).toPrecision(2)}%'
+                            : '0.00%',
+                        style: TextStyle(color: (stat.currentValue - stat.totalAmount) < 0 ? Colors.red : Colors.teal),
+                      );
+                    }
+
+                    return const SizedBox.shrink();
+                  },
+                ),
                 borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
               ),
             ),
@@ -513,6 +571,21 @@ class _HoldingStatCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<LatestPrice?> _loadLtp() async {
+    final amc = widget.amcTransaction.amc;
+    if (amc == null) {
+      return null;
+    }
+
+    try {
+      final ltp = await AmcRepository.instance.getLatestPrice(amc);
+      return ltp;
+    } catch (e) {
+      // Handle error, maybe return a default LatestPrice or rethrow
+      rethrow;
+    }
   }
 }
 

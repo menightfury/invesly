@@ -26,20 +26,20 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
         emit(const GenreDetailsLoadedState(stats: []));
         return;
       }
-
-      final amcTransactions = groupBy(transactions, (trn) => trn.amc).entries.map((entry) {
+      final amcTransactionsMap = groupBy(transactions, (trn) => trn.amc);
+      final amcTransactions = amcTransactionsMap.entries.map((entry) {
         return AmcTransaction(accountId: accountId, amc: entry.key, transactions: entry.value);
-      });
-
-      final amcs = amcTransactions.map((e) => e.amc).nonNulls;
-      final prices = await Future.wait<LatestPrice?>(amcs.map((amc) => _amcRepository.getLatestPrice(amc)));
-      final latestPriceMap = Map.fromIterables(amcs, prices);
-
-      final newAmcTransactions = amcTransactions.map((e) {
-        return e.copyWith(amc: e.amc?.copyWith(ltp: latestPriceMap[e.amc]));
       }).toList();
 
-      emit(GenreDetailsLoadedState(stats: newAmcTransactions));
+      // final amcs = amcTransactions.map((e) => e.amc).nonNulls;
+      // final prices = await Future.wait<LatestPrice?>(amcs.map((amc) => _amcRepository.getLatestPrice(amc)));
+      // final latestPriceMap = Map.fromIterables(amcs, prices);
+
+      // final newAmcTransactions = amcTransactions.map((e) {
+      //   return e.copyWith(amc: e.amc?.copyWith(ltp: latestPriceMap[e.amc]));
+      // }).toList();
+
+      emit(GenreDetailsLoadedState(stats: amcTransactions));
     } catch (err) {
       emit(GenreDetailsErrorState(err.toString()));
     }

@@ -14,19 +14,19 @@ class AmcTransaction extends Equatable {
   int get numTransactions => transactions.length;
   double get totalAmount => transactions.fold<double>(0.0, (v, el) => v + el.totalAmount);
   double get totalQuantity => transactions.fold<double>(0.0, (v, el) => v + el.quantity);
-  double get currentValue => (amc?.ltp?.price ?? 0.0) * totalQuantity;
-  double? get xirr {
-    if (amc == null || amc?.ltp == null) return null;
+  // double get currentValue => (amc?.ltp?.price ?? 0.0) * totalQuantity;
+  // double? get xirr {
+  //   if (amc == null || amc?.ltp == null) return null;
 
-    final transactionsForXirr = transactions.map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn)).toList();
-    if (transactionsForXirr.isNotEmpty) {
-      transactionsForXirr.add(xf.Transaction(-currentValue, amc!.ltp!.date ?? amc!.ltp!.fetchDate));
-    }
-    final xirr = transactionsForXirr.isNotEmpty
-        ? xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate()
-        : 0.0;
-    return xirr;
-  }
+  //   final transactionsForXirr = transactions.map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn)).toList();
+  //   if (transactionsForXirr.isNotEmpty) {
+  //     transactionsForXirr.add(xf.Transaction(-currentValue, amc!.ltp!.date ?? amc!.ltp!.fetchDate));
+  //   }
+  //   final xirr = transactionsForXirr.isNotEmpty
+  //       ? xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate()
+  //       : 0.0;
+  //   return xirr;
+  // }
 
   AmcTransaction copyWith({String? accountId, InveslyAmc? amc, List<InveslyTransaction>? transactions}) {
     return AmcTransaction(
