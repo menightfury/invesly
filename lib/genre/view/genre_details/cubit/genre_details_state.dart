@@ -42,15 +42,3 @@ class GenreDetailsErrorState extends GenreDetailsState {
   @override
   List<Object?> get props => [message];
 }
-
-// class AmcGenreDetailsStat extends Equatable {
-//   const AmcGenreDetailsStat({required this.stat, this.latestPrice});
-
-//   final TransactionStat stat;
-//   final LatestPrice? latestPrice;
-
-//   double get currentValue => (latestPrice?.price ?? 0.0) * stat.totalQuantity;
-
-//   @override
-//   List<Object?> get props => [stat, latestPrice];
-// }
