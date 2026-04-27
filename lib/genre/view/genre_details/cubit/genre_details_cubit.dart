@@ -10,19 +10,19 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
   GenreDetailsCubit({required AmcRepository amcRepository, required TransactionRepository transactionRepository})
     : _amcRepository = amcRepository,
       _transactionRepository = transactionRepository,
-      super(const GenreDetailsInitialState());
+      super(const GenreDetailsState(status: GenreDetailsStateStatus.initial));
 
   final AmcRepository _amcRepository;
   final TransactionRepository _transactionRepository;
 
   Future<void> loadTransactions({required String accountId, required AmcGenre genre}) async {
-    emit(const GenreDetailsLoadingState());
+    emit(const GenreDetailsState(status: GenreDetailsStateStatus.loading));
 
     try {
       final transactions = await _transactionRepository.getTransactions(accountId: accountId, genre: genre);
 
       if (transactions.isEmpty) {
-        emit(const GenreDetailsLoadedState());
+        emit(const GenreDetailsState(status: GenreDetailsStateStatus.loaded));
         return;
       }
       final amcTransactionsMap = groupBy(transactions, (trn) => trn.amc);
@@ -30,28 +30,19 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
         return AmcTransaction(accountId: accountId, amc: entry.key, transactions: entry.value);
       }).toList();
 
-      // final amcs = amcTransactions.map((e) => e.amc).nonNulls;
-      // final prices = await Future.wait<LatestPrice?>(amcs.map((amc) => _amcRepository.getLatestPrice(amc)));
-      // final latestPriceMap = Map.fromIterables(amcs, prices);
-
-      // final newAmcTransactions = amcTransactions.map((e) {
-      //   return e.copyWith(amc: e.amc?.copyWith(ltp: latestPriceMap[e.amc]));
-      // }).toList();
-
-      emit(GenreDetailsLoadedState(stats: amcTransactions));
+      emit(GenreDetailsState(status: GenreDetailsStateStatus.loaded, stats: amcTransactions));
     } catch (err) {
-      emit(GenreDetailsErrorState(err.toString()));
+      emit(GenreDetailsState(status: GenreDetailsStateStatus.error, errorMessage: err.toString()));
     }
   }
 
   void updateCurrentAmount(String amcId, double currentAmount) {
-    if (state is! GenreDetailsLoadedState) {
+    if (state.status != GenreDetailsStateStatus.loaded) {
       return;
     }
+    ;
+    final amounts = Map<String, double>.from(state.currentAmounts);
 
-    final loadedState = state as GenreDetailsLoadedState;
-    final amounts = loadedState.currentAmounts;
-
-    emit(loadedState.copyWith(currentAmounts: amounts..addAll({amcId: currentAmount})));
+    emit(state.copyWith(currentAmounts: amounts..addAll({amcId: currentAmount})));
   }
 }

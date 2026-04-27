@@ -2,6 +2,7 @@ import 'dart:ui';
 // import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/data/currencies.dart';
@@ -58,6 +59,11 @@ class CurrencyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final defaultStyle = Theme.of(context).textTheme.bodyMedium!.copyWith(
+      fontFamily: GoogleFonts.rye().fontFamily,
+      fontFeatures: [const FontFeature.tabularFigures()],
+    );
+
     return BlocSelector<AppCubit, AppState, Currency?>(
       selector: (state) => state.currency,
       builder: (context, appCurrency) {
@@ -66,28 +72,31 @@ class CurrencyView extends StatelessWidget {
         final formattedNumber = _getFormattedAmountWithoutCurrency(formatter);
         final parts = formattedNumber.split('.'); // TODO: decimal_separator
 
-        Widget child = Text.rich(
-          TextSpan(
-            style: style,
-            children: [
-              // Currency symbol
-              TextSpan(text: currency.symbol, style: currencyStyle ?? decimalsStyle ?? style),
-              // Spacer
-              if (currency.symbol.length > 1) const TextSpan(text: ' '),
+        Widget child = DefaultTextStyle(
+          style: defaultStyle,
+          child: Text.rich(
+            TextSpan(
+              style: style,
+              children: [
+                // Currency symbol
+                TextSpan(text: currency.symbol, style: currencyStyle ?? decimalsStyle ?? style),
+                // Spacer
+                if (currency.symbol.length > 1) const TextSpan(text: ' '),
 
-              // Integer part
-              TextSpan(text: parts[0], style: style),
+                // Integer part
+                TextSpan(text: parts[0], style: style),
 
-              if (parts.length > 1) ...[
-                // Decimal separator
-                TextSpan(text: '.', style: style), // TODO: decimal_separator
-                // Decimal part
-                TextSpan(text: parts[1], style: _shouldCompact ? style : (decimalsStyle ?? style)),
+                if (parts.length > 1) ...[
+                  // Decimal separator
+                  TextSpan(text: '.', style: style), // TODO: decimal_separator
+                  // Decimal part
+                  TextSpan(text: parts[1], style: _shouldCompact ? style : (decimalsStyle ?? style)),
+                ],
               ],
-            ],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         );
 
         if (privateMode) {

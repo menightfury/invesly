@@ -38,7 +38,7 @@ class GenreDetailsPage extends StatelessWidget {
             slivers: <Widget>[
               SliverAppBar(title: Text(genre.title), floating: true, snap: true),
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
                 sliver: BlocSelector<AppCubit, AppState, String?>(
                   selector: (state) => state.primaryAccountId,
                   builder: (context, accountId) {
@@ -95,9 +95,13 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     final colors = theme.colorScheme;
 
     return BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-      builder: (context, genreDetailsState) {
-        final isError = genreDetailsState is GenreDetailsErrorState;
-        final isLoading = genreDetailsState is GenreDetailsLoadingState;
+      buildWhen: (prev, curr) {
+        return prev.status != curr.status || prev.stats != curr.stats || prev.errorMessage != curr.errorMessage;
+      },
+      builder: (context, genreState) {
+        $logger.i('GenreDetailsPage is building with state: $genreState');
+        final isError = genreState.isError;
+        final isLoading = genreState.isLoading;
 
         return SliverSkeletonizer(
           enabled: isLoading,
@@ -118,7 +122,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                         maxLines: 2,
                       ),
                     ),
-                    value: _buildTotalCurrentAmount(context, genreDetailsState),
+                    value: _buildTotalCurrentAmount(context, genreState),
                     borderRadius: iCardBorderRadius.copyWith(
                       bottomLeft: iTileBorderRadius.bottomLeft,
                       bottomRight: iTileBorderRadius.bottomRight,
@@ -134,7 +138,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                       Expanded(
                         child: _SectionWidget(
                           label: const Skeleton.keep(child: Text('No. of holdings')),
-                          value: _buildHoldingCount(context, genreDetailsState),
+                          value: _buildHoldingCount(context, genreState),
                           color: isError ? colors.errorContainer : null,
                           valueColor: isError ? colors.error : null,
                         ),
@@ -144,7 +148,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                       Expanded(
                         child: _SectionWidget(
                           label: const Skeleton.keep(child: Text('Invested amount')),
-                          value: _buildTotalInvestedAmount(context, genreDetailsState),
+                          value: _buildTotalInvestedAmount(context, genreState),
                           color: isError ? colors.errorContainer : null,
                           valueColor: isError ? colors.error : null,
                         ),
@@ -159,14 +163,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                       Expanded(
                         child: _SectionWidget(
                           label: const Skeleton.keep(child: Text('Total returns')),
-                          value: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: <Widget>[
-                              _buildAmountReturns(context, genreDetailsState),
-                              _buildPercentageReturns(context, genreDetailsState),
-                            ],
-                          ),
+                          value: _buildAmountReturns(context, genreState),
                           color: isError ? colors.errorContainer : null,
                           valueColor: isError ? colors.error : Colors.teal.shade500,
                           borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
@@ -177,7 +174,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                       Expanded(
                         child: _SectionWidget(
                           label: const Skeleton.keep(child: Text('XIRR')),
-                          value: _buildXirr(context, genreDetailsState),
+                          value: _buildPercentageReturns(context, genreState),
                           color: isError ? colors.errorContainer : null,
                           valueColor: isError ? colors.error : null,
                           borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
@@ -190,7 +187,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
 
               const Gap(16.0),
 
-              _HoldingSection(state: genreDetailsState),
+              _HoldingSection(state: genreState),
             ]),
           ),
         );
@@ -199,11 +196,11 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   }
 
   Widget _buildHoldingCount(BuildContext context, GenreDetailsState state) {
-    if (state is GenreDetailsErrorState) {
+    if (state.status == GenreDetailsStateStatus.error) {
       return Text('Error loading data');
     }
 
-    if (state is GenreDetailsLoadedState) {
+    if (state.status == GenreDetailsStateStatus.loaded) {
       return Text(state.stats.length.toString(), textAlign: TextAlign.right);
     }
 
@@ -212,20 +209,25 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
 
   Widget _buildTotalCurrentAmount(BuildContext context, GenreDetailsState state) {
     final textTheme = Theme.of(context).textTheme;
-    if (state is GenreDetailsErrorState) {
+    if (state.isError) {
       return Text('Error loading data');
     }
 
-    if (state is GenreDetailsLoadedState) {
-      return BlocSelector<AppCubit, AppState, bool>(
-        selector: (state) => state.isPrivateMode,
-        builder: (context, isPrivateMode) {
-          return CurrencyView(
-            amount: state.totalCurrentValue,
-            style: textTheme.headlineLarge,
-            decimalsStyle: textTheme.headlineSmall,
-            currencyStyle: textTheme.bodyMedium,
-            privateMode: isPrivateMode,
+    if (state.isLoaded) {
+      return BlocSelector<GenreDetailsCubit, GenreDetailsState, double>(
+        selector: (state) => state.totalCurrentValue,
+        builder: (context, totalCurrentValue) {
+          return BlocSelector<AppCubit, AppState, bool>(
+            selector: (state) => state.isPrivateMode,
+            builder: (context, isPrivateMode) {
+              return CurrencyView(
+                amount: totalCurrentValue,
+                style: textTheme.headlineLarge,
+                decimalsStyle: textTheme.headlineSmall,
+                currencyStyle: textTheme.bodyMedium,
+                privateMode: isPrivateMode,
+              );
+            },
           );
         },
       );
@@ -235,11 +237,11 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   }
 
   Widget _buildTotalInvestedAmount(BuildContext context, GenreDetailsState state) {
-    if (state is GenreDetailsErrorState) {
+    if (state.isError) {
       return Text('Error loading data');
     }
 
-    if (state is GenreDetailsLoadedState) {
+    if (state.isLoaded) {
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
@@ -282,20 +284,24 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   }
 
   Widget _buildAmountReturns(BuildContext context, GenreDetailsState state) {
-    if (state is GenreDetailsErrorState) {
+    if (state.isError) {
       return Text('Error loading data');
     }
 
-    if (state is GenreDetailsLoadedState) {
-      final returns = state.totalCurrentValue - state.totalInvested;
-
-      return BlocSelector<AppCubit, AppState, bool>(
-        selector: (state) => state.isPrivateMode,
-        builder: (context, isPrivateMode) {
-          return CurrencyView(
-            amount: returns,
-            privateMode: isPrivateMode,
-            style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+    if (state.isLoaded) {
+      return BlocSelector<GenreDetailsCubit, GenreDetailsState, double>(
+        selector: (state) => state.totalCurrentValue,
+        builder: (context, totalCurrentValue) {
+          final returns = totalCurrentValue - state.totalInvested;
+          return BlocSelector<AppCubit, AppState, bool>(
+            selector: (state) => state.isPrivateMode,
+            builder: (context, isPrivateMode) {
+              return CurrencyView(
+                amount: returns,
+                privateMode: isPrivateMode,
+                style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+              );
+            },
           );
         },
       );
@@ -305,47 +311,21 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   }
 
   Widget _buildPercentageReturns(BuildContext context, GenreDetailsState state) {
-    if (state is GenreDetailsErrorState) {
+    if (state.isError) {
       return Text('Error loading data');
     }
 
-    if (state is GenreDetailsLoadedState) {
-      final returns = state.totalInvested > 0 ? (state.totalCurrentValue / state.totalInvested - 1.0) * 100 : 0;
-
-      return Text(
-        '${returns.toPrecision(2)}%',
-        textAlign: TextAlign.right,
-        style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-      );
-    }
-
-    return const Text('Loading...');
-  }
-
-  Widget _buildXirr(BuildContext context, GenreDetailsState state) {
-    if (state is GenreDetailsErrorState) {
-      return Text('Error loading data');
-    }
-
-    if (state is GenreDetailsLoadedState) {
-      //   final transactionsForXirr = state.stats.map((stat) => xf.Transaction(stat.totalAmount, stat.investedOn)).toList();
-      //   if (transactionsForXirr.isNotEmpty) {
-      //     transactionsForXirr.add(
-      //       xf.Transaction(
-      //         state.totalCurrentValue > 0 ? -(state.totalCurrentValue) : -0.0,
-      //         latestPrice?.date ?? DateTime.now(),
-      //       ),
-      //     );
-      //   }
-      //   final xirr = transactionsForXirr != null && transactionsForXirr.isNotEmpty
-      //       ? xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate()
-      //       : 0.0;
-      return Text(
-        // xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
-        '0.00%',
-        textAlign: TextAlign.right,
-        // style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-        style: TextStyle(color: Colors.teal),
+    if (state.isLoaded) {
+      return BlocSelector<GenreDetailsCubit, GenreDetailsState, double>(
+        selector: (state) => state.totalCurrentValue,
+        builder: (context, totalCurrentValue) {
+          final returns = state.totalInvested > 0 ? (totalCurrentValue / state.totalInvested - 1.0) * 100 : 0;
+          return Text(
+            '${returns.toPrecision(2)}%',
+            textAlign: TextAlign.right,
+            style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+          );
+        },
       );
     }
 
@@ -373,26 +353,22 @@ class _HoldingSection extends StatelessWidget {
   }
 
   Widget _buildHoldings(BuildContext context) {
-    if (state is GenreDetailsErrorState) {
+    if (state.isError) {
       return Center(
         child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),
       );
     }
 
-    if (state is GenreDetailsLoadedState && (state as GenreDetailsLoadedState).stats.isEmpty) {
+    if (state.isLoaded && state.stats.isEmpty) {
       return Center(child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')));
     }
 
     return ColumnBuilder(
       mainAxisSize: MainAxisSize.min,
       spacing: 16.0,
-      itemCount: state is GenreDetailsLoadedState
-          ? (state as GenreDetailsLoadedState).stats.length
-          : 2, // 2 for dummy loading
+      itemCount: state.isLoaded ? state.stats.length : 2, // 2 for dummy loading
       itemBuilder: (context, index) {
-        final amcTransaction = state is GenreDetailsLoadedState
-            ? (state as GenreDetailsLoadedState).stats[index]
-            : const AmcTransaction(accountId: 'loading');
+        final amcTransaction = state.isLoaded ? state.stats[index] : const AmcTransaction(accountId: 'loading');
 
         return _HoldingStatCard(amcTransaction: amcTransaction);
       },
@@ -468,6 +444,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                 value: CurrencyView(amount: widget.amcTransaction.totalAmount, privateMode: false),
               ),
             ),
+
             // ~ Current value
             Expanded(
               child: _SectionWidget(
@@ -477,6 +454,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                   future: ltp,
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
+                      $logger.e(snapshot.error);
                       return Text(
                         'Error loading LTP',
                         style: TextStyle(color: context.colors.error),
@@ -504,49 +482,74 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
           children: <Widget>[
             // ~ Returns amount
             Expanded(
-              child: Skeleton.leaf(
-                child: _SectionWidget(
-                  minHeight: 0.0,
-                  label: Text('Returns', style: labelStyle),
-                  value: FutureBuilder(
-                    future: ltp,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return Text(
-                          'Error loading LTP',
-                          style: TextStyle(color: context.colors.error),
-                          overflow: TextOverflow.ellipsis,
-                        );
-                      }
+              child: _SectionWidget(
+                minHeight: 0.0,
+                label: Text('Returns', style: labelStyle),
+                value: FutureBuilder(
+                  future: ltp,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text(
+                        'Error loading LTP',
+                        style: TextStyle(color: context.colors.error),
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    }
 
-                      if (snapshot.hasData) {
-                        final currentAmount = snapshot.data!.price * widget.amcTransaction.totalQuantity;
-                        final returns = currentAmount - widget.amcTransaction.totalAmount;
-                        return CurrencyView(
-                          amount: returns,
-                          privateMode: false,
-                          style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-                        );
-                      }
+                    if (snapshot.hasData) {
+                      final currentAmount = snapshot.data!.price * widget.amcTransaction.totalQuantity;
+                      final returns = currentAmount - widget.amcTransaction.totalAmount;
+                      final percentageReturns = widget.amcTransaction.totalAmount > 0
+                          ? ((currentAmount / widget.amcTransaction.totalAmount - 1) * 100)
+                          : 0.0;
 
-                      return const Text('Loading...');
-                    },
-                  ),
-                  borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+                      // return Text.rich(
+                      //   TextSpan(
+                      //     children: [
+                      //       WidgetSpan(child: CurrencyView(amount: returns, privateMode: false)),
+                      //       WidgetSpan(
+                      //         child: Text(
+                      //           percentageReturns > 0 ? ' (${percentageReturns.toPrecision(10)}%)' : ' (0.00%)',
+                      //         ),
+                      //       ),
+                      //     ],
+                      //     style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+                      //   ),
+                      //   textAlign: TextAlign.right,
+                      //   overflow: TextOverflow.ellipsis,
+                      //   maxLines: 1,
+                      // );
+
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        spacing: 4.0,
+                        children: <Widget>[
+                          Flexible(
+                            child: CurrencyView(
+                              amount: returns,
+                              privateMode: false,
+                              style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              percentageReturns > 0 ? '(${percentageReturns.toPrecision(2)}%)' : '(0.00%)',
+                              style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    return const Text('Loading...');
+                  },
                 ),
+                borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
               ),
             ),
-
-            // ~ Returns percentage
-            // _SectionWidget(
-            //   label: const Text('Returns %'),
-            //   value: Text(
-            //     stat.totalAmount > 0
-            //         ? '${((stat.currentValue / stat.totalAmount - 1) * 100).toPrecision(2)}%'
-            //         : '0.00%',
-            //     style: TextStyle(color: (stat.currentValue - stat.totalAmount) < 0 ? Colors.red : Colors.teal),
-            //   ),
-            // ),
 
             // ~ XIRR
             Expanded(
@@ -578,9 +581,15 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                           xf.Transaction(-currentAmount, snapshot.data!.date ?? snapshot.data!.fetchDate),
                         );
                       }
-                      final xirr = transactionsForXirr.isNotEmpty
-                          ? xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate()
-                          : 0.0;
+
+                      double? xirr = 0.0;
+                      if (transactionsForXirr.isNotEmpty) {
+                        try {
+                          xirr = xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate();
+                        } catch (e) {
+                          $logger.e('Error calculating XIRR: $e');
+                        }
+                      }
                       return Text(
                         xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
                         style: TextStyle(color: (xirr ?? 0) < 0 ? Colors.red : Colors.teal),
@@ -607,6 +616,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
 
     try {
       final ltp = await AmcRepository.instance.getLatestPrice(amc);
+      $logger.i('Fetched LTP for ${amc.name}: ${ltp?.price} on ${ltp?.date}');
       if (mounted && ltp != null) {
         context.read<GenreDetailsCubit>().updateCurrentAmount(amc.id, ltp.price * widget.amcTransaction.totalQuantity);
       }
@@ -621,7 +631,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
 class _SectionWidget extends StatelessWidget {
   const _SectionWidget({
     super.key,
-    this.minHeight = 96.0,
+    this.minHeight = 80.0,
     required this.label,
     required this.value,
     this.color,
