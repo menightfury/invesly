@@ -14,7 +14,7 @@ extension IntX on int {
 
 extension EMDoubleExtension on num {
   /// Rounds the number to the specified number of decimal places.
-  double toPrecision(int decimalPlaces) {
+  double toPrecisionDouble(int decimalPlaces) {
     if (isInfinite || isNaN) {
       return toDouble();
     }

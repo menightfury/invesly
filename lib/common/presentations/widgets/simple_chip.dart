@@ -21,7 +21,7 @@ class SimpleChip extends StatelessWidget {
     return PhysicalShape(
       clipper: ShapeBorderClipper(shape: const StadiumBorder()),
       color: color ?? colorScheme.primaryContainer,
-      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0), child: titleText),
+      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0), child: titleText),
     );
   }
 }

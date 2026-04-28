@@ -5,6 +5,7 @@ import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/widgets/simple_card.dart';
+import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/genre/view/genre_details/cubit/genre_details_cubit.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
@@ -321,7 +322,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
         builder: (context, totalCurrentValue) {
           final returns = state.totalInvested > 0 ? (totalCurrentValue / state.totalInvested - 1.0) * 100 : 0;
           return Text(
-            '${returns.toPrecision(2)}%',
+            '${returns.toPrecisionDouble(2)}%',
             textAlign: TextAlign.right,
             style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
           );
@@ -368,18 +369,18 @@ class _HoldingSection extends StatelessWidget {
       spacing: 16.0,
       itemCount: state.isLoaded ? state.stats.length : 2, // 2 for dummy loading
       itemBuilder: (context, index) {
-        final amcTransaction = state.isLoaded ? state.stats[index] : const AmcTransaction(accountId: 'loading');
-
-        return _HoldingStatCard(amcTransaction: amcTransaction);
+        final amcTransaction = state.isLoaded ? state.stats[index] : null;
+        return _HoldingStatCard(isLoaded: state.isLoaded, amcTransaction: amcTransaction);
       },
     );
   }
 }
 
 class _HoldingStatCard extends StatefulWidget {
-  const _HoldingStatCard({super.key, required this.amcTransaction});
+  const _HoldingStatCard({super.key, this.isLoaded = false, this.amcTransaction});
 
-  final AmcTransaction amcTransaction;
+  final bool isLoaded;
+  final AmcTransaction? amcTransaction;
 
   @override
   State<_HoldingStatCard> createState() => _HoldingStatCardState();
@@ -387,7 +388,6 @@ class _HoldingStatCard extends StatefulWidget {
 
 class _HoldingStatCardState extends State<_HoldingStatCard> {
   late Future<LatestPrice?> ltp;
-  // late Future<double?> currentAmount;
 
   @override
   void initState() {
@@ -405,6 +405,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       mainAxisSize: MainAxisSize.min,
       spacing: spacing,
       children: <Widget>[
+        // ~ AMC name and transaction count
         SimpleCard(
           elevation: 0.0,
           color: theme.canvasColor,
@@ -418,15 +419,19 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                // spacing: 16.0,
+                spacing: 4.0,
                 children: <Widget>[
                   Text(
-                    widget.amcTransaction.amc?.name ?? 'N/A',
+                    widget.isLoaded ? widget.amcTransaction?.amc?.name ?? 'N/A' : 'Loading...',
                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
                   ),
-                  Text('${widget.amcTransaction.numTransactions} transactions', style: labelStyle),
+                  Wrap(spacing: 4.0, runSpacing: 4.0, children: _buildTagsForAmc(context)),
+                  Text(
+                    '${widget.isLoaded ? widget.amcTransaction?.numTransactions ?? 0 : 'Loading...'} transactions',
+                    style: labelStyle,
+                  ),
                 ],
               ),
             ),
@@ -436,180 +441,268 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
         Row(
           spacing: spacing,
           children: <Widget>[
+            // ~ Available quantity
+            Expanded(
+              child: _SectionWidget(
+                minHeight: 0.0,
+                label: Text('Available units', style: labelStyle),
+                value: Text(
+                  '${widget.isLoaded ? widget.amcTransaction?.totalQuantity.toPrecisionDouble(4) ?? '0' : 'Loading...'}',
+                  textAlign: TextAlign.right,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ),
+
             // ~ Invested amount
             Expanded(
               child: _SectionWidget(
                 minHeight: 0.0,
                 label: Text('Invested', style: labelStyle),
-                value: CurrencyView(amount: widget.amcTransaction.totalAmount, privateMode: false),
-              ),
-            ),
-
-            // ~ Current value
-            Expanded(
-              child: _SectionWidget(
-                minHeight: 0.0,
-                label: Text('Current value', style: labelStyle),
-                value: FutureBuilder<LatestPrice?>(
-                  future: ltp,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      $logger.e(snapshot.error);
-                      return Text(
-                        'Error loading LTP',
-                        style: TextStyle(color: context.colors.error),
-                        overflow: TextOverflow.ellipsis,
-                      );
-                    }
-
-                    if (snapshot.hasData) {
-                      return CurrencyView(
-                        amount: snapshot.data!.price * widget.amcTransaction.totalQuantity,
-                        privateMode: false,
-                      );
-                    }
-
-                    return const Text('Loading...');
-                  },
-                ),
+                value: widget.isLoaded
+                    ? CurrencyView(amount: widget.amcTransaction?.totalAmount ?? 0, privateMode: false)
+                    : const Text('Loading...'),
               ),
             ),
           ],
         ),
 
-        Row(
-          spacing: spacing,
-          children: <Widget>[
-            // ~ Returns amount
-            Expanded(
-              child: _SectionWidget(
-                minHeight: 0.0,
-                label: Text('Returns', style: labelStyle),
-                value: FutureBuilder(
-                  future: ltp,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Text(
-                        'Error loading LTP',
-                        style: TextStyle(color: context.colors.error),
-                        overflow: TextOverflow.ellipsis,
-                      );
-                    }
-
-                    if (snapshot.hasData) {
-                      final currentAmount = snapshot.data!.price * widget.amcTransaction.totalQuantity;
-                      final returns = currentAmount - widget.amcTransaction.totalAmount;
-                      final percentageReturns = widget.amcTransaction.totalAmount > 0
-                          ? ((currentAmount / widget.amcTransaction.totalAmount - 1) * 100)
-                          : 0.0;
-
-                      // return Text.rich(
-                      //   TextSpan(
-                      //     children: [
-                      //       WidgetSpan(child: CurrencyView(amount: returns, privateMode: false)),
-                      //       WidgetSpan(
-                      //         child: Text(
-                      //           percentageReturns > 0 ? ' (${percentageReturns.toPrecision(10)}%)' : ' (0.00%)',
-                      //         ),
-                      //       ),
-                      //     ],
-                      //     style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-                      //   ),
-                      //   textAlign: TextAlign.right,
-                      //   overflow: TextOverflow.ellipsis,
-                      //   maxLines: 1,
-                      // );
-
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        spacing: 4.0,
-                        children: <Widget>[
-                          Flexible(
-                            child: CurrencyView(
-                              amount: returns,
-                              privateMode: false,
-                              style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-                            ),
-                          ),
-                          Flexible(
-                            child: Text(
-                              percentageReturns > 0 ? '(${percentageReturns.toPrecision(2)}%)' : '(0.00%)',
-                              style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-
-                    return const Text('Loading...');
-                  },
-                ),
-                borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+        if (!widget.isLoaded)
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: spacing,
+            children: <Widget>[
+              Row(
+                spacing: spacing,
+                children: <Widget>[
+                  Expanded(
+                    child: _SectionWidget(minHeight: 0.0, label: Text('Loading...'), value: Text('Loading...')),
+                  ),
+                  Expanded(
+                    child: _SectionWidget(minHeight: 0.0, label: Text('Loading...'), value: Text('Loading...')),
+                  ),
+                ],
               ),
-            ),
 
-            // ~ XIRR
-            Expanded(
-              child: _SectionWidget(
-                minHeight: 0.0,
-                label: Text('XIRR', style: labelStyle),
-                value: FutureBuilder(
-                  future: ltp,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Text(
-                        'Error loading LTP',
-                        style: TextStyle(color: context.colors.error),
-                        overflow: TextOverflow.ellipsis,
-                      );
-                    }
+              Row(
+                spacing: spacing,
+                children: <Widget>[
+                  Expanded(
+                    child: _SectionWidget(
+                      minHeight: 0.0,
+                      label: Text('Loading...'),
+                      value: Text('Loading...'),
+                      borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+                    ),
+                  ),
 
-                    if (widget.amcTransaction.transactions.isEmpty) {
-                      return Text('0.00%', style: TextStyle(color: Colors.teal));
-                    }
-
-                    if (snapshot.hasData) {
-                      final transactionsForXirr = widget.amcTransaction.transactions
-                          .map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
-                          .toList();
-                      if (transactionsForXirr.isNotEmpty) {
-                        final currentAmount = snapshot.data!.price * widget.amcTransaction.totalQuantity;
-                        transactionsForXirr.add(
-                          xf.Transaction(-currentAmount, snapshot.data!.date ?? snapshot.data!.fetchDate),
-                        );
-                      }
-
-                      double? xirr = 0.0;
-                      if (transactionsForXirr.isNotEmpty) {
-                        try {
-                          xirr = xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate();
-                        } catch (e) {
-                          $logger.e('Error calculating XIRR: $e');
-                        }
-                      }
-                      return Text(
-                        xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
-                        style: TextStyle(color: (xirr ?? 0) < 0 ? Colors.red : Colors.teal),
-                      );
-                    }
-
-                    return const Text('Loading...');
-                  },
-                ),
-                borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+                  Expanded(
+                    child: _SectionWidget(
+                      minHeight: 0.0,
+                      label: Text('Loading...'),
+                      value: Text('Loading...'),
+                      borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+
+        if (widget.isLoaded)
+          FutureBuilder<LatestPrice?>(
+            future: ltp,
+            builder: (context, snapshot) {
+              return Skeletonizer(
+                enabled: snapshot.connectionState == ConnectionState.waiting,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: spacing,
+                  children: <Widget>[
+                    Row(
+                      spacing: spacing,
+                      children: <Widget>[
+                        // ~ Current value
+                        Expanded(
+                          child: _SectionWidget(
+                            minHeight: 0.0,
+                            label: Skeleton.keep(child: Text('Current value', style: labelStyle)),
+                            value: _buildCurrentValue(context, snapshot),
+                          ),
+                        ),
+
+                        // ~ Returns amount
+                        Expanded(
+                          child: _SectionWidget(
+                            minHeight: 0.0,
+                            label: Skeleton.keep(child: Text('Returns', style: labelStyle)),
+                            value: _buildReturnAmount(context, snapshot),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    Row(
+                      spacing: spacing,
+                      children: <Widget>[
+                        // ~ % Returns
+                        Expanded(
+                          child: _SectionWidget(
+                            minHeight: 0.0,
+                            label: Skeleton.keep(child: Text('% Returns', style: labelStyle)),
+                            value: _buildReturnPercentage(context, snapshot),
+                            borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+                          ),
+                        ),
+
+                        // ~ XIRR
+                        Expanded(
+                          child: _SectionWidget(
+                            minHeight: 0.0,
+                            label: Skeleton.keep(child: Text('XIRR', style: labelStyle)),
+                            value: _buildXirr(context, snapshot),
+                            borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
       ],
     );
   }
 
+  List<Widget> _buildTagsForAmc(BuildContext context) {
+    if (!widget.isLoaded) {
+      return List.generate(4, (index) => const Skeleton.leaf(child: SimpleChip(title: Text('Loading...'))));
+    }
+
+    final tags = widget.amcTransaction?.amc?.tags;
+    if (tags?.isEmpty ?? true) {
+      return [const SizedBox.shrink()];
+    }
+
+    return List.generate(tags!.length, (index) {
+      final tag = tags.elementAt(index);
+      return SimpleChip(title: Text(tag), color: context.colors.tertiary, titleColor: context.colors.onTertiary);
+    });
+  }
+
+  Widget _buildXirr(BuildContext context, AsyncSnapshot<LatestPrice?> snapshot) {
+    if (snapshot.hasError) {
+      return Text(
+        'Error loading LTP',
+        style: TextStyle(color: context.colors.error),
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    if (widget.amcTransaction?.transactions.isEmpty ?? true) {
+      return Text('0.00%', style: TextStyle(color: Colors.teal));
+    }
+
+    if (snapshot.hasData) {
+      final transactionsForXirr = widget.amcTransaction!.transactions
+          .map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
+          .toList();
+      if (transactionsForXirr.isNotEmpty) {
+        final currentAmount = snapshot.data!.price * (widget.amcTransaction?.totalQuantity ?? 0);
+        transactionsForXirr.add(xf.Transaction(-currentAmount, snapshot.data!.date ?? snapshot.data!.fetchDate));
+      }
+
+      double? xirr = 0.0;
+      if (transactionsForXirr.isNotEmpty) {
+        try {
+          xirr = xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate();
+        } catch (e) {
+          $logger.e('Error calculating XIRR: $e');
+        }
+      }
+      return Text(
+        xirr != null ? '${(xirr * 100).toPrecisionDouble(2)}%' : '0.00%',
+        style: TextStyle(color: (xirr ?? 0) < 0 ? Colors.red : Colors.teal),
+      );
+    }
+
+    return Skeletonizer.zone(child: const Bone.text());
+  }
+
+  Widget _buildReturnPercentage(BuildContext context, AsyncSnapshot<LatestPrice?> snapshot) {
+    if (snapshot.hasError) {
+      return Text(
+        'Error loading LTP',
+        style: TextStyle(color: context.colors.error),
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    if (snapshot.hasData) {
+      final currentAmount = snapshot.data!.price * (widget.amcTransaction?.totalQuantity ?? 0);
+      final returns = currentAmount - (widget.amcTransaction?.totalAmount ?? 0);
+      final percentageReturns = (widget.amcTransaction?.totalAmount ?? 0) > 0
+          ? ((currentAmount / (widget.amcTransaction?.totalAmount ?? 1) - 1) * 100)
+          : 0.0;
+
+      return Text(
+        percentageReturns > 0 ? '${percentageReturns.toPrecisionDouble(2)}%' : '(0.00%)',
+        style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      );
+    }
+
+    return Skeletonizer.zone(child: const Bone.text());
+  }
+
+  Widget _buildReturnAmount(BuildContext context, AsyncSnapshot<LatestPrice?> snapshot) {
+    if (snapshot.hasError) {
+      return Text(
+        'Error loading LTP',
+        style: TextStyle(color: context.colors.error),
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    if (snapshot.hasData) {
+      final currentAmount = snapshot.data!.price * (widget.amcTransaction?.totalQuantity ?? 0);
+      final returns = currentAmount - (widget.amcTransaction?.totalAmount ?? 0);
+      return CurrencyView(
+        amount: returns,
+        privateMode: false,
+        style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+      );
+    }
+
+    return Skeletonizer.zone(child: const Bone.text());
+  }
+
+  Widget _buildCurrentValue(BuildContext context, AsyncSnapshot<LatestPrice?> snapshot) {
+    if (snapshot.hasError) {
+      $logger.e(snapshot.error);
+      return Text(
+        'Error loading LTP',
+        style: TextStyle(color: context.colors.error),
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    if (snapshot.hasData) {
+      return CurrencyView(
+        amount: snapshot.data!.price * (widget.amcTransaction?.totalQuantity ?? 0),
+        privateMode: false,
+      );
+    }
+
+    return Text('Loading...', overflow: TextOverflow.ellipsis);
+  }
+
   Future<LatestPrice?> _getCurrentPrice() async {
-    final amc = widget.amcTransaction.amc;
+    await Future.delayed(5.seconds); // TODO: Remove this delay, it's just to simulate loading state for demo purposes.
+    final amc = widget.amcTransaction?.amc;
     if (amc == null) {
       return null;
     }
@@ -618,7 +711,10 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       final ltp = await AmcRepository.instance.getLatestPrice(amc);
       $logger.i('Fetched LTP for ${amc.name}: ${ltp?.price} on ${ltp?.date}');
       if (mounted && ltp != null) {
-        context.read<GenreDetailsCubit>().updateCurrentAmount(amc.id, ltp.price * widget.amcTransaction.totalQuantity);
+        context.read<GenreDetailsCubit>().updateCurrentAmount(
+          amc.id,
+          ltp.price * (widget.amcTransaction?.totalQuantity ?? 0),
+        );
       }
       return ltp;
     } catch (e) {
