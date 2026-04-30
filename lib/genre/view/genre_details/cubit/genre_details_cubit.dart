@@ -40,9 +40,20 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
     if (state.status != GenreDetailsStateStatus.loaded) {
       return;
     }
-    ;
     final amounts = Map<String, double>.from(state.currentAmounts);
 
     emit(state.copyWith(currentAmounts: amounts..addAll({amcId: currentAmount})));
+  }
+
+  void setSortOption(HoldingSortOption option) {
+    if (state.sortOption == option) {
+      emit(state.copyWith(sortAscending: !state.sortAscending));
+    } else {
+      emit(state.copyWith(sortOption: option, sortAscending: true));
+    }
+  }
+
+  void setHoldingFilter(HoldingFilter filter) {
+    emit(state.copyWith(holdingFilter: filter));
   }
 }

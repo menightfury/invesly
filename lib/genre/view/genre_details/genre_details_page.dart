@@ -98,7 +98,12 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
 
     return BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
       buildWhen: (prev, curr) {
-        return prev.status != curr.status || prev.stats != curr.stats || prev.errorMessage != curr.errorMessage;
+        return prev.status != curr.status ||
+            prev.stats != curr.stats ||
+            prev.errorMessage != curr.errorMessage ||
+            prev.sortOption != curr.sortOption ||
+            prev.sortAscending != curr.sortAscending ||
+            prev.holdingFilter != curr.holdingFilter;
       },
       builder: (context, genreState) {
         $logger.i('GenreDetailsPage is building with state: $genreState');
@@ -347,21 +352,87 @@ class _HoldingSection extends StatelessWidget {
 
   final GenreDetailsState state;
 
+  bool get showControls => state.isLoaded && state.stats.isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 12.0,
       children: <Widget>[
-        Skeleton.keep(child: Text('Present holdings', style: theme.textTheme.titleMedium)),
-        _buildPresentHoldings(context),
+        // Title row with sort button
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Skeleton.keep(child: Text('Holdings with ${state.status}', style: theme.textTheme.titleMedium)),
+            ),
+            Skeleton.ignore(child: _buildSortButton(context)),
+          ],
+        ),
+
+        // Filter chips
+        if (showControls) _buildFilterChips(context),
+
+        _buildHoldings(context),
       ],
     );
   }
 
-  Widget _buildPresentHoldings(BuildContext context) {
+  Widget _buildSortButton(BuildContext context) {
+    final theme = Theme.of(context);
+    final cubit = context.read<GenreDetailsCubit>();
+
+    return AnimatedScale(
+      scale: showControls ? 1.0 : 0.0,
+      duration: 600.ms,
+      child: IconButton(onPressed: () {}, icon: const Icon(Icons.sort_rounded), tooltip: 'Sort holdings'),
+    );
+
+    // return PopupMenuButton<HoldingSortOption>(
+    //
+    //
+    //   padding: EdgeInsets.zero,
+    //   position: PopupMenuPosition.under,
+    //   onSelected: (option) => cubit.setSortOption(option),
+    //   itemBuilder: (_) {
+    //     return HoldingSortOption.values.map((option) {
+    //       final isSelected = state.sortOption == option;
+    //       return PopupMenuItem<HoldingSortOption>(
+    //         value: option,
+    //         child: Row(
+    //           children: <Widget>[
+    //             Expanded(child: Text(option.label)),
+    //             if (isSelected)
+    //               Icon(
+    //                 state.sortAscending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+    //                 size: 16.0,
+    //                 color: theme.colorScheme.primary,
+    //               ),
+    //           ],
+    //         ),
+    //       );
+    //     }).toList();
+    //   },
+    // );
+  }
+
+  Widget _buildFilterChips(BuildContext context) {
+    final cubit = context.read<GenreDetailsCubit>();
+    return InveslyChoiceChips<HoldingFilter>.single(
+      options: HoldingFilter.values.map((f) => InveslyChipData(value: f, label: Text(f.label))).toList(),
+      selected: state.holdingFilter,
+      onChanged: (filter) {
+        if (filter != null) cubit.setHoldingFilter(filter);
+      },
+      wrapped: false,
+      showCheckmark: false,
+    );
+  }
+
+  Widget _buildHoldings(BuildContext context) {
     if (state.isError) {
       return Center(
         child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),
@@ -372,12 +443,26 @@ class _HoldingSection extends StatelessWidget {
       return Center(child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')));
     }
 
+    final displayList = state.displayStats;
+
+    if (state.isLoaded && displayList.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24.0),
+        child: Center(
+          child: Text(
+            'No holdings match the current filter',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ),
+      );
+    }
+
     return ColumnBuilder(
       mainAxisSize: MainAxisSize.min,
       spacing: 16.0,
-      itemCount: state.isLoaded ? state.stats.length : 2, // 2 for dummy loading
+      itemCount: state.isLoaded ? displayList.length : 2,
       itemBuilder: (context, index) {
-        final amcTransaction = state.isLoaded ? state.stats[index] : null;
+        final amcTransaction = state.isLoaded ? displayList[index] : null;
         return _HoldingStatCard(isLoaded: state.isLoaded, amcTransaction: amcTransaction);
       },
     );
