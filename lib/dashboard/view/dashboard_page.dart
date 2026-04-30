@@ -18,7 +18,6 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/settings_page.dart';
 import 'package:invesly/genre/view/genre_details/genre_details_page.dart';
 import 'package:invesly/transactions/transaction_stat/cubit/transaction_stat_cubit.dart';
-import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:invesly/transactions/transactions/transactions_page.dart';

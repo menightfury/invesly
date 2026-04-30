@@ -24,15 +24,11 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
     }
 
     if (state == _DashboardState.loading) {
-      return Center(
-        child: Text(
-          'Loading...', // Will be replaced by shimmer skeleton when loading
-        ),
-      );
+      return const Center(child: Text('Loading...'));
     }
 
     if (stats == null || stats.isEmpty) {
-      return Center(child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')));
+      return const Center(child: Text('This is so empty.\n Add some transactions to see stats here.'));
     }
 
     return ValueListenableBuilder(
@@ -63,7 +59,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                   final isError = accountsState.isError || statState.isError;
                   final isLoading = !isError && (accountsState.isLoading || statState.isLoading);
                   final stats = accountsState.isNotEmpty && statState is TransactionStatLoadedState
-                      ? statState.stats
+                      ? statState.stats.where((stat) => stat.totalQuantity > 0).toList()
                       : null;
                   final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
 
@@ -112,6 +108,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                                 final filteredStats = stats?.where((stat) => stat.amc.genre == genre);
                                 final totalAmount = filteredStats?.fold<double>(0, (v, el) => v + el.totalAmount);
                                 final numTransactions = filteredStats?.fold<int>(0, (v, el) => v + el.numTransactions);
+                                final holdingCount = filteredStats?.length;
 
                                 return _buildGenreTile(
                                   genre: genre,
@@ -121,6 +118,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                                       ? _DashboardState.loading
                                       : _DashboardState.loaded,
                                   numTransactions: numTransactions,
+                                  holdingCount: holdingCount,
                                   totalAmount: totalAmount,
                                 );
                               }),
@@ -143,6 +141,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
     required AmcGenre genre,
     required _DashboardState state,
     int? numTransactions,
+    int? holdingCount,
     double? totalAmount,
   }) {
     final isSelected = _selectedGenre.value == genre;
@@ -156,12 +155,13 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
       );
     } else if (state == _DashboardState.loaded) {
       subtitle = Text(
-        '${numTransactions ?? 'No'} transactions',
+        // '${numTransactions ?? 'No'} transactions',
+        '${holdingCount ?? 'No'} holdings',
         style: TextStyle(color: isSelected ? Colors.white : null),
         overflow: TextOverflow.ellipsis,
       );
     } else {
-      subtitle = Text(
+      subtitle = const Text(
         'Loading...', // Will be replaced by shimmer when loading
         overflow: TextOverflow.ellipsis,
       );
@@ -171,7 +171,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
       tileColor: isSelected ? genre.color : Colors.white.withAlpha(100),
       icon: Skeleton.keep(
         child: PhysicalModel(
-          color: genre.color.lighten(70),
+          color: genre.color.lighten(60),
           shape: BoxShape.circle,
           child: Padding(
             padding: const EdgeInsets.all(8.0),

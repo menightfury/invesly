@@ -203,7 +203,9 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     }
 
     if (state.status == GenreDetailsStateStatus.loaded) {
-      return Text(state.stats.length.toString(), textAlign: TextAlign.right);
+      final totalHoldings = state.stats.length;
+      final presentHoldings = state.stats.where((stat) => stat.totalQuantity > 0).length;
+      return Text('$presentHoldings / $totalHoldings', textAlign: TextAlign.right, overflow: TextOverflow.ellipsis);
     }
 
     return const Text('Loading...');
@@ -353,13 +355,13 @@ class _HoldingSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 12.0,
       children: <Widget>[
-        Skeleton.keep(child: Text('Holdings', style: theme.textTheme.titleMedium)),
-        _buildHoldings(context),
+        Skeleton.keep(child: Text('Present holdings', style: theme.textTheme.titleMedium)),
+        _buildPresentHoldings(context),
       ],
     );
   }
 
-  Widget _buildHoldings(BuildContext context) {
+  Widget _buildPresentHoldings(BuildContext context) {
     if (state.isError) {
       return Center(
         child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),

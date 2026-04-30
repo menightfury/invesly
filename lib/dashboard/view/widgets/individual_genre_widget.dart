@@ -34,7 +34,10 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
                     final isError = accountsState.isError || statState.isError;
                     final isLoading = !isError && (accountsState.isLoading || statState.isLoading);
                     final stats = accountsState.isNotEmpty && statState is TransactionStatLoadedState
-                        ? statState.stats.where((stat) => stat.amc.genre == widget.genre).toList()
+                        ? statState.stats
+                              .where((stat) => stat.amc.genre == widget.genre)
+                              .where((stat) => stat.totalQuantity > 0)
+                              .toList()
                         : null;
                     final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
                     stats?.sort((a, b) => b.totalAmount.compareTo(a.totalAmount));
