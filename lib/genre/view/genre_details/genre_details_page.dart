@@ -66,6 +66,8 @@ class _GenreDetailsPageContent extends StatefulWidget {
 }
 
 class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
+  static const double _spacing = 2.0;
+
   @override
   void initState() {
     super.initState();
@@ -91,7 +93,6 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
 
   @override
   Widget build(BuildContext context) {
-    const spacing = 2.0;
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
@@ -110,7 +111,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
             delegate: SliverChildListDelegate.fixed(<Widget>[
               // ~ Overview
               Column(
-                spacing: spacing,
+                spacing: _spacing,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   // ~ Current Value
@@ -133,7 +134,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                   ),
 
                   Row(
-                    spacing: spacing,
+                    spacing: _spacing,
                     children: <Widget>[
                       // ~ Holding count
                       Expanded(
@@ -158,7 +159,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                   ),
 
                   Row(
-                    spacing: spacing,
+                    spacing: _spacing,
                     children: <Widget>[
                       // ~ Total returns sections
                       Expanded(
@@ -269,12 +270,17 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
               Text(label, style: theme.textTheme.titleMedium),
               Align(
                 alignment: Alignment.bottomRight,
-                child: CurrencyView(
-                  amount: amount,
-                  style: theme.textTheme.headlineSmall,
-                  decimalsStyle: theme.textTheme.titleMedium,
-                  currencyStyle: theme.textTheme.titleMedium,
-                  privateMode: false,
+                child: BlocSelector<AppCubit, AppState, bool>(
+                  selector: (state) => state.isPrivateMode,
+                  builder: (context, isPrivateMode) {
+                    return CurrencyView(
+                      amount: amount,
+                      style: theme.textTheme.headlineSmall,
+                      decimalsStyle: theme.textTheme.titleMedium,
+                      currencyStyle: theme.textTheme.titleMedium,
+                      privateMode: isPrivateMode,
+                    );
+                  },
                 ),
               ),
             ],
@@ -387,6 +393,7 @@ class _HoldingStatCard extends StatefulWidget {
 }
 
 class _HoldingStatCardState extends State<_HoldingStatCard> {
+  static const double _spacing = 2.0;
   late Future<LatestPrice?> ltp;
 
   @override
@@ -397,13 +404,12 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
 
   @override
   Widget build(BuildContext context) {
-    const spacing = 2.0;
     final theme = Theme.of(context);
     final labelStyle = theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
-      spacing: spacing,
+      spacing: _spacing,
       children: <Widget>[
         // ~ AMC name and transaction count
         SimpleCard(
@@ -439,7 +445,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
         ),
 
         Row(
-          spacing: spacing,
+          spacing: _spacing,
           children: <Widget>[
             // ~ Available quantity
             Expanded(
@@ -461,54 +467,22 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                 minHeight: 0.0,
                 label: Text('Invested', style: labelStyle),
                 value: widget.isLoaded
-                    ? CurrencyView(amount: widget.amcTransaction?.totalAmount ?? 0, privateMode: false)
+                    ? BlocSelector<AppCubit, AppState, bool>(
+                        selector: (state) => state.isPrivateMode,
+                        builder: (context, isPrivateMode) {
+                          return CurrencyView(
+                            amount: widget.amcTransaction?.totalAmount ?? 0,
+                            privateMode: isPrivateMode,
+                          );
+                        },
+                      )
                     : const Text('Loading...'),
               ),
             ),
           ],
         ),
 
-        if (!widget.isLoaded)
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: spacing,
-            children: <Widget>[
-              Row(
-                spacing: spacing,
-                children: <Widget>[
-                  Expanded(
-                    child: _SectionWidget(minHeight: 0.0, label: Text('Loading...'), value: Text('Loading...')),
-                  ),
-                  Expanded(
-                    child: _SectionWidget(minHeight: 0.0, label: Text('Loading...'), value: Text('Loading...')),
-                  ),
-                ],
-              ),
-
-              Row(
-                spacing: spacing,
-                children: <Widget>[
-                  Expanded(
-                    child: _SectionWidget(
-                      minHeight: 0.0,
-                      label: Text('Loading...'),
-                      value: Text('Loading...'),
-                      borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
-                    ),
-                  ),
-
-                  Expanded(
-                    child: _SectionWidget(
-                      minHeight: 0.0,
-                      label: Text('Loading...'),
-                      value: Text('Loading...'),
-                      borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        if (!widget.isLoaded) _buildLtpDependentWidget(context, null, labelStyle),
 
         if (widget.isLoaded)
           FutureBuilder<LatestPrice?>(
@@ -516,62 +490,78 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
             builder: (context, snapshot) {
               return Skeletonizer(
                 enabled: snapshot.connectionState == ConnectionState.waiting,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: spacing,
-                  children: <Widget>[
-                    Row(
-                      spacing: spacing,
-                      children: <Widget>[
-                        // ~ Current value
-                        Expanded(
-                          child: _SectionWidget(
-                            minHeight: 0.0,
-                            label: Skeleton.keep(child: Text('Current value', style: labelStyle)),
-                            value: _buildCurrentValue(context, snapshot),
-                          ),
-                        ),
-
-                        // ~ Returns amount
-                        Expanded(
-                          child: _SectionWidget(
-                            minHeight: 0.0,
-                            label: Skeleton.keep(child: Text('Returns', style: labelStyle)),
-                            value: _buildReturnAmount(context, snapshot),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    Row(
-                      spacing: spacing,
-                      children: <Widget>[
-                        // ~ % Returns
-                        Expanded(
-                          child: _SectionWidget(
-                            minHeight: 0.0,
-                            label: Skeleton.keep(child: Text('% Returns', style: labelStyle)),
-                            value: _buildReturnPercentage(context, snapshot),
-                            borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
-                          ),
-                        ),
-
-                        // ~ XIRR
-                        Expanded(
-                          child: _SectionWidget(
-                            minHeight: 0.0,
-                            label: Skeleton.keep(child: Text('XIRR', style: labelStyle)),
-                            value: _buildXirr(context, snapshot),
-                            borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                child: _buildLtpDependentWidget(context, snapshot, labelStyle),
               );
             },
           ),
+      ],
+    );
+  }
+
+  Widget _buildLtpDependentWidget(
+    BuildContext context, [
+    AsyncSnapshot<LatestPrice?>? snapshot,
+    TextStyle? labelStyle,
+  ]) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      spacing: _spacing,
+      children: <Widget>[
+        Row(
+          spacing: _spacing,
+          children: <Widget>[
+            // ~ Current value
+            Expanded(
+              child: _SectionWidget(
+                minHeight: 0.0,
+                label: snapshot != null
+                    ? Skeleton.keep(child: Text('Current value', style: labelStyle))
+                    : const Text('Loading...'),
+                value: snapshot != null ? _buildCurrentValue(context, snapshot) : const Text('Loading...'),
+              ),
+            ),
+
+            // ~ Returns amount
+            Expanded(
+              child: _SectionWidget(
+                minHeight: 0.0,
+                label: snapshot != null
+                    ? Skeleton.keep(child: Text('Returns', style: labelStyle))
+                    : const Text('Loading...'),
+                value: snapshot != null ? _buildReturnAmount(context, snapshot) : const Text('Loading...'),
+              ),
+            ),
+          ],
+        ),
+
+        Row(
+          spacing: _spacing,
+          children: <Widget>[
+            // ~ % Returns
+            Expanded(
+              child: _SectionWidget(
+                minHeight: 0.0,
+                label: snapshot != null
+                    ? Skeleton.keep(child: Text('% Returns', style: labelStyle))
+                    : const Text('Loading...'),
+                value: snapshot != null ? _buildReturnPercentage(context, snapshot) : const Text('Loading...'),
+                borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+              ),
+            ),
+
+            // ~ XIRR
+            Expanded(
+              child: _SectionWidget(
+                minHeight: 0.0,
+                label: snapshot != null
+                    ? Skeleton.keep(child: Text('XIRR', style: labelStyle))
+                    : const Text('Loading...'),
+                value: snapshot != null ? _buildXirr(context, snapshot) : const Text('Loading...'),
+                borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -670,10 +660,15 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     if (snapshot.hasData) {
       final currentAmount = snapshot.data!.price * (widget.amcTransaction?.totalQuantity ?? 0);
       final returns = currentAmount - (widget.amcTransaction?.totalAmount ?? 0);
-      return CurrencyView(
-        amount: returns,
-        privateMode: false,
-        style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+      return BlocSelector<AppCubit, AppState, bool>(
+        selector: (state) => state.isPrivateMode,
+        builder: (context, isPrivateMode) {
+          return CurrencyView(
+            amount: returns,
+            privateMode: isPrivateMode,
+            style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+          );
+        },
       );
     }
 
@@ -691,9 +686,14 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     }
 
     if (snapshot.hasData) {
-      return CurrencyView(
-        amount: snapshot.data!.price * (widget.amcTransaction?.totalQuantity ?? 0),
-        privateMode: false,
+      return BlocSelector<AppCubit, AppState, bool>(
+        selector: (state) => state.isPrivateMode,
+        builder: (context, isPrivateMode) {
+          return CurrencyView(
+            amount: snapshot.data!.price * (widget.amcTransaction?.totalQuantity ?? 0),
+            privateMode: isPrivateMode,
+          );
+        },
       );
     }
 

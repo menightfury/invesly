@@ -83,7 +83,7 @@ class AmcRepository {
   }
 
   /// Add or update amc
-  Future<void> saveAmc(InveslyAmc amc, [bool isNew = true]) async {
+  Future<void> saveAmc(InveslyAmc amc, {bool isNew = true}) async {
     if (isNew) {
       await _api.insert(_amcTable, amc);
       // await _api.table(_amcTable).insert(amc)
@@ -115,8 +115,6 @@ class AmcRepository {
     }, response.body);
   }
 
-  // final Map<String, LatestPrice> _latestPriceCache = {};
-
   /// Get latest price for an AMC
   Future<LatestPrice?> getLatestPrice(InveslyAmc amc) async {
     // if latest price is available and is fetched today, return it
@@ -140,8 +138,12 @@ class AmcRepository {
       // If the server did return a 200 OK response, parse the JSON.
       final parsed = jsonDecode(response.body) as Map<String, dynamic>;
       latestPrice = amc.fromLtpMap(parsed);
-    } catch (e) {
-      $logger.e('Error fetching latest price');
+      if (latestPrice != null) {
+        final updatedAmc = amc.copyWith(ltp: latestPrice);
+        await saveAmc(updatedAmc, isNew: false);
+      }
+    } catch (err) {
+      $logger.e(err);
     }
     return latestPrice;
   }
