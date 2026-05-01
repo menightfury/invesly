@@ -26,28 +26,20 @@ class GenreDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) {
-        return GenreDetailsCubit(
-          amcRepository: AmcRepository.instance,
-          transactionRepository: TransactionRepository.instance,
-        );
-      },
-      child: Scaffold(
-        body: SafeArea(
-          child: CustomScrollView(
-            slivers: <Widget>[
-              SliverAppBar(title: Text(genre.title), floating: true, snap: true),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-                sliver: BlocSelector<AppCubit, AppState, String?>(
-                  selector: (state) => state.primaryAccountId,
-                  builder: (context, accountId) {
-                    return _GenreDetailsPageContent(accountId: accountId, genre: genre);
-                  },
-                ),
-              ),
-            ],
+    return Scaffold(
+      body: SafeArea(
+        child: BlocProvider(
+          create: (_) {
+            return GenreDetailsCubit(
+              amcRepository: AmcRepository.instance,
+              transactionRepository: TransactionRepository.instance,
+            );
+          },
+          child: BlocSelector<AppCubit, AppState, String?>(
+            selector: (state) => state.primaryAccountId,
+            builder: (context, accountId) {
+              return _GenreDetailsPageContent(genre: genre, accountId: accountId);
+            },
           ),
         ),
       ),
@@ -96,110 +88,217 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverAppBar(title: Text(widget.genre.title), floating: true, snap: true),
+
+        // ~ AMC Overview Section
+        SliverToBoxAdapter(
+          child: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+            buildWhen: (prev, curr) {
+              return prev.status != curr.status || prev.stats != curr.stats || prev.errorMessage != curr.errorMessage;
+            },
+            builder: (context, genreState) {
+              final isError = genreState.isError;
+              final isLoading = genreState.isLoading;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Skeletonizer(
+                  enabled: isLoading,
+                  child: Column(
+                    spacing: _spacing,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      // ~ Current Value
+                      _SectionWidget(
+                        label: Skeleton.keep(
+                          child: FormattedDate(
+                            date: DateTime.now(),
+                            prefix: const Text('Current value as of '),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                          ),
+                        ),
+                        value: _buildTotalCurrentAmount(context, genreState),
+                        borderRadius: iCardBorderRadius.copyWith(
+                          bottomLeft: iTileBorderRadius.bottomLeft,
+                          bottomRight: iTileBorderRadius.bottomRight,
+                        ),
+                        color: isError ? colors.errorContainer : null,
+                        valueColor: isError ? colors.error : null,
+                      ),
+
+                      Row(
+                        spacing: _spacing,
+                        children: <Widget>[
+                          // ~ Holding count
+                          Expanded(
+                            child: _SectionWidget(
+                              label: const Skeleton.keep(child: Text('No. of holdings')),
+                              value: _buildHoldingCount(context, genreState),
+                              color: isError ? colors.errorContainer : null,
+                              valueColor: isError ? colors.error : null,
+                            ),
+                          ),
+
+                          // ~ Invested amount section
+                          Expanded(
+                            child: _SectionWidget(
+                              label: const Skeleton.keep(child: Text('Invested amount')),
+                              value: _buildTotalInvestedAmount(context, genreState),
+                              color: isError ? colors.errorContainer : null,
+                              valueColor: isError ? colors.error : null,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      Row(
+                        spacing: _spacing,
+                        children: <Widget>[
+                          // ~ Total returns sections
+                          Expanded(
+                            child: _SectionWidget(
+                              label: const Skeleton.keep(child: Text('Total returns')),
+                              value: _buildAmountReturns(context, genreState),
+                              color: isError ? colors.errorContainer : null,
+                              valueColor: isError ? colors.error : Colors.teal.shade500,
+                              borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+                            ),
+                          ),
+
+                          // ~ XIRR section
+                          Expanded(
+                            child: _SectionWidget(
+                              label: const Skeleton.keep(child: Text('XIRR')),
+                              value: _buildPercentageReturns(context, genreState),
+                              color: isError ? colors.errorContainer : null,
+                              valueColor: isError ? colors.error : null,
+                              borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+
+        const SliverGap(16.0),
+
+        SliverToBoxAdapter(
+          child: // Title row with sort button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text('Holdings', style: theme.textTheme.titleMedium),
+                    _buildSortButton(context),
+                  ],
+                ),
+
+                // Filter chips
+                // if (showControls) _buildFilterChips(context),
+              ],
+            ),
+          ),
+        ),
+
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+          sliver: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+            buildWhen: (prev, curr) {
+              return prev.status != curr.status ||
+                  prev.stats != curr.stats ||
+                  prev.errorMessage != curr.errorMessage ||
+                  prev.sortOption != curr.sortOption ||
+                  prev.sortAscending != curr.sortAscending ||
+                  prev.holdingFilter != curr.holdingFilter;
+            },
+            builder: (context, genreState) {
+              $logger.i('GenreDetailsPage is building with state: $genreState');
+              final isError = genreState.isError;
+              final isLoading = genreState.isLoading;
+
+              return SliverList(
+                delegate: SliverChildListDelegate.fixed(<Widget>[
+                  // ~ Overview
+                  _HoldingSection(state: genreState),
+                ]),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterChips(BuildContext context) {
+    final cubit = context.read<GenreDetailsCubit>();
+    final state = cubit.state;
+    return InveslyChoiceChips<HoldingFilter>.single(
+      options: HoldingFilter.values.map((f) => InveslyChipData(value: f, label: Text(f.label))).toList(),
+      selected: state.holdingFilter,
+      onChanged: (filter) {
+        if (filter != null) cubit.setHoldingFilter(filter);
+      },
+      wrapped: false,
+      showCheckmark: false,
+    );
+  }
+
+  Widget _buildSortButton(BuildContext context) {
+    // final theme = Theme.of(context);
+    // final cubit = context.read<GenreDetailsCubit>();
+
     return BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
       buildWhen: (prev, curr) {
-        return prev.status != curr.status ||
-            prev.stats != curr.stats ||
-            prev.errorMessage != curr.errorMessage ||
-            prev.sortOption != curr.sortOption ||
-            prev.sortAscending != curr.sortAscending ||
-            prev.holdingFilter != curr.holdingFilter;
+        return prev.status != curr.status || prev.stats != curr.stats;
       },
       builder: (context, genreState) {
-        $logger.i('GenreDetailsPage is building with state: $genreState');
-        final isError = genreState.isError;
-        final isLoading = genreState.isLoading;
-
-        return SliverSkeletonizer(
-          enabled: isLoading,
-          child: SliverList(
-            delegate: SliverChildListDelegate.fixed(<Widget>[
-              // ~ Overview
-              Column(
-                spacing: _spacing,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  // ~ Current Value
-                  _SectionWidget(
-                    label: Skeleton.keep(
-                      child: FormattedDate(
-                        date: DateTime.now(),
-                        prefix: const Text('Current value as of '),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                      ),
-                    ),
-                    value: _buildTotalCurrentAmount(context, genreState),
-                    borderRadius: iCardBorderRadius.copyWith(
-                      bottomLeft: iTileBorderRadius.bottomLeft,
-                      bottomRight: iTileBorderRadius.bottomRight,
-                    ),
-                    color: isError ? colors.errorContainer : null,
-                    valueColor: isError ? colors.error : null,
-                  ),
-
-                  Row(
-                    spacing: _spacing,
-                    children: <Widget>[
-                      // ~ Holding count
-                      Expanded(
-                        child: _SectionWidget(
-                          label: const Skeleton.keep(child: Text('No. of holdings')),
-                          value: _buildHoldingCount(context, genreState),
-                          color: isError ? colors.errorContainer : null,
-                          valueColor: isError ? colors.error : null,
-                        ),
-                      ),
-
-                      // ~ Invested amount section
-                      Expanded(
-                        child: _SectionWidget(
-                          label: const Skeleton.keep(child: Text('Invested amount')),
-                          value: _buildTotalInvestedAmount(context, genreState),
-                          color: isError ? colors.errorContainer : null,
-                          valueColor: isError ? colors.error : null,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  Row(
-                    spacing: _spacing,
-                    children: <Widget>[
-                      // ~ Total returns sections
-                      Expanded(
-                        child: _SectionWidget(
-                          label: const Skeleton.keep(child: Text('Total returns')),
-                          value: _buildAmountReturns(context, genreState),
-                          color: isError ? colors.errorContainer : null,
-                          valueColor: isError ? colors.error : Colors.teal.shade500,
-                          borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
-                        ),
-                      ),
-
-                      // ~ XIRR section
-                      Expanded(
-                        child: _SectionWidget(
-                          label: const Skeleton.keep(child: Text('XIRR')),
-                          value: _buildPercentageReturns(context, genreState),
-                          color: isError ? colors.errorContainer : null,
-                          valueColor: isError ? colors.error : null,
-                          borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              const Gap(16.0),
-
-              _HoldingSection(state: genreState),
-            ]),
-          ),
+        return AnimatedScale(
+          key: ValueKey('button'),
+          scale: genreState.isLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
+          alignment: Alignment.centerRight,
+          duration: 200.ms,
+          child: IconButton(onPressed: () {}, icon: const Icon(Icons.sort_rounded), tooltip: 'Sort holdings'),
         );
       },
     );
+
+    // return PopupMenuButton<HoldingSortOption>(
+    //
+    //   padding: EdgeInsets.zero,
+    //   position: PopupMenuPosition.under,
+    //   onSelected: (option) => cubit.setSortOption(option),
+    //   itemBuilder: (_) {
+    //     return HoldingSortOption.values.map((option) {
+    //       final isSelected = state.sortOption == option;
+    //       return PopupMenuItem<HoldingSortOption>(
+    //         value: option,
+    //         child: Row(
+    //           children: <Widget>[
+    //             Expanded(child: Text(option.label)),
+    //             if (isSelected)
+    //               Icon(
+    //                 state.sortAscending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+    //                 size: 16.0,
+    //                 color: theme.colorScheme.primary,
+    //               ),
+    //           ],
+    //         ),
+    //       );
+    //     }).toList();
+    //   },
+    // );
   }
 
   Widget _buildHoldingCount(BuildContext context, GenreDetailsState state) {
@@ -273,6 +372,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Text(label, style: theme.textTheme.titleMedium),
               Align(
@@ -358,78 +458,7 @@ class _HoldingSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 12.0,
-      children: <Widget>[
-        // Title row with sort button
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Skeleton.keep(child: Text('Holdings with ${state.status}', style: theme.textTheme.titleMedium)),
-            ),
-            Skeleton.ignore(child: _buildSortButton(context)),
-          ],
-        ),
-
-        // Filter chips
-        if (showControls) _buildFilterChips(context),
-
-        _buildHoldings(context),
-      ],
-    );
-  }
-
-  Widget _buildSortButton(BuildContext context) {
-    final theme = Theme.of(context);
-    final cubit = context.read<GenreDetailsCubit>();
-
-    return AnimatedScale(
-      scale: showControls ? 1.0 : 0.0,
-      duration: 600.ms,
-      child: IconButton(onPressed: () {}, icon: const Icon(Icons.sort_rounded), tooltip: 'Sort holdings'),
-    );
-
-    // return PopupMenuButton<HoldingSortOption>(
-    //
-    //
-    //   padding: EdgeInsets.zero,
-    //   position: PopupMenuPosition.under,
-    //   onSelected: (option) => cubit.setSortOption(option),
-    //   itemBuilder: (_) {
-    //     return HoldingSortOption.values.map((option) {
-    //       final isSelected = state.sortOption == option;
-    //       return PopupMenuItem<HoldingSortOption>(
-    //         value: option,
-    //         child: Row(
-    //           children: <Widget>[
-    //             Expanded(child: Text(option.label)),
-    //             if (isSelected)
-    //               Icon(
-    //                 state.sortAscending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
-    //                 size: 16.0,
-    //                 color: theme.colorScheme.primary,
-    //               ),
-    //           ],
-    //         ),
-    //       );
-    //     }).toList();
-    //   },
-    // );
-  }
-
-  Widget _buildFilterChips(BuildContext context) {
-    final cubit = context.read<GenreDetailsCubit>();
-    return InveslyChoiceChips<HoldingFilter>.single(
-      options: HoldingFilter.values.map((f) => InveslyChipData(value: f, label: Text(f.label))).toList(),
-      selected: state.holdingFilter,
-      onChanged: (filter) {
-        if (filter != null) cubit.setHoldingFilter(filter);
-      },
-      wrapped: false,
-      showCheckmark: false,
-    );
+    return Skeletonizer(enabled: state.isLoading, child: _buildHoldings(context));
   }
 
   Widget _buildHoldings(BuildContext context) {
@@ -512,6 +541,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 spacing: 4.0,
                 children: <Widget>[
                   Text(
@@ -862,6 +892,7 @@ class _SectionWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             spacing: contentSpacing ?? 0.0,
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               labelText,
               Align(alignment: Alignment.bottomRight, child: valueText),
