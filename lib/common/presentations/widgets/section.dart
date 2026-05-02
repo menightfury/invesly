@@ -121,7 +121,7 @@ class Section extends StatelessWidget {
               title: titleText,
               subtitle: subtitleText,
               icon: icon,
-              trailingIcon: trailingIcon,
+              secondaryIcon: trailingIcon,
               tileColor: theme.colorScheme.primaryContainer.darken(3),
               borderRadius: hasTiles
                   ? iCardBorderRadius.copyWith(
@@ -141,13 +141,13 @@ class Section extends StatelessWidget {
 
 enum _SectionTileVariant { normal, navigation, toggle, check, radio }
 
-class SectionTile extends StatelessWidget {
+class SectionTile<T> extends StatelessWidget {
   final Widget title;
   final Widget? subtitle;
   final double? contentSpacing;
   final EdgeInsetsGeometry? padding;
   final Widget? icon;
-  final Widget? trailingIcon;
+  final Widget? secondaryIcon;
   final Color? tileColor;
   final Color? selectedTileColor;
   final ShapeBorder? shape;
@@ -158,6 +158,7 @@ class SectionTile extends StatelessWidget {
   final bool selected;
   final bool _value; // for switch tile only
   final _SectionTileVariant _variant;
+  final ListTileControlAffinity controlAffinity;
 
   const SectionTile({
     super.key,
@@ -166,7 +167,7 @@ class SectionTile extends StatelessWidget {
     this.contentSpacing,
     this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     this.icon,
-    this.trailingIcon,
+    this.secondaryIcon,
     this.tileColor,
     this.selectedTileColor,
     this.shape,
@@ -177,7 +178,8 @@ class SectionTile extends StatelessWidget {
   }) : _onTap = onTap,
        _variant = _SectionTileVariant.normal,
        _onChanged = null,
-       _value = false;
+       _value = false,
+       controlAffinity = ListTileControlAffinity.platform;
 
   const SectionTile.navigation({
     super.key,
@@ -186,7 +188,7 @@ class SectionTile extends StatelessWidget {
     this.contentSpacing,
     this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     this.icon,
-    this.trailingIcon,
+    this.secondaryIcon,
     this.tileColor,
     this.selectedTileColor,
     this.shape,
@@ -197,7 +199,8 @@ class SectionTile extends StatelessWidget {
   }) : _onTap = onTap,
        _variant = _SectionTileVariant.navigation,
        _value = false,
-       _onChanged = null;
+       _onChanged = null,
+       controlAffinity = ListTileControlAffinity.platform;
 
   const SectionTile.switchTile({
     super.key,
@@ -214,10 +217,11 @@ class SectionTile extends StatelessWidget {
     this.enabled = true,
     this.selected = false,
     void Function(bool)? onChanged,
+    this.controlAffinity = ListTileControlAffinity.platform,
   }) : _onChanged = onChanged,
        _value = value,
        _variant = _SectionTileVariant.toggle,
-       trailingIcon = null,
+       secondaryIcon = null,
        _onTap = null;
 
   const SectionTile.checkTile({
@@ -235,10 +239,11 @@ class SectionTile extends StatelessWidget {
     this.enabled = true,
     this.selected = false,
     void Function(bool)? onChanged,
+    this.controlAffinity = ListTileControlAffinity.platform,
   }) : _onChanged = onChanged,
        _value = value,
        _variant = _SectionTileVariant.check,
-       trailingIcon = null,
+       secondaryIcon = null,
        _onTap = null;
 
   const SectionTile.radioTile({
@@ -248,7 +253,7 @@ class SectionTile extends StatelessWidget {
     this.contentSpacing,
     this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     this.icon,
-    required bool value,
+    required T value,
     this.tileColor,
     this.selectedTileColor,
     this.shape,
@@ -256,10 +261,11 @@ class SectionTile extends StatelessWidget {
     this.enabled = true,
     this.selected = false,
     void Function(bool)? onChanged,
+    this.controlAffinity = ListTileControlAffinity.platform,
   }) : _onChanged = onChanged,
-       _value = value,
+       _value = false,
        _variant = _SectionTileVariant.radio,
-       trailingIcon = null,
+       secondaryIcon = null,
        _onTap = null;
 
   Color _tileColor(ThemeData theme, ListTileThemeData tileTheme) {
@@ -293,19 +299,25 @@ class SectionTile extends StatelessWidget {
       );
     }
 
-    final effectiveTrailingIcon = switch (_variant) {
-      _SectionTileVariant.toggle => Switch(value: _value, onChanged: _onChanged),
-      _SectionTileVariant.navigation => trailingIcon ?? const Icon(Icons.keyboard_double_arrow_right_outlined),
+    final leadingIcon = switch (_variant) {
       _SectionTileVariant.check => Checkbox(
         value: _value,
         onChanged: _onChanged != null ? (value) => _onChanged.call(value ?? false) : null,
       ),
-      _SectionTileVariant.radio => Radio(
-        value: true,
-        groupValue: _value,
-        onChanged: _onChanged != null ? (value) => _onChanged.call(value ?? false) : null,
-      ),
-      _ => trailingIcon,
+      _SectionTileVariant.radio => Radio<T>(value: true),
+      _ => icon,
+    };
+
+    final trailingIcon = switch (_variant) {
+      _SectionTileVariant.toggle => Switch(value: _value, onChanged: _onChanged),
+      _SectionTileVariant.navigation => secondaryIcon ?? const Icon(Icons.keyboard_double_arrow_right_outlined),
+      _ => secondaryIcon,
+    };
+
+    Widget? leading, trailing;
+    (leading, trailing) = switch (controlAffinity) {
+      ListTileControlAffinity.leading || ListTileControlAffinity.platform => (leadingIcon, trailingIcon),
+      ListTileControlAffinity.trailing => (trailingIcon, leadingIcon),
     };
 
     return GestureDetector(
@@ -334,7 +346,7 @@ class SectionTile extends StatelessWidget {
                 child: Row(
                   spacing: 16.0,
                   children: <Widget>[
-                    ?icon,
+                    ?leading,
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,7 +354,7 @@ class SectionTile extends StatelessWidget {
                         children: <Widget>[titleText, ?subtitleText],
                       ),
                     ),
-                    ?effectiveTrailingIcon,
+                    ?trailing,
                   ],
                 ),
               ),

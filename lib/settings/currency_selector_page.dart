@@ -35,7 +35,7 @@ class CurrencySelectorPage extends StatelessWidget {
                   child: Text(currency.symbol),
                 ),
                 title: Text('${currency.name} (${currency.code})'),
-                trailingIcon: isSelected ? Icon(Icons.check_rounded, color: context.theme.primaryColor) : null,
+                secondaryIcon: isSelected ? Icon(Icons.check_rounded, color: context.theme.primaryColor) : null,
               );
             },
           );

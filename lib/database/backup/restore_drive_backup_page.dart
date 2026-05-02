@@ -61,7 +61,7 @@ class RestoreDriveBackupPage extends StatelessWidget {
                     ),
                     tileColor: context.colors.surface,
                     padding: const EdgeInsets.all(16.0),
-                    trailingIcon: FilledButton.tonal(
+                    secondaryIcon: FilledButton.tonal(
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                         minimumSize: const Size(0.0, 0.0),

@@ -259,7 +259,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                           Text(trn?.account.name ?? 'NULL'),
                                         ],
                                       ),
-                                      trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                                      secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
                                         selector: (state) => state.isPrivateMode,
                                         builder: (context, isPrivateMode) {
                                           return Column(

@@ -196,7 +196,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                               subtitle: isCurrentAccount ? const Text('Primary account') : null,
-                                              trailingIcon: IconButton(
+                                              secondaryIcon: IconButton(
                                                 onPressed: () => context.push(EditAccountPage(initialAccount: account)),
                                                 icon: const Icon(Icons.edit_note_rounded),
                                                 style: IconButton.styleFrom(
@@ -325,7 +325,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           // title: Text(context.watch<SettingsRepository>().currentLocale.name),
                           icon: const Icon(Icons.color_lens_rounded),
                           subtitle: const Text('Choose the accent color to emphasize certain elements'),
-                          trailingIcon: CircleAvatar(
+                          secondaryIcon: CircleAvatar(
                             backgroundColor: isDynamic ? accentColor.withAlpha(120) : accentColor,
                           ),
                           onTap: () async {

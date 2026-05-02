@@ -587,7 +587,7 @@ class _ColumnSelector extends StatelessWidget {
                     return SectionTile(
                       title: Text(entry.value.trim()),
                       onTap: () => context.pop(entry.key),
-                      trailingIcon: isSelected
+                      secondaryIcon: isSelected
                           ? const Icon(Icons.check_rounded)
                           : isSelectionAllowed
                           ? null

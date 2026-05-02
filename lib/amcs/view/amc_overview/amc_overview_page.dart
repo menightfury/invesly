@@ -423,7 +423,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                               title: Text('Loading...'),
                                               subtitle: Text('Loading...'),
                                               icon: Icon(Icons.north_east_rounded),
-                                              trailingIcon: Text('Loading...'),
+                                              secondaryIcon: Text('Loading...'),
                                             ),
                                           ),
                                   ),
@@ -497,7 +497,7 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
           ),
         ),
       ),
-      trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+      secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
           return CurrencyView(

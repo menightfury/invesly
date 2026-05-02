@@ -36,7 +36,7 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
                   icon: Icon(trn.transactionType.icon),
                   title: Text(trn.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
                   subtitle: FormattedDate(date: trn.investedOn),
-                  trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+                  secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
                     selector: (state) => state.isPrivateMode,
                     builder: (context, isPrivateMode) {
                       return CurrencyView(
@@ -55,7 +55,7 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
                   icon: Icon(Icons.swap_vert_rounded),
                   title: Text('Loading...', style: context.textTheme.bodyMedium),
                   subtitle: Text('Loading...'),
-                  trailingIcon: CurrencyView(amount: 0.0, style: context.textTheme.headlineSmall),
+                  secondaryIcon: CurrencyView(amount: 0.0, style: context.textTheme.headlineSmall),
                 );
               });
             }

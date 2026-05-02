@@ -54,7 +54,7 @@ class InveslyDateFormatPicker extends StatelessWidget {
                     title: Text(DateFormat(data).format(dateNow)),
                     subtitle: Text(data),
                     onTap: () => context.pop(data),
-                    trailingIcon: data == value ? const Icon(Icons.check_rounded) : null,
+                    secondaryIcon: data == value ? const Icon(Icons.check_rounded) : null,
                     selectedTileColor: context.theme.primaryColor.withAlpha(125),
                     // enabled: isSelectionAllowed,
                     selected: data == value,

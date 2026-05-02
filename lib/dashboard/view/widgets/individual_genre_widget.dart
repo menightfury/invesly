@@ -122,7 +122,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
           tileColor: Colors.white.withAlpha(100),
           title: Text(stat?.amc.name ?? 'Loading...', overflow: TextOverflow.ellipsis),
           subtitle: Text('${stat?.numTransactions ?? 0} transactions', overflow: TextOverflow.ellipsis),
-          trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+          secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
             selector: (state) => state.isPrivateMode,
             builder: (context, isPrivateMode) {
               return CurrencyView(

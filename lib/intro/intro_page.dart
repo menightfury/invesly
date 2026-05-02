@@ -232,7 +232,7 @@ class _CurrencySelector extends StatelessWidget {
           title: Text('Currency', style: context.textTheme.labelSmall?.copyWith(color: context.colors.secondary)),
           subtitle: Text(selected.name, style: context.textTheme.titleMedium),
           onTap: () => context.push(const CurrencySelectorPage()),
-          trailingIcon: Icon(Icons.keyboard_arrow_down_rounded, color: context.colors.onSurfaceVariant),
+          secondaryIcon: Icon(Icons.keyboard_arrow_down_rounded, color: context.colors.onSurfaceVariant),
           shape: RoundedRectangleBorder(
             side: BorderSide(color: context.colors.outlineVariant),
             borderRadius: iCardBorderRadius,

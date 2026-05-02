@@ -206,7 +206,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
       context: context,
       useSafeArea: true,
       builder: (context) {
-        return Padding(
+        return SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -217,50 +217,38 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                 child: Text('Sort holdings by', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
               ),
               const Gap(12.0),
-              Section(
-                tiles: HoldingSortOption.values.map((option) {
-                  // final isSelected = state.sortOption == option;
-                  return SectionTile(
-                    title: Text(option.label),
-                    subtitle: Wrap(
-                      spacing: 4.0,
-                      runSpacing: 4.0,
-                      children: <Widget>[
-                        SimpleChip(
-                          title: Text(option.ascendingLabel ?? 'Ascending'),
-                          color: context.colors.primaryContainer,
-                          titleColor: context.colors.onPrimaryContainer,
-                        ),
-                        SimpleChip(
-                          title: Text(option.descendingLabel ?? 'Descending'),
-                          color: context.colors.primaryContainer,
-                          titleColor: context.colors.onPrimaryContainer,
-                        ),
-                      ],
-                    ),
-                    // onTap: () {
-                    //   context.read<GenreDetailsCubit>().setSortOption(option);
-                    //   Navigator.maybePop(context);
-                    // },
-                    // trailingIcon: isSelected
-                    //     ? Icon(state.sortAscending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, size: 16.0)
-                    //     : null,
-                  );
-                  return PopupMenuItem<HoldingSortOption>(
-                    value: option,
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(child: Text(option.label)),
-                        // if (isSelected)
-                        //   Icon(
-                        //     state.sortAscending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
-                        //     size: 16.0,
-                        //     color: theme.colorScheme.primary,
-                        //   ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+              RadioGroup<HoldingSortOption>(
+                groupValue: HoldingSortOption.invested,
+                onChanged: (option) {
+                  if (option == null) return;
+
+                  context.read<GenreDetailsCubit>().setSortOption(option);
+                  // Navigator.maybePop(context);
+                },
+                child: Section(
+                  tiles: HoldingSortOption.values.map((option) {
+                    return SectionTile.radioTile(
+                      title: Text(option.label),
+                      value: option,
+                      subtitle: Wrap(
+                        spacing: 4.0,
+                        runSpacing: 4.0,
+                        children: <Widget>[
+                          SimpleChip(
+                            title: Text(option.ascendingLabel ?? 'Ascending'),
+                            color: context.colors.primaryContainer,
+                            titleColor: context.colors.onPrimaryContainer,
+                          ),
+                          SimpleChip(
+                            title: Text(option.descendingLabel ?? 'Descending'),
+                            color: context.colors.primaryContainer,
+                            titleColor: context.colors.onPrimaryContainer,
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ],
           ),

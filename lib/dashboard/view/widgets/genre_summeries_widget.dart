@@ -187,7 +187,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
         ),
       ),
       subtitle: subtitle,
-      trailingIcon: BlocSelector<AppCubit, AppState, bool>(
+      secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
           return CurrencyView(
