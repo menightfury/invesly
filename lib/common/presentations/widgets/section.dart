@@ -139,7 +139,7 @@ class Section extends StatelessWidget {
   }
 }
 
-enum _SectionTileVariant { normal, navigation, toggle, check }
+enum _SectionTileVariant { normal, navigation, toggle, check, radio }
 
 class SectionTile extends StatelessWidget {
   final Widget title;
@@ -241,6 +241,27 @@ class SectionTile extends StatelessWidget {
        trailingIcon = null,
        _onTap = null;
 
+  const SectionTile.radioTile({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.contentSpacing,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    this.icon,
+    required bool value,
+    this.tileColor,
+    this.selectedTileColor,
+    this.shape,
+    this.borderRadius = iTileBorderRadius,
+    this.enabled = true,
+    this.selected = false,
+    void Function(bool)? onChanged,
+  }) : _onChanged = onChanged,
+       _value = value,
+       _variant = _SectionTileVariant.radio,
+       trailingIcon = null,
+       _onTap = null;
+
   Color _tileColor(ThemeData theme, ListTileThemeData tileTheme) {
     final Color? color = selected
         ? selectedTileColor ?? tileTheme.selectedTileColor ?? theme.listTileTheme.selectedTileColor
@@ -277,6 +298,11 @@ class SectionTile extends StatelessWidget {
       _SectionTileVariant.navigation => trailingIcon ?? const Icon(Icons.keyboard_double_arrow_right_outlined),
       _SectionTileVariant.check => Checkbox(
         value: _value,
+        onChanged: _onChanged != null ? (value) => _onChanged.call(value ?? false) : null,
+      ),
+      _SectionTileVariant.radio => Radio(
+        value: true,
+        groupValue: _value,
         onChanged: _onChanged != null ? (value) => _onChanged.call(value ?? false) : null,
       ),
       _ => trailingIcon,
