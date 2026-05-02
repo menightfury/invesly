@@ -58,8 +58,6 @@ class _GenreDetailsPageContent extends StatefulWidget {
 }
 
 class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
-  static const double _spacing = 2.0;
-
   @override
   void initState() {
     super.initState();
@@ -86,113 +84,17 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
     return CustomScrollView(
       slivers: <Widget>[
         SliverAppBar(title: Text(widget.genre.title), floating: true, snap: true),
 
-        // ~ AMC Overview Section
-        SliverToBoxAdapter(
-          child: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-            buildWhen: (prev, curr) {
-              return prev.status != curr.status || prev.stats != curr.stats || prev.errorMessage != curr.errorMessage;
-            },
-            builder: (context, genreState) {
-              final isError = genreState.isError;
-              final isLoading = genreState.isLoading;
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Skeletonizer(
-                  enabled: isLoading,
-                  child: Column(
-                    spacing: _spacing,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      // ~ Current Value
-                      _SectionWidget(
-                        label: Skeleton.keep(
-                          child: FormattedDate(
-                            date: DateTime.now(),
-                            prefix: const Text('Current value as of '),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                          ),
-                        ),
-                        value: _buildTotalCurrentAmount(context, genreState),
-                        borderRadius: iCardBorderRadius.copyWith(
-                          bottomLeft: iTileBorderRadius.bottomLeft,
-                          bottomRight: iTileBorderRadius.bottomRight,
-                        ),
-                        color: isError ? colors.errorContainer : null,
-                        valueColor: isError ? colors.error : null,
-                      ),
-
-                      Row(
-                        spacing: _spacing,
-                        children: <Widget>[
-                          // ~ Holding count
-                          Expanded(
-                            child: _SectionWidget(
-                              label: const Skeleton.keep(child: Text('No. of holdings')),
-                              value: _buildHoldingCount(context, genreState),
-                              color: isError ? colors.errorContainer : null,
-                              valueColor: isError ? colors.error : null,
-                            ),
-                          ),
-
-                          // ~ Invested amount section
-                          Expanded(
-                            child: _SectionWidget(
-                              label: const Skeleton.keep(child: Text('Invested amount')),
-                              value: _buildTotalInvestedAmount(context, genreState),
-                              color: isError ? colors.errorContainer : null,
-                              valueColor: isError ? colors.error : null,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      Row(
-                        spacing: _spacing,
-                        children: <Widget>[
-                          // ~ Total returns sections
-                          Expanded(
-                            child: _SectionWidget(
-                              label: const Skeleton.keep(child: Text('Total returns')),
-                              value: _buildAmountReturns(context, genreState),
-                              color: isError ? colors.errorContainer : null,
-                              valueColor: isError ? colors.error : Colors.teal.shade500,
-                              borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
-                            ),
-                          ),
-
-                          // ~ XIRR section
-                          Expanded(
-                            child: _SectionWidget(
-                              label: const Skeleton.keep(child: Text('XIRR')),
-                              value: _buildPercentageReturns(context, genreState),
-                              color: isError ? colors.errorContainer : null,
-                              valueColor: isError ? colors.error : null,
-                              borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+        SliverToBoxAdapter(child: _AmcOverviewSection(widget.genre)),
 
         const SliverGap(16.0),
 
+        // ~ Title row with sort & filter button
         SliverToBoxAdapter(
-          child: // Title row with sort button
-          Padding(
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -201,7 +103,28 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text('Holdings', style: theme.textTheme.titleMedium),
-                    _buildSortButton(context),
+
+                    // ~ Sort button
+                    BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+                      buildWhen: (prev, curr) {
+                        return prev.status != curr.status || prev.stats != curr.stats;
+                      },
+                      builder: (context, genreState) {
+                        return AnimatedScale(
+                          scale: genreState.isLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
+                          alignment: Alignment.centerRight,
+                          duration: 240.ms,
+                          curve: Curves.easeInOut,
+                          child: IconButton(
+                            onPressed: () {
+                              _showSortOptions(context);
+                            },
+                            icon: const Icon(Icons.sort_rounded),
+                            tooltip: 'Sort holdings',
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
 
@@ -212,6 +135,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
           ),
         ),
 
+        // ~ Holdings list
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
           sliver: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
@@ -228,16 +152,120 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
               final isError = genreState.isError;
               final isLoading = genreState.isLoading;
 
-              return SliverList(
-                delegate: SliverChildListDelegate.fixed(<Widget>[
-                  // ~ Overview
-                  _HoldingSection(state: genreState),
-                ]),
+              if (isError) {
+                return SliverToBoxAdapter(
+                  child: Center(
+                    child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),
+                  ),
+                );
+              }
+
+              if (genreState.isLoaded && genreState.stats.isEmpty) {
+                return SliverToBoxAdapter(
+                  child: Center(
+                    child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')),
+                  ),
+                );
+              }
+
+              final displayList = genreState.displayStats;
+              if (genreState.isLoaded && displayList.isEmpty) {
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24.0),
+                    child: Center(
+                      child: Text(
+                        'No holdings match the current filter',
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              return SliverSkeletonizer(
+                enabled: isLoading,
+                child: SliverList.separated(
+                  itemCount: genreState.isLoaded ? displayList.length : 2, // Show 2 skeleton cards while loading
+                  itemBuilder: (context, index) {
+                    final amcTransaction = genreState.isLoaded ? displayList[index] : null;
+                    return _HoldingStatCard(isLoaded: genreState.isLoaded, amcTransaction: amcTransaction);
+                  },
+                  separatorBuilder: (_, _) => const Gap(12.0),
+                ),
               );
             },
           ),
         ),
       ],
+    );
+  }
+
+  Future<dynamic> _showSortOptions(BuildContext context) {
+    return showModalBottomSheet(
+      context: context,
+      useSafeArea: true,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+                child: Text('Sort holdings by', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
+              ),
+              const Gap(12.0),
+              Section(
+                tiles: HoldingSortOption.values.map((option) {
+                  // final isSelected = state.sortOption == option;
+                  return SectionTile(
+                    title: Text(option.label),
+                    subtitle: Wrap(
+                      spacing: 4.0,
+                      runSpacing: 4.0,
+                      children: <Widget>[
+                        SimpleChip(
+                          title: Text(option.ascendingLabel ?? 'Ascending'),
+                          color: context.colors.primaryContainer,
+                          titleColor: context.colors.onPrimaryContainer,
+                        ),
+                        SimpleChip(
+                          title: Text(option.descendingLabel ?? 'Descending'),
+                          color: context.colors.primaryContainer,
+                          titleColor: context.colors.onPrimaryContainer,
+                        ),
+                      ],
+                    ),
+                    // onTap: () {
+                    //   context.read<GenreDetailsCubit>().setSortOption(option);
+                    //   Navigator.maybePop(context);
+                    // },
+                    // trailingIcon: isSelected
+                    //     ? Icon(state.sortAscending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, size: 16.0)
+                    //     : null,
+                  );
+                  return PopupMenuItem<HoldingSortOption>(
+                    value: option,
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(child: Text(option.label)),
+                        // if (isSelected)
+                        //   Icon(
+                        //     state.sortAscending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                        //     size: 16.0,
+                        //     color: theme.colorScheme.primary,
+                        //   ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -254,65 +282,112 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
       showCheckmark: false,
     );
   }
+}
 
-  Widget _buildSortButton(BuildContext context) {
-    // final theme = Theme.of(context);
-    // final cubit = context.read<GenreDetailsCubit>();
+class _AmcOverviewSection extends StatelessWidget {
+  final AmcGenre genre;
+
+  const _AmcOverviewSection(this.genre, {super.key});
+
+  static const double _spacing = 2.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
       buildWhen: (prev, curr) {
-        return prev.status != curr.status || prev.stats != curr.stats;
+        return prev.status != curr.status || prev.stats != curr.stats || prev.errorMessage != curr.errorMessage;
       },
       builder: (context, genreState) {
-        return AnimatedScale(
-          key: ValueKey('button'),
-          scale: genreState.isLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
-          alignment: Alignment.centerRight,
-          duration: 200.ms,
-          child: IconButton(onPressed: () {}, icon: const Icon(Icons.sort_rounded), tooltip: 'Sort holdings'),
+        final isError = genreState.isError;
+        final isLoading = genreState.isLoading;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Skeletonizer(
+            enabled: isLoading,
+            child: Column(
+              spacing: _spacing,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                // ~ Current Value
+                _SectionWidget(
+                  label: Skeleton.keep(
+                    child: FormattedDate(
+                      date: DateTime.now(),
+                      prefix: const Text('Current value as of '),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  ),
+                  value: _buildTotalCurrentAmount(context, genreState),
+                  borderRadius: iCardBorderRadius.copyWith(
+                    bottomLeft: iTileBorderRadius.bottomLeft,
+                    bottomRight: iTileBorderRadius.bottomRight,
+                  ),
+                  color: isError ? colors.errorContainer : null,
+                  valueColor: isError ? colors.error : null,
+                ),
+
+                Row(
+                  spacing: _spacing,
+                  children: <Widget>[
+                    // ~ Holding count
+                    Expanded(
+                      child: _SectionWidget(
+                        label: const Skeleton.keep(child: Text('No. of holdings')),
+                        value: _buildHoldingCount(context, genreState),
+                        color: isError ? colors.errorContainer : null,
+                        valueColor: isError ? colors.error : null,
+                      ),
+                    ),
+
+                    // ~ Invested amount section
+                    Expanded(
+                      child: _SectionWidget(
+                        label: const Skeleton.keep(child: Text('Invested amount')),
+                        value: _buildTotalInvestedAmount(context, genreState),
+                        color: isError ? colors.errorContainer : null,
+                        valueColor: isError ? colors.error : null,
+                      ),
+                    ),
+                  ],
+                ),
+
+                Row(
+                  spacing: _spacing,
+                  children: <Widget>[
+                    // ~ Total returns sections
+                    Expanded(
+                      child: _SectionWidget(
+                        label: const Skeleton.keep(child: Text('Total returns')),
+                        value: _buildAmountReturns(context, genreState),
+                        color: isError ? colors.errorContainer : null,
+                        valueColor: isError ? colors.error : Colors.teal.shade500,
+                        borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+                      ),
+                    ),
+
+                    // ~ XIRR section
+                    Expanded(
+                      child: _SectionWidget(
+                        label: const Skeleton.keep(child: Text('XIRR')),
+                        value: _buildPercentageReturns(context, genreState),
+                        color: isError ? colors.errorContainer : null,
+                        valueColor: isError ? colors.error : null,
+                        borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
-
-    // return PopupMenuButton<HoldingSortOption>(
-    //
-    //   padding: EdgeInsets.zero,
-    //   position: PopupMenuPosition.under,
-    //   onSelected: (option) => cubit.setSortOption(option),
-    //   itemBuilder: (_) {
-    //     return HoldingSortOption.values.map((option) {
-    //       final isSelected = state.sortOption == option;
-    //       return PopupMenuItem<HoldingSortOption>(
-    //         value: option,
-    //         child: Row(
-    //           children: <Widget>[
-    //             Expanded(child: Text(option.label)),
-    //             if (isSelected)
-    //               Icon(
-    //                 state.sortAscending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
-    //                 size: 16.0,
-    //                 color: theme.colorScheme.primary,
-    //               ),
-    //           ],
-    //         ),
-    //       );
-    //     }).toList();
-    //   },
-    // );
-  }
-
-  Widget _buildHoldingCount(BuildContext context, GenreDetailsState state) {
-    if (state.status == GenreDetailsStateStatus.error) {
-      return Text('Error loading data');
-    }
-
-    if (state.status == GenreDetailsStateStatus.loaded) {
-      final totalHoldings = state.stats.length;
-      final presentHoldings = state.stats.where((stat) => stat.totalQuantity > 0).length;
-      return Text('$presentHoldings / $totalHoldings', textAlign: TextAlign.right, overflow: TextOverflow.ellipsis);
-    }
-
-    return const Text('Loading...');
   }
 
   Widget _buildTotalCurrentAmount(BuildContext context, GenreDetailsState state) {
@@ -344,6 +419,20 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     return const Text('Loading...');
   }
 
+  Widget _buildHoldingCount(BuildContext context, GenreDetailsState state) {
+    if (state.status == GenreDetailsStateStatus.error) {
+      return Text('Error loading data');
+    }
+
+    if (state.status == GenreDetailsStateStatus.loaded) {
+      final totalHoldings = state.stats.length;
+      final presentHoldings = state.stats.where((stat) => stat.totalQuantity > 0).length;
+      return Text('$presentHoldings / $totalHoldings', textAlign: TextAlign.right, overflow: TextOverflow.ellipsis);
+    }
+
+    return const Text('Loading...');
+  }
+
   Widget _buildTotalInvestedAmount(BuildContext context, GenreDetailsState state) {
     if (state.isError) {
       return Text('Error loading data');
@@ -359,42 +448,6 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     }
 
     return const Text('Loading...');
-  }
-
-  Widget _buildSummaryItem(BuildContext context, String label, double amount) {
-    final theme = Theme.of(context);
-    return SimpleCard(
-      elevation: 0.0,
-      child: SizedBox(
-        height: 96.0,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(label, style: theme.textTheme.titleMedium),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: BlocSelector<AppCubit, AppState, bool>(
-                  selector: (state) => state.isPrivateMode,
-                  builder: (context, isPrivateMode) {
-                    return CurrencyView(
-                      amount: amount,
-                      style: theme.textTheme.headlineSmall,
-                      decimalsStyle: theme.textTheme.titleMedium,
-                      currencyStyle: theme.textTheme.titleMedium,
-                      privateMode: isPrivateMode,
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildAmountReturns(BuildContext context, GenreDetailsState state) {
@@ -447,57 +500,6 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   }
 }
 
-class _HoldingSection extends StatelessWidget {
-  const _HoldingSection({super.key, required this.state});
-
-  final GenreDetailsState state;
-
-  bool get showControls => state.isLoaded && state.stats.isNotEmpty;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Skeletonizer(enabled: state.isLoading, child: _buildHoldings(context));
-  }
-
-  Widget _buildHoldings(BuildContext context) {
-    if (state.isError) {
-      return Center(
-        child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),
-      );
-    }
-
-    if (state.isLoaded && state.stats.isEmpty) {
-      return Center(child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')));
-    }
-
-    final displayList = state.displayStats;
-
-    if (state.isLoaded && displayList.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24.0),
-        child: Center(
-          child: Text(
-            'No holdings match the current filter',
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-        ),
-      );
-    }
-
-    return ColumnBuilder(
-      mainAxisSize: MainAxisSize.min,
-      spacing: 16.0,
-      itemCount: state.isLoaded ? displayList.length : 2,
-      itemBuilder: (context, index) {
-        final amcTransaction = state.isLoaded ? displayList[index] : null;
-        return _HoldingStatCard(isLoaded: state.isLoaded, amcTransaction: amcTransaction);
-      },
-    );
-  }
-}
-
 class _HoldingStatCard extends StatefulWidget {
   const _HoldingStatCard({super.key, this.isLoaded = false, this.amcTransaction});
 
@@ -510,12 +512,11 @@ class _HoldingStatCard extends StatefulWidget {
 
 class _HoldingStatCardState extends State<_HoldingStatCard> {
   static const double _spacing = 2.0;
-  late Future<LatestPrice?> ltp;
 
   @override
   void initState() {
     super.initState();
-    ltp = _getCurrentPrice();
+    _getCurrentPrice();
   }
 
   @override
@@ -570,7 +571,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                 minHeight: 0.0,
                 label: Text('Available units', style: labelStyle),
                 value: Text(
-                  '${widget.isLoaded ? widget.amcTransaction?.totalQuantity.toPrecisionDouble(4) ?? '0' : 'Loading...'}',
+                  '${widget.isLoaded ? widget.amcTransaction?.totalQuantity.toPrecisionDouble(4) ?? '0.00' : 'Loading...'}',
                   textAlign: TextAlign.right,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -588,7 +589,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                         selector: (state) => state.isPrivateMode,
                         builder: (context, isPrivateMode) {
                           return CurrencyView(
-                            amount: widget.amcTransaction?.totalAmount ?? 0,
+                            amount: widget.amcTransaction?.totalInvested ?? 0,
                             privateMode: isPrivateMode,
                           );
                         },
@@ -602,83 +603,19 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
         if (!widget.isLoaded) _buildLtpDependentWidget(context, null, labelStyle),
 
         if (widget.isLoaded)
-          FutureBuilder<LatestPrice?>(
-            future: ltp,
-            builder: (context, snapshot) {
-              return Skeletonizer(
-                enabled: snapshot.connectionState == ConnectionState.waiting,
-                child: _buildLtpDependentWidget(context, snapshot, labelStyle),
+          BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+            buildWhen: (prev, curr) {
+              final prevTrn = prev.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
+              final currTrn = curr.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
+              return prevTrn != currTrn || prevTrn?.amc?.ltp != currTrn?.amc?.ltp;
+            },
+            builder: (context, genreState) {
+              $logger.i(
+                'Rebuilding LTP-dependent widget for AMC ${widget.amcTransaction?.amc?.name} with state: $genreState',
               );
+              return _buildLtpDependentWidget(context, genreState, labelStyle);
             },
           ),
-      ],
-    );
-  }
-
-  Widget _buildLtpDependentWidget(
-    BuildContext context, [
-    AsyncSnapshot<LatestPrice?>? snapshot,
-    TextStyle? labelStyle,
-  ]) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      spacing: _spacing,
-      children: <Widget>[
-        Row(
-          spacing: _spacing,
-          children: <Widget>[
-            // ~ Current value
-            Expanded(
-              child: _SectionWidget(
-                minHeight: 0.0,
-                label: snapshot != null
-                    ? Skeleton.keep(child: Text('Current value', style: labelStyle))
-                    : const Text('Loading...'),
-                value: snapshot != null ? _buildCurrentValue(context, snapshot) : const Text('Loading...'),
-              ),
-            ),
-
-            // ~ Returns amount
-            Expanded(
-              child: _SectionWidget(
-                minHeight: 0.0,
-                label: snapshot != null
-                    ? Skeleton.keep(child: Text('Returns', style: labelStyle))
-                    : const Text('Loading...'),
-                value: snapshot != null ? _buildReturnAmount(context, snapshot) : const Text('Loading...'),
-              ),
-            ),
-          ],
-        ),
-
-        Row(
-          spacing: _spacing,
-          children: <Widget>[
-            // ~ % Returns
-            Expanded(
-              child: _SectionWidget(
-                minHeight: 0.0,
-                label: snapshot != null
-                    ? Skeleton.keep(child: Text('% Returns', style: labelStyle))
-                    : const Text('Loading...'),
-                value: snapshot != null ? _buildReturnPercentage(context, snapshot) : const Text('Loading...'),
-                borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
-              ),
-            ),
-
-            // ~ XIRR
-            Expanded(
-              child: _SectionWidget(
-                minHeight: 0.0,
-                label: snapshot != null
-                    ? Skeleton.keep(child: Text('XIRR', style: labelStyle))
-                    : const Text('Loading...'),
-                value: snapshot != null ? _buildXirr(context, snapshot) : const Text('Loading...'),
-                borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -699,8 +636,72 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     });
   }
 
-  Widget _buildXirr(BuildContext context, AsyncSnapshot<LatestPrice?> snapshot) {
-    if (snapshot.hasError) {
+  Widget _buildLtpDependentWidget(BuildContext context, GenreDetailsState? genreState, TextStyle? labelStyle) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      spacing: _spacing,
+      children: <Widget>[
+        Row(
+          spacing: _spacing,
+          children: <Widget>[
+            // ~ Current value
+            Expanded(
+              child: _SectionWidget(
+                minHeight: 0.0,
+                label: genreState != null
+                    ? Skeleton.keep(child: Text('Current value', style: labelStyle))
+                    : const Text('Loading...'),
+                value: genreState != null ? _buildCurrentValue(context, genreState) : const Text('Loading...'),
+              ),
+            ),
+
+            // ~ Returns amount
+            Expanded(
+              child: _SectionWidget(
+                minHeight: 0.0,
+                label: genreState != null
+                    ? Skeleton.keep(child: Text('Returns', style: labelStyle))
+                    : const Text('Loading...'),
+                value: genreState != null ? _buildReturnAmount(context, genreState) : const Text('Loading...'),
+              ),
+            ),
+          ],
+        ),
+
+        Row(
+          spacing: _spacing,
+          children: <Widget>[
+            // ~ % Returns
+            Expanded(
+              child: _SectionWidget(
+                minHeight: 0.0,
+                label: genreState != null
+                    ? Skeleton.keep(child: Text('% Returns', style: labelStyle))
+                    : const Text('Loading...'),
+                value: genreState != null ? _buildReturnPercentage(context, genreState) : const Text('Loading...'),
+                borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+              ),
+            ),
+
+            // ~ XIRR
+            Expanded(
+              child: _SectionWidget(
+                minHeight: 0.0,
+                label: genreState != null
+                    ? Skeleton.keep(child: Text('XIRR', style: labelStyle))
+                    : const Text('Loading...'),
+                value: genreState != null ? _buildXirr(context, genreState) : const Text('Loading...'),
+                borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildXirr(BuildContext context, GenreDetailsState genreState) {
+    if (genreState.isError) {
       return Text(
         'Error loading LTP',
         style: TextStyle(color: context.colors.error),
@@ -712,34 +713,20 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       return Text('0.00%', style: TextStyle(color: Colors.teal));
     }
 
-    if (snapshot.hasData) {
-      final transactionsForXirr = widget.amcTransaction!.transactions
-          .map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
-          .toList();
-      if (transactionsForXirr.isNotEmpty) {
-        final currentAmount = snapshot.data!.price * (widget.amcTransaction?.totalQuantity ?? 0);
-        transactionsForXirr.add(xf.Transaction(-currentAmount, snapshot.data!.date ?? snapshot.data!.fetchDate));
-      }
-
-      double? xirr = 0.0;
-      if (transactionsForXirr.isNotEmpty) {
-        try {
-          xirr = xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate();
-        } catch (e) {
-          $logger.e('Error calculating XIRR: $e');
-        }
-      }
+    if (genreState.isLoaded) {
+      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
+      final xirr = amcTrn?.xirr ?? 0.0;
       return Text(
-        xirr != null ? '${(xirr * 100).toPrecisionDouble(2)}%' : '0.00%',
-        style: TextStyle(color: (xirr ?? 0) < 0 ? Colors.red : Colors.teal),
+        '${(xirr * 100).toPrecisionDouble(2)}%',
+        style: TextStyle(color: xirr < 0 ? Colors.red : Colors.teal),
       );
     }
 
     return Skeletonizer.zone(child: const Bone.text());
   }
 
-  Widget _buildReturnPercentage(BuildContext context, AsyncSnapshot<LatestPrice?> snapshot) {
-    if (snapshot.hasError) {
+  Widget _buildReturnPercentage(BuildContext context, GenreDetailsState genreState) {
+    if (genreState.isError) {
       return Text(
         'Error loading LTP',
         style: TextStyle(color: context.colors.error),
@@ -747,16 +734,13 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       );
     }
 
-    if (snapshot.hasData) {
-      final currentAmount = snapshot.data!.price * (widget.amcTransaction?.totalQuantity ?? 0);
-      final returns = currentAmount - (widget.amcTransaction?.totalAmount ?? 0);
-      final percentageReturns = (widget.amcTransaction?.totalAmount ?? 0) > 0
-          ? ((currentAmount / (widget.amcTransaction?.totalAmount ?? 1) - 1) * 100)
-          : 0.0;
+    if (genreState.isLoaded) {
+      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
+      final percentageReturns = amcTrn?.returnsPercent ?? 0.0;
 
       return Text(
         percentageReturns > 0 ? '${percentageReturns.toPrecisionDouble(2)}%' : '(0.00%)',
-        style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+        style: TextStyle(color: percentageReturns < 0 ? Colors.red : Colors.teal),
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
       );
@@ -765,8 +749,8 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     return Skeletonizer.zone(child: const Bone.text());
   }
 
-  Widget _buildReturnAmount(BuildContext context, AsyncSnapshot<LatestPrice?> snapshot) {
-    if (snapshot.hasError) {
+  Widget _buildReturnAmount(BuildContext context, GenreDetailsState genreState) {
+    if (genreState.isError) {
       return Text(
         'Error loading LTP',
         style: TextStyle(color: context.colors.error),
@@ -774,9 +758,10 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       );
     }
 
-    if (snapshot.hasData) {
-      final currentAmount = snapshot.data!.price * (widget.amcTransaction?.totalQuantity ?? 0);
-      final returns = currentAmount - (widget.amcTransaction?.totalAmount ?? 0);
+    if (genreState.isLoaded) {
+      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
+      final returns = amcTrn?.returns ?? 0;
+
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
@@ -792,9 +777,9 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     return Skeletonizer.zone(child: const Bone.text());
   }
 
-  Widget _buildCurrentValue(BuildContext context, AsyncSnapshot<LatestPrice?> snapshot) {
-    if (snapshot.hasError) {
-      $logger.e(snapshot.error);
+  Widget _buildCurrentValue(BuildContext context, GenreDetailsState genreState) {
+    if (genreState.isError) {
+      $logger.e(genreState.errorMessage);
       return Text(
         'Error loading LTP',
         style: TextStyle(color: context.colors.error),
@@ -802,14 +787,12 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       );
     }
 
-    if (snapshot.hasData) {
+    if (genreState.isLoaded) {
+      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
-          return CurrencyView(
-            amount: snapshot.data!.price * (widget.amcTransaction?.totalQuantity ?? 0),
-            privateMode: isPrivateMode,
-          );
+          return CurrencyView(amount: amcTrn?.currentValue ?? 0, privateMode: isPrivateMode);
         },
       );
     }
@@ -818,7 +801,6 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
   }
 
   Future<LatestPrice?> _getCurrentPrice() async {
-    await Future.delayed(5.seconds); // TODO: Remove this delay, it's just to simulate loading state for demo purposes.
     final amc = widget.amcTransaction?.amc;
     if (amc == null) {
       return null;
@@ -828,10 +810,11 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       final ltp = await AmcRepository.instance.getLatestPrice(amc);
       $logger.i('Fetched LTP for ${amc.name}: ${ltp?.price} on ${ltp?.date}');
       if (mounted && ltp != null) {
-        context.read<GenreDetailsCubit>().updateCurrentAmount(
-          amc.id,
-          ltp.price * (widget.amcTransaction?.totalQuantity ?? 0),
-        );
+        // context.read<GenreDetailsCubit>().updateCurrentAmount(
+        //   amc.id,
+        //   ltp.price * (widget.amcTransaction?.totalQuantity ?? 0),
+        // );
+        context.read<GenreDetailsCubit>().updateAmcLtp(amc.id, ltp);
       }
       return ltp;
     } catch (e) {

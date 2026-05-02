@@ -4,12 +4,17 @@ part of 'genre_details_cubit.dart';
 enum GenreDetailsStateStatus { initial, loading, loaded, error }
 
 enum HoldingSortOption {
-  name('Name'),
-  invested('Invested'),
-  currentValue('Current value');
+  name(label: 'Name', ascendingLabel: 'A-Z', descendingLabel: 'Z-A'),
+  invested(label: 'Invested', ascendingLabel: 'Low to High', descendingLabel: 'High to Low'),
+  currentValue(label: 'Current value', ascendingLabel: 'Low to High', descendingLabel: 'High to Low'),
+  returns(label: 'Returns %', ascendingLabel: 'Low to High', descendingLabel: 'High to Low'),
+  xirr(label: 'XIRR', ascendingLabel: 'Low to High', descendingLabel: 'High to Low');
 
-  const HoldingSortOption(this.label);
   final String label;
+  final String? ascendingLabel;
+  final String? descendingLabel;
+
+  const HoldingSortOption({required this.label, this.ascendingLabel, this.descendingLabel});
 }
 
 enum HoldingFilter {
@@ -42,7 +47,7 @@ class GenreDetailsState extends Equatable {
 
   int get numHoldings => stats.length;
   double get totalCurrentValue => currentAmounts.entries.fold<double>(0, (v, el) => v + el.value);
-  double get totalInvested => stats.fold<double>(0, (v, el) => v + el.totalAmount);
+  double get totalInvested => stats.fold<double>(0, (v, el) => v + el.totalInvested);
   int get totalTransactions => stats.fold<int>(0, (v, el) => v + el.numTransactions);
 
   List<AmcTransaction> get displayStats {
@@ -56,16 +61,35 @@ class GenreDetailsState extends Equatable {
     // Sort
     final sorted = List<AmcTransaction>.from(filtered);
     sorted.sort((a, b) {
-      final int result;
+      late final int result;
       switch (sortOption) {
         case HoldingSortOption.name:
           result = (a.amc?.name ?? '').compareTo(b.amc?.name ?? '');
+          break;
+
         case HoldingSortOption.invested:
-          result = a.totalAmount.compareTo(b.totalAmount);
+          result = a.totalInvested.compareTo(b.totalInvested);
+          break;
+
         case HoldingSortOption.currentValue:
-          final aVal = currentAmounts[a.amc?.id] ?? 0.0;
-          final bVal = currentAmounts[b.amc?.id] ?? 0.0;
+          // final aVal = currentAmounts[a.amc?.id] ?? 0.0;
+          // final bVal = currentAmounts[b.amc?.id] ?? 0.0;
+          final aVal = a.currentValue ?? 0.0;
+          final bVal = b.currentValue ?? 0.0;
           result = aVal.compareTo(bVal);
+          break;
+
+        case HoldingSortOption.returns:
+          final aReturns = a.returns ?? 0.0;
+          final bReturns = b.returns ?? 0.0;
+          result = aReturns.compareTo(bReturns);
+          break;
+
+        case HoldingSortOption.xirr:
+          final aXirr = a.xirr ?? 0.0;
+          final bXirr = b.xirr ?? 0.0;
+          result = aXirr.compareTo(bXirr);
+          break;
       }
       return sortAscending ? result : -result;
     });
@@ -103,45 +127,3 @@ extension GenreDetailsStateX on GenreDetailsState {
   bool get isLoaded => status == GenreDetailsStateStatus.loaded;
   bool get isError => status == GenreDetailsStateStatus.error;
 }
-
-// abstract class GenreDetailsState extends Equatable {
-//   const GenreDetailsState();
-
-//   @override
-//   List<Object?> get props => [];
-// }
-
-// class GenreDetailsInitialState extends GenreDetailsState {
-//   const GenreDetailsInitialState();
-// }
-
-// class GenreDetailsLoadingState extends GenreDetailsState {
-//   const GenreDetailsLoadingState();
-// }
-
-// class GenreDetailsLoadedState extends GenreDetailsState {
-//   const GenreDetailsLoadedState({this.stats = const [], this.currentAmounts = const {}});
-
-//   final List<AmcTransaction> stats;
-//   final Map<String, double> currentAmounts;
-
-//   double get totalCurrentValue => currentAmounts.entries.fold<double>(0, (v, el) => v + el.value);
-//   double get totalInvested => stats.fold<double>(0, (v, el) => v + el.totalAmount);
-//   int get totalTransactions => stats.fold<int>(0, (v, el) => v + el.numTransactions);
-
-//   @override
-//   List<Object?> get props => [stats, currentAmounts];
-
-//   GenreDetailsLoadedState copyWith({List<AmcTransaction>? stats, Map<String, double>? currentAmounts}) {
-//     return GenreDetailsLoadedState(stats: stats ?? this.stats, currentAmounts: currentAmounts ?? this.currentAmounts);
-//   }
-// }
-
-// class GenreDetailsErrorState extends GenreDetailsState {
-//   const GenreDetailsErrorState(this.message);
-
-//   final String message;
-
-//   @override
-//   List<Object?> get props => [message];
-// }

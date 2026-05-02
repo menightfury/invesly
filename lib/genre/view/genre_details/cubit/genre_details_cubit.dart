@@ -1,6 +1,7 @@
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/amc_transaction_model.dart';
+import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
@@ -36,13 +37,28 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
     }
   }
 
-  void updateCurrentAmount(String amcId, double currentAmount) {
+  // void updateCurrentAmount(String amcId, double currentAmount) {
+  //   if (state.status != GenreDetailsStateStatus.loaded) {
+  //     return;
+  //   }
+  //   final amounts = Map<String, double>.from(state.currentAmounts);
+
+  //   emit(state.copyWith(currentAmounts: amounts..addAll({amcId: currentAmount})));
+  // }
+
+  void updateAmcLtp(String amcId, LatestPrice ltp) {
     if (state.status != GenreDetailsStateStatus.loaded) {
       return;
     }
-    final amounts = Map<String, double>.from(state.currentAmounts);
 
-    emit(state.copyWith(currentAmounts: amounts..addAll({amcId: currentAmount})));
+    final stats = List<AmcTransaction>.from(state.stats);
+    final index = stats.indexWhere((trn) => trn.amc?.id == amcId);
+    if (index == -1) return;
+
+    final updatedTransaction = stats[index].copyWith(amc: stats[index].amc?.copyWith(ltp: ltp));
+    stats[index] = updatedTransaction;
+
+    emit(state.copyWith(stats: stats));
   }
 
   void setSortOption(HoldingSortOption option) {
