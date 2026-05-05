@@ -202,56 +202,65 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   }
 
   Future<dynamic> _showSortOptions(BuildContext context) {
+    final cubit = context.read<GenreDetailsCubit>();
     return showModalBottomSheet(
       context: context,
-      useRootNavigator: true,
       useSafeArea: true,
+      isScrollControlled: true,
       builder: (context) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
-                child: Text('Sort holdings by', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
-              ),
-              const Gap(12.0),
-              RadioGroup<HoldingSortOption>(
-                groupValue: HoldingSortOption.invested,
-                onChanged: (option) {
-                  if (option == null) return;
+        return BlocProvider.value(
+          value: cubit,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+                  child: Text('Sort holdings by', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
+                ),
+                const Gap(12.0),
+                BlocSelector<GenreDetailsCubit, GenreDetailsState, HoldingSortOption>(
+                  selector: (state) => state.sortOption,
+                  builder: (context, state) {
+                    return RadioGroup<HoldingSortOption>(
+                      groupValue: state,
+                      onChanged: (option) {
+                        if (option == null) return;
 
-                  context.read<GenreDetailsCubit>().setSortOption(option);
-                  Navigator.maybePop(context);
-                },
-                child: Section(
-                  tiles: HoldingSortOption.values.map((option) {
-                    return RadioSectionTile<HoldingSortOption>(
-                      title: Text(option.label),
-                      value: option,
-                      subtitle: Wrap(
-                        spacing: 4.0,
-                        runSpacing: 4.0,
-                        children: <Widget>[
-                          SimpleChip(
-                            title: Text(option.ascendingLabel ?? 'Ascending'),
-                            color: context.colors.primaryContainer,
-                            titleColor: context.colors.onPrimaryContainer,
-                          ),
-                          SimpleChip(
-                            title: Text(option.descendingLabel ?? 'Descending'),
-                            color: context.colors.primaryContainer,
-                            titleColor: context.colors.onPrimaryContainer,
-                          ),
-                        ],
+                        context.read<GenreDetailsCubit>().setSortOption(option);
+                        // Navigator.maybePop(context);
+                      },
+                      child: Section(
+                        tiles: HoldingSortOption.values.map((option) {
+                          return RadioSectionTile<HoldingSortOption>(
+                            title: Text(option.label),
+                            value: option,
+                            // subtitle: Wrap(
+                            //   spacing: 4.0,
+                            //   runSpacing: 4.0,
+                            //   children: <Widget>[
+                            //     SimpleChip(
+                            //       title: Text(option.ascendingLabel ?? 'Ascending'),
+                            //       color: context.colors.primaryContainer,
+                            //       titleColor: context.colors.onPrimaryContainer,
+                            //     ),
+                            //     SimpleChip(
+                            //       title: Text(option.descendingLabel ?? 'Descending'),
+                            //       color: context.colors.primaryContainer,
+                            //       titleColor: context.colors.onPrimaryContainer,
+                            //     ),
+                            //   ],
+                            // ),
+                          );
+                        }).toList(),
                       ),
                     );
-                  }).toList(),
+                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

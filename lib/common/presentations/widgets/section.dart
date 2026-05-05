@@ -304,36 +304,34 @@ class SectionTile extends StatelessWidget {
                 ? () => _onChanged.call(!_value)
                 : _onTap
           : null,
-      child: SafeArea(
-        child: PhysicalShape(
-          // curve: Curves.fastOutSlowIn,
-          // duration: 600.ms,
-          clipBehavior: Clip.antiAlias,
-          elevation: 0.0,
-          color: _tileColor(theme, tileTheme),
-          shadowColor: theme.colorScheme.shadow,
-          // borderRadius: borderRadius,
-          clipper: ShapeBorderClipper(shape: effectiveShape, textDirection: Directionality.maybeOf(context)),
-          child: CustomPaint(
-            foregroundPainter: _ShapeBorderPainter(effectiveShape, Directionality.maybeOf(context)),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 52.0),
-              child: Padding(
-                padding: padding ?? EdgeInsets.zero,
-                child: Row(
-                  spacing: 16.0,
-                  children: <Widget>[
-                    ?leading,
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: contentSpacing ?? 0.0,
-                        children: <Widget>[titleText, ?subtitleText],
-                      ),
+      child: PhysicalShape(
+        // curve: Curves.fastOutSlowIn,
+        // duration: 600.ms,
+        clipBehavior: Clip.antiAlias,
+        elevation: 0.0,
+        color: _tileColor(theme, tileTheme),
+        shadowColor: theme.colorScheme.shadow,
+        // borderRadius: borderRadius,
+        clipper: ShapeBorderClipper(shape: effectiveShape, textDirection: Directionality.maybeOf(context)),
+        child: CustomPaint(
+          foregroundPainter: _ShapeBorderPainter(effectiveShape, Directionality.maybeOf(context)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 52.0),
+            child: Padding(
+              padding: padding ?? EdgeInsets.zero,
+              child: Row(
+                spacing: 16.0,
+                children: <Widget>[
+                  ?leading,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: contentSpacing ?? 0.0,
+                      children: <Widget>[titleText, ?subtitleText],
                     ),
-                    ?trailing,
-                  ],
-                ),
+                  ),
+                  ?trailing,
+                ],
               ),
             ),
           ),
@@ -395,7 +393,7 @@ class RadioSectionTile<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final registry = RadioGroup.maybeOf<T>(context);
 
-    assert(!enabled || registry != null, 'Radio is enabled but has no RadioListTile.onChange or registry above');
+    assert(!enabled || registry != null, 'Radio is enabled but has no RadioGroup is present above');
     final control = ExcludeFocus(
       child: Radio<T>(
         value: value,
