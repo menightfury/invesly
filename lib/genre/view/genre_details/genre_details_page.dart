@@ -204,6 +204,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   Future<dynamic> _showSortOptions(BuildContext context) {
     return showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       useSafeArea: true,
       builder: (context) {
         return SingleChildScrollView(
@@ -223,11 +224,11 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                   if (option == null) return;
 
                   context.read<GenreDetailsCubit>().setSortOption(option);
-                  // Navigator.maybePop(context);
+                  Navigator.maybePop(context);
                 },
                 child: Section(
                   tiles: HoldingSortOption.values.map((option) {
-                    return SectionTile.radioTile(
+                    return RadioSectionTile<HoldingSortOption>(
                       title: Text(option.label),
                       value: option,
                       subtitle: Wrap(

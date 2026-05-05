@@ -141,7 +141,7 @@ class Section extends StatelessWidget {
 
 enum _SectionTileVariant { normal, navigation, toggle, check, radio }
 
-class SectionTile<T> extends StatelessWidget {
+class SectionTile extends StatelessWidget {
   final Widget title;
   final Widget? subtitle;
   final double? contentSpacing;
@@ -246,28 +246,6 @@ class SectionTile<T> extends StatelessWidget {
        secondaryIcon = null,
        _onTap = null;
 
-  const SectionTile.radioTile({
-    super.key,
-    required this.title,
-    this.subtitle,
-    this.contentSpacing,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-    this.icon,
-    required T value,
-    this.tileColor,
-    this.selectedTileColor,
-    this.shape,
-    this.borderRadius = iTileBorderRadius,
-    this.enabled = true,
-    this.selected = false,
-    void Function(bool)? onChanged,
-    this.controlAffinity = ListTileControlAffinity.platform,
-  }) : _onChanged = onChanged,
-       _value = false,
-       _variant = _SectionTileVariant.radio,
-       secondaryIcon = null,
-       _onTap = null;
-
   Color _tileColor(ThemeData theme, ListTileThemeData tileTheme) {
     final Color? color = selected
         ? selectedTileColor ?? tileTheme.selectedTileColor ?? theme.listTileTheme.selectedTileColor
@@ -304,7 +282,6 @@ class SectionTile<T> extends StatelessWidget {
         value: _value,
         onChanged: _onChanged != null ? (value) => _onChanged.call(value ?? false) : null,
       ),
-      _SectionTileVariant.radio => Radio<T>(value: true),
       _ => icon,
     };
 
@@ -379,5 +356,93 @@ class _ShapeBorderPainter extends CustomPainter {
   @override
   bool shouldRepaint(_ShapeBorderPainter oldDelegate) {
     return oldDelegate.border != border;
+  }
+}
+
+class RadioSectionTile<T> extends StatelessWidget {
+  final Widget title;
+  final Widget? subtitle;
+  final double? contentSpacing;
+  final EdgeInsetsGeometry? padding;
+  final Widget? icon;
+  final T value;
+  final Color? tileColor;
+  final Color? selectedTileColor;
+  final ShapeBorder? shape;
+  final BorderRadius? borderRadius;
+  final bool enabled;
+  final bool selected;
+  final ListTileControlAffinity controlAffinity;
+
+  const RadioSectionTile({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.contentSpacing,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    this.icon,
+    required this.value,
+    this.tileColor,
+    this.selectedTileColor,
+    this.shape,
+    this.borderRadius = iTileBorderRadius,
+    this.enabled = true,
+    this.selected = false,
+    this.controlAffinity = ListTileControlAffinity.platform,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final registry = RadioGroup.maybeOf<T>(context);
+
+    assert(!enabled || registry != null, 'Radio is enabled but has no RadioListTile.onChange or registry above');
+    final control = ExcludeFocus(
+      child: Radio<T>(
+        value: value,
+        // toggleable: widget.toggleable,
+        // activeColor: widget.activeColor,
+        // materialTapTargetSize: widget.materialTapTargetSize ?? MaterialTapTargetSize.shrinkWrap,
+        // autofocus: widget.autofocus,
+        // fillColor: widget.fillColor,
+        // mouseCursor: widget.mouseCursor,
+        // hoverColor: widget.hoverColor,
+        // overlayColor: widget.overlayColor,
+        // splashRadius: widget.splashRadius,
+        enabled: enabled,
+        groupRegistry: registry,
+        // backgroundColor: widget.radioBackgroundColor,
+        // side: widget.radioSide,
+        // innerRadius: widget.radioInnerRadius,
+      ),
+    );
+
+    Widget? leading, trailing;
+    (leading, trailing) = switch (controlAffinity) {
+      ListTileControlAffinity.leading || ListTileControlAffinity.platform => (control, icon),
+      ListTileControlAffinity.trailing => (icon, control),
+    };
+
+    return SectionTile(
+      key: key,
+      title: title,
+      subtitle: subtitle,
+      contentSpacing: contentSpacing,
+      padding: padding,
+      icon: leading,
+      secondaryIcon: trailing,
+      tileColor: tileColor,
+      selectedTileColor: selectedTileColor,
+      shape: shape,
+      borderRadius: borderRadius,
+      onTap: enabled ? () => _handleListTileTap(registry, value) : null,
+      enabled: enabled,
+      selected: selected,
+    );
+  }
+
+  void _handleListTileTap(RadioGroupRegistry<T>? registry, T value) {
+    if (registry != null) {
+      registry.onChanged(value);
+    }
   }
 }
