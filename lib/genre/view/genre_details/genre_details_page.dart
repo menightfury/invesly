@@ -10,8 +10,6 @@ import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/genre/view/genre_details/cubit/genre_details_cubit.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:path/path.dart';
-import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 class GenreDetailsPage extends StatelessWidget {
   const GenreDetailsPage({super.key, required this.genre});
@@ -103,9 +101,39 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  spacing: 8.0,
                   children: <Widget>[
-                    Text('Holdings', style: theme.textTheme.titleMedium),
+                    Expanded(
+                      child: Text('Holdings', style: theme.textTheme.titleMedium, overflow: TextOverflow.ellipsis),
+                    ),
+
+                    // ~ Filter button
+                    BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+                      buildWhen: (prev, curr) {
+                        return prev.status != curr.status || prev.stats != curr.stats;
+                      },
+                      builder: (context, genreState) {
+                        return AnimatedScale(
+                          scale: genreState.isLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
+                          alignment: Alignment.centerRight,
+                          duration: 240.ms,
+                          curve: Curves.easeInOut,
+                          child: IconButton(
+                            onPressed: () async {
+                              final sortOptions = await _showSortOptions(
+                                context,
+                                sortOption: genreState.sortOption,
+                                isAscending: genreState.sortAscending,
+                              );
+                              if (sortOptions == null) return;
+                              cubit.setSortOption(option: sortOptions.$1, isAscending: sortOptions.$2);
+                            },
+                            icon: const Icon(Icons.filter_list_alt),
+                            tooltip: 'Filter holdings',
+                          ),
+                        );
+                      },
+                    ),
 
                     // ~ Sort button
                     BlocBuilder<GenreDetailsCubit, GenreDetailsState>(

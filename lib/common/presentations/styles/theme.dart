@@ -116,7 +116,7 @@ class AppStyle {
         style: ButtonStyle(
           elevation: const WidgetStatePropertyAll<double>(2.0),
           padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(iButtonPadding),
-          minimumSize: const WidgetStatePropertyAll<Size>(iMinButtonSize),
+          minimumSize: const WidgetStatePropertyAll<Size>(iButtonSize),
           backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
             if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);
             if (state.contains(WidgetState.error)) return colorScheme.error;
@@ -131,7 +131,7 @@ class AppStyle {
       filledButtonTheme: FilledButtonThemeData(
         style: ButtonStyle(
           padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(iButtonPadding),
-          minimumSize: const WidgetStatePropertyAll<Size>(iMinButtonSize),
+          minimumSize: const WidgetStatePropertyAll<Size>(iButtonSize),
           // backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
           //   if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);
           //   if (state.contains(WidgetState.error)) return colorScheme.error;
@@ -146,7 +146,7 @@ class AppStyle {
       textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
           padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(iButtonPadding),
-          minimumSize: const WidgetStatePropertyAll<Size>(iMinButtonSize),
+          minimumSize: const WidgetStatePropertyAll<Size>(iButtonSize),
           // backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
           //   if (state.contains(WidgetState.disabled)) return colorScheme.primaryContainer.withAlpha(30);
           //   if (state.contains(WidgetState.error)) return colorScheme.errorContainer;
@@ -168,7 +168,7 @@ class AppStyle {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: ButtonStyle(
           padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(iButtonPadding),
-          minimumSize: const WidgetStatePropertyAll<Size>(iMinButtonSize),
+          minimumSize: const WidgetStatePropertyAll<Size>(iButtonSize),
           shape: const WidgetStatePropertyAll<OutlinedBorder>(
             RoundedRectangleBorder(borderRadius: iButtonBorderRadius),
           ),
@@ -184,7 +184,7 @@ class AppStyle {
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
           // padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(iButtonPadding),
-          minimumSize: WidgetStatePropertyAll<Size>(Size.square(iMinButtonSize.shortestSide)),
+          minimumSize: WidgetStatePropertyAll<Size>(Size.square(iButtonSize.shortestSide)),
           // backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
           //   if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);
           //   if (state.contains(WidgetState.error)) return colorScheme.error;
