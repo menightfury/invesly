@@ -20,17 +20,35 @@ class AnimatedExpanded extends StatefulWidget {
   /// A boolean flag indicating whether to expand or collapse the [child]
   final bool expand;
 
+  /// The duration of the expansion/collapse animation.
   final Duration duration;
-  final Curve sizeCurve;
+
+  /// The curve to use for the animation.
+  final Curve curve;
+
+  /// The axis along which to expand or collapse the child.
+  /// The default is [Axis.horizontal], which means the child will expand or collapse horizontally.
+  /// If set to [Axis.vertical], the child will expand or collapse vertically.
   final Axis axis;
 
+  /// The alignment of the child when expanding or collapsing.
+  ///
+  /// A value of -1.0 indicates the top when [axis] is [Axis.vertical], and the start when [axis] is [Axis.horizontal].
+  /// The start is on the left when the text direction in effect is [TextDirection.ltr] and on the right when it is [TextDirection.rtl].
+  ///
+  /// A value of 1.0 indicates the bottom or end, depending upon the [axis].
+  ///
+  /// A value of 0.0 (the default) indicates the center for either [axis] value.
+  final double alignment;
+
   const AnimatedExpanded({
+    super.key,
     this.expand = false,
     required this.child,
     this.duration = const Duration(milliseconds: 250),
-    this.sizeCurve = Curves.fastOutSlowIn,
+    this.curve = Curves.fastOutSlowIn,
     this.axis = Axis.horizontal,
-    super.key,
+    this.alignment = 1.0,
   });
 
   @override
@@ -46,7 +64,7 @@ class _AnimatedExpandedState extends State<AnimatedExpanded> with SingleTickerPr
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this, duration: widget.duration, value: widget.expand ? 1.0 : 0.0);
-    sizeAnimation = CurvedAnimation(parent: _controller, curve: widget.sizeCurve);
+    sizeAnimation = CurvedAnimation(parent: _controller, curve: widget.curve);
     fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
   }
 
@@ -70,7 +88,12 @@ class _AnimatedExpandedState extends State<AnimatedExpanded> with SingleTickerPr
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: fadeAnimation,
-      child: SizeTransition(axis: widget.axis, axisAlignment: 1.0, sizeFactor: sizeAnimation, child: widget.child),
+      child: SizeTransition(
+        axis: widget.axis,
+        axisAlignment: widget.alignment,
+        sizeFactor: sizeAnimation,
+        child: widget.child,
+      ),
     );
   }
 }

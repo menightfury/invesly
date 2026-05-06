@@ -16,7 +16,6 @@ class InveslyChoiceChips<T> extends StatelessWidget {
   InveslyChoiceChips({
     super.key,
     required this.options,
-    // this.optionsBuilder,
     Set<T>? selected,
     this.onChanged,
     this.clearable = false,
@@ -35,7 +34,6 @@ class InveslyChoiceChips<T> extends StatelessWidget {
   InveslyChoiceChips.single({
     super.key,
     required this.options,
-    // this.optionsBuilder,
     T? selected,
     ValueChanged<T?>? onChanged,
     this.clearable = false,
@@ -52,11 +50,10 @@ class InveslyChoiceChips<T> extends StatelessWidget {
        assert(selected != null || clearable);
 
   final List<InveslyChipData<T>> options;
-  // final WidgetBuilder? optionsBuilder;
   final ValueChanged<Set<T>>? onChanged;
   final Set<T> _selected;
 
-  /// empty selection is allowed or not, default is false i.e. not allowed
+  /// Empty selection is allowed or not, default is false i.e. not allowed
   final bool clearable;
   final WidgetStateColor? color;
   final double chipSpacing;
@@ -139,7 +136,8 @@ class InveslyChoiceChips<T> extends StatelessWidget {
       deleteIcon: deleteIcon,
       showCheckmark: showCheckmark,
       clipBehavior: Clip.antiAlias,
-      labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 8.0),
+      labelStyle: TextStyle(fontWeight: FontWeight.normal),
+      // labelPadding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 8.0),
     );
   }
 }

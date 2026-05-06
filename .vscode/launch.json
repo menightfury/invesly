@@ -8,9 +8,10 @@
             "name": "Debug",
             "request": "launch",
             "type": "dart",
-            "args": [
-                "--no-enable-impeller"
-            ],
+            "flutterMode": "debug",
+            // "args": [
+            //     "--no-enable-impeller"
+            // ],
         },
         {
             "name": "Profile",

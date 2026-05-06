@@ -4,11 +4,13 @@ import 'package:invesly/amcs/model/amc_transaction_model.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
+import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/genre/view/genre_details/cubit/genre_details_cubit.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
+import 'package:path/path.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 class GenreDetailsPage extends StatelessWidget {
@@ -83,6 +85,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.read<GenreDetailsCubit>();
     final theme = Theme.of(context);
     return CustomScrollView(
       slivers: <Widget>[
@@ -116,8 +119,14 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                           duration: 240.ms,
                           curve: Curves.easeInOut,
                           child: IconButton(
-                            onPressed: () {
-                              _showSortOptions(context);
+                            onPressed: () async {
+                              final sortOptions = await _showSortOptions(
+                                context,
+                                sortOption: genreState.sortOption,
+                                isAscending: genreState.sortAscending,
+                              );
+                              if (sortOptions == null) return;
+                              cubit.setSortOption(option: sortOptions.$1, isAscending: sortOptions.$2);
                             },
                             icon: const Icon(Icons.sort_rounded),
                             tooltip: 'Sort holdings',
@@ -128,8 +137,26 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                   ],
                 ),
 
-                // Filter chips
-                // if (showControls) _buildFilterChips(context),
+                // ~ Filter buttons
+                BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+                  buildWhen: (prev, curr) {
+                    return prev.status != curr.status ||
+                        prev.stats != curr.stats ||
+                        prev.holdingFilter != curr.holdingFilter;
+                  },
+                  builder: (context, state) {
+                    return InveslyChoiceChips<HoldingFilter>.single(
+                      options: HoldingFilter.values
+                          .map((f) => InveslyChipData(value: f, label: Text(f.label)))
+                          .toList(),
+                      selected: state.holdingFilter,
+                      onChanged: (filter) {
+                        if (filter != null) cubit.setHoldingFilter(filter);
+                      },
+                      wrapped: false,
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -201,83 +228,119 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     );
   }
 
-  Future<dynamic> _showSortOptions(BuildContext context) {
-    final cubit = context.read<GenreDetailsCubit>();
-    return showModalBottomSheet(
+  Future<(HoldingSortOption, bool)?> _showSortOptions(
+    BuildContext context, {
+    HoldingSortOption? sortOption,
+    bool? isAscending,
+  }) async {
+    return showModalBottomSheet<(HoldingSortOption, bool)>(
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
-      builder: (context) {
-        return BlocProvider.value(
-          value: cubit,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
-                  child: Text('Sort holdings by', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
-                ),
-                const Gap(12.0),
-                BlocSelector<GenreDetailsCubit, GenreDetailsState, HoldingSortOption>(
-                  selector: (state) => state.sortOption,
-                  builder: (context, state) {
-                    return RadioGroup<HoldingSortOption>(
-                      groupValue: state,
-                      onChanged: (option) {
-                        if (option == null) return;
-
-                        context.read<GenreDetailsCubit>().setSortOption(option);
-                        // Navigator.maybePop(context);
-                      },
-                      child: Section(
-                        tiles: HoldingSortOption.values.map((option) {
-                          return RadioSectionTile<HoldingSortOption>(
-                            title: Text(option.label),
-                            value: option,
-                            // subtitle: Wrap(
-                            //   spacing: 4.0,
-                            //   runSpacing: 4.0,
-                            //   children: <Widget>[
-                            //     SimpleChip(
-                            //       title: Text(option.ascendingLabel ?? 'Ascending'),
-                            //       color: context.colors.primaryContainer,
-                            //       titleColor: context.colors.onPrimaryContainer,
-                            //     ),
-                            //     SimpleChip(
-                            //       title: Text(option.descendingLabel ?? 'Descending'),
-                            //       color: context.colors.primaryContainer,
-                            //       titleColor: context.colors.onPrimaryContainer,
-                            //     ),
-                            //   ],
-                            // ),
-                          );
-                        }).toList(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (context) => _SortOptions(sortOption: sortOption, isAscending: isAscending),
     );
   }
+}
 
-  Widget _buildFilterChips(BuildContext context) {
-    final cubit = context.read<GenreDetailsCubit>();
-    final state = cubit.state;
-    return InveslyChoiceChips<HoldingFilter>.single(
-      options: HoldingFilter.values.map((f) => InveslyChipData(value: f, label: Text(f.label))).toList(),
-      selected: state.holdingFilter,
-      onChanged: (filter) {
-        if (filter != null) cubit.setHoldingFilter(filter);
-      },
-      wrapped: false,
-      showCheckmark: false,
+class _SortOptions extends StatefulWidget {
+  const _SortOptions({super.key, this.sortOption, this.isAscending});
+
+  final HoldingSortOption? sortOption;
+  final bool? isAscending;
+
+  @override
+  State<_SortOptions> createState() => _SortOptionsState();
+}
+
+class _SortOptionsState extends State<_SortOptions> {
+  late final ValueNotifier<HoldingSortOption> _holdingSortOption;
+  late final ValueNotifier<bool> _isAscending;
+
+  @override
+  void initState() {
+    super.initState();
+    _holdingSortOption = ValueNotifier<HoldingSortOption>(widget.sortOption ?? HoldingSortOption.name);
+    _isAscending = ValueNotifier<bool>(widget.isAscending ?? true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 12.0,
+        children: <Widget>[
+          Text('Sort holdings by', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
+
+          ValueListenableBuilder<HoldingSortOption>(
+            valueListenable: _holdingSortOption,
+            builder: (context, sortOption, _) {
+              return RadioGroup<HoldingSortOption>(
+                groupValue: sortOption,
+                onChanged: (option) {
+                  if (option == null) return;
+                  _holdingSortOption.value = option;
+                },
+                child: Section(
+                  margin: EdgeInsets.zero,
+                  tiles: HoldingSortOption.values.map((option) {
+                    return RadioSectionTile<HoldingSortOption>(
+                      title: Text(
+                        option.label,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      value: option,
+                      subtitle: AnimatedExpanded(
+                        expand: sortOption == option,
+                        duration: 240.ms,
+                        axis: Axis.vertical,
+                        alignment: -1.0,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: ValueListenableBuilder<bool>(
+                            valueListenable: _isAscending,
+                            builder: (context, isAscending, _) {
+                              return InveslyChoiceChips<bool>.single(
+                                options: [
+                                  InveslyChipData(value: true, label: Text(option.ascendingLabel ?? 'Ascending')),
+                                  InveslyChipData(value: false, label: Text(option.descendingLabel ?? 'Descending')),
+                                ],
+                                selected: isAscending,
+                                onChanged: (value) {
+                                  if (value == null) return;
+                                  _isAscending.value = value;
+                                },
+                                wrapped: false,
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () {
+                Navigator.of(
+                  context,
+                ).maybePop<(HoldingSortOption, bool)>((_holdingSortOption.value, _isAscending.value));
+              },
+              icon: const Icon(Icons.check),
+              label: const Text('Apply'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

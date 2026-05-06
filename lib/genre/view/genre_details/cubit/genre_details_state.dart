@@ -4,11 +4,11 @@ part of 'genre_details_cubit.dart';
 enum GenreDetailsStateStatus { initial, loading, loaded, error }
 
 enum HoldingSortOption {
-  name(label: 'Name', ascendingLabel: 'A-Z', descendingLabel: 'Z-A'),
-  invested(label: 'Invested', ascendingLabel: 'Low to High', descendingLabel: 'High to Low'),
-  currentValue(label: 'Current value', ascendingLabel: 'Low to High', descendingLabel: 'High to Low'),
-  returns(label: 'Returns %', ascendingLabel: 'Low to High', descendingLabel: 'High to Low'),
-  xirr(label: 'XIRR', ascendingLabel: 'Low to High', descendingLabel: 'High to Low');
+  name(label: 'Name', ascendingLabel: 'A to Z', descendingLabel: 'Z to A'),
+  invested(label: 'Invested', ascendingLabel: 'High to Low', descendingLabel: 'Low to High'),
+  currentValue(label: 'Current value', ascendingLabel: 'High to Low', descendingLabel: 'Low to High'),
+  returns(label: 'Returns %', ascendingLabel: 'High to Low', descendingLabel: 'Low to High'),
+  xirr(label: 'XIRR', ascendingLabel: 'High to Low', descendingLabel: 'Low to High');
 
   final String label;
   final String? ascendingLabel;

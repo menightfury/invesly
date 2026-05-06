@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:google_fonts/google_fonts.dart';
 
-import '../../../constants.dart';
+import 'package:invesly/constants.dart';
 
 @immutable
 class AppStyle {
@@ -40,7 +40,7 @@ class AppStyle {
         bodyLarge: TextStyle(fontSize: 20.0, height: 1.25), // chip, ListTile title,
         bodyMedium: TextStyle(fontSize: 18.0, height: 1.4), // body
         bodySmall: TextStyle(fontSize: 14.0), // textfield helper
-        labelLarge: TextStyle(fontSize: 18.0, height: 1.4, fontWeight: FontWeight.w600), // button, *-chip
+        labelLarge: TextStyle(fontSize: 18.0, height: 1.4, fontWeight: FontWeight.bold), // button, *-chip
         labelMedium: TextStyle(fontSize: 16.0, height: 1.4), // bottomNavBar
         labelSmall: TextStyle(fontSize: 13.0),
       ),
@@ -51,7 +51,12 @@ class AppStyle {
           return colorScheme.surface;
         }),
         // selectedColor: colorScheme.primaryContainer,
-        shape: StadiumBorder(side: BorderSide(color: colorScheme.primary)),
+        shape: StadiumBorder(),
+        // side: const WidgetStateBorderSide.fromMap(<WidgetStatesConstraint, BorderSide?>{
+        //   WidgetState.selected: BorderSide(color: Colors.red),
+        //   // Resolves to null if no keys match, deferring to the default value
+        //   // of the theme or widget.
+        // }),
         padding: const EdgeInsets.all(4.0),
       ),
       appBarTheme: AppBarTheme(
@@ -221,8 +226,8 @@ class CustomChipBorderSide extends WidgetStateBorderSide {
       return BorderSide(color: colorScheme.onSurface.withAlpha(30));
     }
     if (states.contains(WidgetState.selected)) {
-      return BorderSide(color: colorScheme.primary);
+      return BorderSide(color: Colors.red);
     }
-    return BorderSide(color: colorScheme.primary.withAlpha(30));
+    return BorderSide(color: colorScheme.outlineVariant, width: 2.0);
   }
 }
