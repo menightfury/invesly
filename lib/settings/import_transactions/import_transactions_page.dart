@@ -106,7 +106,7 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
               return Text(state.errorMsg!, style: TextStyle(color: context.colors.error));
             }
             if (state.isCsvLoaded) {
-              return AnimatedExpanded(
+              return AnimatedExpand(
                 axis: Axis.vertical,
                 expand: true,
                 child: _CsvPreviewTable(state.csvHeaders, state.csvData),

@@ -2,9 +2,11 @@ import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/amc_transaction_model.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
+import 'package:invesly/amcs/view/amc_overview/amc_overview_page.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
+import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common_libs.dart';
@@ -287,7 +289,7 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       value: option,
-                      subtitle: AnimatedExpanded(
+                      subtitle: AnimatedExpand(
                         expand: sortOption == option,
                         duration: 240.ms,
                         axis: Axis.vertical,
@@ -581,9 +583,11 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
   static const double _spacing = 2.0;
 
   @override
-  void initState() {
-    super.initState();
-    _getCurrentPrice();
+  void didUpdateWidget(covariant _HoldingStatCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isLoaded && !oldWidget.isLoaded) {
+      _getCurrentPrice();
+    }
   }
 
   @override
@@ -596,57 +600,55 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       spacing: _spacing,
       children: <Widget>[
         // ~ AMC name and transaction count
-        SimpleCard(
-          elevation: 0.0,
-          color: theme.canvasColor,
-          borderRadius: iCardBorderRadius.copyWith(
-            bottomLeft: iTileBorderRadius.bottomLeft,
-            bottomRight: iTileBorderRadius.bottomRight,
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                spacing: 4.0,
-                children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          widget.isLoaded ? widget.amcTransaction?.amc?.name ?? 'N/A' : 'Loading...',
-                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 2,
+        GestureDetector(
+          onTap: () {
+            if (widget.isLoaded) context.go(AmcOverviewPage(widget.amcTransaction!.amc!.id));
+          },
+          child: SimpleCard(
+            elevation: 0.0,
+            color: theme.canvasColor,
+            borderRadius: iCardBorderRadius.copyWith(
+              bottomLeft: iTileBorderRadius.bottomLeft,
+              bottomRight: iTileBorderRadius.bottomRight,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 4.0,
+                  children: <Widget>[
+                    Row(
+                      spacing: 4.0,
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            widget.isLoaded ? widget.amcTransaction?.amc?.name ?? 'N/A' : 'Loading...',
+                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                          ),
                         ),
-                      ),
-                      AnimatedScale(
-                        scale: widget.isLoaded ? 1.0 : 0.0,
-                        alignment: Alignment.centerRight,
-                        duration: 240.ms,
-                        curve: Curves.easeInOut,
-                        child: GestureDetector(
-                          onTap: () async {
-                            // final sortOptions = await _showSortOptions(
-                            //   context,
-                            //   sortAndFilterStatus: cubit.state.sortAndFilterStatus,
-                            // );
-                            // if (sortOptions == null) return;
-                            // cubit.setSortAndFilterStatus(sortOptions);
-                          },
-                          child: const Icon(Icons.east_rounded),
+
+                        Skeleton.ignore(
+                          child: FadeIn(
+                            fadeIn: widget.isLoaded,
+                            duration: 240.ms,
+                            curve: Curves.easeInOut,
+                            child: const Icon(Icons.east_rounded),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Wrap(spacing: 4.0, runSpacing: 4.0, children: _buildTagsForAmc(context)),
-                  Text(
-                    '${widget.isLoaded ? widget.amcTransaction?.numTransactions ?? 0 : 'Loading...'} transactions',
-                    style: labelStyle,
-                  ),
-                ],
+                      ],
+                    ),
+                    Wrap(spacing: 4.0, runSpacing: 4.0, children: _buildTagsForAmc(context)),
+                    Text(
+                      '${widget.isLoaded ? widget.amcTransaction?.numTransactions ?? 0 : 'Loading...'} transactions',
+                      style: labelStyle,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

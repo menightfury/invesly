@@ -42,7 +42,7 @@ class _ScrollToHideState extends State<ScrollToHide> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedExpanded(expand: _expand, axis: widget.hideAxis, duration: widget.duration, child: widget.child);
+    return AnimatedExpand(expand: _expand, axis: widget.hideAxis, duration: widget.duration, child: widget.child);
   }
 
   void _listen() {

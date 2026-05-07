@@ -76,7 +76,10 @@ class RestoreDriveBackupPage extends StatelessWidget {
                   );
                 },
               ),
+
               const Gap(16.0),
+
+              // ~ Drive backup files
               BlocSelector<AppCubit, AppState, InveslyUser?>(
                 selector: (state) => state.user,
                 builder: (context, user) {
@@ -212,36 +215,24 @@ class _DriveFilesState extends State<_DriveFiles> {
                   ValueListenableBuilder<drive.File?>(
                     valueListenable: _selectedFile,
                     builder: (context, selectedFile, child) {
-                      return Section(
-                        margin: EdgeInsets.zero,
-                        tiles: recentFiles.map((file) {
-                          return SectionTile.checkTile(
-                            title: FormattedDate(
-                              date: file.modifiedTime ?? file.createdTime ?? DateTime.now(),
-                              style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                            subtitle: file.size != null && int.tryParse(file.size!) != null
-                                ? Text(int.parse(file.size!).formatAsBytes(2))
-                                : const Text('...'),
-                            value: selectedFile == file,
-                            onChanged: (isSelected) => _selectedFile.value = isSelected ? file : null,
-                          );
-                        }).toList(),
-                        // tileCount: recentFiles.length,
-                        // tileBuilder: (context, index) {
-                        //   final file = recentFiles[index];
-                        //   return SectionTile.checkTile(
-                        //     title: FormattedDate(
-                        //       date: file.modifiedTime ?? file.createdTime ?? DateTime.now(),
-                        //       style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                        //     ),
-                        //     subtitle: file.size != null && int.tryParse(file.size!) != null
-                        //         ? Text(int.parse(file.size!).formatAsBytes(2))
-                        //         : const Text('...'),
-                        //     value: selectedFile == file,
-                        //     onChanged: (isSelected) => _selectedFile.value = isSelected ? file : null,
-                        //   );
-                        // },
+                      return RadioGroup<drive.File>(
+                        groupValue: selectedFile,
+                        onChanged: (value) => _selectedFile.value = value,
+                        child: Section(
+                          margin: EdgeInsets.zero,
+                          tiles: recentFiles.map((file) {
+                            return RadioSectionTile(
+                              title: FormattedDate(
+                                date: file.modifiedTime ?? file.createdTime ?? DateTime.now(),
+                                style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              subtitle: file.size != null && int.tryParse(file.size!) != null
+                                  ? Text(int.parse(file.size!).formatAsBytes(2))
+                                  : const Text('...'),
+                              value: file,
+                            );
+                          }).toList(),
+                        ),
                       );
                     },
                   ),

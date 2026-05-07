@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-const iButtonPadding = EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 12.0);
+const iButtonPadding = EdgeInsetsGeometry.symmetric(horizontal: 20.0, vertical: 16.0);
 const iButtonBorderRadius = BorderRadius.all(Radius.circular(16.0));
 const iButtonSize = Size(96.0, 48.0);
 const iCardBorderRadius = BorderRadius.all(Radius.circular(16.0));

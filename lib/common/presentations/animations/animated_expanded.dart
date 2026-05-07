@@ -7,13 +7,13 @@ import 'package:flutter/material.dart';
 /// The animation can be configured to expand either vertically or horizontally
 /// and includes both size and fade transitions.
 ///
-/// [AnimatedExpanded] is useful for cases where you want to dynamically show
+/// [AnimatedExpand] is useful for cases where you want to dynamically show
 /// or hide content with a smooth animation, such as expanding a section of a
 /// list or a collapsible panel.
 ///
 /// The widget automatically listens for changes to the [expand] property and
 /// triggers the animation accordingly.
-class AnimatedExpanded extends StatefulWidget {
+class AnimatedExpand extends StatefulWidget {
   /// The widget to display inside the animated container.
   final Widget child;
 
@@ -41,7 +41,7 @@ class AnimatedExpanded extends StatefulWidget {
   /// A value of 0.0 (the default) indicates the center for either [axis] value.
   final double alignment;
 
-  const AnimatedExpanded({
+  const AnimatedExpand({
     super.key,
     this.expand = false,
     required this.child,
@@ -52,10 +52,10 @@ class AnimatedExpanded extends StatefulWidget {
   });
 
   @override
-  _AnimatedExpandedState createState() => _AnimatedExpandedState();
+  _AnimatedExpandState createState() => _AnimatedExpandState();
 }
 
-class _AnimatedExpandedState extends State<AnimatedExpanded> with SingleTickerProviderStateMixin {
+class _AnimatedExpandState extends State<AnimatedExpand> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> sizeAnimation;
   late final Animation<double> fadeAnimation;
@@ -69,7 +69,7 @@ class _AnimatedExpandedState extends State<AnimatedExpanded> with SingleTickerPr
   }
 
   @override
-  void didUpdateWidget(covariant AnimatedExpanded oldWidget) {
+  void didUpdateWidget(covariant AnimatedExpand oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.expand) {
       _controller.forward();
