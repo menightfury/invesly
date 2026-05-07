@@ -183,7 +183,7 @@ class AppStyle {
       ),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
-          // padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(iButtonPadding),
+          // padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(EdgeInsets.all(iButtonPadding.vertical)),
           minimumSize: WidgetStatePropertyAll<Size>(Size.square(iButtonSize.shortestSide)),
           // backgroundColor: WidgetStateProperty.resolveWith<Color>((state) {
           //   if (state.contains(WidgetState.disabled)) return colorScheme.primary.withAlpha(100);

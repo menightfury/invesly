@@ -26,24 +26,47 @@ enum HoldingFilter {
   final String label;
 }
 
+class HoldingSortAndFilterStatus extends Equatable {
+  const HoldingSortAndFilterStatus({
+    this.sortOption = HoldingSortOption.name,
+    this.sortAscending = true,
+    this.holdingFilter = HoldingFilter.active,
+  });
+
+  final HoldingSortOption sortOption;
+  final bool sortAscending;
+  final HoldingFilter holdingFilter;
+
+  HoldingSortAndFilterStatus copyWith({
+    HoldingSortOption? sortOption,
+    bool? sortAscending,
+    HoldingFilter? holdingFilter,
+  }) {
+    return HoldingSortAndFilterStatus(
+      sortOption: sortOption ?? this.sortOption,
+      sortAscending: sortAscending ?? this.sortAscending,
+      holdingFilter: holdingFilter ?? this.holdingFilter,
+    );
+  }
+
+  @override
+  List<Object?> get props => [sortOption, sortAscending, holdingFilter];
+}
+
 class GenreDetailsState extends Equatable {
   const GenreDetailsState({
     required this.status,
     this.stats = const [],
     this.currentAmounts = const {},
     this.errorMessage,
-    this.sortOption = HoldingSortOption.name,
-    this.sortAscending = true,
-    this.holdingFilter = HoldingFilter.all,
+    this.sortAndFilterStatus = const HoldingSortAndFilterStatus(),
   });
 
   final GenreDetailsStateStatus status;
   final List<AmcTransaction> stats;
   final Map<String, double> currentAmounts;
   final String? errorMessage;
-  final HoldingSortOption sortOption;
-  final bool sortAscending;
-  final HoldingFilter holdingFilter;
+  final HoldingSortAndFilterStatus sortAndFilterStatus;
 
   int get numHoldings => stats.length;
   double get totalCurrentValue => currentAmounts.entries.fold<double>(0, (v, el) => v + el.value);
@@ -52,7 +75,7 @@ class GenreDetailsState extends Equatable {
 
   List<AmcTransaction> get displayStats {
     // Filter
-    final filtered = switch (holdingFilter) {
+    final filtered = switch (sortAndFilterStatus.holdingFilter) {
       HoldingFilter.all => stats,
       HoldingFilter.active => stats.where((s) => s.totalQuantity > 0).toList(),
       HoldingFilter.exited => stats.where((s) => s.totalQuantity <= 0).toList(),
@@ -62,7 +85,7 @@ class GenreDetailsState extends Equatable {
     final sorted = List<AmcTransaction>.from(filtered);
     sorted.sort((a, b) {
       late final int result;
-      switch (sortOption) {
+      switch (sortAndFilterStatus.sortOption) {
         case HoldingSortOption.name:
           result = (a.amc?.name ?? '').compareTo(b.amc?.name ?? '');
           break;
@@ -91,7 +114,7 @@ class GenreDetailsState extends Equatable {
           result = aXirr.compareTo(bXirr);
           break;
       }
-      return sortAscending ? result : -result;
+      return sortAndFilterStatus.sortAscending ? result : -result;
     });
 
     return sorted;
@@ -102,23 +125,19 @@ class GenreDetailsState extends Equatable {
     List<AmcTransaction>? stats,
     Map<String, double>? currentAmounts,
     String? errorMessage,
-    HoldingSortOption? sortOption,
-    bool? sortAscending,
-    HoldingFilter? holdingFilter,
+    HoldingSortAndFilterStatus? sortAndFilterStatus,
   }) {
     return GenreDetailsState(
       status: status ?? this.status,
       stats: stats ?? this.stats,
       currentAmounts: currentAmounts ?? this.currentAmounts,
       errorMessage: errorMessage ?? this.errorMessage,
-      sortOption: sortOption ?? this.sortOption,
-      sortAscending: sortAscending ?? this.sortAscending,
-      holdingFilter: holdingFilter ?? this.holdingFilter,
+      sortAndFilterStatus: sortAndFilterStatus ?? this.sortAndFilterStatus,
     );
   }
 
   @override
-  List<Object?> get props => [status, stats, currentAmounts, errorMessage, sortOption, sortAscending, holdingFilter];
+  List<Object?> get props => [status, stats, currentAmounts, errorMessage, sortAndFilterStatus];
 }
 
 extension GenreDetailsStateX on GenreDetailsState {

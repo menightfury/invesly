@@ -1,16 +1,16 @@
 import 'package:intl/intl.dart';
 import 'package:invesly/common_libs.dart';
 
-class InveslyDateFormatPicker extends StatelessWidget {
+class InveslyDateFormatPicker extends StatefulWidget {
   const InveslyDateFormatPicker({super.key, this.value, this.onPickup});
 
   static const dateFormats = <String>[
+    'dd MMM yyyy',
+    'dd MMMM yyyy',
     'd-M-yy',
     'd.M.yy',
     'dd-MM-yy',
     'dd-MM-yyyy',
-    'dd MMM yyyy',
-    'dd MMMM yyyy',
     'yyyy-MM-dd',
   ];
 
@@ -26,6 +26,25 @@ class InveslyDateFormatPicker extends StatelessWidget {
         return InveslyDateFormatPicker(value: dateFormat, onPickup: (value) => Navigator.maybePop(context, value));
       },
     );
+  }
+
+  @override
+  State<InveslyDateFormatPicker> createState() => _InveslyDateFormatPickerState();
+}
+
+class _InveslyDateFormatPickerState extends State<InveslyDateFormatPicker> {
+  late final ValueNotifier<String?> _dateFormat;
+
+  @override
+  void initState() {
+    super.initState();
+    _dateFormat = ValueNotifier(widget.value);
+  }
+
+  @override
+  void dispose() {
+    _dateFormat.dispose();
+    super.dispose();
   }
 
   @override
@@ -47,19 +66,33 @@ class InveslyDateFormatPicker extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Section(
-                tiles: dateFormats.map((data) {
-                  // final isSelectionAllowed = !columnsToExclude.contains(data.key);
-                  return SectionTile(
-                    title: Text(DateFormat(data).format(dateNow)),
-                    subtitle: Text(data),
-                    onTap: () => context.pop(data),
-                    secondaryIcon: data == value ? const Icon(Icons.check_rounded) : null,
-                    selectedTileColor: context.theme.primaryColor.withAlpha(125),
-                    // enabled: isSelectionAllowed,
-                    selected: data == value,
+              ValueListenableBuilder<String?>(
+                valueListenable: _dateFormat,
+                builder: (context, dateFormat, _) {
+                  return RadioGroup<String>(
+                    groupValue: dateFormat,
+                    onChanged: (value) {
+                      if (value == null) return;
+                      _dateFormat.value = value;
+                      widget.onPickup?.call(value);
+                    },
+                    child: Section(
+                      tiles: InveslyDateFormatPicker.dateFormats.map((data) {
+                        // final isSelectionAllowed = !columnsToExclude.contains(data.key);
+                        return RadioSectionTile<String>(
+                          title: Text(DateFormat(data).format(dateNow)),
+                          subtitle: Text(data),
+                          value: data,
+                          // onTap: () => context.pop(data),
+                          // secondaryIcon: data == value ? const Icon(Icons.check_rounded) : null,
+                          // selectedTileColor: context.theme.primaryColor.withAlpha(125),
+                          // enabled: isSelectionAllowed,
+                          // selected: data == value,
+                        );
+                      }).toList(),
+                    ),
                   );
-                }).toList(),
+                },
               ),
             ],
           ),

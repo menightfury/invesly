@@ -107,38 +107,10 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                       child: Text('Holdings', style: theme.textTheme.titleMedium, overflow: TextOverflow.ellipsis),
                     ),
 
-                    // ~ Filter button
-                    BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-                      buildWhen: (prev, curr) {
-                        return prev.status != curr.status || prev.stats != curr.stats;
-                      },
-                      builder: (context, genreState) {
-                        return AnimatedScale(
-                          scale: genreState.isLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
-                          alignment: Alignment.centerRight,
-                          duration: 240.ms,
-                          curve: Curves.easeInOut,
-                          child: IconButton(
-                            onPressed: () async {
-                              final sortOptions = await _showSortOptions(
-                                context,
-                                sortOption: genreState.sortOption,
-                                isAscending: genreState.sortAscending,
-                              );
-                              if (sortOptions == null) return;
-                              cubit.setSortOption(option: sortOptions.$1, isAscending: sortOptions.$2);
-                            },
-                            icon: const Icon(Icons.filter_list_alt),
-                            tooltip: 'Filter holdings',
-                          ),
-                        );
-                      },
-                    ),
-
                     // ~ Sort button
                     BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
                       buildWhen: (prev, curr) {
-                        return prev.status != curr.status || prev.stats != curr.stats;
+                        return prev.status != curr.status && (prev.isLoaded || curr.isLoaded);
                       },
                       builder: (context, genreState) {
                         return AnimatedScale(
@@ -150,12 +122,12 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                             onPressed: () async {
                               final sortOptions = await _showSortOptions(
                                 context,
-                                sortOption: genreState.sortOption,
-                                isAscending: genreState.sortAscending,
+                                sortAndFilterStatus: cubit.state.sortAndFilterStatus,
                               );
                               if (sortOptions == null) return;
-                              cubit.setSortOption(option: sortOptions.$1, isAscending: sortOptions.$2);
+                              cubit.setSortAndFilterStatus(sortOptions);
                             },
+                            padding: EdgeInsets.zero,
                             icon: const Icon(Icons.sort_rounded),
                             tooltip: 'Sort holdings',
                           ),
@@ -163,27 +135,6 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                       },
                     ),
                   ],
-                ),
-
-                // ~ Filter buttons
-                BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-                  buildWhen: (prev, curr) {
-                    return prev.status != curr.status ||
-                        prev.stats != curr.stats ||
-                        prev.holdingFilter != curr.holdingFilter;
-                  },
-                  builder: (context, state) {
-                    return InveslyChoiceChips<HoldingFilter>.single(
-                      options: HoldingFilter.values
-                          .map((f) => InveslyChipData(value: f, label: Text(f.label)))
-                          .toList(),
-                      selected: state.holdingFilter,
-                      onChanged: (filter) {
-                        if (filter != null) cubit.setHoldingFilter(filter);
-                      },
-                      wrapped: false,
-                    );
-                  },
                 ),
               ],
             ),
@@ -198,12 +149,9 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
               return prev.status != curr.status ||
                   prev.stats != curr.stats ||
                   prev.errorMessage != curr.errorMessage ||
-                  prev.sortOption != curr.sortOption ||
-                  prev.sortAscending != curr.sortAscending ||
-                  prev.holdingFilter != curr.holdingFilter;
+                  prev.sortAndFilterStatus != curr.sortAndFilterStatus;
             },
             builder: (context, genreState) {
-              $logger.i('GenreDetailsPage is building with state: $genreState');
               final isError = genreState.isError;
               final isLoading = genreState.isLoading;
 
@@ -256,39 +204,39 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     );
   }
 
-  Future<(HoldingSortOption, bool)?> _showSortOptions(
+  Future<HoldingSortAndFilterStatus?> _showSortOptions(
     BuildContext context, {
-    HoldingSortOption? sortOption,
-    bool? isAscending,
+    required HoldingSortAndFilterStatus sortAndFilterStatus,
   }) async {
-    return showModalBottomSheet<(HoldingSortOption, bool)>(
+    return showModalBottomSheet<HoldingSortAndFilterStatus>(
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
-      builder: (context) => _SortOptions(sortOption: sortOption, isAscending: isAscending),
+      builder: (context) => _HoldingSortAndFilterOptions(sortAndFilterStatus: sortAndFilterStatus),
     );
   }
 }
 
-class _SortOptions extends StatefulWidget {
-  const _SortOptions({super.key, this.sortOption, this.isAscending});
+class _HoldingSortAndFilterOptions extends StatefulWidget {
+  const _HoldingSortAndFilterOptions({super.key, required this.sortAndFilterStatus});
 
-  final HoldingSortOption? sortOption;
-  final bool? isAscending;
+  final HoldingSortAndFilterStatus sortAndFilterStatus;
 
   @override
-  State<_SortOptions> createState() => _SortOptionsState();
+  State<_HoldingSortAndFilterOptions> createState() => _HoldingSortAndFilterOptionsState();
 }
 
-class _SortOptionsState extends State<_SortOptions> {
+class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptions> {
+  late final ValueNotifier<HoldingFilter> _holdingFilter;
   late final ValueNotifier<HoldingSortOption> _holdingSortOption;
   late final ValueNotifier<bool> _isAscending;
 
   @override
   void initState() {
     super.initState();
-    _holdingSortOption = ValueNotifier<HoldingSortOption>(widget.sortOption ?? HoldingSortOption.name);
-    _isAscending = ValueNotifier<bool>(widget.isAscending ?? true);
+    _holdingFilter = ValueNotifier<HoldingFilter>(widget.sortAndFilterStatus.holdingFilter);
+    _holdingSortOption = ValueNotifier<HoldingSortOption>(widget.sortAndFilterStatus.sortOption);
+    _isAscending = ValueNotifier<bool>(widget.sortAndFilterStatus.sortAscending);
   }
 
   @override
@@ -300,8 +248,25 @@ class _SortOptionsState extends State<_SortOptions> {
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 12.0,
         children: <Widget>[
-          Text('Sort holdings by', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
+          // ~ Filtering
+          Text('Filter holdings', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
+          ValueListenableBuilder(
+            valueListenable: _holdingFilter,
+            builder: (context, filter, _) {
+              return InveslyChoiceChips<HoldingFilter>.single(
+                options: HoldingFilter.values.map((f) => InveslyChipData(value: f, label: Text(f.label))).toList(),
+                selected: filter,
+                onChanged: (filter) {
+                  if (filter == null) return;
+                  _holdingFilter.value = filter;
+                },
+                wrapped: false,
+              );
+            },
+          ),
 
+          // ~ Sorting
+          Text('Sort holdings by', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
           ValueListenableBuilder<HoldingSortOption>(
             valueListenable: _holdingSortOption,
             builder: (context, sortOption, _) {
@@ -355,13 +320,18 @@ class _SortOptionsState extends State<_SortOptions> {
             },
           ),
 
+          // ~ Apply Button
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
               onPressed: () {
-                Navigator.of(
-                  context,
-                ).maybePop<(HoldingSortOption, bool)>((_holdingSortOption.value, _isAscending.value));
+                final status = HoldingSortAndFilterStatus(
+                  sortOption: _holdingSortOption.value,
+                  sortAscending: _isAscending.value,
+                  holdingFilter: _holdingFilter.value,
+                );
+
+                Navigator.of(context).maybePop<HoldingSortAndFilterStatus>(status);
               },
               icon: const Icon(Icons.check),
               label: const Text('Apply'),
@@ -370,6 +340,14 @@ class _SortOptionsState extends State<_SortOptions> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _holdingFilter.dispose();
+    _holdingSortOption.dispose();
+    _isAscending.dispose();
+    super.dispose();
   }
 }
 
@@ -634,11 +612,34 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                 mainAxisSize: MainAxisSize.min,
                 spacing: 4.0,
                 children: <Widget>[
-                  Text(
-                    widget.isLoaded ? widget.amcTransaction?.amc?.name ?? 'N/A' : 'Loading...',
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          widget.isLoaded ? widget.amcTransaction?.amc?.name ?? 'N/A' : 'Loading...',
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                        ),
+                      ),
+                      AnimatedScale(
+                        scale: widget.isLoaded ? 1.0 : 0.0,
+                        alignment: Alignment.centerRight,
+                        duration: 240.ms,
+                        curve: Curves.easeInOut,
+                        child: GestureDetector(
+                          onTap: () async {
+                            // final sortOptions = await _showSortOptions(
+                            //   context,
+                            //   sortAndFilterStatus: cubit.state.sortAndFilterStatus,
+                            // );
+                            // if (sortOptions == null) return;
+                            // cubit.setSortAndFilterStatus(sortOptions);
+                          },
+                          child: const Icon(Icons.east_rounded),
+                        ),
+                      ),
+                    ],
                   ),
                   Wrap(spacing: 4.0, runSpacing: 4.0, children: _buildTagsForAmc(context)),
                   Text(

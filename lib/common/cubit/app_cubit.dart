@@ -1,11 +1,12 @@
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/model/currency.dart';
+import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common_libs.dart';
 
 part 'app_state.dart';
 
 class AppCubit extends HydratedCubit<AppState> {
-  AppCubit() : super(const AppState());
+  AppCubit() : super(AppState());
 
   // void initialize() {
   //   emit(state.copyWith(initialized: true));
@@ -40,7 +41,7 @@ class AppCubit extends HydratedCubit<AppState> {
   }
 
   void updateDateFormat(String dateFormat) {
-    emit(state.copyWith(dateFormat: () => dateFormat));
+    emit(state.copyWith(dateFormat: dateFormat));
   }
 
   void updateAmcSha(String? amcSha) {

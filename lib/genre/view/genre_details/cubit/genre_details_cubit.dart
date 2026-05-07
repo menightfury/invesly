@@ -61,11 +61,7 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
     emit(state.copyWith(stats: stats));
   }
 
-  void setSortOption({HoldingSortOption? option, bool? isAscending}) {
-    emit(state.copyWith(sortOption: option, sortAscending: isAscending));
-  }
-
-  void setHoldingFilter(HoldingFilter filter) {
-    emit(state.copyWith(holdingFilter: filter));
+  void setSortAndFilterStatus(HoldingSortAndFilterStatus sortAndFilterStatus) {
+    emit(state.copyWith(sortAndFilterStatus: sortAndFilterStatus));
   }
 }

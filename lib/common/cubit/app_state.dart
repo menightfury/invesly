@@ -1,7 +1,7 @@
 part of 'app_cubit.dart';
 
 class AppState extends Equatable {
-  const AppState({
+  AppState({
     this.isOnboarded = false,
     this.isDarkMode = false,
     this.user,
@@ -10,12 +10,12 @@ class AppState extends Equatable {
     this.accentColor,
     this.isPrivateMode = false,
     // this.gapiAccessToken,
-    this.dateFormat,
+    String? dateFormat,
     this.amcSha,
     this.currency,
     this.lastBackupDate,
     this.lastRestoreDate,
-  });
+  }) : dateFormat = dateFormat ?? _defaultDateFormat;
 
   final bool isOnboarded;
   final bool isDarkMode;
@@ -24,7 +24,7 @@ class AppState extends Equatable {
   final int? accentColor;
   final bool isDynamicColor;
   // final AccessToken? gapiAccessToken;
-  final String? dateFormat;
+  final String dateFormat;
 
   /// AMC SHAs received from github releases - Used to check if the local AMC list is recent or not
   final String? amcSha;
@@ -37,6 +37,8 @@ class AppState extends Equatable {
   final DateTime? lastBackupDate;
   final DateTime? lastRestoreDate;
 
+  static final _defaultDateFormat = InveslyDateFormatPicker.dateFormats.first;
+
   AppState copyWith({
     bool? isOnboarded,
     bool? isDarkMode,
@@ -46,7 +48,7 @@ class AppState extends Equatable {
     int? Function()? accentColor,
     bool? isPrivateMode,
     // AccessToken? Function()? gapiAccessToken,
-    String? Function()? dateFormat,
+    String? dateFormat,
     String? Function()? amcSha,
     Currency? Function()? currency,
     DateTime? lastBackupDate,
@@ -61,7 +63,7 @@ class AppState extends Equatable {
       accentColor: accentColor != null ? accentColor() : this.accentColor,
       isPrivateMode: isPrivateMode ?? this.isPrivateMode,
       // gapiAccessToken: gapiAccessToken != null ? gapiAccessToken() : this.gapiAccessToken,
-      dateFormat: dateFormat != null ? dateFormat() : this.dateFormat,
+      dateFormat: dateFormat ?? this.dateFormat,
       amcSha: amcSha != null ? amcSha() : this.amcSha,
       currency: currency != null ? currency() : this.currency,
       lastBackupDate: lastBackupDate ?? this.lastBackupDate,
@@ -116,7 +118,7 @@ class AppState extends Equatable {
       // gapiAccessToken: map['gapiAccessToken'] != null
       //     ? AccessToken.fromJson(map['gapiAccessToken'] as Map<String, dynamic>)
       //     : null,
-      dateFormat: map['dateFormat'] as String?,
+      dateFormat: map['dateFormat'] != null ? map['dateFormat'] as String : _defaultDateFormat,
       amcSha: map['amcShas'] as String?,
       currency: map['currency'] != null ? Currency.fromMap(map['currency']) : null,
       lastBackupDate: map['lastBackupDate'] != null ? DateTime.tryParse(map['lastBackupDate']) : null,
