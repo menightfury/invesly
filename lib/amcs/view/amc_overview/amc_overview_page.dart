@@ -268,14 +268,21 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
 
                                             // ~ Current value
                                             _SectionWidget(
-                                              label: isTrnLoading
-                                                  ? const Text('Loading...')
-                                                  : FormattedDate(
-                                                      date: latestPrice?.date ?? DateTime.now(),
-                                                      prefix: const Skeleton.keep(child: Text('Current value as of ')),
-                                                      overflow: TextOverflow.ellipsis,
-                                                      maxLines: 2,
-                                                    ),
+                                              label: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: <Widget>[
+                                                  const Text('Current value'),
+                                                  isTrnLoading
+                                                      ? const Text('Loading...')
+                                                      : FormattedDate(
+                                                          date: latestPrice?.date ?? DateTime.now(),
+                                                          overflow: TextOverflow.ellipsis,
+                                                          style: textTheme.labelSmall?.copyWith(
+                                                            color: context.theme.disabledColor,
+                                                          ),
+                                                        ),
+                                                ],
+                                              ),
                                               value: isTrnLoading
                                                   ? Text('Loading...')
                                                   : BlocSelector<AppCubit, AppState, bool>(
