@@ -17,6 +17,7 @@ class Section extends StatelessWidget {
        _tiles = tiles,
        _tileBuilder = null;
 
+  // TODO: Remove this constructor
   const Section.builder({
     super.key,
     this.title,
@@ -139,7 +140,7 @@ class Section extends StatelessWidget {
   }
 }
 
-enum _SectionTileVariant { normal, navigation, toggle, check, radio }
+enum _SectionTileVariant { normal, navigation, toggle, check }
 
 class SectionTile extends StatelessWidget {
   final Widget title;

@@ -77,8 +77,8 @@ class GenreDetailsState extends Equatable {
     // Filter
     final filtered = switch (sortAndFilterStatus.holdingFilter) {
       HoldingFilter.all => stats,
-      HoldingFilter.active => stats.where((s) => s.totalQuantity > 0).toList(),
-      HoldingFilter.exited => stats.where((s) => s.totalQuantity <= 0).toList(),
+      HoldingFilter.active => stats.where((s) => s.totalUnits > 0).toList(),
+      HoldingFilter.exited => stats.where((s) => s.totalUnits <= 0).toList(),
     };
 
     // Sort
@@ -97,14 +97,14 @@ class GenreDetailsState extends Equatable {
         case HoldingSortOption.currentValue:
           // final aVal = currentAmounts[a.amc?.id] ?? 0.0;
           // final bVal = currentAmounts[b.amc?.id] ?? 0.0;
-          final aVal = a.currentValue ?? 0.0;
-          final bVal = b.currentValue ?? 0.0;
+          final aVal = a.totalCurrentValue ?? 0.0;
+          final bVal = b.totalCurrentValue ?? 0.0;
           result = aVal.compareTo(bVal);
           break;
 
         case HoldingSortOption.returns:
-          final aReturns = a.returns ?? 0.0;
-          final bReturns = b.returns ?? 0.0;
+          final aReturns = a.amountReturn ?? 0.0;
+          final bReturns = b.amountReturn ?? 0.0;
           result = aReturns.compareTo(bReturns);
           break;
 

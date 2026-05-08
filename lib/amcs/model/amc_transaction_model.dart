@@ -6,36 +6,36 @@ import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 import 'amc_model.dart';
 
 class AmcTransaction extends Equatable {
-  const AmcTransaction({required this.accountId, this.amc, this.transactions = const []});
+  const AmcTransaction({this.amc, this.transactions = const []});
 
-  final String accountId;
   final InveslyAmc? amc;
   final List<InveslyTransaction> transactions;
 
   int get numTransactions => transactions.length;
   double get totalInvested => transactions.fold<double>(0.0, (v, el) => v + el.totalAmount);
-  double get totalQuantity => transactions.fold<double>(0.0, (v, el) => v + el.quantity);
-  double? get currentValue {
+  double get totalUnits => transactions.fold<double>(0.0, (v, el) => v + el.quantity);
+  double get averageBuyPrice => totalInvested / totalUnits;
+  double? get totalCurrentValue {
     if (amc?.ltp == null) return null;
-    return amc!.ltp!.price * totalQuantity;
+    return amc!.ltp!.price * totalUnits;
   }
 
-  double? get returns {
-    if (currentValue == null) return null;
-    return currentValue! - totalInvested;
+  double? get amountReturn {
+    if (totalCurrentValue == null) return null;
+    return totalCurrentValue! - totalInvested;
   }
 
-  double? get returnsPercent {
-    if (returns == null || totalInvested == 0) return null;
-    return (returns! / totalInvested) * 100;
+  double? get percentageReturn {
+    if (amountReturn == null || totalInvested == 0) return null;
+    return (amountReturn! / totalInvested) * 100;
   }
 
   double? get xirr {
-    if (currentValue == null) return null;
+    if (totalCurrentValue == null) return null;
 
     final transactionsForXirr = transactions.map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn)).toList();
     if (transactionsForXirr.isNotEmpty) {
-      transactionsForXirr.add(xf.Transaction(-currentValue!, amc!.ltp!.date ?? amc!.ltp!.fetchDate));
+      transactionsForXirr.add(xf.Transaction(-totalCurrentValue!, amc!.ltp!.date ?? amc!.ltp!.fetchDate));
     }
     double? xirr = 0.0;
     if (transactionsForXirr.isNotEmpty) {
@@ -48,14 +48,10 @@ class AmcTransaction extends Equatable {
     return xirr;
   }
 
-  AmcTransaction copyWith({String? accountId, InveslyAmc? amc, List<InveslyTransaction>? transactions}) {
-    return AmcTransaction(
-      accountId: accountId ?? this.accountId,
-      amc: amc ?? this.amc,
-      transactions: transactions ?? this.transactions,
-    );
+  AmcTransaction copyWith({InveslyAmc? amc, List<InveslyTransaction>? transactions}) {
+    return AmcTransaction(amc: amc ?? this.amc, transactions: transactions ?? this.transactions);
   }
 
   @override
-  List<Object?> get props => [accountId, amc, transactions];
+  List<Object?> get props => [amc, transactions];
 }

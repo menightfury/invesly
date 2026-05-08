@@ -487,7 +487,7 @@ class _AmcOverviewSection extends StatelessWidget {
 
     if (state.status == GenreDetailsStateStatus.loaded) {
       final totalHoldings = state.stats.length;
-      final presentHoldings = state.stats.where((stat) => stat.totalQuantity > 0).length;
+      final presentHoldings = state.stats.where((stat) => stat.totalUnits > 0).length;
       return Text('$presentHoldings / $totalHoldings', textAlign: TextAlign.right, overflow: TextOverflow.ellipsis);
     }
 
@@ -655,7 +655,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                 minHeight: 0.0,
                 label: Text('Available units', style: labelStyle),
                 value: Text(
-                  '${widget.isLoaded ? widget.amcTransaction?.totalQuantity.toPrecisionDouble(4) ?? '0.00' : 'Loading...'}',
+                  '${widget.isLoaded ? widget.amcTransaction?.totalUnits.toPrecisionDouble(4) ?? '0.00' : 'Loading...'}',
                   textAlign: TextAlign.right,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -820,7 +820,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
 
     if (genreState.isLoaded) {
       final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
-      final percentageReturns = amcTrn?.returnsPercent ?? 0.0;
+      final percentageReturns = amcTrn?.percentageReturn ?? 0.0;
 
       return Text(
         percentageReturns > 0 ? '${percentageReturns.toPrecisionDouble(2)}%' : '(0.00%)',
@@ -844,7 +844,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
 
     if (genreState.isLoaded) {
       final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
-      final returns = amcTrn?.returns ?? 0;
+      final returns = amcTrn?.amountReturn ?? 0;
 
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
@@ -876,7 +876,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
-          return CurrencyView(amount: amcTrn?.currentValue ?? 0, privateMode: isPrivateMode);
+          return CurrencyView(amount: amcTrn?.totalCurrentValue ?? 0, privateMode: isPrivateMode);
         },
       );
     }

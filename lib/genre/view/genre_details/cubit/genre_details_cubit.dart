@@ -28,7 +28,7 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
       }
       final amcTransactionsMap = groupBy(transactions, (trn) => trn.amc);
       final amcTransactions = amcTransactionsMap.entries.map((entry) {
-        return AmcTransaction(accountId: accountId, amc: entry.key, transactions: entry.value);
+        return AmcTransaction(amc: entry.key, transactions: entry.value);
       }).toList();
 
       emit(GenreDetailsState(status: GenreDetailsStateStatus.loaded, stats: amcTransactions));

@@ -6,13 +6,13 @@ class TransactionsState extends Equatable {
   const TransactionsState({
     this.searchFilters,
     this.status = TransactionsStatus.initial,
-    this.transactions,
+    this.transactions = const [],
     this.errorMsg,
   });
 
   final FilterTransactionsModel? searchFilters;
   final TransactionsStatus status;
-  final List<InveslyTransaction>? transactions;
+  final List<InveslyTransaction> transactions;
   final String? errorMsg;
 
   TransactionsState copyWith({

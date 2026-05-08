@@ -16,19 +16,11 @@ class AmcOverviewLoadingState extends AmcOverviewState {
 }
 
 class AmcOverviewLoadedState extends AmcOverviewState {
-  // const AmcOverviewLoadedState({this.amc, this.latestPrice});
   const AmcOverviewLoadedState({this.amc});
 
   final InveslyAmc? amc;
-  // final LatestPrice? latestPrice;
-
-  // AmcOverviewLoadedState copyWith({LatestPrice? latestPrice}) {
-  //   // return AmcOverviewLoadedState(amc: amc, latestPrice: latestPrice ?? this.latestPrice);
-  //   return AmcOverviewLoadedState(amc: amc, latestPrice: latestPrice ?? this.latestPrice);
-  // }
 
   @override
-  // List<Object?> get props => [amc, latestPrice];
   List<Object?> get props => [amc];
 }
 
