@@ -14,17 +14,9 @@ import 'package:invesly/genre/view/genre_details/cubit/genre_details_cubit.dart'
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
 class GenreDetailsPage extends StatelessWidget {
-  const GenreDetailsPage({super.key, required this.genre});
+  const GenreDetailsPage(this.genre, {super.key});
 
   final AmcGenre genre;
-
-  static Route<void> route(AmcGenre genre) {
-    return MaterialPageRoute<void>(
-      builder: (_) {
-        return GenreDetailsPage(genre: genre);
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +173,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                     child: Center(
                       child: Text(
                         'No holdings match the current filter',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        style: TextStyle(color: context.colors.onSurfaceVariant),
                       ),
                     ),
                   ),
@@ -333,7 +325,7 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
                   holdingFilter: _holdingFilter.value,
                 );
 
-                Navigator.of(context).maybePop<HoldingSortAndFilterStatus>(status);
+                context.pop<HoldingSortAndFilterStatus>(status);
               },
               icon: const Icon(Icons.check),
               label: const Text('Apply'),
@@ -602,7 +594,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
         // ~ AMC name and transaction count
         GestureDetector(
           onTap: () {
-            if (widget.isLoaded) context.go(AmcOverviewPage(widget.amcTransaction!.amc!.id));
+            if (widget.isLoaded) context.push(AmcOverviewPage(widget.amcTransaction!.amc!.id));
           },
           child: SimpleCard(
             elevation: 0.0,

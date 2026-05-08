@@ -61,8 +61,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // final textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(

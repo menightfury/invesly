@@ -5,10 +5,10 @@ extension BuildContextX on BuildContext {
   ThemeData get theme => Theme.of(this);
 
   /// Returns the current [TextTheme] of the context.
-  TextTheme get textTheme => Theme.of(this).textTheme;
+  TextTheme get textTheme => theme.textTheme;
 
   /// Returns the current [ColorScheme] of the context.
-  ColorScheme get colors => Theme.of(this).colorScheme;
+  ColorScheme get colors => theme.colorScheme;
 
   /// Checks if the current context can pop a route.
   bool get canPop => Navigator.of(this).canPop();

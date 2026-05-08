@@ -91,9 +91,8 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final colors = context.theme.colorScheme;
+    final textTheme = context.theme.textTheme;
 
     return Scaffold(
       body: SafeArea(
@@ -296,7 +295,9 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
                                                   FormattedDate(
                                                     date: latestPrice?.date ?? DateTime.now(),
                                                     overflow: TextOverflow.ellipsis,
-                                                    style: textTheme.labelSmall?.copyWith(color: theme.disabledColor),
+                                                    style: textTheme.labelSmall?.copyWith(
+                                                      color: context.theme.disabledColor,
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -477,14 +478,13 @@ class _AmcOverviewScreenState extends State<_AmcOverviewScreen> {
   }
 
   SectionTile _buildTransaction(InveslyTransaction trn) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
+    final textTheme = context.theme.textTheme;
 
     return SectionTile(
       title: Text('${trn.quantity} units @ ₹${(trn.rate).toPrecision(2)}'),
       subtitle: FormattedDate(
         date: trn.investedOn,
-        style: textTheme.labelSmall?.copyWith(color: theme.disabledColor),
+        style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
       ),
       icon: PhysicalModel(
         shape: BoxShape.circle,

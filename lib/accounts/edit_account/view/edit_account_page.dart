@@ -55,7 +55,7 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    // final textTheme = context.textTheme;
     final cubit = context.read<EditAccountCubit>();
 
     return BlocListener<EditAccountCubit, EditAccountState>(
@@ -103,11 +103,14 @@ class _EditAccountScreenState extends State<_EditAccountScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text('Welcome,', style: textTheme.headlineSmall),
+                        Text('Welcome,', style: context.textTheme.headlineSmall),
                         BlocSelector<EditAccountCubit, EditAccountState, String>(
                           selector: (state) => state.name,
                           builder: (context, name) {
-                            return Text(name.trim().isEmpty ? 'Investor' : name, style: textTheme.headlineMedium);
+                            return Text(
+                              name.trim().isEmpty ? 'Investor' : name,
+                              style: context.textTheme.headlineMedium,
+                            );
                           },
                         ),
                       ],
@@ -522,8 +525,6 @@ class _ScrollBasedSliverAppBarContentBuilderState extends State<ScrollBasedSlive
 
 //   @override
 //   Widget build(BuildContext context) {
-//     final theme = Theme.of(context);
-
 //     return Material(
 //       color: theme.colorScheme.primary.withAlpha(30),
 //       borderRadius: AppConstants.textFieldBorderRadius,

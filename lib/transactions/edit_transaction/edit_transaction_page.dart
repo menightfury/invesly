@@ -89,20 +89,20 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
           if (state.status == EditTransactionStatus.edited) {
             final canPop = await showDiscardChangesDialog(context) ?? false;
             if (canPop && context.mounted) {
-              Navigator.of(context).pop();
+              context.pop();
             } else {
               cubit.requestPop(false);
             }
           } else {
             if (context.mounted) {
-              Navigator.of(context).pop();
+              context.pop();
             }
           }
         } else {
           late final SnackBar message;
           if (state.status == EditTransactionStatus.saved) {
             if (context.canPop) {
-              Navigator.of(context).pop();
+              context.pop();
             } else {
               // context.go(AppRouter.dashboard);
               context.go(const DashboardPage());

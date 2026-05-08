@@ -19,7 +19,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
       icon: const Icon(Icons.pie_chart_outline_rounded),
       trailingIcon: GestureDetector(
         onTap: () {
-          Navigator.of(context).push(GenreDetailsPage.route(widget.genre));
+          context.push(GenreDetailsPage(widget.genre));
         },
         child: const Icon(Icons.chevron_right_rounded),
       ),

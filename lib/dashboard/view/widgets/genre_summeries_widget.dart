@@ -214,7 +214,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
       ),
       onTap: () {
         if (_selectedGenre.value == genre) {
-          Navigator.of(context).push(GenreDetailsPage.route(genre));
+          context.push(GenreDetailsPage(genre));
         } else {
           _selectedGenre.value = genre;
         }
