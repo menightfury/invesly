@@ -271,7 +271,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                                               label: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: <Widget>[
-                                                  const Text('Current value'),
+                                                  const Skeleton.keep(child: Text('Current value')),
                                                   isTrnLoading
                                                       ? const Text('Loading...')
                                                       : FormattedDate(
@@ -304,22 +304,20 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
 
                                             // ~ Latest NAV (Mkt. price) sections
                                             _SectionWidget(
-                                              label: Skeleton.keep(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: <Widget>[
-                                                    const Text('Latest NAV'),
-                                                    isAmcLoading
-                                                        ? const Text('Loading...')
-                                                        : FormattedDate(
-                                                            date: latestPrice?.date ?? DateTime.now(),
-                                                            overflow: TextOverflow.ellipsis,
-                                                            style: textTheme.labelSmall?.copyWith(
-                                                              color: context.theme.disabledColor,
-                                                            ),
+                                              label: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: <Widget>[
+                                                  const Skeleton.keep(child: Text('Latest NAV')),
+                                                  isAmcLoading
+                                                      ? const Text('Loading...')
+                                                      : FormattedDate(
+                                                          date: latestPrice?.date ?? DateTime.now(),
+                                                          overflow: TextOverflow.ellipsis,
+                                                          style: textTheme.labelSmall?.copyWith(
+                                                            color: context.theme.disabledColor,
                                                           ),
-                                                  ],
-                                                ),
+                                                        ),
+                                                ],
                                               ),
                                               value: isAmcLoading
                                                   ? const Text('Loading...')
