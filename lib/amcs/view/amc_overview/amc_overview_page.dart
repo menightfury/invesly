@@ -206,6 +206,8 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                                       ? AmcTransaction(amc: amcState.amc, transactions: trnState.transactions)
                                       : null;
 
+                                  // Save xirr in database
+
                                   return Skeletonizer(
                                     enabled: isTrnLoading,
                                     child: Column(
@@ -375,6 +377,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                                             // ~ Percentage returns sections
                                             _SectionWidget(
                                               label: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: <Widget>[
                                                   const Skeleton.keep(child: Text('Total returns')),
                                                   isTrnLoading || isAmcLoading
@@ -409,6 +412,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                                             // ~ XIRR section
                                             _SectionWidget(
                                               label: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: <Widget>[
                                                   const Skeleton.keep(child: Text('XIRR')),
                                                   isTrnLoading || isAmcLoading
@@ -455,14 +459,14 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                   // ~ Holding Transactions Section
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
                       child: const Text('Transactions'),
                     ),
                   ),
 
                   // ~ Transactions list
                   SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
                     sliver: BlocBuilder<TransactionsCubit, TransactionsState>(
                       builder: (context, trnState) {
                         final isLoading = trnState.isLoading;
@@ -572,21 +576,23 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
               style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
             )
           : const Text('Loading...'),
-      icon: PhysicalModel(
-        shape: BoxShape.circle,
-        color: trn != null
-            ? trn.totalAmount.isNegative
-                  ? Colors.red.shade200
-                  : Colors.teal.shade200
-            : Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: trn != null
-              ? Icon(
-                  trn.totalAmount.isNegative ? Icons.south_east_rounded : Icons.north_east_rounded,
-                  color: trn.totalAmount.isNegative ? Colors.red : Colors.teal,
-                )
-              : const Bone.icon(),
+      icon: Skeleton.leaf(
+        child: PhysicalModel(
+          shape: BoxShape.circle,
+          color: trn != null
+              ? trn.totalAmount.isNegative
+                    ? Colors.red.lighten(60)
+                    : Colors.teal.lighten(60)
+              : Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: trn != null
+                ? Icon(
+                    trn.totalAmount.isNegative ? Icons.south_east_rounded : Icons.north_east_rounded,
+                    color: trn.totalAmount.isNegative ? Colors.red : Colors.teal,
+                  )
+                : const Bone.icon(),
+          ),
         ),
       ),
       secondaryIcon: trn != null
@@ -602,6 +608,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
             )
           : Text('Loading...', style: textTheme.titleLarge),
       borderRadius: tileRadius,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
     );
   }
 }

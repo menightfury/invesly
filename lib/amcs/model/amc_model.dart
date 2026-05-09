@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:intl/intl.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
+import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 
@@ -51,120 +52,121 @@ enum AmcGenre {
   }
 }
 
-// class AmcTag extends Equatable {
-//   const AmcTag(this.tag);
+class AmcTag extends Equatable {
+  const AmcTag(this.tag);
 
-//   final String tag;
+  final String tag;
 
-//   Map<String, dynamic> toMap() {
-//     return {'tag': tag};
-//   }
+  Map<String, dynamic> toMap() {
+    return {'tag': tag};
+  }
 
-//   factory AmcTag.fromMap(Map<String, dynamic> map) {
-//     assert(map['tag'] != null, 'Tag must not be null');
-//     return AmcTag(map['tag'] as String);
-//   }
+  factory AmcTag.fromMap(Map<String, dynamic> map) {
+    assert(map['tag'] != null, 'Tag must not be null');
+    return AmcTag(map['tag'] as String);
+  }
 
-//   String toJson() => json.encode(toMap());
+  String toJson() => json.encode(toMap());
 
-//   factory AmcTag.fromJson(String source) {
-//     return AmcTag.fromMap(json.decode(source) as Map<String, dynamic>);
-//   }
+  factory AmcTag.fromJson(String source) {
+    return AmcTag.fromMap(json.decode(source) as Map<String, dynamic>);
+  }
 
-//   Set<String> get tags => {tag};
+  Set<String> get tags => {tag};
 
-//   @override
-//   List<Object?> get props => [tag];
-// }
+  @override
+  List<Object?> get props => [tag];
+}
 
-// class StockTag extends AmcTag {
-//   const StockTag({required this.sector, this.industry}) : super(sector);
+class StockAmcTag extends AmcTag {
+  const StockAmcTag({required this.sector, this.industry}) : super(sector);
 
-//   final String sector;
-//   final String? industry;
+  final String sector;
+  final String? industry;
 
-//   @override
-//   Map<String, dynamic> toMap() {
-//     return <String, dynamic>{'sector': sector, 'industry': industry};
-//   }
+  @override
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{'sector': sector, 'industry': industry};
+  }
 
-//   factory StockTag.fromMap(Map<String, dynamic> map) {
-//     assert(map['sector'] != null, 'Sector must not be null');
-//     return StockTag(sector: map['sector'] as String, industry: map['industry'] as String?);
-//   }
+  factory StockAmcTag.fromMap(Map<String, dynamic> map) {
+    assert(map['sector'] != null, 'Sector must not be null');
+    return StockAmcTag(sector: map['sector'] as String, industry: map['industry'] as String?);
+  }
 
-//   factory StockTag.fromJson(String source) => StockTag.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory StockAmcTag.fromJson(String source) => StockAmcTag.fromMap(json.decode(source) as Map<String, dynamic>);
 
-//   @override
-//   Set<String> get tags => {sector, ?industry};
+  @override
+  Set<String> get tags => {sector, ?industry};
 
-//   @override
-//   List<Object?> get props => [sector, industry];
-// }
+  @override
+  List<Object?> get props => [sector, industry];
+}
 
-// class _MfTag extends AmcTag {
-//   const _MfTag({required this.category, this.subCategory, this.plan, this.schemeType}) : super(category);
+class MfAmcTag extends AmcTag {
+  const MfAmcTag({required this.category, this.subCategory, this.plan, this.schemeType}) : super(category);
 
-//   final String category;
-//   final String? subCategory;
-//   final String? plan;
-//   final String? schemeType;
+  final String category;
+  final String? subCategory;
+  final String? plan;
+  final String? schemeType;
 
-//   @override
-//   Map<String, dynamic> toMap() {
-//     return <String, dynamic>{
-//       'category': category,
-//       'sub_category': subCategory,
-//       'plan': plan,
-//       'scheme_type': schemeType,
-//     };
-//   }
+  @override
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'category': category,
+      'sub_category': subCategory,
+      'plan': plan,
+      'scheme_type': schemeType,
+    };
+  }
 
-//   factory _MfTag.fromMap(Map<String, dynamic> map) {
-//     assert(map['category'] != null, 'Category must not be null');
-//     // final category = MfCategory.fromTitle(map['category'] as String);
-//     // assert(category != null, 'Invalid category value');
+  factory MfAmcTag.fromMap(Map<String, dynamic> map) {
+    assert(map['category'] != null, 'Category must not be null');
+    // final category = MfCategory.fromTitle(map['category'] as String);
+    // assert(category != null, 'Invalid category value');
 
-//     return _MfTag(
-//       category: map['category'] as String,
-//       // subCategory: map['sub_category'] != null ? MfSubCategory.fromTitle(map['sub_category'] as String) : null,
-//       subCategory: map['sub_category'] as String?,
-//       // plan: map['plan'] != null ? MfPlan.fromTitle(map['plan'] as String) : null,
-//       plan: map['plan'] as String?,
-//       // schemeType: map['scheme_type'] != null ? MfSchemeType.fromTitle(map['scheme_type'] as String) : null,
-//       schemeType: map['scheme_type'] as String?,
-//     );
-//   }
+    return MfAmcTag(
+      category: map['category'] as String,
+      // subCategory: map['sub_category'] != null ? MfSubCategory.fromTitle(map['sub_category'] as String) : null,
+      subCategory: map['sub_category'] as String?,
+      // plan: map['plan'] != null ? MfPlan.fromTitle(map['plan'] as String) : null,
+      plan: map['plan'] as String?,
+      // schemeType: map['scheme_type'] != null ? MfSchemeType.fromTitle(map['scheme_type'] as String) : null,
+      schemeType: map['scheme_type'] as String?,
+    );
+  }
 
-//   factory _MfTag.fromJson(String source) => _MfTag.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory MfAmcTag.fromJson(String source) => MfAmcTag.fromMap(json.decode(source) as Map<String, dynamic>);
 
-//   @override
-//   Set<String> get tags => {category, ?subCategory, ?plan, ?schemeType};
+  @override
+  Set<String> get tags => {category, ?subCategory, ?plan, ?schemeType};
 
-//   @override
-//   List<Object?> get props => [category, subCategory, plan, schemeType];
-// }
+  @override
+  List<Object?> get props => [category, subCategory, plan, schemeType];
+}
 
-// class InsuranceTag extends AmcTag {
-//   const InsuranceTag(this.plan) : super(plan);
+class InsuranceAmcTag extends AmcTag {
+  const InsuranceAmcTag(this.plan) : super(plan);
 
-//   final String plan;
+  final String plan;
 
-//   @override
-//   Map<String, dynamic> toMap() {
-//     return {'plan': plan};
-//   }
+  @override
+  Map<String, dynamic> toMap() {
+    return {'plan': plan};
+  }
 
-//   factory InsuranceTag.fromMap(Map<String, dynamic> map) {
-//     assert(map['plan'] != null, 'Plan must not be null');
-//     return InsuranceTag(map['plan'] as String);
-//   }
+  factory InsuranceAmcTag.fromMap(Map<String, dynamic> map) {
+    assert(map['plan'] != null, 'Plan must not be null');
+    return InsuranceAmcTag(map['plan'] as String);
+  }
 
-//   factory InsuranceTag.fromJson(String source) => InsuranceTag.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory InsuranceAmcTag.fromJson(String source) =>
+      InsuranceAmcTag.fromMap(json.decode(source) as Map<String, dynamic>);
 
-//   @override
-//   List<Object?> get props => [plan];
-// }
+  @override
+  List<Object?> get props => [plan];
+}
 
 abstract class InveslyAmc extends AmcInDb {
   InveslyAmc({
@@ -173,52 +175,39 @@ abstract class InveslyAmc extends AmcInDb {
     required super.code,
     required super.isin,
     this.genre,
-    this.tag,
+    AmcTag? amcTag,
     this.ltp,
-    // super.ltpDate,
-    // super.ltpFetchDate,
-  }) : super(genreCode: genre?.name, tagString: tag != null ? json.encode(tag) : null, ltpString: ltp?.toJson());
+    this.xirr,
+  }) : _amcTag = amcTag,
+       super(
+         genreCode: genre?.name,
+         tagString: amcTag != null ? json.encode(amcTag) : null,
+         ltpString: ltp?.toJson(),
+         xirrString: xirr?.toJson(),
+       );
 
   /// Genre of the AMC i.e. mf, stock, insurance, misc etc.
   final AmcGenre? genre;
 
   /// tags is combination of sector, sub-sector, plan, scheme etc.,
   /// tags is saved in database as string separated by commas
-  // final AmcTag? tag;
-  final Map<String, dynamic>? tag;
+  final AmcTag? _amcTag;
+  // final Map<String, dynamic>? tag;
 
   /// Latest price of the AMC, if available.
   final LatestPrice? ltp;
+
+  /// Latest calculated xirr
+  final LatestXirr? xirr;
 
   factory InveslyAmc.fromDb(AmcInDb amc) {
     AmcGenre? amcGenre;
     if (amc.genreCode?.isNotEmpty ?? false) {
       amcGenre = AmcGenre.fromName(amc.genreCode!);
     }
-
-    // final tagString = amc.tagString;
-    // AmcTag? tag;
-    // if (amcGenre != null && (tagString?.isNotEmpty ?? false)) {
-    //   tag = switch (amcGenre) {
-    //     AmcGenre.mf => MfTag.fromJson(tagString!),
-    //     AmcGenre.stock => StockTag.fromJson(tagString!),
-    //     AmcGenre.insurance => InsuranceTag.fromJson(tagString!),
-    //     _ => AmcTag.fromJson(tagString!),
-    //   };
-    // }
-
-    // return InveslyAmc(
-    //   id: amc.id,
-    //   name: amc.name,
-    //   code: amc.code,
-    //   isin: amc.isin,
-    //   genre: amcGenre,
-    //   tag: tag,
-    // );
     if (amcGenre == null) {
       return MiscAmcModel.fromDb(amc);
     }
-
     return switch (amcGenre) {
       AmcGenre.mf => MfAmcModel.fromDb(amc),
       AmcGenre.stock => StockAmcModel.fromDb(amc),
@@ -231,16 +220,19 @@ abstract class InveslyAmc extends AmcInDb {
 
   LatestPrice? fromLtpMap(Map<String, dynamic> response);
 
-  Set<String> get tags => tag != null ? tag!.values.whereType<String>().toSet() : {};
+  Set<String>? get tags => _amcTag?.tags;
+  // Set<String> get tags => tag != null ? tag!.values.whereType<String>().toSet() : {};
 
   InveslyAmc copyWith({
-    String? id,
-    String? name,
-    String? code,
-    String? isin,
-    AmcGenre? genre,
-    Map<String, dynamic>? tag,
+    // String? id,
+    // String? name,
+    // String? code,
+    // String? isin,
+    // AmcGenre? genre,
+    // Map<String, dynamic>? tag,
+    // AmcTag? amcTag,
     LatestPrice? ltp,
+    LatestXirr? xirr,
   });
 }
 
@@ -250,27 +242,43 @@ class MfAmcModel extends InveslyAmc {
     required super.name,
     required super.code,
     required super.isin,
-    this.category,
-    this.subCategory,
-    this.plan,
-    this.schemeType,
+    // this.category,
+    // this.subCategory,
+    // this.plan,
+    // this.schemeType,
+    this.amcTag,
     super.ltp,
-    // super.ltpDate,
-    // super.ltpFetchDate,
+    super.xirr,
   }) : super(
          genre: AmcGenre.mf,
-         tag: {'category': category, 'sub_category': subCategory, 'plan': plan, 'scheme_type': schemeType},
+         //  amcTag: {'category': category, 'sub_category': subCategory, 'plan': plan, 'scheme_type': schemeType},
+         amcTag: amcTag,
        );
 
-  final String? category;
-  final String? subCategory;
-  final String? plan;
-  final String? schemeType;
+  // final String? category;
+  // final String? subCategory;
+  // final String? plan;
+  // final String? schemeType;
+  final MfAmcTag? amcTag;
 
   factory MfAmcModel.fromDb(AmcInDb amc) {
-    Map<String, dynamic>? tag;
+    // Map<String, dynamic>? tag;
+    // if (amc.tagString?.isNotEmpty ?? false) {
+    //   tag = json.decode(amc.tagString!) as Map<String, dynamic>;
+    // }
+    MfAmcTag? amcTag;
     if (amc.tagString?.isNotEmpty ?? false) {
-      tag = json.decode(amc.tagString!) as Map<String, dynamic>;
+      amcTag = MfAmcTag.fromJson(amc.tagString!);
+    }
+
+    LatestPrice? ltp;
+    if (amc.ltpString?.isNotEmpty ?? false) {
+      ltp = LatestPrice.fromJson(amc.ltpString!);
+    }
+
+    LatestXirr? xirr;
+    if (amc.xirrString?.isNotEmpty ?? false) {
+      xirr = LatestXirr.fromJson(amc.xirrString!);
     }
 
     return MfAmcModel(
@@ -278,14 +286,13 @@ class MfAmcModel extends InveslyAmc {
       name: amc.name,
       code: amc.code,
       isin: amc.isin,
-      category: tag?['category'] as String?,
-      subCategory: tag?['sub_category'] as String?,
-      plan: tag?['plan'] as String?,
-      schemeType: tag?['scheme_type'] as String?,
-      ltp: amc.ltpString != null ? LatestPrice.fromJson(amc.ltpString!) : null,
-      // ltp: amc.ltp,
-      // ltpDate: amc.ltpDate,
-      // ltpFetchDate: amc.ltpFetchDate,
+      // category: tag?['category'] as String?,
+      // subCategory: tag?['sub_category'] as String?,
+      // plan: tag?['plan'] as String?,
+      // schemeType: tag?['scheme_type'] as String?,
+      amcTag: amcTag,
+      ltp: ltp,
+      xirr: xirr,
     );
   }
 
@@ -321,25 +328,29 @@ class MfAmcModel extends InveslyAmc {
   }
 
   @override
-  InveslyAmc copyWith({
-    String? id,
-    String? name,
-    String? code,
-    String? isin,
-    AmcGenre? genre,
-    Map<String, dynamic>? tag,
+  MfAmcModel copyWith({
+    // String? id,
+    // String? name,
+    // String? code,
+    // String? isin,
+    // AmcGenre? genre,
+    // Map<String, dynamic>? tag,
+    // AmcTag? amcTag,
     LatestPrice? ltp,
+    LatestXirr? xirr,
   }) {
     return MfAmcModel(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      code: code ?? this.code,
-      isin: isin ?? this.isin,
-      category: tag != null ? tag['category'] as String? : category,
-      subCategory: tag != null ? tag['sub_category'] as String? : subCategory,
-      plan: tag != null ? tag['plan'] as String? : plan,
-      schemeType: tag != null ? tag['scheme_type'] as String? : schemeType,
+      id: id,
+      name: name,
+      code: code,
+      isin: isin,
+      // category: tag != null ? tag['category'] as String? : category,
+      // subCategory: tag != null ? tag['sub_category'] as String? : subCategory,
+      // plan: tag != null ? tag['plan'] as String? : plan,
+      // schemeType: tag != null ? tag['scheme_type'] as String? : schemeType,
+      amcTag: amcTag,
       ltp: ltp ?? this.ltp,
+      xirr: xirr ?? this.xirr,
     );
   }
 }
@@ -350,20 +361,39 @@ class StockAmcModel extends InveslyAmc {
     required super.name,
     required super.code,
     required super.isin,
-    this.sector,
-    this.industry,
+    // this.sector,
+    // this.industry,
+    this.amcTag,
     super.ltp,
-    // super.ltpDate,
-    // super.ltpFetchDate,
-  }) : super(genre: AmcGenre.stock, tag: {'sector': sector, 'industry': industry});
+    super.xirr,
+  }) : super(
+         genre: AmcGenre.stock,
+         // amcTag: {'sector': sector, 'industry': industry},
+         amcTag: amcTag,
+       );
 
-  final String? sector;
-  final String? industry;
+  // final String? sector;
+  // final String? industry;
+  final StockAmcTag? amcTag;
 
   factory StockAmcModel.fromDb(AmcInDb amc) {
-    Map<String, dynamic>? tag;
+    // Map<String, dynamic>? tag;
+    // if (amc.tagString?.isNotEmpty ?? false) {
+    //   tag = json.decode(amc.tagString!) as Map<String, dynamic>;
+    // }
+    StockAmcTag? amcTag;
     if (amc.tagString?.isNotEmpty ?? false) {
-      tag = json.decode(amc.tagString!) as Map<String, dynamic>;
+      // tag = json.decode(amc.tagString!) as Map<String, dynamic>;
+      amcTag = StockAmcTag.fromJson(amc.tagString!);
+    }
+    LatestPrice? ltp;
+    if (amc.ltpString?.isNotEmpty ?? false) {
+      ltp = LatestPrice.fromJson(amc.ltpString!);
+    }
+
+    LatestXirr? xirr;
+    if (amc.xirrString?.isNotEmpty ?? false) {
+      xirr = LatestXirr.fromJson(amc.xirrString!);
     }
 
     return StockAmcModel(
@@ -371,12 +401,11 @@ class StockAmcModel extends InveslyAmc {
       name: amc.name,
       code: amc.code,
       isin: amc.isin,
-      sector: tag?['sector'] as String?,
-      industry: tag?['industry'] as String?,
-      ltp: amc.ltpString != null ? LatestPrice.fromJson(amc.ltpString!) : null,
-      // ltp: amc.ltp,
-      // ltpDate: amc.ltpDate,
-      // ltpFetchDate: amc.ltpFetchDate,
+      // sector: tag?['sector'] as String?,
+      // industry: tag?['industry'] as String?,
+      amcTag: amcTag,
+      ltp: ltp,
+      xirr: xirr,
     );
   }
 
@@ -406,23 +435,27 @@ class StockAmcModel extends InveslyAmc {
   }
 
   @override
-  InveslyAmc copyWith({
-    String? id,
-    String? name,
-    String? code,
-    String? isin,
-    AmcGenre? genre,
-    Map<String, dynamic>? tag,
+  StockAmcModel copyWith({
+    // String? id,
+    // String? name,
+    // String? code,
+    // String? isin,
+    // AmcGenre? genre,
+    // Map<String, dynamic>? tag,
+    // AmcTag? amcTag,
     LatestPrice? ltp,
+    LatestXirr? xirr,
   }) {
     return StockAmcModel(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      code: code ?? this.code,
-      isin: isin ?? this.isin,
-      sector: tag != null ? tag['sector'] as String? : sector,
-      industry: tag != null ? tag['industry'] as String? : industry,
+      id: id,
+      name: name,
+      code: code,
+      isin: isin,
+      // sector: tag != null ? tag['sector'] as String? : sector,
+      // industry: tag != null ? tag['industry'] as String? : industry,
+      amcTag: amcTag,
       ltp: ltp ?? this.ltp,
+      xirr: xirr ?? this.xirr,
     );
   }
 }
@@ -433,18 +466,38 @@ class InsuranceAmcModel extends InveslyAmc {
     required super.name,
     required super.code,
     required super.isin,
-    this.plan,
+    // this.plan,
+    this.amcTag,
     super.ltp,
-    // super.ltpDate,
-    // super.ltpFetchDate,
-  }) : super(genre: AmcGenre.insurance, tag: {'plan': plan});
+    super.xirr,
+  }) : super(
+         genre: AmcGenre.insurance,
+         //amcTag: {'plan': plan}
+         amcTag: amcTag,
+       );
 
-  final String? plan;
+  // final String? plan;
+  final InsuranceAmcTag? amcTag;
 
   factory InsuranceAmcModel.fromDb(AmcInDb amc) {
-    Map<String, dynamic>? tag;
+    // Map<String, dynamic>? tag;
+    // if (amc.tagString?.isNotEmpty ?? false) {
+    //   tag = json.decode(amc.tagString!) as Map<String, dynamic>;
+    // }
+
+    InsuranceAmcTag? amcTag;
     if (amc.tagString?.isNotEmpty ?? false) {
-      tag = json.decode(amc.tagString!) as Map<String, dynamic>;
+      amcTag = InsuranceAmcTag.fromJson(amc.tagString!);
+    }
+
+    LatestPrice? ltp;
+    if (amc.ltpString?.isNotEmpty ?? false) {
+      ltp = LatestPrice.fromJson(amc.ltpString!);
+    }
+
+    LatestXirr? xirr;
+    if (amc.xirrString?.isNotEmpty ?? false) {
+      xirr = LatestXirr.fromJson(amc.xirrString!);
     }
 
     return InsuranceAmcModel(
@@ -452,11 +505,10 @@ class InsuranceAmcModel extends InveslyAmc {
       name: amc.name,
       code: amc.code,
       isin: amc.isin,
-      plan: tag?['plan'] as String?,
-      ltp: amc.ltpString != null ? LatestPrice.fromJson(amc.ltpString!) : null,
-      // ltp: amc.ltp,
-      // ltpDate: amc.ltpDate,
-      // ltpFetchDate: amc.ltpFetchDate,
+      // plan: tag?['plan'] as String?,
+      amcTag: amcTag,
+      ltp: ltp,
+      xirr: xirr,
     );
   }
 
@@ -467,22 +519,26 @@ class InsuranceAmcModel extends InveslyAmc {
   LatestPrice? fromLtpMap(Map<String, dynamic> response) => null; // Insurance AMC doesn't have a latest price API, so return null price
 
   @override
-  InveslyAmc copyWith({
-    String? id,
-    String? name,
-    String? code,
-    String? isin,
-    AmcGenre? genre,
-    Map<String, dynamic>? tag,
+  InsuranceAmcModel copyWith({
+    // String? id,
+    // String? name,
+    // String? code,
+    // String? isin,
+    // AmcGenre? genre,
+    // Map<String, dynamic>? tag,
+    // AmcTag? amcTag,
     LatestPrice? ltp,
+    LatestXirr? xirr,
   }) {
     return InsuranceAmcModel(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      code: code ?? this.code,
-      isin: isin ?? this.isin,
-      plan: tag != null ? tag['plan'] as String? : plan,
+      id: id,
+      name: name,
+      code: code,
+      isin: isin,
+      // plan: tag != null ? tag['plan'] as String? : plan,
+      amcTag: amcTag,
       ltp: ltp ?? this.ltp,
+      xirr: xirr ?? this.xirr,
     );
   }
 }
@@ -493,16 +549,31 @@ class MiscAmcModel extends InveslyAmc {
     required super.name,
     required super.code,
     required super.isin,
-    super.tag,
+    this.amcTag,
     super.ltp,
-    // super.ltpDate,
-    // super.ltpFetchDate,
-  }) : super(genre: AmcGenre.misc);
+    super.xirr,
+  }) : super(genre: AmcGenre.misc, amcTag: amcTag);
+
+  final AmcTag? amcTag;
 
   factory MiscAmcModel.fromDb(AmcInDb amc) {
-    Map<String, dynamic>? tag;
+    // Map<String, dynamic>? tag;
+    // if (amc.tagString?.isNotEmpty ?? false) {
+    //   tag = json.decode(amc.tagString!) as Map<String, dynamic>;
+    // }
+    AmcTag? amcTag;
     if (amc.tagString?.isNotEmpty ?? false) {
-      tag = json.decode(amc.tagString!) as Map<String, dynamic>;
+      amcTag = AmcTag.fromJson(amc.tagString!);
+    }
+
+    LatestPrice? ltp;
+    if (amc.ltpString?.isNotEmpty ?? false) {
+      ltp = LatestPrice.fromJson(amc.ltpString!);
+    }
+
+    LatestXirr? xirr;
+    if (amc.xirrString?.isNotEmpty ?? false) {
+      xirr = LatestXirr.fromJson(amc.xirrString!);
     }
 
     return MiscAmcModel(
@@ -510,11 +581,9 @@ class MiscAmcModel extends InveslyAmc {
       name: amc.name,
       code: amc.code,
       isin: amc.isin,
-      tag: tag,
-      ltp: amc.ltpString != null ? LatestPrice.fromJson(amc.ltpString!) : null,
-      // ltp: amc.ltp,
-      // ltpDate: amc.ltpDate,
-      // ltpFetchDate: amc.ltpFetchDate,
+      amcTag: amcTag,
+      ltp: ltp,
+      xirr: xirr,
     );
   }
 
@@ -525,22 +594,25 @@ class MiscAmcModel extends InveslyAmc {
   LatestPrice? fromLtpMap(Map<String, dynamic> response) => null; // Misc AMC doesn't have a latest price API, so return null
 
   @override
-  InveslyAmc copyWith({
-    String? id,
-    String? name,
-    String? code,
-    String? isin,
-    AmcGenre? genre,
-    Map<String, dynamic>? tag,
+  MiscAmcModel copyWith({
+    // String? id,
+    // String? name,
+    // String? code,
+    // String? isin,
+    // AmcGenre? genre,
+    // Map<String, dynamic>? tag,
+    // AmcTag? amcTag,
     LatestPrice? ltp,
+    LatestXirr? xirr,
   }) {
     return MiscAmcModel(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      code: code ?? this.code,
-      isin: isin ?? this.isin,
-      tag: tag ?? this.tag,
+      id: id,
+      name: name,
+      code: code,
+      isin: isin,
+      amcTag: amcTag,
       ltp: ltp ?? this.ltp,
+      xirr: xirr ?? this.xirr,
     );
   }
 }
@@ -554,8 +626,7 @@ class AmcInDb extends InveslyDataModel {
     this.genreCode,
     this.tagString,
     this.ltpString,
-    // this.ltpDate,
-    // this.ltpFetchDate,
+    this.xirrString,
   });
 
   final String name;
@@ -564,11 +635,10 @@ class AmcInDb extends InveslyDataModel {
   final String? genreCode;
   final String? tagString;
   final String? ltpString;
-  // final DateTime? ltpDate;
-  // final DateTime? ltpFetchDate;
+  final String? xirrString;
 
   @override
-  List<Object?> get props => super.props..addAll([name, code, isin, genreCode, tagString, ltpString]);
+  List<Object?> get props => super.props..addAll([name, code, isin, genreCode, tagString, ltpString, xirrString]);
 }
 
 class AmcTable extends TableSchema<AmcInDb> {
@@ -583,23 +653,12 @@ class AmcTable extends TableSchema<AmcInDb> {
   TableColumn<String> get genreColumn => TableColumn('genre', tableName, isNullable: true);
   TableColumn<String> get tagColumn => TableColumn('tag', tableName, isNullable: true);
   TableColumn<String> get ltpColumn => TableColumn('ltp', tableName, isNullable: true);
-  // TableColumn<String> get ltpDateColumn => TableColumn('ltp_date', tableName, isNullable: true);
-  // TableColumn<String> get ltpFetchDateColumn => TableColumn('ltp_fetch_date', tableName, isNullable: true);
-
-  // DateFormat get _dateFormat => DateFormat('yyyy-MM-dd');
+  TableColumn<String> get xirrColumn => TableColumn('xirr', tableName, isNullable: true);
 
   @override
-  Set<TableColumn> get columns => super.columns
-    ..addAll([
-      nameColumn,
-      codeColumn,
-      isinColumn,
-      genreColumn,
-      tagColumn,
-      ltpColumn,
-      // ltpDateColumn,
-      // ltpFetchDateColumn,
-    ]);
+  Set<TableColumn> get columns {
+    return super.columns..addAll([nameColumn, codeColumn, isinColumn, genreColumn, tagColumn, ltpColumn, xirrColumn]);
+  }
 
   @override
   Map<String, dynamic> fromModel(AmcInDb data) {
@@ -611,8 +670,7 @@ class AmcTable extends TableSchema<AmcInDb> {
       genreColumn.title: data.genreCode,
       tagColumn.title: data.tagString,
       ltpColumn.title: data.ltpString,
-      // ltpDateColumn.title: data.ltpDate != null ? _dateFormat.format(data.ltpDate!) : null,
-      // ltpFetchDateColumn.title: data.ltpFetchDate != null ? _dateFormat.format(data.ltpFetchDate!) : null,
+      xirrColumn.title: data.xirrString,
     };
   }
 
@@ -626,10 +684,7 @@ class AmcTable extends TableSchema<AmcInDb> {
       genreCode: map[genreColumn.title] as String?,
       tagString: map[tagColumn.title] as String?,
       ltpString: map[ltpColumn.title] as String?,
-      // ltpDate: map[ltpDateColumn.title] != null ? _dateFormat.tryParse(map[ltpDateColumn.title] as String) : null,
-      // ltpFetchDate: map[ltpFetchDateColumn.title] != null
-      //     ? _dateFormat.tryParse(map[ltpFetchDateColumn.title] as String)
-      //     : null,
+      xirrString: map[xirrColumn.title] as String?,
     );
   }
 }

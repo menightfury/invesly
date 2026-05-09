@@ -28,7 +28,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
     }
 
     if (stats == null || stats.isEmpty) {
-      return const Center(child: Text('This is so empty.\n Add some transactions to see stats here.'));
+      return Center(child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')));
     }
 
     return ValueListenableBuilder(

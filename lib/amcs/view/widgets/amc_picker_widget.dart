@@ -158,8 +158,8 @@ class _SearchResults extends StatelessWidget {
                 titleColor: context.colors.onPrimary,
               ),
 
-              if (amc.tags.isNotEmpty)
-                ...amc.tags.map((tag) {
+              if (amc.tags?.isNotEmpty ?? false)
+                ...amc.tags!.map((tag) {
                   if (tag.isEmpty) {
                     return const SizedBox.shrink();
                   }

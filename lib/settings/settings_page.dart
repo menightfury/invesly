@@ -23,6 +23,7 @@ import 'package:invesly/database/backup/backup_repository.dart';
 import 'package:invesly/settings/import_transactions/import_transactions_page.dart';
 import 'package:invesly/settings/currency_selector_page.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
+import 'package:sqlite_viewer/sqlite_viewer.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -465,6 +466,13 @@ class _SettingsPageState extends State<SettingsPage> {
                       title: const Text('Donate'),
                       subtitle: const Text('Support the development of Invesly'),
                       onTap: () {},
+                    ),
+                    // TODO: Remove in production
+                    SectionTile(
+                      icon: const Icon(Icons.data_object_rounded),
+                      title: const Text('View Database'),
+                      subtitle: const Text('View raw database of Invesly'),
+                      onTap: () => context.push(const DatabaseList()),
                     ),
                   ],
                 ),
