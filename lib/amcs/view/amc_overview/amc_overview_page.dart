@@ -272,7 +272,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: <Widget>[
                                                   const Skeleton.keep(child: Text('Current value')),
-                                                  isTrnLoading
+                                                  isTrnLoading || isAmcLoading
                                                       ? const Text('Loading...')
                                                       : FormattedDate(
                                                           date: latestPrice?.date ?? DateTime.now(),
@@ -283,8 +283,8 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                                                         ),
                                                 ],
                                               ),
-                                              value: isTrnLoading
-                                                  ? Text('Loading...')
+                                              value: isTrnLoading || isAmcLoading
+                                                  ? const Text('Loading...')
                                                   : BlocSelector<AppCubit, AppState, bool>(
                                                       selector: (state) => state.isPrivateMode,
                                                       builder: (context, isPrivateMode) {
@@ -336,8 +336,22 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
 
                                             // ~ Amount return sections
                                             _SectionWidget(
-                                              label: const Skeleton.keep(child: Text('Return')),
-                                              value: isTrnLoading
+                                              label: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: <Widget>[
+                                                  const Skeleton.keep(child: Text('Return')),
+                                                  isTrnLoading || isAmcLoading
+                                                      ? const Text('Loading...')
+                                                      : FormattedDate(
+                                                          date: latestPrice?.date ?? DateTime.now(),
+                                                          overflow: TextOverflow.ellipsis,
+                                                          style: textTheme.labelSmall?.copyWith(
+                                                            color: context.theme.disabledColor,
+                                                          ),
+                                                        ),
+                                                ],
+                                              ),
+                                              value: isTrnLoading || isAmcLoading
                                                   ? const Text('Loading...')
                                                   : BlocSelector<AppCubit, AppState, bool>(
                                                       selector: (state) => state.isPrivateMode,
@@ -360,8 +374,21 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
 
                                             // ~ Percentage returns sections
                                             _SectionWidget(
-                                              label: const Skeleton.keep(child: Text('Total returns')),
-                                              value: isTrnLoading
+                                              label: Column(
+                                                children: <Widget>[
+                                                  const Skeleton.keep(child: Text('Total returns')),
+                                                  isTrnLoading || isAmcLoading
+                                                      ? const Text('Loading...')
+                                                      : FormattedDate(
+                                                          date: latestPrice?.date ?? DateTime.now(),
+                                                          overflow: TextOverflow.ellipsis,
+                                                          style: textTheme.labelSmall?.copyWith(
+                                                            color: context.theme.disabledColor,
+                                                          ),
+                                                        ),
+                                                ],
+                                              ),
+                                              value: isTrnLoading || isAmcLoading
                                                   ? const Text('Loading...')
                                                   : Text(
                                                       '${amcTrn?.percentageReturn?.toPrecision(2) ?? 0}%',
@@ -381,8 +408,21 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
 
                                             // ~ XIRR section
                                             _SectionWidget(
-                                              label: const Skeleton.keep(child: Text('XIRR')),
-                                              value: isTrnLoading
+                                              label: Column(
+                                                children: <Widget>[
+                                                  const Skeleton.keep(child: Text('XIRR')),
+                                                  isTrnLoading || isAmcLoading
+                                                      ? const Text('Loading...')
+                                                      : FormattedDate(
+                                                          date: latestPrice?.date ?? DateTime.now(),
+                                                          overflow: TextOverflow.ellipsis,
+                                                          style: textTheme.labelSmall?.copyWith(
+                                                            color: context.theme.disabledColor,
+                                                          ),
+                                                        ),
+                                                ],
+                                              ),
+                                              value: isTrnLoading || isAmcLoading
                                                   ? const Text('Loading...')
                                                   : Text(
                                                       '${((amcTrn?.xirr ?? 0) * 100).toPrecision(2)}%',
@@ -420,8 +460,9 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                     ),
                   ),
 
+                  // ~ Transactions list
                   SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                     sliver: BlocBuilder<TransactionsCubit, TransactionsState>(
                       builder: (context, trnState) {
                         final isLoading = trnState.isLoading;
@@ -450,13 +491,14 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                         }
 
                         final transactions = trnState.transactions;
+                        final itemCount = isLoaded ? transactions.length : 2; // Show 2 skeleton cards while loading
                         return SliverSkeletonizer(
                           enabled: isLoading,
                           child: SliverList.separated(
-                            itemCount: isLoaded ? transactions.length : 2, // Show 2 skeleton cards while loading
+                            itemCount: itemCount,
                             itemBuilder: (context, index) {
                               final trn = isLoaded ? transactions[index] : null;
-                              return _buildTransaction(trn);
+                              return _buildTransaction(trn, isFirst: index == 0, isLast: index == itemCount - 1);
                             },
                             separatorBuilder: (_, _) => const Gap(2.0),
                           ),
@@ -505,11 +547,25 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
     );
   }
 
-  Widget _buildTransaction(InveslyTransaction? trn) {
+  Widget _buildTransaction(InveslyTransaction? trn, {bool? isFirst, bool? isLast}) {
     final textTheme = context.textTheme;
+    BorderRadius tileRadius = iTileBorderRadius;
+
+    if (isFirst ?? false) {
+      tileRadius = tileRadius.copyWith(topLeft: iCardBorderRadius.topLeft, topRight: iCardBorderRadius.topRight);
+    }
+
+    if (isLast ?? false) {
+      tileRadius = tileRadius.copyWith(
+        bottomLeft: iCardBorderRadius.bottomLeft,
+        bottomRight: iCardBorderRadius.bottomRight,
+      );
+    }
 
     return SectionTile(
-      title: trn != null ? Text('${trn.quantity} units @ ₹${(trn.rate).toPrecision(2)}') : const Text('Loading...'),
+      title: trn != null
+          ? Text('${(trn.quantity).toPrecision(2)} units @ ₹${(trn.rate).toPrecision(2)}')
+          : const Text('Loading...'),
       subtitle: trn != null
           ? FormattedDate(
               date: trn.investedOn,
@@ -518,7 +574,11 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
           : const Text('Loading...'),
       icon: PhysicalModel(
         shape: BoxShape.circle,
-        color: (trn?.totalAmount.isNegative ?? false) ? Colors.red.shade50 : Colors.teal.shade50,
+        color: trn != null
+            ? trn.totalAmount.isNegative
+                  ? Colors.red.shade200
+                  : Colors.teal.shade200
+            : Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: trn != null
@@ -541,6 +601,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
               },
             )
           : Text('Loading...', style: textTheme.titleLarge),
+      borderRadius: tileRadius,
     );
   }
 }

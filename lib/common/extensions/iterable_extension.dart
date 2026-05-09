@@ -19,6 +19,7 @@ extension IterableX<T> on Iterable<T> {
     return elementAt(index);
   }
 }
+
 // extension ListSeparateExt<T extends Widget> on Iterable<T> {
 //   List<Widget> separateBy(Widget t) {
 //     return isEmpty ? [] : (expand((i) => [i, t]).toList()..removeLast());
