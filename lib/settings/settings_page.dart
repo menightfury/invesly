@@ -5,7 +5,8 @@ import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/database/backup/restore_drive_backup_page.dart';
 import 'package:invesly/intro/splash_page.dart';
-import 'package:path/path.dart';
+import 'package:invesly/main.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
@@ -23,7 +24,7 @@ import 'package:invesly/database/backup/backup_repository.dart';
 import 'package:invesly/settings/import_transactions/import_transactions_page.dart';
 import 'package:invesly/settings/currency_selector_page.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:sqlite_viewer/sqlite_viewer.dart';
+import 'package:sqlite_viewer2/sqlite_viewer.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -472,7 +473,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       icon: const Icon(Icons.data_object_rounded),
                       title: const Text('View Database'),
                       subtitle: const Text('View raw database of Invesly'),
-                      onTap: () => context.push(const DatabaseList()),
+                      onTap: () => context.push(DatabaseList(dbPath: p.dirname(Bootstrap.instance.api.dbPath))),
                     ),
                   ],
                 ),
@@ -538,7 +539,7 @@ class _SettingsPageState extends State<SettingsPage> {
         '/path/to/local/storage',
       ); // TODO: get path to storage
       if (file != null) {
-        final fileName = basename(file.path);
+        final fileName = p.basename(file.path);
         snackBar = SnackBar(
           content: Text('$fileName saved successfully to ${file.parent.path}'),
           backgroundColor: Colors.teal,

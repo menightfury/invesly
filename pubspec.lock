@@ -962,14 +962,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.0"
-  sqlite_viewer:
+  sqlite_viewer2:
     dependency: "direct main"
     description:
-      name: sqlite_viewer
-      sha256: ec66fd249e2233c6fa4d43cc32a3f6ccfcaf3209179db5048cc6298fd84ab9d5
+      name: sqlite_viewer2
+      sha256: "43a874644b39f14214e75fdf6c7a0f2720a44558124faeeb41779da0505a06be"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.5"
+    version: "2.0.0"
   stack_trace:
     dependency: transitive
     description:

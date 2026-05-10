@@ -177,39 +177,15 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
 
                               // ~ Date ~
                               Expanded(
-                                child: AsyncFormField<DateTime>(
-                                  initialValue: cubit.state.date,
+                                child: InveslyDatePicker(
+                                  initialDate: cubit.state.date,
                                   validator: (value) {
                                     if (value == null) {
                                       return 'Can\'t be empty';
                                     }
                                     return null;
                                   },
-                                  onTapCallback: (value) async {
-                                    final newDate = await showDatePicker(
-                                      context: context,
-                                      initialDate: value ?? _dateNow,
-                                      firstDate: DateTime(1990),
-                                      lastDate: _dateNow,
-                                    );
-                                    if (newDate == null) {
-                                      return value;
-                                    }
-                                    cubit.updateDate(newDate);
-                                    return newDate;
-                                  },
-                                  childBuilder: (date) {
-                                    if (date == null) {
-                                      return const Text('Select date', style: TextStyle(color: Colors.grey));
-                                    }
-                                    final days = _dateNow.difference(date).inDays;
-                                    final label = switch (days) {
-                                      0 => 'Today',
-                                      1 => 'Yesterday',
-                                      _ => date.toReadable(context.read<AppCubit>().state.dateFormat),
-                                    };
-                                    return Text(label, overflow: TextOverflow.ellipsis);
-                                  },
+                                  onPickup: (value) => cubit.updateDate(value),
                                 ).withLabel('Date'),
                               ),
                             ],

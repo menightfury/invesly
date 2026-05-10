@@ -575,6 +575,14 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
   static const double _spacing = 2.0;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.isLoaded) {
+      _getCurrentPrice();
+    }
+  }
+
+  @override
   void didUpdateWidget(covariant _HoldingStatCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isLoaded && !oldWidget.isLoaded) {

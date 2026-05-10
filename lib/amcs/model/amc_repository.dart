@@ -140,6 +140,7 @@ class AmcRepository {
       latestPrice = amc.fromLtpMap(parsed);
       if (latestPrice != null) {
         final updatedAmc = amc.copyWith(ltp: latestPrice);
+        $logger.i(updatedAmc);
         await saveAmc(updatedAmc, isNew: false);
       }
     } catch (err) {

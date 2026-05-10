@@ -1,19 +1,22 @@
 import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/presentations/widgets/async_form_field.dart';
 import 'package:invesly/common_libs.dart';
 
 class InveslyDatePicker extends StatefulWidget {
   const InveslyDatePicker({
     super.key,
-    this.date,
+    this.initialDate,
     this.onPickup,
     this.leadingIcon = const Icon(Icons.edit_calendar_rounded),
     this.color,
+    this.validator,
   });
 
-  final DateTime? date;
+  final DateTime? initialDate;
   final ValueChanged<DateTime>? onPickup;
   final Widget? leadingIcon;
   final Color? color;
+  final FormFieldValidator<DateTime>? validator;
 
   @override
   State<InveslyDatePicker> createState() => _InveslyDatePickerState();
@@ -21,53 +24,44 @@ class InveslyDatePicker extends StatefulWidget {
 
 class _InveslyDatePickerState extends State<InveslyDatePicker> {
   late final DateTime _dateNow;
-  late final ValueNotifier<DateTime> _dateNotifier;
 
   @override
   void initState() {
     super.initState();
     _dateNow = DateTime.now();
-    _dateNotifier = ValueNotifier<DateTime>(widget.date ?? _dateNow);
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _dateNotifier.value,
-      firstDate: DateTime(1990),
-      lastDate: _dateNow,
-    );
-    if (date == null) return;
-
-    _dateNotifier.value = date;
-    if (widget.onPickup != null) widget.onPickup!(date);
-  }
-
-  @override
-  void dispose() {
-    _dateNotifier.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Tappable(
-      leading: widget.leadingIcon,
-      color: widget.color,
-      onTap: () => _selectDate(context),
-      child: ValueListenableBuilder<DateTime>(
-        valueListenable: _dateNotifier,
-        builder: (context, date, _) {
-          final days = _dateNow.difference(date).inDays;
-          final label = switch (days) {
-            0 => 'Today',
-            1 => 'Yesterday',
-            _ => date.toReadable(context.read<AppCubit>().state.dateFormat),
-          };
-
-          return Text(label);
-        },
-      ),
+    return AsyncFormField<DateTime>(
+      initialValue: widget.initialDate,
+      validator: widget.validator,
+      onTapCallback: (value) async {
+        final newDate = await showDatePicker(
+          context: context,
+          initialDate: value ?? _dateNow,
+          firstDate: DateTime(1990),
+          lastDate: _dateNow,
+        );
+        if (newDate == null) {
+          return value;
+        }
+        final startOfDay = newDate.startOfDay;
+        widget.onPickup?.call(startOfDay);
+        return startOfDay;
+      },
+      childBuilder: (date) {
+        if (date == null) {
+          return const Text('Select date', style: TextStyle(color: Colors.grey));
+        }
+        final days = _dateNow.difference(date).inDays;
+        final label = switch (days) {
+          0 => 'Today',
+          1 => 'Yesterday',
+          _ => date.toReadable(context.read<AppCubit>().state.dateFormat),
+        };
+        return Text(label, overflow: TextOverflow.ellipsis);
+      },
     );
   }
 }
