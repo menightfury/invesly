@@ -2,6 +2,7 @@
 
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis;
+import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/database/backup/restore_drive_backup_page.dart';
 import 'package:invesly/intro/splash_page.dart';
@@ -468,6 +469,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       subtitle: const Text('Support the development of Invesly'),
                       onTap: () {},
                     ),
+
                     // TODO: Remove in production
                     SectionTile(
                       icon: const Icon(Icons.data_object_rounded),

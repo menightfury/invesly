@@ -123,16 +123,11 @@ class MfAmcTag extends AmcTag {
 
   factory MfAmcTag.fromMap(Map<String, dynamic> map) {
     assert(map['category'] != null, 'Category must not be null');
-    // final category = MfCategory.fromTitle(map['category'] as String);
-    // assert(category != null, 'Invalid category value');
 
     return MfAmcTag(
       category: map['category'] as String,
-      // subCategory: map['sub_category'] != null ? MfSubCategory.fromTitle(map['sub_category'] as String) : null,
       subCategory: map['sub_category'] as String?,
-      // plan: map['plan'] != null ? MfPlan.fromTitle(map['plan'] as String) : null,
       plan: map['plan'] as String?,
-      // schemeType: map['scheme_type'] != null ? MfSchemeType.fromTitle(map['scheme_type'] as String) : null,
       schemeType: map['scheme_type'] as String?,
     );
   }
@@ -223,17 +218,7 @@ abstract class InveslyAmc extends AmcInDb {
   Set<String>? get tags => _amcTag?.tags;
   // Set<String> get tags => tag != null ? tag!.values.whereType<String>().toSet() : {};
 
-  InveslyAmc copyWith({
-    // String? id,
-    // String? name,
-    // String? code,
-    // String? isin,
-    // AmcGenre? genre,
-    // Map<String, dynamic>? tag,
-    // AmcTag? amcTag,
-    LatestPrice? ltp,
-    LatestXirr? xirr,
-  });
+  InveslyAmc copyWith({LatestPrice? ltp, LatestXirr? xirr});
 }
 
 class MfAmcModel extends InveslyAmc {
@@ -328,26 +313,12 @@ class MfAmcModel extends InveslyAmc {
   }
 
   @override
-  MfAmcModel copyWith({
-    // String? id,
-    // String? name,
-    // String? code,
-    // String? isin,
-    // AmcGenre? genre,
-    // Map<String, dynamic>? tag,
-    // AmcTag? amcTag,
-    LatestPrice? ltp,
-    LatestXirr? xirr,
-  }) {
+  MfAmcModel copyWith({LatestPrice? ltp, LatestXirr? xirr}) {
     return MfAmcModel(
       id: id,
       name: name,
       code: code,
       isin: isin,
-      // category: tag != null ? tag['category'] as String? : category,
-      // subCategory: tag != null ? tag['sub_category'] as String? : subCategory,
-      // plan: tag != null ? tag['plan'] as String? : plan,
-      // schemeType: tag != null ? tag['scheme_type'] as String? : schemeType,
       amcTag: amcTag,
       ltp: ltp ?? this.ltp,
       xirr: xirr ?? this.xirr,
