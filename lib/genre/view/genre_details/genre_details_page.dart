@@ -602,7 +602,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
         // ~ AMC name and transaction count
         GestureDetector(
           onTap: () {
-            if (widget.isLoaded) context.push(AmcOverviewPage(widget.amcTransaction!.amc!.id));
+            if (widget.isLoaded) context.push(AmcOverviewPage(widget.amcTransaction!.amc.id));
           },
           child: SimpleCard(
             elevation: 0.0,
@@ -625,7 +625,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                       children: <Widget>[
                         Expanded(
                           child: Text(
-                            widget.isLoaded ? widget.amcTransaction?.amc?.name ?? 'N/A' : 'Loading...',
+                            widget.isLoaded ? widget.amcTransaction?.amc.name ?? 'N/A' : 'Loading...',
                             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 2,
@@ -697,13 +697,13 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
         if (widget.isLoaded)
           BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
             buildWhen: (prev, curr) {
-              final prevTrn = prev.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
-              final currTrn = curr.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
-              return prevTrn != currTrn || prevTrn?.amc?.ltp != currTrn?.amc?.ltp;
+              final prevTrn = prev.stats.firstWhereOrNull((trn) => trn.amc.id == widget.amcTransaction?.amc.id);
+              final currTrn = curr.stats.firstWhereOrNull((trn) => trn.amc.id == widget.amcTransaction?.amc.id);
+              return prevTrn != currTrn || prevTrn?.amc.ltp != currTrn?.amc.ltp;
             },
             builder: (context, genreState) {
               $logger.i(
-                'Rebuilding LTP-dependent widget for AMC ${widget.amcTransaction?.amc?.name} with state: $genreState',
+                'Rebuilding LTP-dependent widget for AMC ${widget.amcTransaction?.amc.name} with state: $genreState',
               );
               return _buildLtpDependentWidget(context, genreState, labelStyle);
             },
@@ -717,7 +717,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       return List.generate(4, (index) => const Skeleton.leaf(child: SimpleChip(title: Text('Loading...'))));
     }
 
-    final tags = widget.amcTransaction?.amc?.tags;
+    final tags = widget.amcTransaction?.amc.tags;
     if (tags?.isEmpty ?? true) {
       return [const SizedBox.shrink()];
     }
@@ -806,7 +806,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     }
 
     if (genreState.isLoaded) {
-      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
+      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget.amcTransaction?.amc.id);
       final xirr = amcTrn?.xirr ?? 0.0;
       return Text(
         '${(xirr * 100).toPrecisionDouble(2)}%',
@@ -827,7 +827,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     }
 
     if (genreState.isLoaded) {
-      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
+      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget.amcTransaction?.amc.id);
       final percentageReturns = amcTrn?.percentageReturn ?? 0.0;
 
       return Text(
@@ -851,7 +851,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     }
 
     if (genreState.isLoaded) {
-      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
+      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget.amcTransaction?.amc.id);
       final returns = amcTrn?.amountReturn ?? 0;
 
       return BlocSelector<AppCubit, AppState, bool>(
@@ -880,7 +880,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     }
 
     if (genreState.isLoaded) {
-      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc?.id == widget.amcTransaction?.amc?.id);
+      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget.amcTransaction?.amc.id);
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {

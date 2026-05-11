@@ -87,7 +87,7 @@ class GenreDetailsState extends Equatable {
       late final int result;
       switch (sortAndFilterStatus.sortOption) {
         case HoldingSortOption.name:
-          result = (a.amc?.name ?? '').compareTo(b.amc?.name ?? '');
+          result = a.amc.name.compareTo(b.amc.name);
           break;
 
         case HoldingSortOption.invested:

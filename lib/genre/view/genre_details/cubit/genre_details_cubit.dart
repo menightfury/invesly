@@ -45,10 +45,10 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
     }
 
     final stats = List<AmcTransaction>.from(state.stats);
-    final index = stats.indexWhere((trn) => trn.amc?.id == amcId);
+    final index = stats.indexWhere((trn) => trn.amc.id == amcId);
     if (index == -1) return;
 
-    final updatedTransaction = stats[index].copyWith(amc: stats[index].amc?.copyWith(ltp: ltp));
+    final updatedTransaction = stats[index].copyWith(amc: stats[index].amc.copyWith(ltp: ltp));
     stats[index] = updatedTransaction;
 
     emit(state.copyWith(stats: stats));

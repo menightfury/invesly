@@ -21,7 +21,7 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
                 SectionTile(title: Text(trnState.errorMsg ?? 'Some error has been occurred! Please try again later.')),
               ];
             } else if ((accountsState.isLoaded && (accountsState as AccountsLoadedState).accounts.isEmpty) ||
-                (trnState.isLoaded && (trnState.transactions?.isEmpty ?? true))) {
+                (trnState.isLoaded && trnState.transactions.isEmpty)) {
               tiles = <Widget>[
                 SectionTile(
                   title: const EmptyWidget(label: Text('This is so empty.\n Add some transactions to see here.')),
@@ -30,11 +30,11 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
             } else if (accountsState.isLoaded &&
                 (accountsState as AccountsLoadedState).accounts.isNotEmpty &&
                 trnState.isLoaded &&
-                (trnState.transactions?.isNotEmpty ?? false)) {
-              tiles = trnState.transactions!.map((trn) {
+                trnState.transactions.isNotEmpty) {
+              tiles = trnState.transactions.map((trn) {
                 return SectionTile(
                   icon: Icon(trn.transactionType.icon),
-                  title: Text(trn.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
+                  title: Text(trn.amc.name, style: context.textTheme.bodyMedium),
                   subtitle: FormattedDate(date: trn.investedOn),
                   secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
                     selector: (state) => state.isPrivateMode,
@@ -71,7 +71,7 @@ class _RecentTransactionsState extends State<_RecentTransactions> {
                     tiles: tiles,
                   ),
                 ),
-                if (trnState.isLoaded && trnState.transactions!.isNotEmpty)
+                if (trnState.isLoaded && trnState.transactions.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: FilledButton.tonalIcon(

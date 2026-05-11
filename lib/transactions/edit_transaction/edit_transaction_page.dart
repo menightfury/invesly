@@ -49,13 +49,6 @@ class _EditTransactionPageContent extends StatefulWidget {
 class _EditTransactionPageContentState extends State<_EditTransactionPageContent> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _amcFieldKey = GlobalKey<FormFieldState<InveslyAmc>>();
-  late final DateTime _dateNow;
-
-  @override
-  void initState() {
-    super.initState();
-    _dateNow = DateTime.now();
-  }
 
   @override
   void dispose() {

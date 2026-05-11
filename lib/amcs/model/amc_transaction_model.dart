@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
+import 'package:invesly/common/extensions/num_extension.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
@@ -35,12 +36,12 @@ class AmcTransaction extends Equatable {
 
     final transactionsForXirr = transactions.map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn)).toList();
     if (transactionsForXirr.isNotEmpty) {
-      transactionsForXirr.add(xf.Transaction(-totalCurrentValue!, amc!.ltp!.date ?? amc!.ltp!.fetchDate));
+      transactionsForXirr.add(xf.Transaction(-totalCurrentValue!, amc.ltp!.date ?? amc.ltp!.fetchDate));
     }
     double? xirr = 0.0;
     if (transactionsForXirr.isNotEmpty) {
       try {
-        xirr = xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate();
+        xirr = xf.XirrFlutter.withTransactionsAndGuess(transactionsForXirr, 0.1).calculate()?.toPrecisionDouble(4);
       } catch (e) {
         debugPrint('Error calculating XIRR: $e');
       }

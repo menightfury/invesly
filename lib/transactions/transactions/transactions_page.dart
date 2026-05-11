@@ -192,7 +192,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                     }
 
                     // Grouping transactions by month
-                    final groupTransactions = state.transactions?.groupListsBy<DateTime>(
+                    final groupTransactions = state.transactions.groupListsBy<DateTime>(
                       (rt) => DateTime(rt.investedOn.year, rt.investedOn.month),
                     );
 
@@ -212,7 +212,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                     //   ];
                     // }
 
-                    if (state.isLoaded && (state.transactions == null || state.transactions!.isEmpty)) {
+                    if (state.isLoaded && state.transactions.isEmpty) {
                       return Center(
                         child: Text(
                           'No transactions found! Add a few transactions.',
@@ -227,7 +227,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                         children: <Widget>[
                           ...List.generate(groupTransactions?.length ?? 2, (index) {
                             // dummy quantity for shimmer effect
-                            final gtEntry = groupTransactions?.entries.elementAt(index);
+                            final gtEntry = groupTransactions.entries.elementAt(index);
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
@@ -276,7 +276,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                                   : Bone.text(style: context.textTheme.headlineSmall),
                                               trn != null
                                                   ? Text(
-                                                      '${trn.quantity?.toPrecisionString()} | ${trn.rate?.toPrecisionString()}',
+                                                      '${trn.quantity?.toPrecisionString(2)} | ${trn.rate?.toPrecisionString(2)}',
                                                       style: context.textTheme.bodySmall,
                                                     )
                                                   : Bone.text(style: context.textTheme.bodySmall),

@@ -49,7 +49,7 @@ class ReviewTransactionsPage extends StatelessWidget {
                                           color: context.theme.disabledColor,
                                         ),
                                       ),
-                                      Text(trn.amc?.name ?? 'Null'),
+                                      Text(trn.amc.name),
 
                                       if (hasError && errors[index]!.contains(TransactionField.amc))
                                         Text(
@@ -151,7 +151,7 @@ class ReviewTransactionsPage extends StatelessWidget {
                                             color: context.theme.disabledColor,
                                           ),
                                         ),
-                                        Text('₹ ${trn.totalAmount.toPrecisionString()}'),
+                                        Text('₹ ${trn.totalAmount.toPrecisionString(2)}'),
                                       ],
                                     ),
                                   ),
