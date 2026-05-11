@@ -6,18 +6,18 @@ import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 import 'amc_model.dart';
 
 class AmcTransaction extends Equatable {
-  const AmcTransaction({this.amc, this.transactions = const []});
+  const AmcTransaction({required this.amc, this.transactions = const []});
 
-  final InveslyAmc? amc;
+  final InveslyAmc amc;
   final List<InveslyTransaction> transactions;
 
   int get numTransactions => transactions.length;
   double get totalInvested => transactions.fold<double>(0.0, (v, el) => v + el.totalAmount);
-  double get totalUnits => transactions.fold<double>(0.0, (v, el) => v + el.quantity);
+  double get totalUnits => transactions.fold<double>(0.0, (v, el) => v + (el.quantity ?? 0));
   double get averageBuyPrice => totalInvested / totalUnits;
   double? get totalCurrentValue {
-    if (amc?.ltp == null) return null;
-    return amc!.ltp!.price * totalUnits;
+    if (amc.ltp == null) return null;
+    return amc.ltp!.price * totalUnits;
   }
 
   double? get amountReturn {

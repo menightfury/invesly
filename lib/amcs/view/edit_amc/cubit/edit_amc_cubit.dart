@@ -57,14 +57,13 @@ class EditAmcCubit extends Cubit<EditAmcState> {
 
     final id = state.initialAmc?.id ?? $uuid.v1();
     final code = state.initialAmc?.code ?? 'This is temporary code';
-    final isin = state.initialAmc?.isin ?? 'This is temporary isin';
     final name = state.name!;
 
     final InveslyAmc amc = switch (state.genre) {
-      AmcGenre.mf => MfAmcModel(id: id, code: code, isin: isin, name: name),
-      AmcGenre.stock => StockAmcModel(id: id, code: code, isin: isin, name: name),
-      AmcGenre.insurance => InsuranceAmcModel(id: id, code: code, isin: isin, name: name),
-      _ => MiscAmcModel(id: id, code: code, isin: isin, name: name),
+      AmcGenre.mf => MfAmcModel(id: id, code: code, name: name),
+      AmcGenre.stock => StockAmcModel(id: id, code: code, name: name),
+      AmcGenre.insurance => InsuranceAmcModel(id: id, code: code, name: name),
+      _ => MiscAmcModel(id: id, code: code, name: name),
     };
 
     try {

@@ -193,7 +193,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                               // ~ Amount
                               Expanded(
                                 child: AsyncFormField<num>(
-                                  initialValue: cubit.state.amount,
+                                  initialValue: cubit.state.totalAmount,
                                   validator: (value) {
                                     if (value == null || value.isNegative) {
                                       return 'Can\'t be empty or negative';

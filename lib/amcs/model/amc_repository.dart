@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
+import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/database/table_schema.dart';
@@ -117,16 +118,16 @@ class AmcRepository {
 
   /// Get latest price for an AMC
   Future<LatestPrice?> getLatestPrice(InveslyAmc amc) async {
-    // if latest price is available and is fetched today, return it
-    if (amc.ltp?.fetchDate.isToday ?? false) {
-      return amc.ltp;
-    }
-
     // if latest price is not available or is outdated, fetch from network
     final uri = amc.latestPriceUri;
     if (uri == null) return null;
 
-    LatestPrice? latestPrice = amc.ltp;
+    LatestPrice? ltp = amc.ltp;
+    // if latest price is available and is fetched today, return it
+    if (ltp?.fetchDate.isToday ?? false) {
+      return amc.ltp;
+    }
+
     final client = http.Client();
     try {
       final response = await client.get(Uri.parse(uri));
@@ -137,16 +138,26 @@ class AmcRepository {
 
       // If the server did return a 200 OK response, parse the JSON.
       final parsed = jsonDecode(response.body) as Map<String, dynamic>;
-      latestPrice = amc.fromLtpMap(parsed);
-      if (latestPrice != null) {
-        final updatedAmc = amc.copyWith(ltp: latestPrice);
-        $logger.i(updatedAmc);
-        await saveAmc(updatedAmc, isNew: false);
+      ltp = amc.fromLtpMap(parsed);
+      if (ltp != null) {
+        saveLatestPrice(amc, ltp);
       }
     } catch (err) {
       $logger.e(err);
     }
-    return latestPrice;
+    return ltp;
+  }
+
+  /// Save latest price for an AMC
+  Future<void> saveLatestPrice(InveslyAmc amc, LatestPrice ltp) async {
+    final updatedAmc = amc.copyWith(ltp: ltp);
+    await saveAmc(updatedAmc, isNew: false);
+  }
+
+  /// Save xirr for an AMC
+  Future<void> saveXirr(InveslyAmc amc, LatestXirr xirr) async {
+    final updatedAmc = amc.copyWith(xirr: xirr);
+    await saveAmc(updatedAmc, isNew: false);
   }
 
   /// Get statistics of an AMC

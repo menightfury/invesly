@@ -1,10 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:collection/collection.dart';
-import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
-
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 
 enum TransactionType {
@@ -63,23 +60,23 @@ class InveslyTransaction extends TransactionInDb {
     required this.account,
     // required super.accountId,
     // this.transactionType = TransactionType.invested,
-    this.amc,
-    super.quantity = 0.0,
-    super.rate = 0.0,
-    super.totalAmount = 0.0,
+    required this.amc,
+    super.quantity,
+    super.rate,
+    super.totalAmount,
     required this.investedOn,
     super.note,
     // }) : super(typeIndex: transactionType.index, amcId: amc?.id, date: investedOn.millisecondsSinceEpoch);
   }) : transactionType = totalAmount > 0
            ? TransactionType.invested
-           : quantity > 0
-           ? TransactionType.redeemed
-           : TransactionType.dividend,
-       super(accountId: account.id, amcId: amc?.id, date: investedOn.millisecondsSinceEpoch);
+           : quantity == 0
+           ? TransactionType.dividend
+           : TransactionType.redeemed,
+       super(accountId: account.id, amcId: amc.id, date: investedOn.millisecondsSinceEpoch);
 
   final InveslyAccount account;
   final TransactionType transactionType;
-  final InveslyAmc? amc;
+  final InveslyAmc amc;
   final DateTime investedOn;
 
   factory InveslyTransaction.fromDb(TransactionInDb trn, AccountInDb account, AmcInDb amc) {
@@ -102,27 +99,6 @@ class InveslyTransaction extends TransactionInDb {
 
   @override
   List<Object?> get props => super.props..addAll([transactionType, amc, investedOn]);
-
-  // @override
-  // InveslyTransaction copyWith({
-  //   String? userId,
-  //   String? amcId,
-  //   InveslyAmc? amc,
-  //   double? quantity,
-  //   double? totalAmount,
-  //   DateTime? investedOn,
-  //   String? note,
-  // }) {
-  //   return InveslyTransaction(
-  //     id: id,
-  //     userId: userId ?? this.userId,
-  //     amc: amc ?? this.amc,
-  //     quantity: quantity ?? this.quantity,
-  //     totalAmount: totalAmount ?? this.totalAmount,
-  //     investedOn: investedOn ?? this.investedOn,
-  //     note: note ?? this.note,
-  //   );
-  // }
 }
 
 class TransactionInDb extends InveslyDataModel {
@@ -130,9 +106,9 @@ class TransactionInDb extends InveslyDataModel {
     required super.id,
     required this.accountId,
     // this.typeIndex = 0, // 0: invested, 1: redeemed
-    this.amcId,
-    this.quantity = 0.0,
-    this.rate = 0.0,
+    required this.amcId,
+    this.quantity,
+    this.rate,
     this.totalAmount = 0.0,
     required this.date,
     this.note,
@@ -140,36 +116,15 @@ class TransactionInDb extends InveslyDataModel {
 
   final String accountId;
   // final int typeIndex;
-  final String? amcId;
-  final double quantity;
-  final double rate;
+  final String amcId;
+  final double? quantity;
+  final double? rate;
   final double totalAmount;
   final int date;
   final String? note;
 
   @override
   List<Object?> get props => super.props..addAll([accountId, amcId, quantity, rate, totalAmount, date, note]);
-
-  // TransactionInDb copyWith({
-  //   String? userId,
-  //   int? type,
-  //   String? amcId,
-  //   double? quantity,
-  //   double? totalAmount,
-  //   int? date,
-  //   String? note,
-  // }) {
-  //   return TransactionInDb(
-  //     id: id,
-  //     userId: userId ?? this.userId,
-  //     type: type ?? this.type,
-  //     amcId: amcId ?? this.amcId,
-  //     quantity: quantity ?? this.quantity,
-  //     totalAmount: totalAmount ?? this.totalAmount,
-  //     date: date ?? this.date,
-  //     note: note ?? this.note,
-  //   );
-  // }
 }
 
 class TransactionTable extends TableSchema<TransactionInDb> {
@@ -182,9 +137,10 @@ class TransactionTable extends TableSchema<TransactionInDb> {
       TableColumn('account_id', tableName, foreignReference: ForeignReference('accounts', 'id'));
   // TableColumn<int> get typeColumn => TableColumn('type', name, type: TableColumnType.integer); // invested or redeemed
   TableColumn<String> get amcIdColumn =>
-      TableColumn('amc_id', tableName, foreignReference: ForeignReference('amcs', 'id'), isNullable: true);
-  TableColumn<double> get quantityColumn => TableColumn('quantity', tableName, type: TableColumnType.real);
-  TableColumn<double> get rateColumn => TableColumn('rate', tableName, type: TableColumnType.real);
+      TableColumn('amc_id', tableName, foreignReference: ForeignReference('amcs', 'id'));
+  TableColumn<double> get quantityColumn =>
+      TableColumn('quantity', tableName, type: TableColumnType.real, isNullable: true);
+  TableColumn<double> get rateColumn => TableColumn('rate', tableName, type: TableColumnType.real, isNullable: true);
   TableColumn<double> get amountColumn => TableColumn('total_amount', tableName, type: TableColumnType.real);
   TableColumn<int> get dateColumn => TableColumn('date', tableName, type: TableColumnType.integer);
   TableColumn<String> get noteColumn => TableColumn('note', tableName, isNullable: true);
@@ -215,9 +171,9 @@ class TransactionTable extends TableSchema<TransactionInDb> {
       id: map[idColumn.title] as String,
       accountId: map[accountIdColumn.title] as String,
       // typeIndex: map[typeColumn.title] as int,
-      amcId: map[amcIdColumn.title] as String?,
-      quantity: (map[quantityColumn.title] as num).toDouble(),
-      rate: (map[rateColumn.title] as num).toDouble(),
+      amcId: map[amcIdColumn.title] as String,
+      quantity: (map[quantityColumn.title] as num?)?.toDouble(),
+      rate: (map[rateColumn.title] as num?)?.toDouble(),
       totalAmount: (map[amountColumn.title] as num).toDouble(),
       date: map[dateColumn.title] as int,
       note: map[noteColumn.title] as String?,

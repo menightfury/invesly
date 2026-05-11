@@ -205,7 +205,7 @@ class ReviewTransactionsPage extends StatelessWidget {
                                             color: context.theme.disabledColor,
                                           ),
                                         ),
-                                        Text('${trn.quantity.toPrecisionString()} units'),
+                                        Text('${trn.quantity?.toPrecisionDouble(4) ?? 0} units'),
                                       ],
                                     ),
                                   ),

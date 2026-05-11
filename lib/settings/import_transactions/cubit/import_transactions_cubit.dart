@@ -252,7 +252,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
           investedOn: date,
           quantity: quantity ?? 0.0,
           totalAmount: totalAmount ?? 0.0,
-          amc: amc,
+          amc: amc ?? MiscAmcModel.empty(),
           note: (note?.isEmpty ?? true) ? null : note,
         ),
       );

@@ -7,7 +7,6 @@ class LatestPrice extends Equatable {
   final double price;
   final DateTime? date;
   final DateTime fetchDate;
-  // final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
 
   const LatestPrice({required this.price, this.date, required this.fetchDate});
 

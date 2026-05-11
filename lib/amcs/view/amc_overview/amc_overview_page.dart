@@ -1,4 +1,5 @@
 import 'package:invesly/amcs/model/amc_transaction_model.dart';
+import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
@@ -203,10 +204,14 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                                   final latestPrice = amcState is AmcOverviewLoadedState ? amcState.amc?.ltp : null;
                                   final amcTrn =
                                       trnState.isLoaded && amcState is AmcOverviewLoadedState && amcState.amc != null
-                                      ? AmcTransaction(amc: amcState.amc, transactions: trnState.transactions)
+                                      ? AmcTransaction(amc: amcState.amc!, transactions: trnState.transactions)
                                       : null;
 
                                   // Save xirr in database
+                                  if (amcTrn != null && amcTrn.xirr != null) {
+                                    final latestXirr = LatestXirr(xirr: amcTrn.xirr!, date: DateTime.now().startOfDay);
+                                    AmcRepository.instance.saveXirr(amcTrn.amc, latestXirr);
+                                  }
 
                                   return Skeletonizer(
                                     enabled: isTrnLoading,
@@ -568,13 +573,13 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
 
     return SectionTile(
       title: trn != null
-          ? Text('${(trn.quantity).toPrecision(2)} units @ ₹${(trn.rate).toPrecision(2)}')
-          : const Text('Loading...'),
-      subtitle: trn != null
           ? FormattedDate(
               date: trn.investedOn,
               style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
             )
+          : const Text('Loading...'),
+      subtitle: trn != null
+          ? Text('${trn.quantity?.toPrecision(2) ?? ''} units | ₹${trn.rate?.toPrecision(2)}') // TODO: Fix this
           : const Text('Loading...'),
       icon: Skeleton.leaf(
         child: PhysicalModel(

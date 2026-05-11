@@ -28,7 +28,9 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
       }
       final amcTransactionsMap = groupBy(transactions, (trn) => trn.amc);
       final amcTransactions = amcTransactionsMap.entries.map((entry) {
-        return AmcTransaction(amc: entry.key, transactions: entry.value);
+        InveslyAmc? amc = entry.key;
+
+        return AmcTransaction(amc: amc, transactions: entry.value);
       }).toList();
 
       emit(GenreDetailsState(status: GenreDetailsStateStatus.loaded, stats: amcTransactions));
@@ -36,15 +38,6 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
       emit(GenreDetailsState(status: GenreDetailsStateStatus.error, errorMessage: err.toString()));
     }
   }
-
-  // void updateCurrentAmount(String amcId, double currentAmount) {
-  //   if (state.status != GenreDetailsStateStatus.loaded) {
-  //     return;
-  //   }
-  //   final amounts = Map<String, double>.from(state.currentAmounts);
-
-  //   emit(state.copyWith(currentAmounts: amounts..addAll({amcId: currentAmount})));
-  // }
 
   void updateAmcLtp(String amcId, LatestPrice ltp) {
     if (state.status != GenreDetailsStateStatus.loaded) {

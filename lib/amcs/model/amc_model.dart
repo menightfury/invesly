@@ -168,18 +168,14 @@ abstract class InveslyAmc extends AmcInDb {
     required super.id,
     required super.name,
     required super.code,
-    required super.isin,
     this.genre,
     AmcTag? amcTag,
     this.ltp,
     this.xirr,
   }) : _amcTag = amcTag,
-       super(
-         genreCode: genre?.name,
-         tagString: amcTag != null ? json.encode(amcTag) : null,
-         ltpString: ltp?.toJson(),
-         xirrString: xirr?.toJson(),
-       );
+       super(genreCode: genre?.name, tagString: amcTag?.toJson(), ltpString: ltp?.toJson(), xirrString: xirr?.toJson());
+
+  // InveslyAmc.misc() = MiscAmcModel;
 
   /// Genre of the AMC i.e. mf, stock, insurance, misc etc.
   final AmcGenre? genre;
@@ -226,7 +222,6 @@ class MfAmcModel extends InveslyAmc {
     required super.id,
     required super.name,
     required super.code,
-    required super.isin,
     // this.category,
     // this.subCategory,
     // this.plan,
@@ -270,7 +265,6 @@ class MfAmcModel extends InveslyAmc {
       id: amc.id,
       name: amc.name,
       code: amc.code,
-      isin: amc.isin,
       // category: tag?['category'] as String?,
       // subCategory: tag?['sub_category'] as String?,
       // plan: tag?['plan'] as String?,
@@ -286,7 +280,7 @@ class MfAmcModel extends InveslyAmc {
 
   @override
   LatestPrice? fromLtpMap(Map<String, dynamic> response) {
-    final now = DateTime.now();
+    final today = DateTime.now().startOfDay;
     // {
     //   "meta": {
     //     "fund_house": "Motilal Oswal Mutual Fund",
@@ -307,22 +301,14 @@ class MfAmcModel extends InveslyAmc {
     }
 
     final latestEntry = data.first;
-    final date = DateFormat('dd-MM-yyyy').tryParse(latestEntry['date'].toString()) ?? now;
+    final date = DateFormat('dd-MM-yyyy').tryParse(latestEntry['date'].toString()) ?? today;
     final nav = double.tryParse(latestEntry['nav'].toString());
-    return nav != null ? LatestPrice(date: date, price: nav, fetchDate: now) : null;
+    return nav != null ? LatestPrice(date: date, price: nav, fetchDate: today) : null;
   }
 
   @override
   MfAmcModel copyWith({LatestPrice? ltp, LatestXirr? xirr}) {
-    return MfAmcModel(
-      id: id,
-      name: name,
-      code: code,
-      isin: isin,
-      amcTag: amcTag,
-      ltp: ltp ?? this.ltp,
-      xirr: xirr ?? this.xirr,
-    );
+    return MfAmcModel(id: id, name: name, code: code, amcTag: amcTag, ltp: ltp ?? this.ltp, xirr: xirr ?? this.xirr);
   }
 }
 
@@ -331,7 +317,6 @@ class StockAmcModel extends InveslyAmc {
     required super.id,
     required super.name,
     required super.code,
-    required super.isin,
     // this.sector,
     // this.industry,
     this.amcTag,
@@ -371,7 +356,6 @@ class StockAmcModel extends InveslyAmc {
       id: amc.id,
       name: amc.name,
       code: amc.code,
-      isin: amc.isin,
       // sector: tag?['sector'] as String?,
       // industry: tag?['industry'] as String?,
       amcTag: amcTag,
@@ -385,7 +369,7 @@ class StockAmcModel extends InveslyAmc {
 
   @override
   LatestPrice? fromLtpMap(Map<String, dynamic> response) {
-    final now = DateTime.now(); // TODO: get actual date from response if available
+    final today = DateTime.now().startOfDay;
     // {
     // ...
     //   "priceInfo": {
@@ -402,26 +386,21 @@ class StockAmcModel extends InveslyAmc {
     // }
     final priceInfo = response['priceInfo'] as Map<String, dynamic>?;
     final price = priceInfo != null ? double.tryParse(priceInfo['lastPrice']?.toString() ?? '') : null;
-    return price != null ? LatestPrice(date: now, price: price, fetchDate: now) : null;
+    return price != null
+        ? LatestPrice(
+            date: today, // TODO: get actual date from response if available
+            price: price,
+            fetchDate: today,
+          )
+        : null;
   }
 
   @override
-  StockAmcModel copyWith({
-    // String? id,
-    // String? name,
-    // String? code,
-    // String? isin,
-    // AmcGenre? genre,
-    // Map<String, dynamic>? tag,
-    // AmcTag? amcTag,
-    LatestPrice? ltp,
-    LatestXirr? xirr,
-  }) {
+  StockAmcModel copyWith({LatestPrice? ltp, LatestXirr? xirr}) {
     return StockAmcModel(
       id: id,
       name: name,
       code: code,
-      isin: isin,
       // sector: tag != null ? tag['sector'] as String? : sector,
       // industry: tag != null ? tag['industry'] as String? : industry,
       amcTag: amcTag,
@@ -436,7 +415,6 @@ class InsuranceAmcModel extends InveslyAmc {
     required super.id,
     required super.name,
     required super.code,
-    required super.isin,
     // this.plan,
     this.amcTag,
     super.ltp,
@@ -475,7 +453,6 @@ class InsuranceAmcModel extends InveslyAmc {
       id: amc.id,
       name: amc.name,
       code: amc.code,
-      isin: amc.isin,
       // plan: tag?['plan'] as String?,
       amcTag: amcTag,
       ltp: ltp,
@@ -490,22 +467,11 @@ class InsuranceAmcModel extends InveslyAmc {
   LatestPrice? fromLtpMap(Map<String, dynamic> response) => null; // Insurance AMC doesn't have a latest price API, so return null price
 
   @override
-  InsuranceAmcModel copyWith({
-    // String? id,
-    // String? name,
-    // String? code,
-    // String? isin,
-    // AmcGenre? genre,
-    // Map<String, dynamic>? tag,
-    // AmcTag? amcTag,
-    LatestPrice? ltp,
-    LatestXirr? xirr,
-  }) {
+  InsuranceAmcModel copyWith({LatestPrice? ltp, LatestXirr? xirr}) {
     return InsuranceAmcModel(
       id: id,
       name: name,
       code: code,
-      isin: isin,
       // plan: tag != null ? tag['plan'] as String? : plan,
       amcTag: amcTag,
       ltp: ltp ?? this.ltp,
@@ -515,15 +481,11 @@ class InsuranceAmcModel extends InveslyAmc {
 }
 
 class MiscAmcModel extends InveslyAmc {
-  MiscAmcModel({
-    required super.id,
-    required super.name,
-    required super.code,
-    required super.isin,
-    this.amcTag,
-    super.ltp,
-    super.xirr,
-  }) : super(genre: AmcGenre.misc, amcTag: amcTag);
+  MiscAmcModel({required super.id, required super.name, required super.code, this.amcTag, super.ltp, super.xirr})
+    : super(genre: AmcGenre.misc, amcTag: amcTag);
+
+  MiscAmcModel.empty({String? id, String? name, String? code, this.amcTag, super.ltp, super.xirr})
+    : super(id: id ?? 'na', name: name ?? 'Not available', code: code ?? 'na', genre: AmcGenre.misc, amcTag: amcTag);
 
   final AmcTag? amcTag;
 
@@ -547,15 +509,7 @@ class MiscAmcModel extends InveslyAmc {
       xirr = LatestXirr.fromJson(amc.xirrString!);
     }
 
-    return MiscAmcModel(
-      id: amc.id,
-      name: amc.name,
-      code: amc.code,
-      isin: amc.isin,
-      amcTag: amcTag,
-      ltp: ltp,
-      xirr: xirr,
-    );
+    return MiscAmcModel(id: amc.id, name: amc.name, code: amc.code, amcTag: amcTag, ltp: ltp, xirr: xirr);
   }
 
   @override
@@ -565,26 +519,8 @@ class MiscAmcModel extends InveslyAmc {
   LatestPrice? fromLtpMap(Map<String, dynamic> response) => null; // Misc AMC doesn't have a latest price API, so return null
 
   @override
-  MiscAmcModel copyWith({
-    // String? id,
-    // String? name,
-    // String? code,
-    // String? isin,
-    // AmcGenre? genre,
-    // Map<String, dynamic>? tag,
-    // AmcTag? amcTag,
-    LatestPrice? ltp,
-    LatestXirr? xirr,
-  }) {
-    return MiscAmcModel(
-      id: id,
-      name: name,
-      code: code,
-      isin: isin,
-      amcTag: amcTag,
-      ltp: ltp ?? this.ltp,
-      xirr: xirr ?? this.xirr,
-    );
+  MiscAmcModel copyWith({LatestPrice? ltp, LatestXirr? xirr}) {
+    return MiscAmcModel(id: id, name: name, code: code, amcTag: amcTag, ltp: ltp ?? this.ltp, xirr: xirr ?? this.xirr);
   }
 }
 
@@ -593,7 +529,6 @@ class AmcInDb extends InveslyDataModel {
     required super.id,
     required this.name,
     required this.code,
-    required this.isin,
     this.genreCode,
     this.tagString,
     this.ltpString,
@@ -602,14 +537,13 @@ class AmcInDb extends InveslyDataModel {
 
   final String name;
   final String code;
-  final String isin;
   final String? genreCode;
   final String? tagString;
   final String? ltpString;
   final String? xirrString;
 
   @override
-  List<Object?> get props => super.props..addAll([name, code, isin, genreCode, tagString, ltpString, xirrString]);
+  List<Object?> get props => super.props..addAll([name, code, genreCode, tagString, ltpString, xirrString]);
 }
 
 class AmcTable extends TableSchema<AmcInDb> {
@@ -620,7 +554,6 @@ class AmcTable extends TableSchema<AmcInDb> {
 
   TableColumn<String> get nameColumn => TableColumn('name', tableName, isUnique: true);
   TableColumn<String> get codeColumn => TableColumn('scheme_code', tableName, isUnique: true);
-  TableColumn<String> get isinColumn => TableColumn('isin', tableName, isUnique: true);
   TableColumn<String> get genreColumn => TableColumn('genre', tableName, isNullable: true);
   TableColumn<String> get tagColumn => TableColumn('tag', tableName, isNullable: true);
   TableColumn<String> get ltpColumn => TableColumn('ltp', tableName, isNullable: true);
@@ -628,7 +561,7 @@ class AmcTable extends TableSchema<AmcInDb> {
 
   @override
   Set<TableColumn> get columns {
-    return super.columns..addAll([nameColumn, codeColumn, isinColumn, genreColumn, tagColumn, ltpColumn, xirrColumn]);
+    return super.columns..addAll([nameColumn, codeColumn, genreColumn, tagColumn, ltpColumn, xirrColumn]);
   }
 
   @override
@@ -637,7 +570,6 @@ class AmcTable extends TableSchema<AmcInDb> {
       idColumn.title: data.id,
       nameColumn.title: data.name,
       codeColumn.title: data.code,
-      isinColumn.title: data.isin,
       genreColumn.title: data.genreCode,
       tagColumn.title: data.tagString,
       ltpColumn.title: data.ltpString,
@@ -651,7 +583,6 @@ class AmcTable extends TableSchema<AmcInDb> {
       id: map[idColumn.title] as String,
       name: map[nameColumn.title] as String,
       code: map[codeColumn.title] as String,
-      isin: map[isinColumn.title] as String,
       genreCode: map[genreColumn.title] as String?,
       tagString: map[tagColumn.title] as String?,
       ltpString: map[ltpColumn.title] as String?,

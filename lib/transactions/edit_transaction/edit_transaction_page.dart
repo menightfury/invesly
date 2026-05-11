@@ -482,7 +482,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                 builder: (context, state) {
                                   return AsyncFormField<num>(
                                     key: ValueKey(state.canEditAmount),
-                                    initialValue: state.amount,
+                                    initialValue: state.totalAmount,
                                     enabled: state.canEditAmount,
                                     validator: (value) {
                                       if (value == null || value == 0) {

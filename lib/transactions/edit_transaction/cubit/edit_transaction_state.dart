@@ -10,7 +10,7 @@ class EditTransactionState extends Equatable {
     this.account,
     this.quantity,
     this.rate,
-    required this.amount,
+    required this.totalAmount,
     this.autoAmount = true,
     this.type = TransactionType.invested,
     this.genre = AmcGenre.mf,
@@ -25,7 +25,7 @@ class EditTransactionState extends Equatable {
   final InveslyAccount? account;
   final double? quantity;
   final double? rate;
-  final double? amount;
+  final double? totalAmount;
   final bool autoAmount;
   final TransactionType type;
   final AmcGenre genre;
@@ -39,10 +39,10 @@ class EditTransactionState extends Equatable {
   // Check if all required fields are filled and valid
   bool get canSave {
     return account != null &&
-        amount != null &&
-        (amount?.isFinite ?? false) &&
-        !(amount?.isNegative ?? true) &&
-        !(amount?.isZero ?? true);
+        amc != null &&
+        totalAmount != null &&
+        (totalAmount?.isFinite ?? false) &&
+        (totalAmount != 0);
   }
 
   // check if unit rate and quantity fields can be edited
@@ -72,7 +72,7 @@ class EditTransactionState extends Equatable {
       account: account ?? this.account,
       quantity: quantity ?? this.quantity,
       rate: rate ?? this.rate,
-      amount: amount ?? this.amount,
+      totalAmount: amount ?? this.totalAmount,
       autoAmount: autoAmount ?? this.autoAmount,
       type: type ?? this.type,
       genre: genre ?? this.genre,
@@ -90,7 +90,7 @@ class EditTransactionState extends Equatable {
     account,
     quantity,
     rate,
-    amount,
+    totalAmount,
     autoAmount,
     type,
     genre,

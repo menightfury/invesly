@@ -25,7 +25,7 @@ class InveslyAccount extends AccountInDb {
 
   InveslyAccount.empty({String? id, String? name, String? avatar})
     : avatarSrc = avatar ?? '',
-      super(id: id ?? '', name: name ?? '', avatarIndex: InveslyAccountAvatar.indexOf(avatar));
+      super(id: id ?? 'default', name: name ?? 'Default', avatarIndex: InveslyAccountAvatar.indexOf(avatar));
 
   final String avatarSrc;
 

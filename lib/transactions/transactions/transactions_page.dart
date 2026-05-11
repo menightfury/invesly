@@ -276,7 +276,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                                   : Bone.text(style: context.textTheme.headlineSmall),
                                               trn != null
                                                   ? Text(
-                                                      '${trn.quantity.toPrecisionString()} • ${trn.rate.toPrecisionString()}',
+                                                      '${trn.quantity?.toPrecisionString()} | ${trn.rate?.toPrecisionString()}',
                                                       style: context.textTheme.bodySmall,
                                                     )
                                                   : Bone.text(style: context.textTheme.bodySmall),
