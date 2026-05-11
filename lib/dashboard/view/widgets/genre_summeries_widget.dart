@@ -54,11 +54,11 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
         SectionTile(
           title: BlocBuilder<AccountsCubit, AccountsState>(
             builder: (context, accountsState) {
-              return BlocBuilder<TransactionStatCubit, TransactionStatState>(
+              return BlocBuilder<AmcStatCubit, AmcStatState>(
                 builder: (context, statState) {
                   final isError = accountsState.isError || statState.isError;
                   final isLoading = !isError && (accountsState.isLoading || statState.isLoading);
-                  final stats = accountsState.isNotEmpty && statState is TransactionStatLoadedState
+                  final stats = accountsState.isNotEmpty && statState is AmcStatLoadedState
                       ? statState.stats.where((stat) => stat.totalQuantity > 0).toList()
                       : null;
                   final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);

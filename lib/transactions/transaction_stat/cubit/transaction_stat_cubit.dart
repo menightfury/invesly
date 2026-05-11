@@ -8,11 +8,11 @@ import 'package:invesly/transactions/model/transaction_repository.dart';
 
 part 'transaction_stat_state.dart';
 
-class TransactionStatCubit extends Cubit<TransactionStatState> {
-  TransactionStatCubit({required AmcRepository amcRepository, required TransactionRepository trnRepository})
+class AmcStatCubit extends Cubit<AmcStatState> {
+  AmcStatCubit({required AmcRepository amcRepository, required TransactionRepository trnRepository})
     : _trnRepository = trnRepository,
       _amcRepository = amcRepository,
-      super(const TransactionStatInitialState());
+      super(const AmcStatInitialState());
 
   final TransactionRepository _trnRepository;
   final AmcRepository _amcRepository;
@@ -20,13 +20,13 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
   StreamSubscription<TableChangeEvent>? _subscription;
 
   /// Fetch transaction statistics (on initial load, on transactions change)
-  Future<void> fetchTransactionStats(String accountId, {String? amcId}) async {
+  Future<void> fetchTransactionStats(String accountId) async {
     // Cancel any existing subscription
     await _subscription?.cancel();
     _subscription = null;
 
     // Get initial transactions
-    emit(const TransactionStatLoadingState());
+    emit(const AmcStatLoadingState());
     try {
       // if (accountId == null) {
       //   emit(const TransactionStatErrorState('No account has been selected'));
@@ -44,18 +44,18 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
       //     }
       //   }
       // }
-      emit(TransactionStatLoadedState(stats: transactionStats));
+      emit(AmcStatLoadedState(stats: transactionStats));
     } on Exception catch (error) {
-      emit(TransactionStatErrorState(error.toString()));
+      emit(AmcStatErrorState(error.toString()));
     }
 
     // Get transactions on table change
     _subscription ??= _trnRepository.onDataChanged.listen(
       null,
-      onError: (err) => emit(TransactionStatErrorState(err.toString())),
+      onError: (err) => emit(AmcStatErrorState(err.toString())),
     );
     _subscription?.onData((query) async {
-      emit(const TransactionStatLoadingState());
+      emit(const AmcStatLoadingState());
 
       _subscription?.pause();
 
@@ -64,10 +64,10 @@ class TransactionStatCubit extends Cubit<TransactionStatState> {
         //   emit(const TransactionStatErrorState('No account has been selected'));
         // } else {
         final transactionStats = await _amcRepository.getStats(accountId);
-        emit(TransactionStatLoadedState(stats: transactionStats));
+        emit(AmcStatLoadedState(stats: transactionStats));
         // }
       } on Exception catch (error) {
-        emit(TransactionStatErrorState(error.toString()));
+        emit(AmcStatErrorState(error.toString()));
       } finally {
         _subscription?.resume();
       }

@@ -16,28 +16,28 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
   final AmcRepository _amcRepository;
   final TransactionRepository _transactionRepository;
 
-  Future<void> loadTransactions({required String accountId, required AmcGenre genre}) async {
-    emit(const GenreDetailsState(status: GenreDetailsStateStatus.loading));
+  // Future<void> loadTransactions({required String accountId, required AmcGenre genre}) async {
+  //   emit(const GenreDetailsState(status: GenreDetailsStateStatus.loading));
 
-    try {
-      final transactions = await _transactionRepository.getTransactions(accountId: accountId, genre: genre);
+  //   try {
+  //     final transactions = await _transactionRepository.getTransactions(accountId: accountId, genre: genre);
 
-      if (transactions.isEmpty) {
-        emit(const GenreDetailsState(status: GenreDetailsStateStatus.loaded));
-        return;
-      }
-      final amcTransactionsMap = groupBy(transactions, (trn) => trn.amc);
-      final amcTransactions = amcTransactionsMap.entries.map((entry) {
-        InveslyAmc? amc = entry.key;
+  //     if (transactions.isEmpty) {
+  //       emit(const GenreDetailsState(status: GenreDetailsStateStatus.loaded));
+  //       return;
+  //     }
+  //     final amcTransactionsMap = groupBy(transactions, (trn) => trn.amc);
+  //     final amcTransactions = amcTransactionsMap.entries.map((entry) {
+  //       InveslyAmc? amc = entry.key;
 
-        return AmcTransaction(amc: amc, transactions: entry.value);
-      }).toList();
+  //       return AmcTransaction(amc: amc, transactions: entry.value);
+  //     }).toList();
 
-      emit(GenreDetailsState(status: GenreDetailsStateStatus.loaded, stats: amcTransactions));
-    } catch (err) {
-      emit(GenreDetailsState(status: GenreDetailsStateStatus.error, errorMessage: err.toString()));
-    }
-  }
+  //     emit(GenreDetailsState(status: GenreDetailsStateStatus.loaded, stats: amcTransactions));
+  //   } catch (err) {
+  //     emit(GenreDetailsState(status: GenreDetailsStateStatus.error, errorMessage: err.toString()));
+  //   }
+  // }
 
   void updateAmcLtp(String amcId, LatestPrice ltp) {
     if (state.status != GenreDetailsStateStatus.loaded) {

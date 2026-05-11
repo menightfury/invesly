@@ -86,7 +86,6 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final textTheme = context.textTheme;
-    final amcRepository = AmcRepository.instance;
     final trnRepository = TransactionRepository.instance;
 
     return Scaffold(
@@ -148,15 +147,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 const Gap(16.0),
 
                 // ~~~ Stats, Recent transactions etc. ~~~
-                MultiBlocProvider(
-                  providers: [
-                    BlocProvider(create: (context) => TransactionsCubit(repository: trnRepository)),
-                    BlocProvider(
-                      create: (context) {
-                        return TransactionStatCubit(trnRepository: trnRepository, amcRepository: amcRepository);
-                      },
-                    ),
-                  ],
+                BlocProvider(
+                  create: (context) => TransactionsCubit(repository: trnRepository),
                   child: BlocSelector<AppCubit, AppState, String?>(
                     selector: (state) => state.primaryAccountId,
                     builder: (context, accountId) {
@@ -205,7 +197,7 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
     if (widget.accountId?.isEmpty ?? true) {
       return;
     }
-    context.read<TransactionStatCubit>().fetchTransactionStats(widget.accountId!);
+    context.read<AmcStatCubit>().fetchTransactionStats(widget.accountId!);
     context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, limit: 5);
   }
 

@@ -12,6 +12,7 @@ import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/genre/view/genre_details/cubit/genre_details_cubit.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
+import 'package:invesly/transactions/transaction_stat/cubit/transaction_stat_cubit.dart';
 
 class GenreDetailsPage extends StatelessWidget {
   const GenreDetailsPage(this.genre, {super.key});
@@ -29,12 +30,13 @@ class GenreDetailsPage extends StatelessWidget {
               transactionRepository: TransactionRepository.instance,
             );
           },
-          child: BlocSelector<AppCubit, AppState, String?>(
-            selector: (state) => state.primaryAccountId,
-            builder: (context, accountId) {
-              return _GenreDetailsPageContent(genre: genre, accountId: accountId);
-            },
-          ),
+          // child: BlocSelector<AppCubit, AppState, String?>(
+          //   selector: (state) => state.primaryAccountId,
+          //   builder: (context, accountId) {
+          //     return _GenreDetailsPageContent(genre: genre, accountId: accountId);
+          //   },
+          // ),
+          child: _GenreDetailsPageContent(genre: genre),
         ),
       ),
     );
@@ -52,28 +54,29 @@ class _GenreDetailsPageContent extends StatefulWidget {
 }
 
 class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
-  @override
-  void initState() {
-    super.initState();
-    _getStats();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _getStats();
+  // }
 
-  @override
-  void didUpdateWidget(covariant _GenreDetailsPageContent oldWidget) {
-    if (widget.accountId != oldWidget.accountId) {
-      _getStats();
-    }
-    super.didUpdateWidget(oldWidget);
-  }
+  // @override
+  // void didUpdateWidget(covariant _GenreDetailsPageContent oldWidget) {
+  //   if (widget.accountId != oldWidget.accountId) {
+  //     _getStats();
+  //   }
+  //   super.didUpdateWidget(oldWidget);
+  // }
 
-  void _getStats() {
-    if (widget.accountId?.isEmpty ?? true) {
-      return;
-    }
-    if (mounted) {
-      context.read<GenreDetailsCubit>().loadTransactions(accountId: widget.accountId!, genre: widget.genre);
-    }
-  }
+  // void _getStats() {
+  //   if (widget.accountId?.isEmpty ?? true) {
+  //     return;
+  //   }
+  //   if (mounted) {
+  //     context.read<TransactionStatCubit>().fetchTransactionStats(widget.accountId!);
+  //     // context.read<GenreDetailsCubit>().loadTransactions(accountId: widget.accountId!, genre: widget.genre);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +86,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
       slivers: <Widget>[
         SliverAppBar(title: Text(widget.genre.title), floating: true, snap: true),
 
-        SliverToBoxAdapter(child: _AmcOverviewSection(widget.genre)),
+        SliverToBoxAdapter(child: _GenreOverviewSection(widget.genre)),
 
         const SliverGap(16.0),
 
@@ -149,6 +152,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
               final isError = genreState.isError;
               final isLoading = genreState.isLoading;
 
+              // ~ If Error
               if (isError) {
                 return SliverToBoxAdapter(
                   child: Center(
@@ -157,7 +161,8 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                 );
               }
 
-              if (genreState.isLoaded && genreState.stats.isEmpty) {
+              // ~ If empty
+              if (genreState.isInitial || (genreState.isLoaded && genreState.stats.isEmpty)) {
                 return SliverToBoxAdapter(
                   child: Center(
                     child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')),
@@ -165,6 +170,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                 );
               }
 
+              // ~ If search result empty
               final displayList = genreState.displayStats;
               if (genreState.isLoaded && displayList.isEmpty) {
                 return SliverToBoxAdapter(
@@ -180,13 +186,15 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                 );
               }
 
+              // ~ If loading or loaded with data
               return SliverSkeletonizer(
                 enabled: isLoading,
                 child: SliverList.separated(
                   itemCount: genreState.isLoaded ? displayList.length : 2, // Show 2 skeleton cards while loading
                   itemBuilder: (context, index) {
-                    final amcTransaction = genreState.isLoaded ? displayList[index] : null;
-                    return _HoldingStatCard(isLoaded: genreState.isLoaded, amcTransaction: amcTransaction);
+                    return genreState.isLoaded
+                        ? _HoldingStatCard(amcTransaction: displayList[index])
+                        : _HoldingStatCard.loading();
                   },
                   separatorBuilder: (_, _) => const Gap(12.0),
                 ),
@@ -345,10 +353,10 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
   }
 }
 
-class _AmcOverviewSection extends StatelessWidget {
+class _GenreOverviewSection extends StatelessWidget {
   final AmcGenre genre;
 
-  const _AmcOverviewSection(this.genre, {super.key});
+  const _GenreOverviewSection(this.genre, {super.key});
 
   static const double _spacing = 2.0;
 
@@ -357,13 +365,13 @@ class _AmcOverviewSection extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
-    return BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-      buildWhen: (prev, curr) {
-        return prev.status != curr.status || prev.stats != curr.stats || prev.errorMessage != curr.errorMessage;
-      },
-      builder: (context, genreState) {
-        final isError = genreState.isError;
-        final isLoading = genreState.isLoading;
+    return BlocBuilder<AmcStatCubit, AmcStatState>(
+      // buildWhen: (prev, curr) {
+      //   return prev.status != curr.status || prev.stats != curr.stats || prev.errorMessage != curr.errorMessage;
+      // },
+      builder: (context, statState) {
+        final isError = statState.isError;
+        final isLoading = statState.isLoading;
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -383,7 +391,7 @@ class _AmcOverviewSection extends StatelessWidget {
                       maxLines: 2,
                     ),
                   ),
-                  value: _buildTotalCurrentAmount(context, genreState),
+                  value: _buildTotalCurrentAmount(context, statState),
                   borderRadius: iCardBorderRadius.copyWith(
                     bottomLeft: iTileBorderRadius.bottomLeft,
                     bottomRight: iTileBorderRadius.bottomRight,
@@ -399,7 +407,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     Expanded(
                       child: _SectionWidget(
                         label: const Skeleton.keep(child: Text('No. of holdings')),
-                        value: _buildHoldingCount(context, genreState),
+                        value: _buildHoldingCount(context, statState),
                         color: isError ? colors.errorContainer : null,
                         valueColor: isError ? colors.error : null,
                       ),
@@ -409,7 +417,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     Expanded(
                       child: _SectionWidget(
                         label: const Skeleton.keep(child: Text('Invested amount')),
-                        value: _buildTotalInvestedAmount(context, genreState),
+                        value: _buildTotalInvestedAmount(context, statState),
                         color: isError ? colors.errorContainer : null,
                         valueColor: isError ? colors.error : null,
                       ),
@@ -424,7 +432,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     Expanded(
                       child: _SectionWidget(
                         label: const Skeleton.keep(child: Text('Total returns')),
-                        value: _buildAmountReturns(context, genreState),
+                        value: _buildAmountReturns(context, statState),
                         color: isError ? colors.errorContainer : null,
                         valueColor: isError ? colors.error : Colors.teal.shade500,
                         borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
@@ -435,7 +443,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     Expanded(
                       child: _SectionWidget(
                         label: const Skeleton.keep(child: Text('XIRR')),
-                        value: _buildPercentageReturns(context, genreState),
+                        value: _buildPercentageReturns(context, statState),
                         color: isError ? colors.errorContainer : null,
                         valueColor: isError ? colors.error : null,
                         borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
@@ -451,27 +459,22 @@ class _AmcOverviewSection extends StatelessWidget {
     );
   }
 
-  Widget _buildTotalCurrentAmount(BuildContext context, GenreDetailsState state) {
+  Widget _buildTotalCurrentAmount(BuildContext context, AmcStatState state) {
     final textTheme = Theme.of(context).textTheme;
     if (state.isError) {
       return Text('Error loading data');
     }
 
     if (state.isLoaded) {
-      return BlocSelector<GenreDetailsCubit, GenreDetailsState, double>(
-        selector: (state) => state.totalCurrentValue,
-        builder: (context, totalCurrentValue) {
-          return BlocSelector<AppCubit, AppState, bool>(
-            selector: (state) => state.isPrivateMode,
-            builder: (context, isPrivateMode) {
-              return CurrencyView(
-                amount: totalCurrentValue,
-                style: textTheme.headlineLarge,
-                decimalsStyle: textTheme.headlineSmall,
-                currencyStyle: textTheme.bodyMedium,
-                privateMode: isPrivateMode,
-              );
-            },
+      return BlocSelector<AppCubit, AppState, bool>(
+        selector: (state) => state.isPrivateMode,
+        builder: (context, isPrivateMode) {
+          return CurrencyView(
+            amount: (state as AmcStatLoadedState).stats,
+            style: textTheme.headlineLarge,
+            decimalsStyle: textTheme.headlineSmall,
+            currencyStyle: textTheme.bodyMedium,
+            privateMode: isPrivateMode,
           );
         },
       );
@@ -480,7 +483,7 @@ class _AmcOverviewSection extends StatelessWidget {
     return const Text('Loading...');
   }
 
-  Widget _buildHoldingCount(BuildContext context, GenreDetailsState state) {
+  Widget _buildHoldingCount(BuildContext context, AmcStatState state) {
     if (state.status == GenreDetailsStateStatus.error) {
       return Text('Error loading data');
     }
@@ -494,7 +497,7 @@ class _AmcOverviewSection extends StatelessWidget {
     return const Text('Loading...');
   }
 
-  Widget _buildTotalInvestedAmount(BuildContext context, GenreDetailsState state) {
+  Widget _buildTotalInvestedAmount(BuildContext context, AmcStatState state) {
     if (state.isError) {
       return Text('Error loading data');
     }
@@ -562,10 +565,11 @@ class _AmcOverviewSection extends StatelessWidget {
 }
 
 class _HoldingStatCard extends StatefulWidget {
-  const _HoldingStatCard({super.key, this.isLoaded = false, this.amcTransaction});
+  const _HoldingStatCard({super.key, required AmcTransaction amcTransaction}) : _amcTransaction = amcTransaction;
 
-  final bool isLoaded;
-  final AmcTransaction? amcTransaction;
+  const _HoldingStatCard.loading({super.key}) : _amcTransaction = null;
+
+  final AmcTransaction? _amcTransaction;
 
   @override
   State<_HoldingStatCard> createState() => _HoldingStatCardState();
@@ -577,18 +581,18 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
   @override
   void initState() {
     super.initState();
-    if (widget.isLoaded) {
-      _getCurrentPrice();
-    }
+    _getCurrentPrice();
   }
 
   @override
   void didUpdateWidget(covariant _HoldingStatCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isLoaded && !oldWidget.isLoaded) {
+    if (widget._amcTransaction != oldWidget._amcTransaction) {
       _getCurrentPrice();
     }
   }
+
+  bool get isLoaded => widget._amcTransaction != null;
 
   @override
   Widget build(BuildContext context) {
@@ -602,7 +606,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
         // ~ AMC name and transaction count
         GestureDetector(
           onTap: () {
-            if (widget.isLoaded) context.push(AmcOverviewPage(widget.amcTransaction!.amc.id));
+            if (isLoaded) context.push(AmcOverviewPage(widget._amcTransaction!.amc.id));
           },
           child: SimpleCard(
             elevation: 0.0,
@@ -625,7 +629,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                       children: <Widget>[
                         Expanded(
                           child: Text(
-                            widget.isLoaded ? widget.amcTransaction?.amc.name ?? 'N/A' : 'Loading...',
+                            isLoaded ? widget._amcTransaction?.amc.name ?? 'N/A' : 'Loading...',
                             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 2,
@@ -634,7 +638,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
 
                         Skeleton.ignore(
                           child: FadeIn(
-                            fadeIn: widget.isLoaded,
+                            fadeIn: isLoaded,
                             duration: 240.ms,
                             curve: Curves.easeInOut,
                             child: const Icon(Icons.east_rounded),
@@ -644,7 +648,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                     ),
                     Wrap(spacing: 4.0, runSpacing: 4.0, children: _buildTagsForAmc(context)),
                     Text(
-                      '${widget.isLoaded ? widget.amcTransaction?.numTransactions ?? 0 : 'Loading...'} transactions',
+                      '${isLoaded ? widget._amcTransaction?.numTransactions ?? 0 : 'Loading...'} transactions',
                       style: labelStyle,
                     ),
                   ],
@@ -663,7 +667,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                 minHeight: 0.0,
                 label: Text('Available units', style: labelStyle),
                 value: Text(
-                  '${widget.isLoaded ? widget.amcTransaction?.totalUnits.toPrecisionDouble(4) ?? '0.00' : 'Loading...'}',
+                  '${isLoaded ? widget._amcTransaction?.totalUnits.toPrecisionDouble(4) ?? '0.00' : 'Loading...'}',
                   textAlign: TextAlign.right,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -676,12 +680,12 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
               child: _SectionWidget(
                 minHeight: 0.0,
                 label: Text('Invested', style: labelStyle),
-                value: widget.isLoaded
+                value: isLoaded
                     ? BlocSelector<AppCubit, AppState, bool>(
                         selector: (state) => state.isPrivateMode,
                         builder: (context, isPrivateMode) {
                           return CurrencyView(
-                            amount: widget.amcTransaction?.totalInvested ?? 0,
+                            amount: widget._amcTransaction?.totalInvested ?? 0,
                             privateMode: isPrivateMode,
                           );
                         },
@@ -692,18 +696,18 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
           ],
         ),
 
-        if (!widget.isLoaded) _buildLtpDependentWidget(context, null, labelStyle),
+        if (!isLoaded) _buildLtpDependentWidget(context, null, labelStyle),
 
-        if (widget.isLoaded)
+        if (isLoaded)
           BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
             buildWhen: (prev, curr) {
-              final prevTrn = prev.stats.firstWhereOrNull((trn) => trn.amc.id == widget.amcTransaction?.amc.id);
-              final currTrn = curr.stats.firstWhereOrNull((trn) => trn.amc.id == widget.amcTransaction?.amc.id);
+              final prevTrn = prev.stats.firstWhereOrNull((trn) => trn.amc.id == widget._amcTransaction?.amc.id);
+              final currTrn = curr.stats.firstWhereOrNull((trn) => trn.amc.id == widget._amcTransaction?.amc.id);
               return prevTrn != currTrn || prevTrn?.amc.ltp != currTrn?.amc.ltp;
             },
             builder: (context, genreState) {
               $logger.i(
-                'Rebuilding LTP-dependent widget for AMC ${widget.amcTransaction?.amc.name} with state: $genreState',
+                'Rebuilding LTP-dependent widget for AMC ${widget._amcTransaction?.amc.name} with state: $genreState',
               );
               return _buildLtpDependentWidget(context, genreState, labelStyle);
             },
@@ -713,11 +717,11 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
   }
 
   List<Widget> _buildTagsForAmc(BuildContext context) {
-    if (!widget.isLoaded) {
+    if (!isLoaded) {
       return List.generate(4, (index) => const Skeleton.leaf(child: SimpleChip(title: Text('Loading...'))));
     }
 
-    final tags = widget.amcTransaction?.amc.tags;
+    final tags = widget._amcTransaction?.amc.tags;
     if (tags?.isEmpty ?? true) {
       return [const SizedBox.shrink()];
     }
@@ -801,12 +805,12 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       );
     }
 
-    if (widget.amcTransaction?.transactions.isEmpty ?? true) {
+    if (widget._amcTransaction?.transactions.isEmpty ?? true) {
       return Text('0.00%', style: TextStyle(color: Colors.teal));
     }
 
     if (genreState.isLoaded) {
-      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget.amcTransaction?.amc.id);
+      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget._amcTransaction?.amc.id);
       final xirr = amcTrn?.xirr ?? 0.0;
       return Text(
         '${(xirr * 100).toPrecisionDouble(2)}%',
@@ -827,7 +831,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     }
 
     if (genreState.isLoaded) {
-      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget.amcTransaction?.amc.id);
+      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget._amcTransaction?.amc.id);
       final percentageReturns = amcTrn?.percentageReturn ?? 0.0;
 
       return Text(
@@ -851,7 +855,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     }
 
     if (genreState.isLoaded) {
-      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget.amcTransaction?.amc.id);
+      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget._amcTransaction?.amc.id);
       final returns = amcTrn?.amountReturn ?? 0;
 
       return BlocSelector<AppCubit, AppState, bool>(
@@ -880,7 +884,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     }
 
     if (genreState.isLoaded) {
-      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget.amcTransaction?.amc.id);
+      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget._amcTransaction?.amc.id);
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
@@ -893,7 +897,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
   }
 
   Future<LatestPrice?> _getCurrentPrice() async {
-    final amc = widget.amcTransaction?.amc;
+    final amc = widget._amcTransaction?.amc;
     if (amc == null) {
       return null;
     }

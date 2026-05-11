@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:invesly/transactions/transaction_stat/cubit/transaction_stat_cubit.dart';
 import 'package:path_provider/path_provider.dart';
 // import 'connectivity/cubit/internet_cubit.dart';
 
@@ -37,23 +38,19 @@ class InveslyApp extends StatelessWidget {
     AuthRepository.initialize();
     BackupRepository.initialize(api);
     final accountRepository = AccountRepository(api);
-    AmcRepository.initialize(api);
-    TransactionRepository.initialize(api);
+    final amcRepository = AmcRepository.initialize(api);
+    final trnRepository = TransactionRepository.initialize(api);
 
-    return MultiRepositoryProvider(
+    return MultiBlocProvider(
       providers: [
-        RepositoryProvider<AccountRepository>.value(value: accountRepository),
-        // RepositoryProvider<TransactionRepository>.value(value: trnRepository),
+        // BlocProvider<InternetCubit>(create: (_) => InternetCubit()),
+        BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)),
+        BlocProvider<AppCubit>(create: (_) => AppCubit()),
+        BlocProvider(
+          create: (_) => AmcStatCubit(amcRepository: amcRepository, trnRepository: trnRepository),
+        ),
       ],
-      child: MultiBlocProvider(
-        providers: [
-          // BlocProvider<InternetCubit>(create: (_) => InternetCubit()),
-          BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)),
-          BlocProvider<AppCubit>(create: (_) => AppCubit()),
-          // BlocProvider(create: (_) => TransactionStatCubit(repository: trnRepository)..fetchTransactionStats()),
-        ],
-        child: const _AppView(),
-      ),
+      child: const _AppView(),
     );
   }
 }

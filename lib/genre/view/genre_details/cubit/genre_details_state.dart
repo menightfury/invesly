@@ -68,10 +68,10 @@ class GenreDetailsState extends Equatable {
   final String? errorMessage;
   final HoldingSortAndFilterStatus sortAndFilterStatus;
 
-  int get numHoldings => stats.length;
-  double get totalCurrentValue => currentAmounts.entries.fold<double>(0, (v, el) => v + el.value);
-  double get totalInvested => stats.fold<double>(0, (v, el) => v + el.totalInvested);
-  int get totalTransactions => stats.fold<int>(0, (v, el) => v + el.numTransactions);
+  // int get numHoldings => stats.length;
+  // double get totalCurrentValue => currentAmounts.entries.fold<double>(0, (v, el) => v + el.value);
+  // double get totalInvested => stats.fold<double>(0, (v, el) => v + el.totalInvested);
+  // int get totalTransactions => stats.fold<int>(0, (v, el) => v + el.numTransactions);
 
   List<AmcTransaction> get displayStats {
     // Filter

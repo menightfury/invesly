@@ -29,11 +29,11 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
             constraints: const BoxConstraints(minHeight: 100.0),
             child: BlocBuilder<AccountsCubit, AccountsState>(
               builder: (context, accountsState) {
-                return BlocBuilder<TransactionStatCubit, TransactionStatState>(
+                return BlocBuilder<AmcStatCubit, AmcStatState>(
                   builder: (context, statState) {
                     final isError = accountsState.isError || statState.isError;
                     final isLoading = !isError && (accountsState.isLoading || statState.isLoading);
-                    final stats = accountsState.isNotEmpty && statState is TransactionStatLoadedState
+                    final stats = accountsState.isNotEmpty && statState is AmcStatLoadedState
                         ? statState.stats
                               .where((stat) => stat.amc.genre == widget.genre)
                               .where((stat) => stat.totalQuantity > 0)
