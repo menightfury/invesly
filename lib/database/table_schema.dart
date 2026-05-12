@@ -181,7 +181,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
       }
     }
 
-    return _columns.map<String>((col) => col.fullTitle).toList();
+    return _columns.map<String>((col) => col.fullTitleWithAggregateAndAlias).toList();
   }
 
   TableQueryBuilder<T> join(List<TableSchema> tables) {
@@ -284,7 +284,7 @@ abstract class TableSchema<T extends InveslyDataModel> extends Equatable {
 
   const TableSchema(this.tableName);
 
-  TableColumn get idColumn => TableColumn('id', tableName, isPrimary: true);
+  TableColumn<String> get idColumn => TableColumn<String>('id', tableName, isPrimary: true);
 
   /// Get all columns
   Set<TableColumn> get columns => {idColumn};
@@ -344,15 +344,18 @@ class TableColumnBase extends Equatable {
   final String? aggregateFunc;
   final String? aliasTitle;
 
+  /// Full title of the column
+  String get fullTitle => '$tableName.$title';
+
   /// Effective title of the column in the SQL query
-  String get fullTitle {
+  String get fullTitleWithAggregateAndAlias {
     final buffer = StringBuffer();
 
     if (aggregateFunc != null) {
       buffer.write('$aggregateFunc(');
     }
 
-    buffer.write('$tableName.$title');
+    buffer.write(fullTitle);
 
     if (aggregateFunc != null) {
       buffer.write(')');
