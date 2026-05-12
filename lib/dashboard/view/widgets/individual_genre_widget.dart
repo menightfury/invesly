@@ -39,8 +39,8 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
                               .where((stat) => stat.totalQuantity > 0)
                               .toList()
                         : null;
-                    final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
-                    stats?.sort((a, b) => b.totalAmount.compareTo(a.totalAmount));
+                    final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalInvested);
+                    stats?.sort((a, b) => b.totalInvested.compareTo(a.totalInvested));
 
                     return Skeletonizer(
                       enabled: isLoading,
@@ -101,7 +101,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
     }
 
     if (state == _DashboardState.loading) {
-      return Center(
+      return const Center(
         child: Text(
           'Loading...', // Will be replaced by shimmer skeleton when loading
         ),
@@ -109,7 +109,9 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
     }
 
     if (state == _DashboardState.loaded && (stats == null || stats.isEmpty)) {
-      return Center(child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')));
+      return const Center(
+        child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')),
+      );
     }
 
     return Section(
@@ -126,7 +128,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
             selector: (state) => state.isPrivateMode,
             builder: (context, isPrivateMode) {
               return CurrencyView(
-                amount: stat?.totalAmount ?? 0.0,
+                amount: stat?.totalInvested ?? 0.0,
                 style: context.textTheme.headlineMedium?.copyWith(color: widget.genre.color),
                 decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0, color: widget.genre.color),
                 currencyStyle: context.textTheme.bodySmall?.copyWith(color: widget.genre.color),

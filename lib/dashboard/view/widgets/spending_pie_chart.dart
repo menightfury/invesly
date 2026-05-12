@@ -100,14 +100,14 @@ class _SpendingPieChartState extends State<_SpendingPieChart> {
   }
 
   List<PieChartSectionData> _buildSections(List<AmcStat> stats) {
-    final grandTotalAmount = stats.fold<double>(0, (v, el) => v + el.totalAmount);
+    final grandTotalAmount = stats.fold<double>(0, (v, el) => v + el.totalInvested);
     double totalPercentAccumulated = 0;
 
     return List.generate(AmcGenre.values.length, (i) {
       final genre = AmcGenre.fromIndex(i);
       // final stat = stats.singleWhereOrNull((stat) => stat.amc == genre);
       final filteredStats = stats.where((stat) => stat.amc.genre == genre);
-      final totalAmount = filteredStats.fold<double>(0, (v, el) => v + el.totalAmount);
+      final totalAmount = filteredStats.fold<double>(0, (v, el) => v + el.totalInvested);
       final percent = grandTotalAmount == 0 ? 0.0 : ((totalAmount) / grandTotalAmount * 100).abs();
 
       totalPercentAccumulated += percent;

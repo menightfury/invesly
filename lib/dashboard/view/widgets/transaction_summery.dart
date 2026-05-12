@@ -14,7 +14,7 @@ class _TransactionSummeryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalGenreAmount = transactions.isEmpty ? 0.0 : transactions.fold<double>(0, (v, el) => v + el.totalAmount);
+    final totalGenreAmount = transactions.isEmpty ? 0.0 : transactions.fold<double>(0, (v, el) => v + el.totalInvested);
     double share = 0.0;
     if (totalGenreAmount > 0 && totalInvestedAmount > 0) {
       share = totalGenreAmount / totalInvestedAmount;
@@ -80,8 +80,8 @@ class _TransactionSummeryWidget extends StatelessWidget {
         itemBuilder: (context, index) {
           final transaction = transactions[index];
           final genre = transaction.amc;
-          final shareWithinClass = transaction.totalAmount / totalClassAmount;
-          final overallShare = transaction.totalAmount / totalInvestedAmount;
+          final shareWithinClass = transaction.totalInvested / totalClassAmount;
+          final overallShare = transaction.totalInvested / totalInvestedAmount;
 
           // final tags = [amc.plan, amc.sector, amc.subSector].whereNotNull().toList(growable: false);
           // final tags = genre.tags?.toList() ?? <String>[];
@@ -157,7 +157,7 @@ class _TransactionSummeryWidget extends StatelessWidget {
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: Text(
-                                  transaction.totalAmount.toCompact(),
+                                  transaction.totalInvested.toCompact(),
                                   textAlign: TextAlign.right,
                                   style: textTheme.headlineSmall,
                                 ),

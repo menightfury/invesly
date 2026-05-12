@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/amc_stat_model.dart';
 import 'package:invesly/common_libs.dart';
@@ -44,7 +45,7 @@ class AmcStatCubit extends Cubit<AmcStatState> {
       //     }
       //   }
       // }
-      emit(AmcStatLoadedState(stats: transactionStats));
+      emit(AmcStatLoadedState(transactionStats));
     } on Exception catch (error) {
       emit(AmcStatErrorState(error.toString()));
     }
@@ -64,7 +65,7 @@ class AmcStatCubit extends Cubit<AmcStatState> {
         //   emit(const TransactionStatErrorState('No account has been selected'));
         // } else {
         final transactionStats = await _amcRepository.getStats(accountId);
-        emit(AmcStatLoadedState(stats: transactionStats));
+        emit(AmcStatLoadedState(transactionStats));
         // }
       } on Exception catch (error) {
         emit(AmcStatErrorState(error.toString()));

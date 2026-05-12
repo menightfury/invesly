@@ -21,6 +21,18 @@ enum TableChangeEventType { insertion, updation, deletion }
 abstract class TableFilter {
   const TableFilter();
 
+  /// Returns the SQL query fragment (i.e. \$1) and its arguments (i.e \$2).
+  ///
+  /// The returned fragment can be used in SQL queries (e.g., WHERE clause).
+  /// The returned arguments are the values to be substituted for the placeholders (?) in the SQL fragment.
+  ///
+  /// Example:
+  /// ```dart
+  /// final filter = SingleValueTableFilter(TableColumn('age'), 25);
+  /// final (sql, args) = filter.toSql();
+  /// // sql = "age = ?"
+  /// // args = [25]
+  /// ```
   (String, List<Object>) toSql();
 }
 
@@ -337,12 +349,13 @@ abstract class TableSchema<T extends InveslyDataModel> extends Equatable {
 }
 
 class TableColumnBase extends Equatable {
-  const TableColumnBase(this.title, this.tableName, [this.aggregateFunc, this.aliasTitle]);
+  const TableColumnBase(this.title, this.tableName, [this.aggregateMethodName, this.aliasTitle, this.aggregateFilter]);
 
   final String title;
   final String tableName;
-  final String? aggregateFunc;
+  final String? aggregateMethodName;
   final String? aliasTitle;
+  final TableFilter? aggregateFilter;
 
   /// Full title of the column
   String get fullTitle => '$tableName.$title';
@@ -351,13 +364,32 @@ class TableColumnBase extends Equatable {
   String get fullTitleWithAggregateAndAlias {
     final buffer = StringBuffer();
 
-    if (aggregateFunc != null) {
-      buffer.write('$aggregateFunc(');
+    if (aggregateMethodName != null) {
+      buffer.write('$aggregateMethodName(');
+
+      if (aggregateFilter != null) {
+        final (filterSql, filterArgs) = aggregateFilter!.toSql();
+        // Inlines the filter arguments into the SQL string, replacing `?` placeholders
+        // with the actual values. This is necessary because sqflite's `query` method
+        // only supports parameterized args in the WHERE clause, not in column expressions.
+        var inlineSql = filterSql;
+        for (final arg in filterArgs) {
+          if (arg is String) {
+            inlineSql = inlineSql.replaceFirst('?', "'${arg.replaceAll("'", "''")}'");
+          } else {
+            inlineSql = inlineSql.replaceFirst('?', '$arg');
+          }
+        }
+        buffer.write('CASE WHEN $inlineSql THEN ');
+      }
     }
 
     buffer.write(fullTitle);
 
-    if (aggregateFunc != null) {
+    if (aggregateMethodName != null) {
+      if (aggregateFilter != null) {
+        buffer.write(' ELSE 0 END');
+      }
       buffer.write(')');
     }
 
@@ -369,7 +401,7 @@ class TableColumnBase extends Equatable {
   }
 
   @override
-  List<Object?> get props => [title, tableName, aggregateFunc, aliasTitle];
+  List<Object?> get props => [title, tableName, aggregateMethodName, aliasTitle, aggregateFilter];
 }
 
 class TableColumn<T> extends TableColumnBase {
@@ -393,15 +425,16 @@ class TableColumn<T> extends TableColumnBase {
 
   TableColumnBase alias(String aliasTitle) => TableColumnBase(title, tableName, null, aliasTitle);
 
-  TableColumnBase count([String? alias]) => TableColumnBase(title, tableName, 'COUNT', alias);
+  TableColumnBase count([String? alias, TableFilter? filter]) =>
+      TableColumnBase(title, tableName, 'COUNT', alias, filter);
 
-  TableColumnBase sum([String? alias]) => TableColumnBase(title, tableName, 'SUM', alias);
+  TableColumnBase sum([String? alias, TableFilter? filter]) => TableColumnBase(title, tableName, 'SUM', alias, filter);
 
-  TableColumnBase avg([String? alias]) => TableColumnBase(title, tableName, 'AVG', alias);
+  TableColumnBase avg([String? alias, TableFilter? filter]) => TableColumnBase(title, tableName, 'AVG', alias, filter);
 
-  TableColumnBase min([String? alias]) => TableColumnBase(title, tableName, 'MIN', alias);
+  TableColumnBase min([String? alias, TableFilter? filter]) => TableColumnBase(title, tableName, 'MIN', alias, filter);
 
-  TableColumnBase max([String? alias]) => TableColumnBase(title, tableName, 'MAX', alias);
+  TableColumnBase max([String? alias, TableFilter? filter]) => TableColumnBase(title, tableName, 'MAX', alias, filter);
 
   @override
   List<Object?> get props => [fullTitle, type, defaultValue, isPrimary, isNullable, isUnique, foreignReference];

@@ -167,7 +167,14 @@ class AmcRepository {
           .select(_trnTable, [
             ..._amcTable.columns,
             _trnTable.idColumn.count('num_transactions'),
-            _trnTable.amountColumn.sum('total_amount'),
+            _trnTable.amountColumn.sum(
+              'total_invested',
+              SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.greaterThan),
+            ),
+            _trnTable.amountColumn.sum(
+              'total_redeemed',
+              SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.lessThan),
+            ),
             _trnTable.quantityColumn.sum('total_quantity'),
           ])
           .join([_amcTable])
@@ -179,8 +186,9 @@ class AmcRepository {
           accountId: accountId,
           amc: InveslyAmc.fromDb(_amcTable.fromMap(map)),
           numTransactions: map['num_transactions'] as int,
-          totalAmount: (map['total_amount'] as num).toDouble(),
           totalQuantity: (map['total_quantity'] as num).toDouble(),
+          totalInvested: (map['total_invested'] as num).toDouble(),
+          totalRedeemed: (map['total_redeemed'] as num).toDouble(),
         );
       }).toList();
       return stats;

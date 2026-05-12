@@ -7,15 +7,17 @@ class AmcStat extends Equatable {
     required this.accountId,
     required this.amc,
     this.numTransactions = 0,
-    this.totalAmount = 0.0,
     this.totalQuantity = 0.0,
+    this.totalInvested = 0.0,
+    this.totalRedeemed = 0.0,
   });
 
   final String accountId;
   final InveslyAmc amc;
   final int numTransactions;
-  final double totalAmount;
   final double totalQuantity;
+  final double totalInvested;
+  final double totalRedeemed;
 
   double get currentValue => (amc.ltp?.price ?? 0.0) * totalQuantity;
 
@@ -23,18 +25,20 @@ class AmcStat extends Equatable {
     String? accountId,
     InveslyAmc? amc,
     int? numTransactions,
-    double? totalAmount,
     double? totalQuantity,
+    double? totalInvested,
+    double? totalRedeemed,
   }) {
     return AmcStat(
       accountId: accountId ?? this.accountId,
       amc: amc ?? this.amc,
       numTransactions: numTransactions ?? this.numTransactions,
-      totalAmount: totalAmount ?? this.totalAmount,
       totalQuantity: totalQuantity ?? this.totalQuantity,
+      totalInvested: totalInvested ?? this.totalInvested,
+      totalRedeemed: totalRedeemed ?? this.totalRedeemed,
     );
   }
 
   @override
-  List<Object?> get props => [accountId, amc, numTransactions, totalAmount, totalQuantity];
+  List<Object?> get props => [accountId, amc, numTransactions, totalQuantity, totalInvested, totalRedeemed];
 }

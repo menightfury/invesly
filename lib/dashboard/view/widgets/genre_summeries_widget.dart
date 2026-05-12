@@ -61,7 +61,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                   final stats = accountsState.isNotEmpty && statState is AmcStatLoadedState
                       ? statState.stats.where((stat) => stat.totalQuantity > 0).toList()
                       : null;
-                  final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalAmount);
+                  final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalInvested);
 
                   return Skeletonizer(
                     enabled: isLoading,
@@ -106,7 +106,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
 
                                 // final stat = stats?.singleWhereOrNull((stat) => stat.amc == genre);
                                 final filteredStats = stats?.where((stat) => stat.amc.genre == genre);
-                                final totalAmount = filteredStats?.fold<double>(0, (v, el) => v + el.totalAmount);
+                                final totalAmount = filteredStats?.fold<double>(0, (v, el) => v + el.totalInvested);
                                 final numTransactions = filteredStats?.fold<int>(0, (v, el) => v + el.numTransactions);
                                 final holdingCount = filteredStats?.length;
 
