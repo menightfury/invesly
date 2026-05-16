@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'amc_model.dart';
+import '../../amcs/model/amc_model.dart';
 
 class AmcStat extends Equatable {
   const AmcStat({
@@ -19,7 +19,20 @@ class AmcStat extends Equatable {
   final double totalInvested;
   final double totalRedeemed;
 
-  double get currentValue => (amc.ltp?.price ?? 0.0) * totalQuantity;
+  double? get currentValue {
+    if (amc.ltp == null) return null;
+    return amc.ltp!.price * totalQuantity;
+  }
+
+  double? get amountReturn {
+    if (currentValue == null) return null;
+    return currentValue! - totalInvested;
+  }
+
+  double? get percentageReturn {
+    if (amountReturn == null || totalInvested == 0) return null;
+    return (amountReturn! / totalInvested) * 100;
+  }
 
   AmcStat copyWith({
     String? accountId,

@@ -1,20 +1,17 @@
-import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/amcs/model/amc_repository.dart';
-import 'package:invesly/amcs/model/amc_transaction_model.dart';
+import 'package:invesly/amc_stat/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/transactions/model/transaction_repository.dart';
 
 part 'genre_details_state.dart';
 
 class GenreDetailsCubit extends Cubit<GenreDetailsState> {
-  GenreDetailsCubit({required AmcRepository amcRepository, required TransactionRepository transactionRepository})
-    : _amcRepository = amcRepository,
-      _transactionRepository = transactionRepository,
-      super(const GenreDetailsState(status: GenreDetailsStateStatus.initial));
+  GenreDetailsCubit()
+    : // _repository = repository,
+      // _transactionRepository = transactionRepository,
+      super(GenreDetailsInitialState());
 
-  final AmcRepository _amcRepository;
-  final TransactionRepository _transactionRepository;
+  // final AmcStatRepository _repository;
+  // final TransactionRepository _transactionRepository;
 
   // Future<void> loadTransactions({required String accountId, required AmcGenre genre}) async {
   //   emit(const GenreDetailsState(status: GenreDetailsStateStatus.loading));
@@ -39,22 +36,51 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
   //   }
   // }
 
+  // Future<void> loadStats({required String accountId, required AmcGenre genre}) async {
+  //   emit(state.copyWith(status: GenreDetailsStateStatus.loading));
+
+  //   _repository
+  //       .fetchStats(accountId)
+  //       .listen(
+  //         (stats) => state.copyWith(status: GenreDetailsStateStatus.loaded, stats: stats),
+  //         onError: (error, _) => state.copyWith(status: GenreDetailsStateStatus.error, errorMessage: error.toString()),
+  //       );
+  // }
+
+  void loadStats(List<AmcStat> stats) {
+    late final GenreDetailsState newState;
+    if (state is GenreDetailsLoadedState) {
+      newState = (state as GenreDetailsLoadedState).copyWith(stats: stats);
+    } else {
+      newState = GenreDetailsLoadedState(stats: stats);
+    }
+
+    emit(newState);
+  }
+
   void updateAmcLtp(String amcId, LatestPrice ltp) {
-    if (state.status != GenreDetailsStateStatus.loaded) {
+    if (state is! GenreDetailsLoadedState) {
       return;
     }
 
-    final stats = List<AmcTransaction>.from(state.stats);
-    final index = stats.indexWhere((trn) => trn.amc.id == amcId);
+    final state_ = state as GenreDetailsLoadedState;
+
+    final stats = List<AmcStat>.from(state_.stats);
+    final index = stats.indexWhere((stat) => stat.amc.id == amcId);
     if (index == -1) return;
 
-    final updatedTransaction = stats[index].copyWith(amc: stats[index].amc.copyWith(ltp: ltp));
-    stats[index] = updatedTransaction;
+    final updatedStat = stats[index].copyWith(amc: stats[index].amc.copyWith(ltp: ltp));
+    stats[index] = updatedStat;
 
-    emit(state.copyWith(stats: stats));
+    emit(state_.copyWith(stats: stats));
   }
 
   void setSortAndFilterStatus(HoldingSortAndFilterStatus sortAndFilterStatus) {
-    emit(state.copyWith(sortAndFilterStatus: sortAndFilterStatus));
+    if (state is! GenreDetailsLoadedState) {
+      return;
+    }
+
+    final state_ = state as GenreDetailsLoadedState;
+    emit(state_.copyWith(sortAndFilterStatus: sortAndFilterStatus));
   }
 }

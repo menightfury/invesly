@@ -28,8 +28,8 @@ class TransactionRepository {
   AmcTable get _amcTable => _api.amcTable;
   TransactionTable get _trnTable => _api.trnTable;
 
-  Stream<TableChangeEvent> get onDataChanged {
-    return _api.onTableChange.where((event) => event.table == _trnTable);
+  Stream<TableEvent> get onDataChanged {
+    return _api.onTableChange.where((event) => event.tables.contains(_trnTable));
   }
 
   /// Get transactions

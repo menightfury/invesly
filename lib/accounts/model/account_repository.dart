@@ -16,8 +16,8 @@ class AccountRepository {
 
   AccountTable get _accountTable => _api.accountTable;
 
-  Stream<TableChangeEvent> get onDataChanged {
-    return _api.onTableChange.where((event) => event.table == _accountTable);
+  Stream<TableEvent> get onDataChanged {
+    return _api.onTableChange.where((event) => event.tables == _accountTable);
   }
 
   /// Get all accounts

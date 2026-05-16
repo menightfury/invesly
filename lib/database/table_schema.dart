@@ -16,8 +16,6 @@ enum TableColumnType {
   }
 }
 
-enum TableChangeEventType { insertion, updation, deletion }
-
 abstract class TableFilter {
   const TableFilter();
 
@@ -450,9 +448,11 @@ class ForeignReference extends Equatable {
   List<Object?> get props => [tableName, columnName];
 }
 
-class TableChangeEvent {
-  final TableSchema table;
-  final TableChangeEventType type;
+enum TableEventType { loaded, inserted, updated, deleted }
 
-  const TableChangeEvent(this.table, this.type);
+class TableEvent {
+  final Set<TableSchema> tables;
+  final TableEventType type;
+
+  const TableEvent(this.tables, this.type);
 }

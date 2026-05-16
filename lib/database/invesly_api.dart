@@ -11,9 +11,9 @@ import 'table_schema.dart';
 
 class InveslyApi {
   final Directory databaseDirectory;
-  final StreamController<TableChangeEvent> _tableChangeEventController;
+  final StreamController<TableEvent> _tableChangeEventController;
 
-  InveslyApi(this.databaseDirectory) : _tableChangeEventController = StreamController<TableChangeEvent>.broadcast();
+  InveslyApi(this.databaseDirectory) : _tableChangeEventController = StreamController<TableEvent>.broadcast();
 
   Database? _db;
   Database get db {
@@ -24,7 +24,7 @@ class InveslyApi {
   final List<TableSchema> _tables = [];
 
   // Stream of TableChangeEvent
-  Stream<TableChangeEvent> get onTableChange => _tableChangeEventController.stream;
+  Stream<TableEvent> get onTableChange => _tableChangeEventController.stream;
 
   String get dbPath => p.join(databaseDirectory.path, 'invesly.db');
 
@@ -52,8 +52,9 @@ class InveslyApi {
       },
     );
 
-    // Close database at the end ??
+    // ?? Close database at the end ??
     _tables.addAll([_accountTable, _amcTable, _trnTable]);
+    _tableChangeEventController.add(TableEvent({_accountTable, _amcTable, _trnTable}, TableEventType.loaded));
   }
 
   // helper function to get a table out of initialized tables
@@ -65,7 +66,7 @@ class InveslyApi {
 
   Future<int> insert(TableSchema table, InveslyDataModel data) async {
     final r = await db.insert(table.tableName, table.fromModel(data));
-    _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.insertion));
+    _tableChangeEventController.add(TableEvent({table}, TableEventType.inserted));
     return r;
   }
 
@@ -76,13 +77,13 @@ class InveslyApi {
       where: '${table.idColumn.fullTitle} = ?',
       whereArgs: [data.id],
     );
-    _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.updation));
+    _tableChangeEventController.add(TableEvent({table}, TableEventType.updated));
     return r;
   }
 
   Future<int> delete(TableSchema table, InveslyDataModel data) async {
     final r = await Future.delayed(2.seconds, () => 1); // TODO: implement
-    _tableChangeEventController.add(TableChangeEvent(table, TableChangeEventType.deletion));
+    _tableChangeEventController.add(TableEvent({table}, TableEventType.deleted));
     return r;
   }
 

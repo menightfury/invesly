@@ -17,7 +17,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
 
   final TransactionRepository _repository;
 
-  StreamSubscription<TableChangeEvent>? _subscription;
+  StreamSubscription<TableEvent>? _subscription;
 
   /// Fetch transaction (on initial load, on transactions change)
   Future<void> fetchTransactions({
@@ -36,21 +36,21 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     //   dateRange = DateTimeRange(start: start ?? DateTime(1970), end: end ?? DateTime.now());
     // }
 
-    // Get initial transactions
-    emit(state.copyWith(status: TransactionsStatus.loading));
-    try {
-      final transactions = await _repository.getTransactions(
-        accountId: accountId,
-        amcId: amcId,
-        genre: genre,
-        dateRange: dateRange,
-        limit: limit,
-      );
-      if (isClosed) return;
-      emit(state.copyWith(status: TransactionsStatus.loaded, transactions: transactions));
-    } on Exception catch (err) {
-      emit(state.copyWith(status: TransactionsStatus.error, errorMsg: err.toString()));
-    }
+    // // Get initial transactions
+    // emit(state.copyWith(status: TransactionsStatus.loading));
+    // try {
+    //   final transactions = await _repository.getTransactions(
+    //     accountId: accountId,
+    //     amcId: amcId,
+    //     genre: genre,
+    //     dateRange: dateRange,
+    //     limit: limit,
+    //   );
+    //   if (isClosed) return;
+    //   emit(state.copyWith(status: TransactionsStatus.loaded, transactions: transactions));
+    // } on Exception catch (err) {
+    //   emit(state.copyWith(status: TransactionsStatus.error, errorMsg: err.toString()));
+    // }
 
     // Get transactions on table change
     _subscription ??= _repository.onDataChanged.listen(

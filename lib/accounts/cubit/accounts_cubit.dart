@@ -14,7 +14,7 @@ class AccountsCubit extends Cubit<AccountsState> {
 
   final AccountRepository _repository;
 
-  StreamSubscription<TableChangeEvent>? _subscription;
+  StreamSubscription<TableEvent>? _subscription;
 
   /// Fetch accounts
   Future<void> fetchAccounts() async {

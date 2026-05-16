@@ -6,9 +6,9 @@ import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
+import 'package:invesly/amc_stat/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
-import 'package:invesly/amcs/model/amc_stat_model.dart';
 import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
@@ -17,7 +17,7 @@ import 'package:invesly/common/presentations/components/add_transaction_button.d
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/settings_page.dart';
 import 'package:invesly/genre/view/genre_details/genre_details_page.dart';
-import 'package:invesly/transactions/transaction_stat/cubit/transaction_stat_cubit.dart';
+import 'package:invesly/amc_stat/cubit/amc_stat_cubit.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:invesly/transactions/transactions/transactions_page.dart';
@@ -55,6 +55,7 @@ class _DashboardPageState extends State<DashboardPage> {
         Uri.parse('https://api.github.com/repos/menightfury/invesly-data/contents/amcs.json'),
       );
 
+      final amcRepository = AmcRepository.instance;
       // If the server did return a 200 OK response, parse the JSON.
       if (response.statusCode == 200 && response.body.isNotEmpty) {
         final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -63,11 +64,11 @@ class _DashboardPageState extends State<DashboardPage> {
         if (sha != null && sha != appState.amcSha && url != null) {
           // If sha is not same, it means amcs in remote location have changed
           // Fetch and update amcs
-          final amcs = await AmcRepository.instance.getAmcsFromNetwork(client, url);
+          final amcs = await amcRepository.getAmcsFromNetwork(client, url);
           $logger.w(amcs);
           // write amcs to database
           if (amcs != null && amcs.isNotEmpty) {
-            await AmcRepository.instance.saveAmcs(amcs);
+            await amcRepository.saveAmcs(amcs);
           }
           if (!context.mounted) {
             return;

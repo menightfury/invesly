@@ -1,5 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-part of 'transaction_stat_cubit.dart';
+part of 'amc_stat_cubit.dart';
 
 sealed class AmcStatState extends Equatable {
   const AmcStatState();
@@ -40,20 +40,20 @@ class AmcStatLoadedState extends AmcStatState {
     return filteredStats.fold<double>(0, (v, el) => v + el.totalInvested);
   }
 
-  double getTotalRedeemed([AmcGenre? genre]) {
-    final filteredStats = genre == null ? stats : getStatsByGenre(genre);
-    return filteredStats.fold<double>(0, (v, el) => v + el.totalRedeemed);
-  }
+  // double getTotalRedeemed([AmcGenre? genre]) {
+  //   final filteredStats = genre == null ? stats : getStatsByGenre(genre);
+  //   return filteredStats.fold<double>(0, (v, el) => v + el.totalRedeemed);
+  // }
 
-  int getTotalHoldings([AmcGenre? genre]) {
-    final filteredStats = genre == null ? stats : getStatsByGenre(genre);
-    return filteredStats.length;
-  }
+  // int getTotalHoldings([AmcGenre? genre]) {
+  //   final filteredStats = genre == null ? stats : getStatsByGenre(genre);
+  //   return filteredStats.length;
+  // }
 
-  int getPresentHoldings([AmcGenre? genre]) {
-    final filteredStats = genre == null ? stats : getStatsByGenre(genre);
-    return filteredStats.where((stat) => stat.totalQuantity > 0).length;
-  }
+  // int getPresentHoldings([AmcGenre? genre]) {
+  //   final filteredStats = genre == null ? stats : getStatsByGenre(genre);
+  //   return filteredStats.where((stat) => stat.totalQuantity > 0).length;
+  // }
 
   @override
   List<Object?> get props => [stats];

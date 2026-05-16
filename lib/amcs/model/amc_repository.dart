@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/amcs/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/common_libs.dart';
@@ -118,7 +117,6 @@ class AmcRepository {
 
   /// Get latest price for an AMC
   Future<LatestPrice?> getLatestPrice(InveslyAmc amc) async {
-    // if latest price is not available or is outdated, fetch from network
     final uri = amc.latestPriceUri;
     if (uri == null) return null;
 
@@ -128,6 +126,7 @@ class AmcRepository {
       return amc.ltp;
     }
 
+    // if latest price is not available or is outdated, fetch from network
     final client = http.Client();
     try {
       final response = await client.get(Uri.parse(uri));
@@ -158,44 +157,5 @@ class AmcRepository {
   Future<void> saveXirr(InveslyAmc amc, LatestXirr xirr) async {
     final updatedAmc = amc.copyWith(xirr: xirr);
     await saveAmc(updatedAmc, isNew: false);
-  }
-
-  /// Get statistics of an AMC
-  Future<List<AmcStat>> getStats(String accountId) async {
-    try {
-      final result = await _api
-          .select(_trnTable, [
-            ..._amcTable.columns,
-            _trnTable.idColumn.count('num_transactions'),
-            _trnTable.amountColumn.sum(
-              'total_invested',
-              SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.greaterThan),
-            ),
-            _trnTable.amountColumn.sum(
-              'total_redeemed',
-              SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.lessThan),
-            ),
-            _trnTable.quantityColumn.sum('total_quantity'),
-          ])
-          .join([_amcTable])
-          .where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
-          .groupBy([_amcTable.idColumn])
-          .toList();
-      final stats = result.map<AmcStat>((map) {
-        return AmcStat(
-          accountId: accountId,
-          amc: InveslyAmc.fromDb(_amcTable.fromMap(map)),
-          numTransactions: map['num_transactions'] as int,
-          totalQuantity: (map['total_quantity'] as num).toDouble(),
-          totalInvested: (map['total_invested'] as num).toDouble(),
-          totalRedeemed: (map['total_redeemed'] as num).toDouble(),
-        );
-      }).toList();
-      return stats;
-    } on Exception catch (err) {
-      $logger.e(err);
-      rethrow;
-      // stats = List<TransactionStat>.empty();
-    }
   }
 }
