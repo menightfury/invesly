@@ -75,6 +75,18 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
     emit(state_.copyWith(stats: stats));
   }
 
+  void updateCurrentAmount(String amcId, double currentAmount) {
+    if (state is! GenreDetailsLoadedState) {
+      return;
+    }
+
+    final state_ = state as GenreDetailsLoadedState;
+    final currentAmounts = Map<String, double>.from(state_._currentAmounts);
+    currentAmounts[amcId] = currentAmount;
+
+    emit(state_.copyWith(currentAmounts: currentAmounts));
+  }
+
   void setSortAndFilterStatus(HoldingSortAndFilterStatus sortAndFilterStatus) {
     if (state is! GenreDetailsLoadedState) {
       return;

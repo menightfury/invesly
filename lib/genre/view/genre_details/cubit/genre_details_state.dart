@@ -63,27 +63,22 @@ class GenreDetailsInitialState extends GenreDetailsState {
 }
 
 class GenreDetailsLoadedState extends GenreDetailsState {
-  const GenreDetailsLoadedState({
-    // required this.status,
+  GenreDetailsLoadedState({
     required this.stats,
-    // this.currentAmounts = const {},
-    // this.errorMessage,
+    Map<String, double>? currentAmounts,
     this.sortAndFilterStatus = const HoldingSortAndFilterStatus(),
-  });
+  }) : _currentAmounts =
+           currentAmounts ?? Map.fromEntries(stats.map((stat) => MapEntry(stat.amc.id, stat.currentValue ?? 0.0)));
 
-  // final GenreDetailsStateStatus status;
-  // final List<AmcTransaction> stats;
   final List<AmcStat> stats;
-  // final Map<String, double> currentAmounts;
-  // final String? errorMessage;
+  final Map<String, double> _currentAmounts;
   final HoldingSortAndFilterStatus sortAndFilterStatus;
 
   int get totalHoldings => stats.length;
   int get presentHoldings => stats.where((stat) => stat.totalQuantity > 0).length;
-  // double get totalCurrentValue => currentAmounts.entries.fold<double>(0, (v, el) => v + el.value);
+  double get totalCurrentValue => _currentAmounts.entries.fold<double>(0, (v, el) => v + el.value);
   double get totalInvested => stats.fold<double>(0, (v, el) => v + el.totalInvested);
   double get totalRedeemed => stats.fold<double>(0, (v, el) => v + el.totalRedeemed);
-  // int get totalTransactions => stats.fold<int>(0, (v, el) => v + el.numTransactions);
 
   List<AmcStat> get displayStats {
     if (stats.isEmpty) return stats;
@@ -140,7 +135,6 @@ class GenreDetailsLoadedState extends GenreDetailsState {
   }
 
   GenreDetailsLoadedState copyWith({
-    // GenreDetailsStateStatus? status,
     List<AmcStat>? stats,
     Map<String, double>? currentAmounts,
     // String? errorMessage,
@@ -149,14 +143,13 @@ class GenreDetailsLoadedState extends GenreDetailsState {
     return GenreDetailsLoadedState(
       // status: status ?? this.status,
       stats: stats ?? this.stats,
-      // currentAmounts: currentAmounts ?? this.currentAmounts,
-      // errorMessage: errorMessage ?? this.errorMessage,
+      currentAmounts: currentAmounts ?? _currentAmounts,
       sortAndFilterStatus: sortAndFilterStatus ?? this.sortAndFilterStatus,
     );
   }
 
   @override
-  List<Object?> get props => [stats, sortAndFilterStatus];
+  List<Object?> get props => [stats, _currentAmounts, sortAndFilterStatus];
 }
 
 extension GenreDetailsStateX on GenreDetailsState {

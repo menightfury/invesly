@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:invesly/amc_stat/cubit/amc_stat_cubit.dart';
 import 'package:invesly/amc_stat/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -53,7 +55,6 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     final statState = context.read<AmcStatCubit>().state;
     if (statState is AmcStatLoadedState) {
       final stats = statState.getStatsByGenre(widget.genre);
-      $logger.w(stats);
       context.read<GenreDetailsCubit>().loadStats(stats);
     }
   }
@@ -417,32 +418,30 @@ class _GenreOverviewSection extends StatelessWidget {
                   ],
                 ),
 
-                // Row(
-                //   spacing: _spacing,
-                //   children: <Widget>[
-                //     // ~ Total returns sections
-                //     Expanded(
-                //       child: _SectionWidget(
-                //         label: const Skeleton.keep(child: Text('Total returns')),
-                //         value: _buildAmountReturns(context, statState),
-                //         color: isError ? colors.errorContainer : null,
-                //         valueColor: isError ? colors.error : Colors.teal.shade500,
-                //         borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
-                //       ),
-                //     ),
+                Row(
+                  spacing: _spacing,
+                  children: <Widget>[
+                    // ~ Total returns sections
+                    Expanded(
+                      child: _SectionWidget(
+                        label: const Skeleton.keep(child: Text('Total returns')),
+                        value: _buildAmountReturns(context, state),
 
-                //     // ~ XIRR section
-                //     Expanded(
-                //       child: _SectionWidget(
-                //         label: const Skeleton.keep(child: Text('XIRR')),
-                //         value: _buildPercentageReturns(context, statState),
-                //         color: isError ? colors.errorContainer : null,
-                //         valueColor: isError ? colors.error : null,
-                //         borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
-                //       ),
-                //     ),
-                //   ],
-                // ),
+                        borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+                      ),
+                    ),
+
+                    // ~ XIRR section
+                    Expanded(
+                      child: _SectionWidget(
+                        label: const Skeleton.keep(child: Text('XIRR')),
+                        value: _buildPercentageReturns(context, state),
+
+                        borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -454,7 +453,7 @@ class _GenreOverviewSection extends StatelessWidget {
   Widget _buildTotalCurrentAmount(BuildContext context, GenreDetailsState state) {
     final textTheme = Theme.of(context).textTheme;
 
-    if (state.isLoaded) {
+    if (state is GenreDetailsLoadedState) {
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
@@ -497,54 +496,46 @@ class _GenreOverviewSection extends StatelessWidget {
     return const Text('Loading...');
   }
 
-  // Widget _buildAmountReturns(BuildContext context, GenreDetailsState state) {
-  //   if (state.isError) {
-  //     return Text('Error loading data');
-  //   }
+  Widget _buildAmountReturns(BuildContext context, GenreDetailsState state) {
+    // if (state is GenreDetailsLoadedState) {
+    //   return BlocSelector<GenreDetailsCubit, GenreDetailsState, double>(
+    //     selector: (state) => state.totalCurrentValue,
+    //     builder: (context, totalCurrentValue) {
+    //       final returns = totalCurrentValue - state.totalInvested;
+    //       return BlocSelector<AppCubit, AppState, bool>(
+    //         selector: (state) => state.isPrivateMode,
+    //         builder: (context, isPrivateMode) {
+    //           return CurrencyView(
+    //             amount: returns,
+    //             privateMode: isPrivateMode,
+    //             style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+    //           );
+    //         },
+    //       );
+    //     },
+    //   );
+    // }
 
-  //   if (state.isLoaded) {
-  //     return BlocSelector<GenreDetailsCubit, GenreDetailsState, double>(
-  //       selector: (state) => state.totalCurrentValue,
-  //       builder: (context, totalCurrentValue) {
-  //         final returns = totalCurrentValue - state.totalInvested;
-  //         return BlocSelector<AppCubit, AppState, bool>(
-  //           selector: (state) => state.isPrivateMode,
-  //           builder: (context, isPrivateMode) {
-  //             return CurrencyView(
-  //               amount: returns,
-  //               privateMode: isPrivateMode,
-  //               style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-  //             );
-  //           },
-  //         );
-  //       },
-  //     );
-  //   }
+    return const Text('Loading...');
+  }
 
-  //   return const Text('Loading...');
-  // }
+  Widget _buildPercentageReturns(BuildContext context, GenreDetailsState state) {
+    // if (state is GenreDetailsLoadedState) {
+    //   return BlocSelector<GenreDetailsCubit, GenreDetailsState, double>(
+    //     selector: (state) => state.totalCurrentValue,
+    //     builder: (context, totalCurrentValue) {
+    //       final returns = state.totalInvested > 0 ? (totalCurrentValue / state.totalInvested - 1.0) * 100 : 0;
+    //       return Text(
+    //         '${returns.toPrecisionDouble(2)}%',
+    //         textAlign: TextAlign.right,
+    //         style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+    //       );
+    //     },
+    //   );
+    // }
 
-  // Widget _buildPercentageReturns(BuildContext context, GenreDetailsState state) {
-  //   if (state.isError) {
-  //     return Text('Error loading data');
-  //   }
-
-  //   if (state.isLoaded) {
-  //     return BlocSelector<GenreDetailsCubit, GenreDetailsState, double>(
-  //       selector: (state) => state.totalCurrentValue,
-  //       builder: (context, totalCurrentValue) {
-  //         final returns = state.totalInvested > 0 ? (totalCurrentValue / state.totalInvested - 1.0) * 100 : 0;
-  //         return Text(
-  //           '${returns.toPrecisionDouble(2)}%',
-  //           textAlign: TextAlign.right,
-  //           style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-  //         );
-  //       },
-  //     );
-  //   }
-
-  //   return const Text('Loading...');
-  // }
+    return const Text('Loading...');
+  }
 }
 
 class _HoldingStatCard extends StatefulWidget {
@@ -569,13 +560,13 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     if (amc.ltp?.fetchDate.isToday ?? false) return;
 
     try {
+      await Future.delayed(
+        Random().nextInt(500).milliseconds,
+      ); // Add slight delay to prevent too many rapid calls when rebuilding
       final ltp = await AmcRepository.instance.getLatestPrice(amc);
       $logger.i('Fetched LTP for ${amc.name}: ${ltp?.price} on ${ltp?.date}');
       if (mounted && ltp != null) {
-        // context.read<GenreDetailsCubit>().updateCurrentAmount(
-        //   amc.id,
-        //   ltp.price * (widget.amcTransaction?.totalQuantity ?? 0),
-        // );
+        context.read<GenreDetailsCubit>().updateCurrentAmount(amc.id, ltp.price * (widget._stat?.totalQuantity ?? 0));
         context.read<GenreDetailsCubit>().updateAmcLtp(amc.id, ltp);
       }
     } catch (e) {
@@ -634,12 +625,14 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                       spacing: 4.0,
                       children: <Widget>[
                         Expanded(
-                          child: Text(
-                            isLoaded ? widget._stat?.amc.name ?? 'N/A' : 'Loading...',
-                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                          ),
+                          child: isLoaded
+                              ? Text(
+                                  widget._stat?.amc.name ?? 'N/A',
+                                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                )
+                              : Bone.text(width: double.infinity),
                         ),
 
                         Skeleton.ignore(
@@ -671,7 +664,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
             Expanded(
               child: _SectionWidget(
                 minHeight: 0.0,
-                label: Text('Available units', style: labelStyle),
+                label: Skeleton.keep(child: Text('Available units', style: labelStyle)),
                 value: Text(
                   '${widget._stat?.totalQuantity.toPrecisionDouble(4) ?? '0.000'}',
                   textAlign: TextAlign.right,
@@ -685,7 +678,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
             Expanded(
               child: _SectionWidget(
                 minHeight: 0.0,
-                label: Text('Invested', style: labelStyle),
+                label: Skeleton.keep(child: Text('Invested', style: labelStyle)),
                 value: isLoaded
                     ? BlocSelector<AppCubit, AppState, bool>(
                         selector: (state) => state.isPrivateMode,
@@ -699,9 +692,6 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
           ],
         ),
 
-        // if (!isLoaded) _buildLtpDependentWidget(context, null, labelStyle),
-
-        // if (isLoaded)
         BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
           // buildWhen: (prev, curr) {
           //   final prevTrn = prev.stats.firstWhereOrNull((trn) => trn.amc.id == widget._amcTransaction?.amc.id);
@@ -710,7 +700,59 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
           // },
           builder: (context, genreState) {
             $logger.i('Rebuilding LTP-dependent widget for AMC ${widget._stat?.amc.name} with state: $genreState');
-            return _buildLtpDependentWidget(context, genreState, labelStyle);
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: _spacing,
+              children: <Widget>[
+                Row(
+                  spacing: _spacing,
+                  children: <Widget>[
+                    // ~ Current value
+                    Expanded(
+                      child: _SectionWidget(
+                        minHeight: 0.0,
+                        label: Skeleton.keep(child: Text('Current value', style: labelStyle)),
+                        value: isLoaded ? _buildCurrentValue(context, genreState) : const Text('Loading...'),
+                      ),
+                    ),
+
+                    // ~ Returns amount
+                    Expanded(
+                      child: _SectionWidget(
+                        minHeight: 0.0,
+                        label: Skeleton.keep(child: Text('Returns', style: labelStyle)),
+                        value: isLoaded ? _buildReturnAmount(context, genreState) : const Text('Loading...'),
+                      ),
+                    ),
+                  ],
+                ),
+
+                Row(
+                  spacing: _spacing,
+                  children: <Widget>[
+                    // ~ % Returns
+                    Expanded(
+                      child: _SectionWidget(
+                        minHeight: 0.0,
+                        label: Skeleton.keep(child: Text('% Returns', style: labelStyle)),
+                        value: isLoaded ? _buildReturnPercentage(context, genreState) : const Text('Loading...'),
+                        borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+                      ),
+                    ),
+
+                    // ~ XIRR
+                    Expanded(
+                      child: _SectionWidget(
+                        minHeight: 0.0,
+                        label: Skeleton.keep(child: Text('XIRR', style: labelStyle)),
+                        value: isLoaded ? _buildXirr(context, genreState) : const Text('Loading...'),
+                        borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
           },
         ),
       ],
@@ -733,72 +775,8 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     });
   }
 
-  Widget _buildLtpDependentWidget(BuildContext context, GenreDetailsState? genreState, TextStyle? labelStyle) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      spacing: _spacing,
-      children: <Widget>[
-        Row(
-          spacing: _spacing,
-          children: <Widget>[
-            // ~ Current value
-            Expanded(
-              child: _SectionWidget(
-                minHeight: 0.0,
-                label: genreState != null
-                    ? Skeleton.keep(child: Text('Current value', style: labelStyle))
-                    : const Text('Loading...'),
-                value: genreState != null ? _buildCurrentValue(context, genreState) : const Text('Loading...'),
-              ),
-            ),
-
-            // ~ Returns amount
-            Expanded(
-              child: _SectionWidget(
-                minHeight: 0.0,
-                label: genreState != null
-                    ? Skeleton.keep(child: Text('Returns', style: labelStyle))
-                    : const Text('Loading...'),
-                value: genreState != null ? _buildReturnAmount(context, genreState) : const Text('Loading...'),
-              ),
-            ),
-          ],
-        ),
-
-        Row(
-          spacing: _spacing,
-          children: <Widget>[
-            // ~ % Returns
-            Expanded(
-              child: _SectionWidget(
-                minHeight: 0.0,
-                label: genreState != null
-                    ? Skeleton.keep(child: Text('% Returns', style: labelStyle))
-                    : const Text('Loading...'),
-                value: genreState != null ? _buildReturnPercentage(context, genreState) : const Text('Loading...'),
-                borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
-              ),
-            ),
-
-            // ~ XIRR
-            Expanded(
-              child: _SectionWidget(
-                minHeight: 0.0,
-                label: genreState != null
-                    ? Skeleton.keep(child: Text('XIRR', style: labelStyle))
-                    : const Text('Loading...'),
-                value: genreState != null ? _buildXirr(context, genreState) : const Text('Loading...'),
-                borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _buildXirr(BuildContext context, GenreDetailsState genreState) {
-    return Text('xirr is not available', overflow: TextOverflow.ellipsis);
+    return Text('N/A', overflow: TextOverflow.ellipsis);
     // if (widget.stat?.transactions.isEmpty ?? true) {
     //   return Text('0.00%', style: TextStyle(color: Colors.teal));
     // }
