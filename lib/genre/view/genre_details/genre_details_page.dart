@@ -2,8 +2,6 @@ import 'package:invesly/amc_stat/cubit/amc_stat_cubit.dart';
 import 'package:invesly/amc_stat/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
-import 'package:invesly/amcs/model/amc_transaction_model.dart';
-import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/amcs/view/amc_overview/amc_overview_page.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
@@ -50,6 +48,17 @@ class _GenreDetailsPageContent extends StatefulWidget {
 
 class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   @override
+  void initState() {
+    super.initState();
+    final statState = context.read<AmcStatCubit>().state;
+    if (statState is AmcStatLoadedState) {
+      final stats = statState.getStatsByGenre(widget.genre);
+      $logger.w(stats);
+      context.read<GenreDetailsCubit>().loadStats(stats);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cubit = context.read<GenreDetailsCubit>();
@@ -60,14 +69,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
           slivers: <Widget>[
             SliverAppBar(title: Text(widget.genre.title), floating: true, snap: true),
 
-            BlocConsumer<AmcStatCubit, AmcStatState>(
-              listener: (context, statState) {
-                // Bloc to bloc communication
-                if (statState is AmcStatLoadedState) {
-                  final stats = statState.getStatsByGenre(widget.genre);
-                  context.read<GenreDetailsCubit>().loadStats(stats);
-                }
-              },
+            BlocBuilder<AmcStatCubit, AmcStatState>(
               builder: (context, statState) {
                 // ~ If AmcStatState is error or initial
                 if (statState.isInitial) {
@@ -368,6 +370,7 @@ class _GenreOverviewSection extends StatelessWidget {
     return BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
       // buildWhen: (prev, curr) => prev.stats != curr.stats,
       builder: (context, state) {
+        $logger.i('Rebuilding genre overview section with state: $state');
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Skeletonizer(
