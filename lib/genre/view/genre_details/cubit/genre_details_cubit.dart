@@ -1,16 +1,16 @@
 import 'package:invesly/amc_stat/model/amc_stat_model.dart';
-import 'package:invesly/amcs/model/latest_price_model.dart';
+import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common_libs.dart';
 
 part 'genre_details_state.dart';
 
 class GenreDetailsCubit extends Cubit<GenreDetailsState> {
-  GenreDetailsCubit()
-    : // _repository = repository,
+  GenreDetailsCubit({required AmcRepository repository})
+    : _repository = repository,
       // _transactionRepository = transactionRepository,
-      super(GenreDetailsInitialState());
+      super(GenreDetailsState());
 
-  // final AmcStatRepository _repository;
+  final AmcRepository _repository;
   // final TransactionRepository _transactionRepository;
 
   // Future<void> loadTransactions({required String accountId, required AmcGenre genre}) async {
@@ -47,52 +47,64 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
   //       );
   // }
 
-  void loadStats(List<AmcStat> stats) {
-    late final GenreDetailsState newState;
-    if (state is GenreDetailsLoadedState) {
-      newState = (state as GenreDetailsLoadedState).copyWith(stats: stats);
-    } else {
-      newState = GenreDetailsLoadedState(stats: stats);
-    }
+  Future<void> loadStats(List<AmcStat> stats) async {
+    emit(state.copyWith(status: GenreDetailsStateStatus.ltpLoading, stats: stats));
 
-    emit(newState);
+    // Get current amount for every stat, this is required to calculate overall current amount and other metrics.
+    try {
+      final latestPriceMap = await Future.wait(
+        stats.map((stat) async {
+          final ltp = await _repository.getLatestPrice(stat.amc);
+          return MapEntry(stat.amc.id, ltp);
+        }),
+      ).then((entries) => Map.fromEntries(entries));
+
+      final newStats = stats.map((stat) {
+        final ltp = latestPriceMap[stat.amc.id];
+        if (ltp == null) return stat;
+        return stat.copyWith(amc: stat.amc.copyWith(ltp: ltp));
+      }).toList();
+
+      emit(state.copyWith(status: GenreDetailsStateStatus.ltpLoaded, stats: newStats));
+    } catch (err) {
+      emit(state.copyWith(status: GenreDetailsStateStatus.error, errorMsg: err.toString()));
+    }
   }
 
-  void updateAmcLtp(String amcId, LatestPrice ltp) {
-    if (state is! GenreDetailsLoadedState) {
-      return;
-    }
+  // void updateAmcLtp(String amcId, LatestPrice ltp) {
+  //   if (state is! GenreDetailsLoadedState) {
+  //     return;
+  //   }
 
-    final state_ = state as GenreDetailsLoadedState;
+  //   final loadedState = state as GenreDetailsLoadedState;
 
-    final stats = List<AmcStat>.from(state_.stats);
-    final index = stats.indexWhere((stat) => stat.amc.id == amcId);
-    if (index == -1) return;
+  //   final stats = List<AmcStat>.from(loadedState.stats);
+  //   final index = stats.indexWhere((stat) => stat.amc.id == amcId);
+  //   if (index == -1) return;
 
-    final updatedStat = stats[index].copyWith(amc: stats[index].amc.copyWith(ltp: ltp));
-    stats[index] = updatedStat;
+  //   final updatedStat = stats[index].copyWith(amc: stats[index].amc.copyWith(ltp: ltp));
+  //   stats[index] = updatedStat;
 
-    emit(state_.copyWith(stats: stats));
-  }
+  //   emit(loadedState.copyWith(stats: stats));
+  // }
 
-  void updateCurrentAmount(String amcId, double currentAmount) {
-    if (state is! GenreDetailsLoadedState) {
-      return;
-    }
+  // void updateCurrentAmount(String amcId, double currentAmount) {
+  //   if (state is! GenreDetailsLoadedState) {
+  //     return;
+  //   }
 
-    final state_ = state as GenreDetailsLoadedState;
-    final currentAmounts = Map<String, double>.from(state_._currentAmounts);
-    currentAmounts[amcId] = currentAmount;
+  //   final loadedState = state as GenreDetailsLoadedState;
+  //   final currentAmounts = Map<String, double>.from(loadedState._currentAmounts);
+  //   currentAmounts[amcId] = currentAmount;
 
-    emit(state_.copyWith(currentAmounts: currentAmounts));
-  }
+  //   emit(loadedState.copyWith(currentAmounts: currentAmounts));
+  // }
 
   void setSortAndFilterStatus(HoldingSortAndFilterStatus sortAndFilterStatus) {
-    if (state is! GenreDetailsLoadedState) {
+    if (!state.isLoaded) {
       return;
     }
 
-    final state_ = state as GenreDetailsLoadedState;
-    emit(state_.copyWith(sortAndFilterStatus: sortAndFilterStatus));
+    emit(state.copyWith(sortAndFilterStatus: sortAndFilterStatus));
   }
 }

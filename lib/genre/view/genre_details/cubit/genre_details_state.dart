@@ -1,7 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'genre_details_cubit.dart';
 
-// enum GenreDetailsStateStatus { initial, loading, loaded, error }
+enum GenreDetailsStateStatus {
+  initial,
+  ltpLoading, // when latest price is being fetched for stats
+  ltpLoaded, // when stats are loaded with latest price, ready to be displayed
+  error,
+}
 
 enum HoldingSortOption {
   name(label: 'Name', ascendingLabel: 'A to Z', descendingLabel: 'Z to A'),
@@ -53,32 +58,25 @@ class HoldingSortAndFilterStatus extends Equatable {
   List<Object?> get props => [sortOption, sortAscending, holdingFilter];
 }
 
-abstract class GenreDetailsState extends Equatable {
-  const GenreDetailsState();
-}
-
-class GenreDetailsInitialState extends GenreDetailsState {
-  @override
-  List<Object?> get props => [];
-}
-
-class GenreDetailsLoadedState extends GenreDetailsState {
-  GenreDetailsLoadedState({
-    required this.stats,
-    Map<String, double>? currentAmounts,
+class GenreDetailsState extends Equatable {
+  const GenreDetailsState({
+    this.status = GenreDetailsStateStatus.initial,
+    this.stats = const [],
+    this.errorMsg,
     this.sortAndFilterStatus = const HoldingSortAndFilterStatus(),
-  }) : _currentAmounts =
-           currentAmounts ?? Map.fromEntries(stats.map((stat) => MapEntry(stat.amc.id, stat.currentValue ?? 0.0)));
+  });
 
+  final GenreDetailsStateStatus status;
   final List<AmcStat> stats;
-  final Map<String, double> _currentAmounts;
+  final String? errorMsg;
   final HoldingSortAndFilterStatus sortAndFilterStatus;
 
   int get totalHoldings => stats.length;
   int get presentHoldings => stats.where((stat) => stat.totalQuantity > 0).length;
-  double get totalCurrentValue => _currentAmounts.entries.fold<double>(0, (v, el) => v + el.value);
+  double get totalCurrentAmount => stats.fold<double>(0, (v, el) => v + (el.currentValue ?? 0.0));
   double get totalInvested => stats.fold<double>(0, (v, el) => v + el.totalInvested);
   double get totalRedeemed => stats.fold<double>(0, (v, el) => v + el.totalRedeemed);
+  double get totalReturns => stats.fold<double>(0, (v, el) => v + (el.amountReturn ?? 0.0));
 
   List<AmcStat> get displayStats {
     if (stats.isEmpty) return stats;
@@ -134,27 +132,27 @@ class GenreDetailsLoadedState extends GenreDetailsState {
     return sorted;
   }
 
-  GenreDetailsLoadedState copyWith({
+  GenreDetailsState copyWith({
+    GenreDetailsStateStatus? status,
     List<AmcStat>? stats,
-    Map<String, double>? currentAmounts,
-    // String? errorMessage,
+    String? errorMsg,
     HoldingSortAndFilterStatus? sortAndFilterStatus,
   }) {
-    return GenreDetailsLoadedState(
-      // status: status ?? this.status,
+    return GenreDetailsState(
+      status: status ?? this.status,
       stats: stats ?? this.stats,
-      currentAmounts: currentAmounts ?? _currentAmounts,
+      errorMsg: errorMsg ?? this.errorMsg,
       sortAndFilterStatus: sortAndFilterStatus ?? this.sortAndFilterStatus,
     );
   }
 
   @override
-  List<Object?> get props => [stats, _currentAmounts, sortAndFilterStatus];
+  List<Object?> get props => [status, stats, errorMsg, sortAndFilterStatus];
 }
 
 extension GenreDetailsStateX on GenreDetailsState {
-  //   bool get isInitial => status == GenreDetailsStateStatus.initial;
-  bool get isLoading => this is GenreDetailsInitialState;
-  bool get isLoaded => this is GenreDetailsLoadedState;
-  //   bool get isError => status == GenreDetailsStateStatus.error;
+  bool get isInitial => status == GenreDetailsStateStatus.initial;
+  bool get isLoading => status == GenreDetailsStateStatus.ltpLoading;
+  bool get isLoaded => status == GenreDetailsStateStatus.ltpLoaded;
+  bool get isError => status == GenreDetailsStateStatus.error;
 }

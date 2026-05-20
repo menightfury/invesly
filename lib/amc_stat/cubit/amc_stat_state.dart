@@ -30,30 +30,10 @@ class AmcStatLoadedState extends AmcStatState {
     return stats.where((stat) => stat.amc.genre == genre).toList();
   }
 
-  // double getTotalCurrentValue([AmcGenre? genre]) {
-  //   final filteredStats = genre == null ? stats : getStatsByGenre(genre);
-  //   return filteredStats.fold<double>(0, (v, el) => v + el.currentValue);
-  // }
-
   double getTotalInvested([AmcGenre? genre]) {
     final filteredStats = genre == null ? stats : getStatsByGenre(genre);
     return filteredStats.fold<double>(0, (v, el) => v + el.totalInvested);
   }
-
-  // double getTotalRedeemed([AmcGenre? genre]) {
-  //   final filteredStats = genre == null ? stats : getStatsByGenre(genre);
-  //   return filteredStats.fold<double>(0, (v, el) => v + el.totalRedeemed);
-  // }
-
-  // int getTotalHoldings([AmcGenre? genre]) {
-  //   final filteredStats = genre == null ? stats : getStatsByGenre(genre);
-  //   return filteredStats.length;
-  // }
-
-  // int getPresentHoldings([AmcGenre? genre]) {
-  //   final filteredStats = genre == null ? stats : getStatsByGenre(genre);
-  //   return filteredStats.where((stat) => stat.totalQuantity > 0).length;
-  // }
 
   @override
   List<Object?> get props => [stats];

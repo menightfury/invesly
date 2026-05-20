@@ -28,13 +28,6 @@ class AmcStatRepository {
     return _api.onTableChange.where((event) => event.tables.contains(_trnTable));
   }
 
-  // /// Fetch statistics of all AMCs (on initial load, on transactions change)
-  // Stream<List<AmcStat>> fetchStats(String accountId) {
-  //   return _api.onTableChange.where((event) => event.tables.contains(_trnTable)).asyncMap((_) async {
-  //     return await getStats(accountId);
-  //   });
-  // }
-
   /// Get statistics of all AMCs
   Future<List<AmcStat>> getStats(String accountId) async {
     try {

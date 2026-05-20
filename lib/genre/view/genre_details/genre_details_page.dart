@@ -24,7 +24,7 @@ class GenreDetailsPage extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: BlocProvider(
-          create: (_) => GenreDetailsCubit(),
+          create: (_) => GenreDetailsCubit(repository: AmcRepository.instance),
 
           // child: BlocSelector<AppCubit, AppState, String?>(
           //   selector: (state) => state.primaryAccountId,
@@ -117,19 +117,16 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                                   // },
                                   builder: (context, genreState) {
                                     return AnimatedScale(
-                                      scale: genreState is GenreDetailsLoadedState && genreState.stats.isNotEmpty
-                                          ? 1.0
-                                          : 0.0,
+                                      scale: genreState.isLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
                                       alignment: Alignment.centerRight,
                                       duration: 240.ms,
                                       curve: Curves.easeInOut,
                                       child: IconButton(
                                         onPressed: genreState.isLoaded
                                             ? () async {
-                                                final state_ = cubit.state as GenreDetailsLoadedState;
                                                 final sortOptions = await _showSortOptions(
                                                   context,
-                                                  sortAndFilterStatus: state_.sortAndFilterStatus,
+                                                  sortAndFilterStatus: genreState.sortAndFilterStatus,
                                                 );
                                                 if (sortOptions == null) return;
                                                 cubit.setSortAndFilterStatus(sortOptions);
@@ -163,7 +160,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                           final isLoading = state.isLoading;
 
                           // ~ If loaded but empty
-                          if (state is GenreDetailsLoadedState && state.stats.isEmpty) {
+                          if (state.isLoaded && state.stats.isEmpty) {
                             return SliverToBoxAdapter(
                               child: Center(
                                 child: EmptyWidget(
@@ -174,7 +171,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                           }
 
                           // ~ If loaded but search result is empty
-                          final displayList = state.isLoaded ? (state as GenreDetailsLoadedState).displayStats : null;
+                          final displayList = state.isLoaded ? state.displayStats : null;
                           if (displayList != null && displayList.isEmpty) {
                             return SliverToBoxAdapter(
                               child: Padding(
@@ -453,15 +450,17 @@ class _GenreOverviewSection extends StatelessWidget {
   Widget _buildTotalCurrentAmount(BuildContext context, GenreDetailsState state) {
     final textTheme = Theme.of(context).textTheme;
 
-    if (state is GenreDetailsLoadedState) {
+    if (state.isLoaded) {
+      final currentAmount = state.totalCurrentAmount;
+      final color = currentAmount < 0 ? Colors.red : Colors.teal;
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
           return CurrencyView(
-            amount: 0.0, // TODO: Fix
-            style: textTheme.headlineLarge,
-            decimalsStyle: textTheme.headlineSmall,
-            currencyStyle: textTheme.bodyMedium,
+            amount: currentAmount,
+            style: textTheme.headlineLarge?.copyWith(color: color),
+            decimalsStyle: textTheme.headlineSmall?.copyWith(color: color),
+            currencyStyle: textTheme.bodyMedium?.copyWith(color: color),
             privateMode: isPrivateMode,
           );
         },
@@ -472,7 +471,7 @@ class _GenreOverviewSection extends StatelessWidget {
   }
 
   Widget _buildHoldingCount(BuildContext context, GenreDetailsState state) {
-    if (state is GenreDetailsLoadedState) {
+    if (state.isLoaded) {
       return Text(
         '${state.presentHoldings} / ${state.totalHoldings}',
         textAlign: TextAlign.right,
@@ -484,7 +483,7 @@ class _GenreOverviewSection extends StatelessWidget {
   }
 
   Widget _buildTotalInvestedAmount(BuildContext context, GenreDetailsState state) {
-    if (state is GenreDetailsLoadedState) {
+    if (state.isLoaded) {
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
@@ -497,24 +496,19 @@ class _GenreOverviewSection extends StatelessWidget {
   }
 
   Widget _buildAmountReturns(BuildContext context, GenreDetailsState state) {
-    // if (state is GenreDetailsLoadedState) {
-    //   return BlocSelector<GenreDetailsCubit, GenreDetailsState, double>(
-    //     selector: (state) => state.totalCurrentValue,
-    //     builder: (context, totalCurrentValue) {
-    //       final returns = totalCurrentValue - state.totalInvested;
-    //       return BlocSelector<AppCubit, AppState, bool>(
-    //         selector: (state) => state.isPrivateMode,
-    //         builder: (context, isPrivateMode) {
-    //           return CurrencyView(
-    //             amount: returns,
-    //             privateMode: isPrivateMode,
-    //             style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-    //           );
-    //         },
-    //       );
-    //     },
-    //   );
-    // }
+    if (state.isLoaded) {
+      final returns = state.totalReturns;
+      return BlocSelector<AppCubit, AppState, bool>(
+        selector: (state) => state.isPrivateMode,
+        builder: (context, isPrivateMode) {
+          return CurrencyView(
+            amount: returns,
+            privateMode: isPrivateMode,
+            style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+          );
+        },
+      );
+    }
 
     return const Text('Loading...');
   }
@@ -551,43 +545,45 @@ class _HoldingStatCard extends StatefulWidget {
 
 class _HoldingStatCardState extends State<_HoldingStatCard> {
   static const double _spacing = 2.0;
+  final random = Random();
 
-  Future<void> _getCurrentPrice() async {
-    final amc = widget._stat?.amc;
-    if (amc == null) return;
+  // TODO: Move this to
+  // Future<void> _getCurrentPrice() async {
+  //   final amc = widget._stat?.amc;
+  //   if (amc == null) return;
 
-    // if amc already has latest ltp, do nothing
-    if (amc.ltp?.fetchDate.isToday ?? false) return;
+  //   // if amc already has latest ltp, do nothing
+  //   if (amc.ltp?.fetchDate.isToday ?? false) return;
 
-    try {
-      await Future.delayed(
-        Random().nextInt(500).milliseconds,
-      ); // Add slight delay to prevent too many rapid calls when rebuilding
-      final ltp = await AmcRepository.instance.getLatestPrice(amc);
-      $logger.i('Fetched LTP for ${amc.name}: ${ltp?.price} on ${ltp?.date}');
-      if (mounted && ltp != null) {
-        context.read<GenreDetailsCubit>().updateCurrentAmount(amc.id, ltp.price * (widget._stat?.totalQuantity ?? 0));
-        context.read<GenreDetailsCubit>().updateAmcLtp(amc.id, ltp);
-      }
-    } catch (e) {
-      // Handle error, maybe return a default LatestPrice or rethrow
-      rethrow;
-    }
-  }
+  //   try {
+  //     await Future.delayed(
+  //       random.nextInt(500).milliseconds,
+  //     ); // Add slight delay to prevent too many rapid calls when rebuilding
+  //     final ltp = await AmcRepository.instance.getLatestPrice(amc);
+  //     $logger.i('Fetched LTP for ${amc.name}: ${ltp?.price} on ${ltp?.date}');
+  //     if (mounted && ltp != null && widget._stat != null) {
+  //       context.read<GenreDetailsCubit>().updateCurrentAmount(amc.id, ltp.price * (widget._stat!.totalQuantity));
+  //       // context.read<GenreDetailsCubit>().updateAmcLtp(amc.id, ltp);
+  //     }
+  //   } catch (e) {
+  //     // Handle error, maybe return a default LatestPrice or rethrow
+  //     rethrow;
+  //   }
+  // }
 
-  @override
-  void initState() {
-    super.initState();
-    _getCurrentPrice();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _getCurrentPrice();
+  // }
 
-  @override
-  void didUpdateWidget(covariant _HoldingStatCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget._stat != oldWidget._stat) {
-      _getCurrentPrice();
-    }
-  }
+  // @override
+  // void didUpdateWidget(covariant _HoldingStatCard oldWidget) {
+  //   super.didUpdateWidget(oldWidget);
+  //   if (widget._stat != oldWidget._stat) {
+  //     _getCurrentPrice();
+  //   }
+  // }
 
   bool get isLoaded => widget._stat != null;
 
@@ -794,7 +790,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
   }
 
   Widget _buildReturnPercentage(BuildContext context, GenreDetailsState genreState) {
-    if (genreState is GenreDetailsLoadedState) {
+    if (genreState.isLoaded) {
       final stat = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget._stat?.amc.id);
       final percentageReturns = stat?.percentageReturn ?? 0.0;
 
@@ -810,7 +806,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
   }
 
   Widget _buildReturnAmount(BuildContext context, GenreDetailsState genreState) {
-    if (genreState is GenreDetailsLoadedState) {
+    if (genreState.isLoaded) {
       final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget._stat?.amc.id);
       final returns = amcTrn?.amountReturn ?? 0;
 
@@ -830,7 +826,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
   }
 
   Widget _buildCurrentValue(BuildContext context, GenreDetailsState genreState) {
-    if (genreState is GenreDetailsLoadedState) {
+    if (genreState.isLoaded) {
       final amcStat = genreState.stats.firstWhereOrNull((stat) => stat.amc.id == widget._stat?.amc.id);
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
