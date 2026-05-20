@@ -614,7 +614,7 @@ class _HoldingStatCard extends StatelessWidget {
           // },
           builder: (context, genreState) {
             $logger.i('Rebuilding LTP-dependent widget for AMC ${stat.amc.name} with state: $genreState');
-            return SliverSkeletonizer(
+            return Skeletonizer(
               enabled: genreState.isLtpLoading,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
