@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:invesly/amc_stat/cubit/amc_stat_cubit.dart';
 import 'package:invesly/amc_stat/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -25,13 +23,6 @@ class GenreDetailsPage extends StatelessWidget {
       body: SafeArea(
         child: BlocProvider(
           create: (_) => GenreDetailsCubit(repository: AmcRepository.instance),
-
-          // child: BlocSelector<AppCubit, AppState, String?>(
-          //   selector: (state) => state.primaryAccountId,
-          //   builder: (context, accountId) {
-          //     return _GenreDetailsPageContent(genre: genre, accountId: accountId);
-          //   },
-          // ),
           child: _GenreDetailsPageContent(genre: genre),
         ),
       ),
@@ -117,12 +108,12 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                                   // },
                                   builder: (context, genreState) {
                                     return AnimatedScale(
-                                      scale: genreState.isLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
+                                      scale: genreState.isLtpLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
                                       alignment: Alignment.centerRight,
                                       duration: 240.ms,
                                       curve: Curves.easeInOut,
                                       child: IconButton(
-                                        onPressed: genreState.isLoaded
+                                        onPressed: genreState.isLtpLoaded
                                             ? () async {
                                                 final sortOptions = await _showSortOptions(
                                                   context,
@@ -150,17 +141,12 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
                       sliver: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-                        // buildWhen: (prev, curr) {
-                        //   return prev.status != curr.status ||
-                        //       prev.stats != curr.stats ||
-                        //       prev.errorMessage != curr.errorMessage ||
-                        //       prev.sortAndFilterStatus != curr.sortAndFilterStatus;
-                        // },
+                        buildWhen: (prev, curr) {
+                          return prev.stats != curr.stats || prev.sortAndFilterStatus != curr.sortAndFilterStatus;
+                        },
                         builder: (context, state) {
-                          final isLoading = state.isLoading;
-
-                          // ~ If loaded but empty
-                          if (state.isLoaded && state.stats.isEmpty) {
+                          // ~ If no stats
+                          if (state.stats.isEmpty) {
                             return SliverToBoxAdapter(
                               child: Center(
                                 child: EmptyWidget(
@@ -170,9 +156,9 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                             );
                           }
 
-                          // ~ If loaded but search result is empty
-                          final displayList = state.isLoaded ? state.displayStats : null;
-                          if (displayList != null && displayList.isEmpty) {
+                          // ~ If stats available but search result is empty
+                          final displayList = state.displayStats;
+                          if (displayList.isEmpty) {
                             return SliverToBoxAdapter(
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 24.0),
@@ -186,14 +172,14 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                             );
                           }
 
-                          // ~ If loading or loaded with data
+                          // ~ Display stats
                           return SliverSkeletonizer(
-                            enabled: isLoading,
+                            enabled: state.isLtpLoading,
                             child: SliverList.separated(
-                              itemCount: displayList?.length ?? 2, // Show 2 skeleton cards while loading
+                              itemCount: displayList.length,
                               itemBuilder: (context, index) {
-                                final stat = displayList?.elementAt(index);
-                                return stat != null ? _HoldingStatCard(stat: stat) : _HoldingStatCard.loading();
+                                final stat = displayList.elementAt(index);
+                                return _HoldingStatCard(stat: stat);
                               },
                               separatorBuilder: (_, _) => const Gap(12.0),
                             ),
@@ -372,7 +358,7 @@ class _GenreOverviewSection extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Skeletonizer(
-            enabled: state.isLoading,
+            enabled: state.isLtpLoading,
             child: Column(
               spacing: _spacing,
               mainAxisSize: MainAxisSize.min,
@@ -450,7 +436,7 @@ class _GenreOverviewSection extends StatelessWidget {
   Widget _buildTotalCurrentAmount(BuildContext context, GenreDetailsState state) {
     final textTheme = Theme.of(context).textTheme;
 
-    if (state.isLoaded) {
+    if (state.isLtpLoaded) {
       final currentAmount = state.totalCurrentAmount;
       final color = currentAmount < 0 ? Colors.red : Colors.teal;
       return BlocSelector<AppCubit, AppState, bool>(
@@ -471,7 +457,7 @@ class _GenreOverviewSection extends StatelessWidget {
   }
 
   Widget _buildHoldingCount(BuildContext context, GenreDetailsState state) {
-    if (state.isLoaded) {
+    if (state.isLtpLoaded) {
       return Text(
         '${state.presentHoldings} / ${state.totalHoldings}',
         textAlign: TextAlign.right,
@@ -483,7 +469,7 @@ class _GenreOverviewSection extends StatelessWidget {
   }
 
   Widget _buildTotalInvestedAmount(BuildContext context, GenreDetailsState state) {
-    if (state.isLoaded) {
+    if (state.isLtpLoaded) {
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
@@ -496,7 +482,7 @@ class _GenreOverviewSection extends StatelessWidget {
   }
 
   Widget _buildAmountReturns(BuildContext context, GenreDetailsState state) {
-    if (state.isLoaded) {
+    if (state.isLtpLoaded) {
       final returns = state.totalReturns;
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
@@ -514,78 +500,23 @@ class _GenreOverviewSection extends StatelessWidget {
   }
 
   Widget _buildPercentageReturns(BuildContext context, GenreDetailsState state) {
-    // if (state is GenreDetailsLoadedState) {
-    //   return BlocSelector<GenreDetailsCubit, GenreDetailsState, double>(
-    //     selector: (state) => state.totalCurrentValue,
-    //     builder: (context, totalCurrentValue) {
-    //       final returns = state.totalInvested > 0 ? (totalCurrentValue / state.totalInvested - 1.0) * 100 : 0;
-    //       return Text(
-    //         '${returns.toPrecisionDouble(2)}%',
-    //         textAlign: TextAlign.right,
-    //         style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-    //       );
-    //     },
-    //   );
-    // }
+    if (state.isLtpLoaded) {
+      final returns = state.totalReturns / state.totalInvested;
+      return Text(
+        '${returns.toPrecisionDouble(2)}%',
+        textAlign: TextAlign.right,
+        style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+      );
+    }
 
     return const Text('Loading...');
   }
 }
 
-class _HoldingStatCard extends StatefulWidget {
-  const _HoldingStatCard({super.key, required AmcStat stat}) : _stat = stat;
-
-  const _HoldingStatCard.loading({super.key}) : _stat = null;
-
-  final AmcStat? _stat;
-
-  @override
-  State<_HoldingStatCard> createState() => _HoldingStatCardState();
-}
-
-class _HoldingStatCardState extends State<_HoldingStatCard> {
+class _HoldingStatCard extends StatelessWidget {
+  const _HoldingStatCard({super.key, required this.stat});
+  final AmcStat stat;
   static const double _spacing = 2.0;
-  final random = Random();
-
-  // TODO: Move this to
-  // Future<void> _getCurrentPrice() async {
-  //   final amc = widget._stat?.amc;
-  //   if (amc == null) return;
-
-  //   // if amc already has latest ltp, do nothing
-  //   if (amc.ltp?.fetchDate.isToday ?? false) return;
-
-  //   try {
-  //     await Future.delayed(
-  //       random.nextInt(500).milliseconds,
-  //     ); // Add slight delay to prevent too many rapid calls when rebuilding
-  //     final ltp = await AmcRepository.instance.getLatestPrice(amc);
-  //     $logger.i('Fetched LTP for ${amc.name}: ${ltp?.price} on ${ltp?.date}');
-  //     if (mounted && ltp != null && widget._stat != null) {
-  //       context.read<GenreDetailsCubit>().updateCurrentAmount(amc.id, ltp.price * (widget._stat!.totalQuantity));
-  //       // context.read<GenreDetailsCubit>().updateAmcLtp(amc.id, ltp);
-  //     }
-  //   } catch (e) {
-  //     // Handle error, maybe return a default LatestPrice or rethrow
-  //     rethrow;
-  //   }
-  // }
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _getCurrentPrice();
-  // }
-
-  // @override
-  // void didUpdateWidget(covariant _HoldingStatCard oldWidget) {
-  //   super.didUpdateWidget(oldWidget);
-  //   if (widget._stat != oldWidget._stat) {
-  //     _getCurrentPrice();
-  //   }
-  // }
-
-  bool get isLoaded => widget._stat != null;
 
   @override
   Widget build(BuildContext context) {
@@ -596,11 +527,9 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       mainAxisSize: MainAxisSize.min,
       spacing: _spacing,
       children: <Widget>[
-        // ~ AMC name and transaction count
+        // ~ AMC name, Chips and Transaction count
         GestureDetector(
-          onTap: () {
-            if (isLoaded) context.push(AmcOverviewPage(widget._stat!.amc.id));
-          },
+          onTap: () => context.push(AmcOverviewPage(stat.amc.id)),
           child: SimpleCard(
             elevation: 0.0,
             color: theme.canvasColor,
@@ -621,19 +550,16 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                       spacing: 4.0,
                       children: <Widget>[
                         Expanded(
-                          child: isLoaded
-                              ? Text(
-                                  widget._stat?.amc.name ?? 'N/A',
-                                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                )
-                              : Bone.text(width: double.infinity),
+                          child: Text(
+                            stat.amc.name,
+                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                          ),
                         ),
 
                         Skeleton.ignore(
                           child: FadeIn(
-                            fadeIn: isLoaded,
                             duration: 240.ms,
                             curve: Curves.easeInOut,
                             child: const Icon(Icons.east_rounded),
@@ -641,11 +567,8 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                         ),
                       ],
                     ),
-                    Wrap(spacing: 4.0, runSpacing: 4.0, children: _buildTagsForAmc(context)),
-                    Text(
-                      '${isLoaded ? widget._stat?.numTransactions ?? 0 : 'Loading...'} transactions',
-                      style: labelStyle,
-                    ),
+                    _buildTagsForAmc(context),
+                    Text('${stat.numTransactions} transactions', style: labelStyle),
                   ],
                 ),
               ),
@@ -662,7 +585,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                 minHeight: 0.0,
                 label: Skeleton.keep(child: Text('Available units', style: labelStyle)),
                 value: Text(
-                  '${widget._stat?.totalQuantity.toPrecisionDouble(4) ?? '0.000'}',
+                  '${stat.totalQuantity.toPrecisionDouble(4)}',
                   textAlign: TextAlign.right,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -675,14 +598,12 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
               child: _SectionWidget(
                 minHeight: 0.0,
                 label: Skeleton.keep(child: Text('Invested', style: labelStyle)),
-                value: isLoaded
-                    ? BlocSelector<AppCubit, AppState, bool>(
-                        selector: (state) => state.isPrivateMode,
-                        builder: (context, isPrivateMode) {
-                          return CurrencyView(amount: widget._stat?.totalInvested ?? 0, privateMode: isPrivateMode);
-                        },
-                      )
-                    : const Text('Loading...'),
+                value: BlocSelector<AppCubit, AppState, bool>(
+                  selector: (state) => state.isPrivateMode,
+                  builder: (context, isPrivateMode) {
+                    return CurrencyView(amount: stat.totalInvested, privateMode: isPrivateMode);
+                  },
+                ),
               ),
             ),
           ],
@@ -695,7 +616,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
           //   return prevTrn != currTrn || prevTrn?.amc.ltp != currTrn?.amc.ltp;
           // },
           builder: (context, genreState) {
-            $logger.i('Rebuilding LTP-dependent widget for AMC ${widget._stat?.amc.name} with state: $genreState');
+            $logger.i('Rebuilding LTP-dependent widget for AMC ${stat.amc.name} with state: $genreState');
             return Column(
               mainAxisSize: MainAxisSize.min,
               spacing: _spacing,
@@ -708,7 +629,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                       child: _SectionWidget(
                         minHeight: 0.0,
                         label: Skeleton.keep(child: Text('Current value', style: labelStyle)),
-                        value: isLoaded ? _buildCurrentValue(context, genreState) : const Text('Loading...'),
+                        value: _buildCurrentValue(context, genreState),
                       ),
                     ),
 
@@ -717,7 +638,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                       child: _SectionWidget(
                         minHeight: 0.0,
                         label: Skeleton.keep(child: Text('Returns', style: labelStyle)),
-                        value: isLoaded ? _buildReturnAmount(context, genreState) : const Text('Loading...'),
+                        value: _buildReturnAmount(context, genreState),
                       ),
                     ),
                   ],
@@ -731,7 +652,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                       child: _SectionWidget(
                         minHeight: 0.0,
                         label: Skeleton.keep(child: Text('% Returns', style: labelStyle)),
-                        value: isLoaded ? _buildReturnPercentage(context, genreState) : const Text('Loading...'),
+                        value: _buildReturnPercentage(context, genreState),
                         borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
                       ),
                     ),
@@ -741,7 +662,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                       child: _SectionWidget(
                         minHeight: 0.0,
                         label: Skeleton.keep(child: Text('XIRR', style: labelStyle)),
-                        value: isLoaded ? _buildXirr(context, genreState) : const Text('Loading...'),
+                        value: _buildXirr(context, genreState),
                         borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
                       ),
                     ),
@@ -755,20 +676,19 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     );
   }
 
-  List<Widget> _buildTagsForAmc(BuildContext context) {
-    if (!isLoaded) {
-      return List.generate(4, (index) => const Skeleton.leaf(child: SimpleChip(title: Text('Loading...'))));
+  Widget _buildTagsForAmc(BuildContext context) {
+    final tags = stat.amc.tags;
+    if (tags == null || tags.isEmpty) {
+      return const SizedBox.shrink();
     }
 
-    final tags = widget._stat?.amc.tags;
-    if (tags?.isEmpty ?? true) {
-      return [const SizedBox.shrink()];
-    }
-
-    return List.generate(tags!.length, (index) {
-      final tag = tags.elementAt(index);
-      return SimpleChip(title: Text(tag), color: context.colors.tertiary, titleColor: context.colors.onTertiary);
-    });
+    return Wrap(
+      spacing: 4.0,
+      runSpacing: 4.0,
+      children: tags.map((tag) {
+        return SimpleChip(title: Text(tag), color: context.colors.tertiary, titleColor: context.colors.onTertiary);
+      }).toList(),
+    );
   }
 
   Widget _buildXirr(BuildContext context, GenreDetailsState genreState) {
@@ -790,9 +710,9 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
   }
 
   Widget _buildReturnPercentage(BuildContext context, GenreDetailsState genreState) {
-    if (genreState.isLoaded) {
-      final stat = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget._stat?.amc.id);
-      final percentageReturns = stat?.percentageReturn ?? 0.0;
+    if (genreState.isLtpLoaded) {
+      final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
+      final percentageReturns = stat_?.percentageReturn ?? 0.0;
 
       return Text(
         percentageReturns > 0 ? '${percentageReturns.toPrecisionDouble(2)}%' : '(0.00%)',
@@ -806,9 +726,9 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
   }
 
   Widget _buildReturnAmount(BuildContext context, GenreDetailsState genreState) {
-    if (genreState.isLoaded) {
-      final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget._stat?.amc.id);
-      final returns = amcTrn?.amountReturn ?? 0;
+    if (genreState.isLtpLoaded) {
+      final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
+      final returns = stat_?.amountReturn ?? 0;
 
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
@@ -826,12 +746,12 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
   }
 
   Widget _buildCurrentValue(BuildContext context, GenreDetailsState genreState) {
-    if (genreState.isLoaded) {
-      final amcStat = genreState.stats.firstWhereOrNull((stat) => stat.amc.id == widget._stat?.amc.id);
+    if (genreState.isLtpLoaded) {
+      final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
-          return CurrencyView(amount: amcStat?.currentValue ?? 0, privateMode: isPrivateMode);
+          return CurrencyView(amount: stat_?.currentValue ?? 0, privateMode: isPrivateMode);
         },
       );
     }

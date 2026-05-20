@@ -48,12 +48,14 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
   // }
 
   Future<void> loadStats(List<AmcStat> stats) async {
-    emit(state.copyWith(status: GenreDetailsStateStatus.ltpLoading, stats: stats));
+    emit(state.copyWith(status: LatestPriceStatus.loading, stats: stats));
 
-    // Get current amount for every stat, this is required to calculate overall current amount and other metrics.
+    // Get latest price for every amc whose quantity > 0,
+    // this is required to calculate overall current amount and other metrics
+    final nonZeroStats = stats.where((stat) => stat.totalQuantity > 0);
     try {
       final latestPriceMap = await Future.wait(
-        stats.map((stat) async {
+        nonZeroStats.map((stat) async {
           final ltp = await _repository.getLatestPrice(stat.amc);
           return MapEntry(stat.amc.id, ltp);
         }),
@@ -65,9 +67,9 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
         return stat.copyWith(amc: stat.amc.copyWith(ltp: ltp));
       }).toList();
 
-      emit(state.copyWith(status: GenreDetailsStateStatus.ltpLoaded, stats: newStats));
+      emit(state.copyWith(status: LatestPriceStatus.loaded, stats: newStats));
     } catch (err) {
-      emit(state.copyWith(status: GenreDetailsStateStatus.error, errorMsg: err.toString()));
+      emit(state.copyWith(status: LatestPriceStatus.error, errorMsg: err.toString()));
     }
   }
 
@@ -101,7 +103,7 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
   // }
 
   void setSortAndFilterStatus(HoldingSortAndFilterStatus sortAndFilterStatus) {
-    if (!state.isLoaded) {
+    if (!state.isLtpLoaded) {
       return;
     }
 

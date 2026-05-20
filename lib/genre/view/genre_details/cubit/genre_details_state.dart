@@ -1,13 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'genre_details_cubit.dart';
 
-enum GenreDetailsStateStatus {
-  initial,
-  ltpLoading, // when latest price is being fetched for stats
-  ltpLoaded, // when stats are loaded with latest price, ready to be displayed
-  error,
-}
-
 enum HoldingSortOption {
   name(label: 'Name', ascendingLabel: 'A to Z', descendingLabel: 'Z to A'),
   invested(label: 'Invested', ascendingLabel: 'High to Low', descendingLabel: 'Low to High'),
@@ -58,15 +51,17 @@ class HoldingSortAndFilterStatus extends Equatable {
   List<Object?> get props => [sortOption, sortAscending, holdingFilter];
 }
 
+enum LatestPriceStatus { initial, loading, loaded, error }
+
 class GenreDetailsState extends Equatable {
   const GenreDetailsState({
-    this.status = GenreDetailsStateStatus.initial,
+    this.status = LatestPriceStatus.initial,
     this.stats = const [],
     this.errorMsg,
     this.sortAndFilterStatus = const HoldingSortAndFilterStatus(),
   });
 
-  final GenreDetailsStateStatus status;
+  final LatestPriceStatus status;
   final List<AmcStat> stats;
   final String? errorMsg;
   final HoldingSortAndFilterStatus sortAndFilterStatus;
@@ -103,22 +98,22 @@ class GenreDetailsState extends Equatable {
           result = a.totalInvested.compareTo(b.totalInvested);
           break;
 
+        case HoldingSortOption.currentValue:
+          // final aVal = currentAmounts[a.amc?.id] ?? 0.0;
+          // final bVal = currentAmounts[b.amc?.id] ?? 0.0;
+          final aVal = a.currentValue ?? 0.0;
+          final bVal = b.currentValue ?? 0.0;
+          result = aVal.compareTo(bVal);
+          break;
+
+        case HoldingSortOption.returns:
+          final aReturns = a.amountReturn ?? 0.0;
+          final bReturns = b.amountReturn ?? 0.0;
+          result = aReturns.compareTo(bReturns);
+          break;
+
         default:
-          result = 1; // TODO:
-
-        // case HoldingSortOption.currentValue:
-        //   // final aVal = currentAmounts[a.amc?.id] ?? 0.0;
-        //   // final bVal = currentAmounts[b.amc?.id] ?? 0.0;
-        //   final aVal = a.totalCurrentValue ?? 0.0;
-        //   final bVal = b.totalCurrentValue ?? 0.0;
-        //   result = aVal.compareTo(bVal);
-        //   break;
-
-        // case HoldingSortOption.returns:
-        //   final aReturns = a.amountReturn ?? 0.0;
-        //   final bReturns = b.amountReturn ?? 0.0;
-        //   result = aReturns.compareTo(bReturns);
-        //   break;
+          result = 1; // TODO
 
         // case HoldingSortOption.xirr:
         //   final aXirr = a.xirr ?? 0.0;
@@ -133,7 +128,7 @@ class GenreDetailsState extends Equatable {
   }
 
   GenreDetailsState copyWith({
-    GenreDetailsStateStatus? status,
+    LatestPriceStatus? status,
     List<AmcStat>? stats,
     String? errorMsg,
     HoldingSortAndFilterStatus? sortAndFilterStatus,
@@ -151,8 +146,8 @@ class GenreDetailsState extends Equatable {
 }
 
 extension GenreDetailsStateX on GenreDetailsState {
-  bool get isInitial => status == GenreDetailsStateStatus.initial;
-  bool get isLoading => status == GenreDetailsStateStatus.ltpLoading;
-  bool get isLoaded => status == GenreDetailsStateStatus.ltpLoaded;
-  bool get isError => status == GenreDetailsStateStatus.error;
+  // bool get isLtpInitial => status == LatestPriceStatus.initial;
+  bool get isLtpLoading => status == LatestPriceStatus.loading;
+  bool get isLtpLoaded => status == LatestPriceStatus.loaded;
+  bool get isLtpError => status == LatestPriceStatus.error;
 }
