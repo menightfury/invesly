@@ -173,16 +173,13 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                           }
 
                           // ~ Display stats
-                          return SliverSkeletonizer(
-                            enabled: state.isLtpLoading,
-                            child: SliverList.separated(
-                              itemCount: displayList.length,
-                              itemBuilder: (context, index) {
-                                final stat = displayList.elementAt(index);
-                                return _HoldingStatCard(stat: stat);
-                              },
-                              separatorBuilder: (_, _) => const Gap(12.0),
-                            ),
+                          return SliverList.separated(
+                            itemCount: displayList.length,
+                            itemBuilder: (context, index) {
+                              final stat = displayList.elementAt(index);
+                              return _HoldingStatCard(stat: stat);
+                            },
+                            separatorBuilder: (_, _) => const Gap(12.0),
                           );
                         },
                       ),
@@ -617,58 +614,61 @@ class _HoldingStatCard extends StatelessWidget {
           // },
           builder: (context, genreState) {
             $logger.i('Rebuilding LTP-dependent widget for AMC ${stat.amc.name} with state: $genreState');
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              spacing: _spacing,
-              children: <Widget>[
-                Row(
-                  spacing: _spacing,
-                  children: <Widget>[
-                    // ~ Current value
-                    Expanded(
-                      child: _SectionWidget(
-                        minHeight: 0.0,
-                        label: Skeleton.keep(child: Text('Current value', style: labelStyle)),
-                        value: _buildCurrentValue(context, genreState),
+            return SliverSkeletonizer(
+              enabled: genreState.isLtpLoading,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                spacing: _spacing,
+                children: <Widget>[
+                  Row(
+                    spacing: _spacing,
+                    children: <Widget>[
+                      // ~ Current value
+                      Expanded(
+                        child: _SectionWidget(
+                          minHeight: 0.0,
+                          label: Skeleton.keep(child: Text('Current value', style: labelStyle)),
+                          value: _buildCurrentValue(context, genreState),
+                        ),
                       ),
-                    ),
 
-                    // ~ Returns amount
-                    Expanded(
-                      child: _SectionWidget(
-                        minHeight: 0.0,
-                        label: Skeleton.keep(child: Text('Returns', style: labelStyle)),
-                        value: _buildReturnAmount(context, genreState),
+                      // ~ Returns amount
+                      Expanded(
+                        child: _SectionWidget(
+                          minHeight: 0.0,
+                          label: Skeleton.keep(child: Text('Returns', style: labelStyle)),
+                          value: _buildReturnAmount(context, genreState),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
 
-                Row(
-                  spacing: _spacing,
-                  children: <Widget>[
-                    // ~ % Returns
-                    Expanded(
-                      child: _SectionWidget(
-                        minHeight: 0.0,
-                        label: Skeleton.keep(child: Text('% Returns', style: labelStyle)),
-                        value: _buildReturnPercentage(context, genreState),
-                        borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+                  Row(
+                    spacing: _spacing,
+                    children: <Widget>[
+                      // ~ % Returns
+                      Expanded(
+                        child: _SectionWidget(
+                          minHeight: 0.0,
+                          label: Skeleton.keep(child: Text('% Returns', style: labelStyle)),
+                          value: _buildReturnPercentage(context, genreState),
+                          borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+                        ),
                       ),
-                    ),
 
-                    // ~ XIRR
-                    Expanded(
-                      child: _SectionWidget(
-                        minHeight: 0.0,
-                        label: Skeleton.keep(child: Text('XIRR', style: labelStyle)),
-                        value: _buildXirr(context, genreState),
-                        borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+                      // ~ XIRR
+                      Expanded(
+                        child: _SectionWidget(
+                          minHeight: 0.0,
+                          label: Skeleton.keep(child: Text('XIRR', style: labelStyle)),
+                          value: _buildXirr(context, genreState),
+                          borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             );
           },
         ),
