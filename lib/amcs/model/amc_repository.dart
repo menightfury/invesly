@@ -127,6 +127,7 @@ class AmcRepository {
     }
 
     // if latest price is not available or is outdated, fetch from network
+    $logger.w('Fetching latest price from network');
     final client = http.Client();
     try {
       final response = await client.get(Uri.parse(uri));

@@ -57,7 +57,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
       null,
       onError: (err) => emit(state.copyWith(status: TransactionsStatus.error, errorMsg: err.toString())),
     );
-    _subscription?.onData((query) async {
+    _subscription?.onData((_) async {
       emit(state.copyWith(status: TransactionsStatus.loading));
 
       _subscription?.pause();

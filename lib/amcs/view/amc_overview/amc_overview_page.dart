@@ -199,6 +199,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                               // ~ Stats Section
                               BlocBuilder<TransactionsCubit, TransactionsState>(
                                 builder: (context, trnState) {
+                                  $logger.d(trnState.transactions);
                                   final isTrnError = trnState.isError;
                                   final isTrnLoading = trnState.isLoading;
                                   final latestPrice = amcState is AmcOverviewLoadedState ? amcState.amc?.ltp : null;

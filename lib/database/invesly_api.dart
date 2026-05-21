@@ -11,9 +11,10 @@ import 'table_schema.dart';
 
 class InveslyApi {
   final Directory databaseDirectory;
-  final StreamController<TableEvent> _tableChangeEventController;
+  final BehaviorSubject<TableEvent> _tableEventController;
 
-  InveslyApi(this.databaseDirectory) : _tableChangeEventController = StreamController<TableEvent>.broadcast();
+  // InveslyApi(this.databaseDirectory) : _tableEventController = StreamController<TableEvent>.broadcast();
+  InveslyApi(this.databaseDirectory) : _tableEventController = BehaviorSubject<TableEvent>();
 
   Database? _db;
   Database get db {
@@ -24,7 +25,7 @@ class InveslyApi {
   final List<TableSchema> _tables = [];
 
   // Stream of TableChangeEvent
-  Stream<TableEvent> get onTableChange => _tableChangeEventController.stream;
+  Stream<TableEvent> get onTableChange => _tableEventController.stream;
 
   String get dbPath => p.join(databaseDirectory.path, 'invesly.db');
 
@@ -54,7 +55,7 @@ class InveslyApi {
 
     // ?? Close database at the end ??
     _tables.addAll([_accountTable, _amcTable, _trnTable]);
-    _tableChangeEventController.add(TableEvent({_accountTable, _amcTable, _trnTable}, TableEventType.loaded));
+    _tableEventController.add(TableEvent({_accountTable, _amcTable, _trnTable}, TableEventType.loaded));
   }
 
   // helper function to get a table out of initialized tables
@@ -66,7 +67,7 @@ class InveslyApi {
 
   Future<int> insert(TableSchema table, InveslyDataModel data) async {
     final r = await db.insert(table.tableName, table.fromModel(data));
-    _tableChangeEventController.add(TableEvent({table}, TableEventType.inserted));
+    _tableEventController.add(TableEvent({table}, TableEventType.inserted));
     return r;
   }
 
@@ -77,18 +78,18 @@ class InveslyApi {
       where: '${table.idColumn.fullTitle} = ?',
       whereArgs: [data.id],
     );
-    _tableChangeEventController.add(TableEvent({table}, TableEventType.updated));
+    _tableEventController.add(TableEvent({table}, TableEventType.updated));
     return r;
   }
 
   Future<int> delete(TableSchema table, InveslyDataModel data) async {
     final r = await Future.delayed(2.seconds, () => 1); // TODO: implement
-    _tableChangeEventController.add(TableEvent({table}, TableEventType.deleted));
+    _tableEventController.add(TableEvent({table}, TableEventType.deleted));
     return r;
   }
 
   Future<void> close() async {
     await _db?.close();
-    await _tableChangeEventController.close();
+    await _tableEventController.close();
   }
 }
