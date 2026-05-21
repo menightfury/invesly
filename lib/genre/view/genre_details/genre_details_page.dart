@@ -84,56 +84,55 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                     // ~ Overview section
                     SliverToBoxAdapter(child: _GenreOverviewSection()),
 
-                    const SliverGap(16.0),
-
                     // ~ Title row with sort & filter button
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                        padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
+                        child: Row(
+                          spacing: 8.0,
                           children: <Widget>[
-                            Row(
-                              spacing: 8.0,
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text(
-                                    'Holdings',
-                                    style: theme.textTheme.titleMedium,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
+                            Text('Holdings', style: theme.textTheme.titleMedium, overflow: TextOverflow.ellipsis),
+                            SimpleChip(
+                              title: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+                                buildWhen: (prev, curr) => prev.sortAndFilterStatus != curr.sortAndFilterStatus,
+                                builder: (context, genreState) {
+                                  return Text(
+                                    '${genreState.sortAndFilterStatus.holdingFilter.label} : ${genreState.displayStats.length}',
+                                    style: theme.textTheme.labelSmall,
+                                  );
+                                },
+                              ),
+                            ),
+                            Spacer(),
 
-                                // ~ Sort button
-                                BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-                                  // buildWhen: (prev, curr) {
-                                  //   return prev.status != curr.status && (prev.isLoaded || curr.isLoaded);
-                                  // },
-                                  builder: (context, genreState) {
-                                    return AnimatedScale(
-                                      scale: genreState.isLtpLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
-                                      alignment: Alignment.centerRight,
-                                      duration: 240.ms,
-                                      curve: Curves.easeInOut,
-                                      child: IconButton(
-                                        onPressed: genreState.isLtpLoaded
-                                            ? () async {
-                                                final sortOptions = await _showSortOptions(
-                                                  context,
-                                                  sortAndFilterStatus: genreState.sortAndFilterStatus,
-                                                );
-                                                if (sortOptions == null) return;
-                                                cubit.setSortAndFilterStatus(sortOptions);
-                                              }
-                                            : null,
-                                        padding: EdgeInsets.zero,
-                                        icon: const Icon(Icons.sort_rounded),
-                                        tooltip: 'Sort holdings',
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
+                            // ~ Sort button
+                            BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+                              // buildWhen: (prev, curr) {
+                              //   return prev.status != curr.status && (prev.isLoaded || curr.isLoaded);
+                              // },
+                              builder: (context, genreState) {
+                                return AnimatedScale(
+                                  scale: genreState.isLtpLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
+                                  alignment: Alignment.centerRight,
+                                  duration: 240.ms,
+                                  curve: Curves.easeInOut,
+                                  child: IconButton(
+                                    onPressed: genreState.isLtpLoaded
+                                        ? () async {
+                                            final sortOptions = await _showSortOptions(
+                                              context,
+                                              genreState.sortAndFilterStatus,
+                                            );
+                                            if (sortOptions == null) return;
+                                            cubit.setSortAndFilterStatus(sortOptions);
+                                          }
+                                        : null,
+                                    padding: EdgeInsets.zero,
+                                    icon: const Icon(Icons.sort_rounded),
+                                    tooltip: 'Filter & Sort',
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -202,9 +201,9 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   }
 
   Future<HoldingSortAndFilterStatus?> _showSortOptions(
-    BuildContext context, {
-    required HoldingSortAndFilterStatus sortAndFilterStatus,
-  }) async {
+    BuildContext context,
+    HoldingSortAndFilterStatus sortAndFilterStatus,
+  ) async {
     return showModalBottomSheet<HoldingSortAndFilterStatus>(
       context: context,
       useSafeArea: true,
@@ -641,9 +640,10 @@ class _HoldingStatCard extends StatelessWidget {
 
         BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
           buildWhen: (prev, curr) {
-            final prevStat = prev.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
-            final currStat = curr.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
-            return prevStat != currStat || prevStat?.amc.ltp != currStat?.amc.ltp;
+            // final prevStat = prev.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
+            // final currStat = curr.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
+            // return prevStat != currStat || prevStat?.amc.ltp != currStat?.amc.ltp;
+            return prev.status != curr.status;
           },
           builder: (context, genreState) {
             $logger.i('Rebuilding LTP-dependent widget for AMC ${stat.amc.name} with state: $genreState');
@@ -736,10 +736,10 @@ class _HoldingStatCard extends StatelessWidget {
     if (genreState.isLtpLoaded) {
       final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
 
-      final xirr = stat_?.amc.xirr?.value ?? 0.0;
+      final xirr = stat_?.amc.xirr?.value;
       return Text(
-        '${(xirr * 100).toPrecisionDouble(2)}%',
-        style: TextStyle(color: xirr < 0 ? Colors.red : Colors.teal),
+        xirr != null ? '${(xirr * 100).toPrecisionDouble(2)}%' : 'N/A',
+        style: TextStyle(color: xirr != null && xirr < 0 ? Colors.red : Colors.teal),
         overflow: TextOverflow.ellipsis,
       );
     }
