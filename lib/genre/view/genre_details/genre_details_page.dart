@@ -59,7 +59,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: <Widget>[
-            SliverAppBar(title: Text(widget.genre.title), floating: true, snap: true),
+            SliverAppBar(title: Text(widget.genre.title, overflow: TextOverflow.ellipsis), floating: true, snap: true),
 
             BlocBuilder<AmcStatCubit, AmcStatState>(
               builder: (context, statState) {
@@ -71,7 +71,10 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                 if (statState.isError) {
                   return SliverToBoxAdapter(
                     child: Center(
-                      child: Text('Some error occurred while fetching data'), // TODO: Redesign & test
+                      child: Text(
+                        'Some error occurred while fetching data',
+                        overflow: TextOverflow.ellipsis,
+                      ), // TODO: Redesign & test
                     ),
                   );
                 }
@@ -150,7 +153,10 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                             return SliverToBoxAdapter(
                               child: Center(
                                 child: EmptyWidget(
-                                  label: Text('This is so empty.\n Add some transactions to see stats here.'),
+                                  label: Text(
+                                    'This is so empty.\n Add some transactions to see stats here.',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ),
                             );
@@ -166,6 +172,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                                   child: Text(
                                     'No holdings match the current filter',
                                     style: TextStyle(color: context.colors.onSurfaceVariant),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ),
@@ -244,7 +251,14 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
             valueListenable: _holdingFilter,
             builder: (context, filter, _) {
               return InveslyChoiceChips<HoldingFilter>.single(
-                options: HoldingFilter.values.map((f) => InveslyChipData(value: f, label: Text(f.label))).toList(),
+                options: HoldingFilter.values
+                    .map(
+                      (f) => InveslyChipData(
+                        value: f,
+                        label: Text(f.label, overflow: TextOverflow.ellipsis),
+                      ),
+                    )
+                    .toList(),
                 selected: filter,
                 onChanged: (filter) {
                   if (filter == null) return;
@@ -289,8 +303,17 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
                             builder: (context, isAscending, _) {
                               return InveslyChoiceChips<bool>.single(
                                 options: [
-                                  InveslyChipData(value: true, label: Text(option.ascendingLabel ?? 'Ascending')),
-                                  InveslyChipData(value: false, label: Text(option.descendingLabel ?? 'Descending')),
+                                  InveslyChipData(
+                                    value: true,
+                                    label: Text(option.ascendingLabel ?? 'Ascending', overflow: TextOverflow.ellipsis),
+                                  ),
+                                  InveslyChipData(
+                                    value: false,
+                                    label: Text(
+                                      option.descendingLabel ?? 'Descending',
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                 ],
                                 selected: isAscending,
                                 onChanged: (value) {
@@ -324,7 +347,7 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
                 context.pop<HoldingSortAndFilterStatus>(status);
               },
               icon: const Icon(Icons.check),
-              label: const Text('Apply'),
+              label: const Text('Apply', overflow: TextOverflow.ellipsis),
             ),
           ),
         ],
@@ -365,7 +388,7 @@ class _GenreOverviewSection extends StatelessWidget {
                   label: Skeleton.keep(
                     child: FormattedDate(
                       date: DateTime.now(),
-                      prefix: const Text('Current value as of '),
+                      prefix: const Text('Current value as of ', overflow: TextOverflow.ellipsis),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
                     ),
@@ -383,7 +406,7 @@ class _GenreOverviewSection extends StatelessWidget {
                     // ~ Holding count
                     Expanded(
                       child: _SectionWidget(
-                        label: const Skeleton.keep(child: Text('No. of holdings')),
+                        label: const Skeleton.keep(child: Text('No. of holdings', overflow: TextOverflow.ellipsis)),
                         value: _buildHoldingCount(context, state),
                       ),
                     ),
@@ -391,7 +414,7 @@ class _GenreOverviewSection extends StatelessWidget {
                     // ~ Invested amount section
                     Expanded(
                       child: _SectionWidget(
-                        label: const Skeleton.keep(child: Text('Invested amount')),
+                        label: const Skeleton.keep(child: Text('Invested amount', overflow: TextOverflow.ellipsis)),
                         value: _buildTotalInvestedAmount(context, state),
                       ),
                     ),
@@ -404,19 +427,17 @@ class _GenreOverviewSection extends StatelessWidget {
                     // ~ Total returns sections
                     Expanded(
                       child: _SectionWidget(
-                        label: const Skeleton.keep(child: Text('Total returns')),
+                        label: const Skeleton.keep(child: Text('Total returns', overflow: TextOverflow.ellipsis)),
                         value: _buildAmountReturns(context, state),
-
                         borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
                       ),
                     ),
 
-                    // ~ XIRR section
+                    // ~ % Return section
                     Expanded(
                       child: _SectionWidget(
-                        label: const Skeleton.keep(child: Text('XIRR')),
+                        label: const Skeleton.keep(child: Text('% returns', overflow: TextOverflow.ellipsis)),
                         value: _buildPercentageReturns(context, state),
-
                         borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
                       ),
                     ),
@@ -450,7 +471,7 @@ class _GenreOverviewSection extends StatelessWidget {
       );
     }
 
-    return const Text('Loading...');
+    return const Text('Loading...', overflow: TextOverflow.ellipsis);
   }
 
   Widget _buildHoldingCount(BuildContext context, GenreDetailsState state) {
@@ -462,7 +483,7 @@ class _GenreOverviewSection extends StatelessWidget {
       );
     }
 
-    return const Text('Loading...');
+    return const Text('Loading...', overflow: TextOverflow.ellipsis);
   }
 
   Widget _buildTotalInvestedAmount(BuildContext context, GenreDetailsState state) {
@@ -475,7 +496,7 @@ class _GenreOverviewSection extends StatelessWidget {
       );
     }
 
-    return const Text('Loading...');
+    return const Text('Loading...', overflow: TextOverflow.ellipsis);
   }
 
   Widget _buildAmountReturns(BuildContext context, GenreDetailsState state) {
@@ -493,7 +514,7 @@ class _GenreOverviewSection extends StatelessWidget {
       );
     }
 
-    return const Text('Loading...');
+    return const Text('Loading...', overflow: TextOverflow.ellipsis);
   }
 
   Widget _buildPercentageReturns(BuildContext context, GenreDetailsState state) {
@@ -503,16 +524,18 @@ class _GenreOverviewSection extends StatelessWidget {
         '${returns.toPrecisionDouble(2)}%',
         textAlign: TextAlign.right,
         style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+        overflow: TextOverflow.ellipsis,
       );
     }
 
-    return const Text('Loading...');
+    return const Text('Loading...', overflow: TextOverflow.ellipsis);
   }
 }
 
 class _HoldingStatCard extends StatelessWidget {
   const _HoldingStatCard({super.key, required this.stat});
   final AmcStat stat;
+
   static const double _spacing = 2.0;
 
   @override
@@ -565,7 +588,7 @@ class _HoldingStatCard extends StatelessWidget {
                       ],
                     ),
                     _buildTagsForAmc(context),
-                    Text('${stat.numTransactions} transactions', style: labelStyle),
+                    Text('${stat.numTransactions} transactions', style: labelStyle, overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
@@ -580,7 +603,9 @@ class _HoldingStatCard extends StatelessWidget {
             Expanded(
               child: _SectionWidget(
                 minHeight: 0.0,
-                label: Skeleton.keep(child: Text('Available units', style: labelStyle)),
+                label: Skeleton.keep(
+                  child: Text('Available units', style: labelStyle, overflow: TextOverflow.ellipsis),
+                ),
                 value: Text(
                   '${stat.totalQuantity.toPrecisionDouble(4)}',
                   textAlign: TextAlign.right,
@@ -594,7 +619,9 @@ class _HoldingStatCard extends StatelessWidget {
             Expanded(
               child: _SectionWidget(
                 minHeight: 0.0,
-                label: Skeleton.keep(child: Text('Invested', style: labelStyle)),
+                label: Skeleton.keep(
+                  child: Text('Invested', style: labelStyle, overflow: TextOverflow.ellipsis),
+                ),
                 value: BlocSelector<AppCubit, AppState, bool>(
                   selector: (state) => state.isPrivateMode,
                   builder: (context, isPrivateMode) {
@@ -607,11 +634,11 @@ class _HoldingStatCard extends StatelessWidget {
         ),
 
         BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-          // buildWhen: (prev, curr) {
-          //   final prevTrn = prev.stats.firstWhereOrNull((trn) => trn.amc.id == widget._amcTransaction?.amc.id);
-          //   final currTrn = curr.stats.firstWhereOrNull((trn) => trn.amc.id == widget._amcTransaction?.amc.id);
-          //   return prevTrn != currTrn || prevTrn?.amc.ltp != currTrn?.amc.ltp;
-          // },
+          buildWhen: (prev, curr) {
+            final prevStat = prev.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
+            final currStat = curr.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
+            return prevStat != currStat || prevStat?.amc.ltp != currStat?.amc.ltp;
+          },
           builder: (context, genreState) {
             $logger.i('Rebuilding LTP-dependent widget for AMC ${stat.amc.name} with state: $genreState');
             return Skeletonizer(
@@ -627,7 +654,9 @@ class _HoldingStatCard extends StatelessWidget {
                       Expanded(
                         child: _SectionWidget(
                           minHeight: 0.0,
-                          label: Skeleton.keep(child: Text('Current value', style: labelStyle)),
+                          label: Skeleton.keep(
+                            child: Text('Current value', style: labelStyle, overflow: TextOverflow.ellipsis),
+                          ),
                           value: _buildCurrentValue(context, genreState),
                         ),
                       ),
@@ -636,7 +665,9 @@ class _HoldingStatCard extends StatelessWidget {
                       Expanded(
                         child: _SectionWidget(
                           minHeight: 0.0,
-                          label: Skeleton.keep(child: Text('Returns', style: labelStyle)),
+                          label: Skeleton.keep(
+                            child: Text('Returns', style: labelStyle, overflow: TextOverflow.ellipsis),
+                          ),
                           value: _buildReturnAmount(context, genreState),
                         ),
                       ),
@@ -650,7 +681,9 @@ class _HoldingStatCard extends StatelessWidget {
                       Expanded(
                         child: _SectionWidget(
                           minHeight: 0.0,
-                          label: Skeleton.keep(child: Text('% Returns', style: labelStyle)),
+                          label: Skeleton.keep(
+                            child: Text('% Returns', style: labelStyle, overflow: TextOverflow.ellipsis),
+                          ),
                           value: _buildReturnPercentage(context, genreState),
                           borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
                         ),
@@ -660,7 +693,9 @@ class _HoldingStatCard extends StatelessWidget {
                       Expanded(
                         child: _SectionWidget(
                           minHeight: 0.0,
-                          label: Skeleton.keep(child: Text('XIRR', style: labelStyle)),
+                          label: Skeleton.keep(
+                            child: Text('XIRR', style: labelStyle, overflow: TextOverflow.ellipsis),
+                          ),
                           value: _buildXirr(context, genreState),
                           borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
                         ),
@@ -692,24 +727,29 @@ class _HoldingStatCard extends StatelessWidget {
   }
 
   Widget _buildXirr(BuildContext context, GenreDetailsState genreState) {
-    return Text('N/A', overflow: TextOverflow.ellipsis);
-    // if (widget.stat?.transactions.isEmpty ?? true) {
-    //   return Text('0.00%', style: TextStyle(color: Colors.teal));
-    // }
+    if (genreState.isLtpError) {
+      return Text('N/A', overflow: TextOverflow.ellipsis);
+    }
 
-    // if (genreState is GenreDetailsLoadedState) {
-    //   final amcTrn = genreState.stats.firstWhereOrNull((trn) => trn.amc.id == widget.stat?.amc.id);
-    //   final xirr = amcTrn?.xirr ?? 0.0;
-    //   return Text(
-    //     '${(xirr * 100).toPrecisionDouble(2)}%',
-    //     style: TextStyle(color: xirr < 0 ? Colors.red : Colors.teal),
-    //   );
-    // }
+    if (genreState.isLtpLoaded) {
+      final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
 
-    // return Skeletonizer.zone(child: const Bone.text());
+      final xirr = stat_?.amc.xirr?.value ?? 0.0;
+      return Text(
+        '${(xirr * 100).toPrecisionDouble(2)}%',
+        style: TextStyle(color: xirr < 0 ? Colors.red : Colors.teal),
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    return Text('Loading...', overflow: TextOverflow.ellipsis);
   }
 
   Widget _buildReturnPercentage(BuildContext context, GenreDetailsState genreState) {
+    if (genreState.isLtpError) {
+      return Text('N/A', overflow: TextOverflow.ellipsis);
+    }
+
     if (genreState.isLtpLoaded) {
       final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
       final percentageReturns = stat_?.percentageReturn ?? 0.0;
@@ -722,10 +762,14 @@ class _HoldingStatCard extends StatelessWidget {
       );
     }
 
-    return Skeletonizer.zone(child: const Bone.text());
+    return Text('Loading...', overflow: TextOverflow.ellipsis);
   }
 
   Widget _buildReturnAmount(BuildContext context, GenreDetailsState genreState) {
+    if (genreState.isLtpError) {
+      return Text('N/A', overflow: TextOverflow.ellipsis);
+    }
+
     if (genreState.isLtpLoaded) {
       final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
       final returns = stat_?.amountReturn ?? 0;
@@ -742,10 +786,14 @@ class _HoldingStatCard extends StatelessWidget {
       );
     }
 
-    return Skeletonizer.zone(child: const Bone.text());
+    return Text('Loading...', overflow: TextOverflow.ellipsis);
   }
 
   Widget _buildCurrentValue(BuildContext context, GenreDetailsState genreState) {
+    if (genreState.isLtpError) {
+      return Text('N/A', overflow: TextOverflow.ellipsis);
+    }
+
     if (genreState.isLtpLoaded) {
       final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
       return BlocSelector<AppCubit, AppState, bool>(

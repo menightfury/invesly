@@ -4,21 +4,21 @@ import 'package:equatable/equatable.dart';
 import 'package:invesly/common_libs.dart';
 
 class LatestXirr extends Equatable {
-  final double xirr;
+  final double value;
   final DateTime date;
 
-  const LatestXirr({required this.xirr, required this.date});
+  const LatestXirr({required this.value, required this.date});
 
-  LatestXirr copyWith({double? xirr, DateTime? date}) {
-    return LatestXirr(date: date ?? this.date, xirr: xirr ?? this.xirr);
+  LatestXirr copyWith({double? value, DateTime? date}) {
+    return LatestXirr(date: date ?? this.date, value: value ?? this.value);
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{'xirr': xirr, 'date': date.millisecondsSinceEpoch};
+    return <String, dynamic>{'value': value, 'date': date.millisecondsSinceEpoch};
   }
 
   factory LatestXirr.fromMap(Map<String, dynamic> map) {
-    return LatestXirr(xirr: map['xirr'] as double, date: DateTime.fromMillisecondsSinceEpoch(map['date'] as int));
+    return LatestXirr(value: map['value'] as double, date: DateTime.fromMillisecondsSinceEpoch(map['date'] as int));
   }
 
   String toJson() => json.encode(toMap());
@@ -29,5 +29,5 @@ class LatestXirr extends Equatable {
   bool get stringify => true;
 
   @override
-  List<Object?> get props => [xirr, date];
+  List<Object?> get props => [value, date];
 }

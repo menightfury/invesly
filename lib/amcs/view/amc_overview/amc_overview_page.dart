@@ -209,7 +209,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
 
                                   // Save xirr in database
                                   if (amcTrn != null && amcTrn.xirr != null) {
-                                    final latestXirr = LatestXirr(xirr: amcTrn.xirr!, date: DateTime.now().startOfDay);
+                                    final latestXirr = LatestXirr(value: amcTrn.xirr!, date: DateTime.now().startOfDay);
                                     AmcRepository.instance.saveXirr(amcTrn.amc, latestXirr);
                                   }
 
