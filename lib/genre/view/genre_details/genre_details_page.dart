@@ -368,16 +368,17 @@ class _GenreOverviewSection extends StatelessWidget {
   const _GenreOverviewSection({super.key});
 
   static const double _spacing = 2.0;
+  static const double _sectionHeight = 96.0;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-      // buildWhen: (prev, curr) => prev.stats != curr.stats,
-      builder: (context, state) {
-        $logger.i('Rebuilding genre overview section with state: $state');
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Skeletonizer(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+        // buildWhen: (prev, curr) => prev.stats != curr.stats,
+        builder: (context, state) {
+          $logger.i('Rebuilding genre overview section with state: $state');
+          return Skeletonizer(
             enabled: state.isLtpLoading,
             child: Column(
               spacing: _spacing,
@@ -385,6 +386,7 @@ class _GenreOverviewSection extends StatelessWidget {
               children: <Widget>[
                 // ~ Current Value
                 _SectionWidget(
+                  height: _sectionHeight,
                   label: Skeleton.keep(
                     child: FormattedDate(
                       date: DateTime.now(),
@@ -400,25 +402,29 @@ class _GenreOverviewSection extends StatelessWidget {
                   ),
                 ),
 
-                Row(
-                  spacing: _spacing,
-                  children: <Widget>[
-                    // ~ Holding count
-                    Expanded(
-                      child: _SectionWidget(
-                        label: const Skeleton.keep(child: Text('No. of holdings', overflow: TextOverflow.ellipsis)),
-                        value: _buildHoldingCount(context, state),
+                Skeleton.keep(
+                  child: Row(
+                    spacing: _spacing,
+                    children: <Widget>[
+                      // ~ Holding count
+                      Expanded(
+                        child: _SectionWidget(
+                          height: _sectionHeight,
+                          label: const Text('Present holdings', overflow: TextOverflow.ellipsis),
+                          value: _buildHoldingCount(context, state),
+                        ),
                       ),
-                    ),
 
-                    // ~ Invested amount section
-                    Expanded(
-                      child: _SectionWidget(
-                        label: const Skeleton.keep(child: Text('Invested amount', overflow: TextOverflow.ellipsis)),
-                        value: _buildTotalInvestedAmount(context, state),
+                      // ~ Invested amount section
+                      Expanded(
+                        child: _SectionWidget(
+                          height: _sectionHeight,
+                          label: const Text('Invested amount', overflow: TextOverflow.ellipsis),
+                          value: _buildTotalInvestedAmount(context, state),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
 
                 Row(
@@ -427,6 +433,7 @@ class _GenreOverviewSection extends StatelessWidget {
                     // ~ Total returns sections
                     Expanded(
                       child: _SectionWidget(
+                        height: _sectionHeight,
                         label: const Skeleton.keep(child: Text('Total returns', overflow: TextOverflow.ellipsis)),
                         value: _buildAmountReturns(context, state),
                         borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
@@ -436,6 +443,7 @@ class _GenreOverviewSection extends StatelessWidget {
                     // ~ % Return section
                     Expanded(
                       child: _SectionWidget(
+                        height: _sectionHeight,
                         label: const Skeleton.keep(child: Text('% returns', overflow: TextOverflow.ellipsis)),
                         value: _buildPercentageReturns(context, state),
                         borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
@@ -445,14 +453,18 @@ class _GenreOverviewSection extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   Widget _buildTotalCurrentAmount(BuildContext context, GenreDetailsState state) {
     final textTheme = Theme.of(context).textTheme;
+
+    if (state.isLtpError) {
+      return const Text('N/A', overflow: TextOverflow.ellipsis);
+    }
 
     if (state.isLtpLoaded) {
       final currentAmount = state.totalCurrentAmount;
@@ -475,31 +487,23 @@ class _GenreOverviewSection extends StatelessWidget {
   }
 
   Widget _buildHoldingCount(BuildContext context, GenreDetailsState state) {
-    if (state.isLtpLoaded) {
-      return Text(
-        '${state.presentHoldings} / ${state.totalHoldings}',
-        textAlign: TextAlign.right,
-        overflow: TextOverflow.ellipsis,
-      );
-    }
-
-    return const Text('Loading...', overflow: TextOverflow.ellipsis);
+    return Text('${state.presentHoldings}', textAlign: TextAlign.right, overflow: TextOverflow.ellipsis);
   }
 
   Widget _buildTotalInvestedAmount(BuildContext context, GenreDetailsState state) {
-    if (state.isLtpLoaded) {
-      return BlocSelector<AppCubit, AppState, bool>(
-        selector: (state) => state.isPrivateMode,
-        builder: (context, isPrivateMode) {
-          return CurrencyView(amount: state.totalInvested, privateMode: isPrivateMode);
-        },
-      );
-    }
-
-    return const Text('Loading...', overflow: TextOverflow.ellipsis);
+    return BlocSelector<AppCubit, AppState, bool>(
+      selector: (state) => state.isPrivateMode,
+      builder: (context, isPrivateMode) {
+        return CurrencyView(amount: state.totalInvested, privateMode: isPrivateMode);
+      },
+    );
   }
 
   Widget _buildAmountReturns(BuildContext context, GenreDetailsState state) {
+    if (state.isLtpError) {
+      return const Text('N/A', overflow: TextOverflow.ellipsis);
+    }
+
     if (state.isLtpLoaded) {
       final returns = state.totalReturns;
       return BlocSelector<AppCubit, AppState, bool>(
@@ -518,6 +522,10 @@ class _GenreOverviewSection extends StatelessWidget {
   }
 
   Widget _buildPercentageReturns(BuildContext context, GenreDetailsState state) {
+    if (state.isLtpError) {
+      return const Text('N/A', overflow: TextOverflow.ellipsis);
+    }
+
     if (state.isLtpLoaded) {
       final returns = state.totalReturns / state.totalInvested;
       return Text(
@@ -602,7 +610,6 @@ class _HoldingStatCard extends StatelessWidget {
             // ~ Available quantity
             Expanded(
               child: _SectionWidget(
-                minHeight: 0.0,
                 label: Skeleton.keep(
                   child: Text('Available units', style: labelStyle, overflow: TextOverflow.ellipsis),
                 ),
@@ -618,7 +625,6 @@ class _HoldingStatCard extends StatelessWidget {
             // ~ Invested amount
             Expanded(
               child: _SectionWidget(
-                minHeight: 0.0,
                 label: Skeleton.keep(
                   child: Text('Invested', style: labelStyle, overflow: TextOverflow.ellipsis),
                 ),
@@ -653,7 +659,6 @@ class _HoldingStatCard extends StatelessWidget {
                       // ~ Current value
                       Expanded(
                         child: _SectionWidget(
-                          minHeight: 0.0,
                           label: Skeleton.keep(
                             child: Text('Current value', style: labelStyle, overflow: TextOverflow.ellipsis),
                           ),
@@ -664,7 +669,6 @@ class _HoldingStatCard extends StatelessWidget {
                       // ~ Returns amount
                       Expanded(
                         child: _SectionWidget(
-                          minHeight: 0.0,
                           label: Skeleton.keep(
                             child: Text('Returns', style: labelStyle, overflow: TextOverflow.ellipsis),
                           ),
@@ -680,7 +684,6 @@ class _HoldingStatCard extends StatelessWidget {
                       // ~ % Returns
                       Expanded(
                         child: _SectionWidget(
-                          minHeight: 0.0,
                           label: Skeleton.keep(
                             child: Text('% Returns', style: labelStyle, overflow: TextOverflow.ellipsis),
                           ),
@@ -692,7 +695,6 @@ class _HoldingStatCard extends StatelessWidget {
                       // ~ XIRR
                       Expanded(
                         child: _SectionWidget(
-                          minHeight: 0.0,
                           label: Skeleton.keep(
                             child: Text('XIRR', style: labelStyle, overflow: TextOverflow.ellipsis),
                           ),
@@ -811,7 +813,7 @@ class _HoldingStatCard extends StatelessWidget {
 class _SectionWidget extends StatelessWidget {
   const _SectionWidget({
     super.key,
-    this.minHeight = 80.0,
+    this.height = 80.0,
     required this.label,
     required this.value,
     this.color,
@@ -820,7 +822,7 @@ class _SectionWidget extends StatelessWidget {
     this.contentSpacing,
   });
 
-  final double minHeight;
+  final double? height;
   final Widget label;
   final Widget value;
   final Color? color;
@@ -851,8 +853,8 @@ class _SectionWidget extends StatelessWidget {
       color: color ?? theme.canvasColor.lighten(3),
       shadowColor: theme.colorScheme.shadow,
       borderRadius: borderRadius ?? iTileBorderRadius,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: minHeight),
+      child: SizedBox(
+        height: height,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Column(
