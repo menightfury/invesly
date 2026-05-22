@@ -14,18 +14,18 @@ class AmcOverviewCubit extends Cubit<AmcOverviewState> {
 
   final AmcRepository _amcRepository;
 
-  Future<void> fetchAmcOverview(String amcId) async {
-    emit(const AmcOverviewLoadingState());
-    try {
-      final amc = await _amcRepository.getAmcById(amcId);
+  // Future<void> fetchAmcOverview(String amcId) async {
+  //   emit(const AmcOverviewLoadingState());
+  //   try {
+  //     final amc = await _amcRepository.getAmcById(amcId);
 
-      // get latest price from server if amc is not null & amc.ltp is either null or not fetched today
-      final latestPrice = amc != null ? await _amcRepository.getLatestPrice(amc) : null;
+  //     // get latest price from server if amc is not null & amc.ltp is either null or not fetched today
+  //     final latestPrice = amc != null ? await _amcRepository.getLatestPrice(amc) : null;
 
-      if (isClosed) return;
-      emit(AmcOverviewLoadedState(amc: amc?.copyWith(ltp: latestPrice)));
-    } on Exception catch (error) {
-      emit(AmcOverviewErrorState(error.toString()));
-    }
-  }
+  //     if (isClosed) return;
+  //     emit(AmcOverviewLoadedState(amc: amc?.copyWith(ltp: latestPrice)));
+  //   } on Exception catch (error) {
+  //     emit(AmcOverviewErrorState(error.toString()));
+  //   }
+  // }
 }

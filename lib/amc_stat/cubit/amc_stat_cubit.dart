@@ -21,29 +21,29 @@ class AmcStatCubit extends Cubit<AmcStatState> {
     await _subscription?.cancel();
     _subscription = null;
 
-    // Get initial transactions
-    emit(const AmcStatLoadingState());
-    try {
-      // if (accountId == null) {
-      //   emit(const TransactionStatErrorState('No account has been selected'));
-      //   return;
-      // }
-      final transactionStats = await _repository.getStats(accountId);
-      // if (transactionStats.isNotEmpty) {
-      //   for (final stat in transactionStats) {
-      //     LatestPrice? latestPrice;
-      //     if (stat.amc.latestPriceUri != null) {
-      //       latestPrice = await _amcRepository.getLatestPrice(stat.amc);
-      //     }
-      //     if (latestPrice != null) {
-      //       stat.copyWith(amc: stat.amc.copyWith(ltp: latestPrice));
-      //     }
-      //   }
-      // }
-      emit(AmcStatLoadedState(transactionStats));
-    } on Exception catch (error) {
-      emit(AmcStatErrorState(error.toString()));
-    }
+    // // Get initial transactions
+    // emit(const AmcStatLoadingState());
+    // try {
+    //   // if (accountId == null) {
+    //   //   emit(const TransactionStatErrorState('No account has been selected'));
+    //   //   return;
+    //   // }
+    //   final transactionStats = await _repository.getStats(accountId);
+    //   // if (transactionStats.isNotEmpty) {
+    //   //   for (final stat in transactionStats) {
+    //   //     LatestPrice? latestPrice;
+    //   //     if (stat.amc.latestPriceUri != null) {
+    //   //       latestPrice = await _amcRepository.getLatestPrice(stat.amc);
+    //   //     }
+    //   //     if (latestPrice != null) {
+    //   //       stat.copyWith(amc: stat.amc.copyWith(ltp: latestPrice));
+    //   //     }
+    //   //   }
+    //   // }
+    //   emit(AmcStatLoadedState(transactionStats));
+    // } on Exception catch (error) {
+    //   emit(AmcStatErrorState(error.toString()));
+    // }
 
     // Get transactions on table change
     _subscription ??= _repository.onDataChanged.listen(null, onError: (err) => emit(AmcStatErrorState(err.toString())));

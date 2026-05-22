@@ -4,10 +4,11 @@ import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 
 class InveslyAccountPickerWidget extends StatefulWidget {
-  const InveslyAccountPickerWidget({super.key, this.accountId, this.onPickup});
+  const InveslyAccountPickerWidget({super.key, this.accountId, this.onPickup, this.showAddAccountOption = true});
 
   final String? accountId;
   final ValueChanged<InveslyAccount>? onPickup;
+  final bool showAddAccountOption;
 
   static Future<InveslyAccount?> showModal(BuildContext context, [String? accountId]) async {
     return await showModalBottomSheet<InveslyAccount>(
@@ -18,6 +19,7 @@ class InveslyAccountPickerWidget extends StatefulWidget {
         return InveslyAccountPickerWidget(
           accountId: accountId,
           onPickup: (account) => Navigator.maybePop(context, account),
+          showAddAccountOption: true,
         );
       },
     );
@@ -41,14 +43,11 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
   Widget build(BuildContext context) {
     return BlocBuilder<AccountsCubit, AccountsState>(
       builder: (context, state) {
-        final isLoading = state.isLoading;
-        final isError = state.isError;
-        final accounts = state.isLoaded ? (state as AccountsLoadedState).accounts : null;
-
         return SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               const Padding(
                 padding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
@@ -58,46 +57,61 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              ...List.generate(
-                accounts?.length ?? 2, // dummy count for shimmer effect
-                (index) {
-                  final account = accounts?.elementAt(index);
 
-                  return Skeletonizer(
-                    enabled: isLoading,
-                    child: ListTile(
-                      leading: PhysicalModel(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        child: account != null ? Image.asset(account.avatarSrc) : null,
-                      ),
-                      title: Text(
-                        isError
-                            ? 'Error getting name'
-                            : account?.name ?? 'Loading...', // 'Loading...' will be replaced by skeleton when loading
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: isError ? context.colors.error : null),
-                      ),
-                      trailing: account?.id == widget.accountId ? const Icon(Icons.check_rounded) : null,
-                      onTap: account != null ? () => widget.onPickup?.call(account) : null,
-                    ),
-                  );
-                },
-              ),
+              _buildAccountList(state),
 
-              ListTile(
-                leading: const Icon(Icons.add_reaction_rounded),
-                title: const Text('Add new account'),
-                onTap: () {
-                  // Navigator.maybePop(context);
-                  // context.push(AppRouter.editAccount);
-                  context.push(const EditAccountPage());
-                },
-              ),
+              if (widget.showAddAccountOption)
+                ListTile(
+                  leading: const Icon(Icons.add_reaction_rounded),
+                  title: const Text('Add new account'),
+                  onTap: () => context.push(const EditAccountPage()),
+                ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildAccountList(AccountsState state) {
+    final isLoading = state.isLoading;
+
+    if (state.isError) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Text('Error loading accounts', style: TextStyle(color: Colors.red)),
+      );
+    }
+
+    if (state.isLoaded && (state as AccountsLoadedState).accounts.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Text('No accounts found. Please add an account.', style: TextStyle(color: Colors.grey)),
+      );
+    }
+
+    final accounts = state.isLoaded ? (state as AccountsLoadedState).accounts : null;
+    return Skeletonizer(
+      enabled: isLoading,
+      child: Column(
+        children: List.generate(
+          accounts?.length ?? 2, // dummy count for shimmer effect
+          (index) {
+            final account = accounts?.elementAt(index);
+
+            return ListTile(
+              leading: PhysicalModel(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                child: account != null ? Image.asset(account.avatarSrc) : null,
+              ),
+              title: Text(account?.name ?? 'Loading...', overflow: TextOverflow.ellipsis),
+              trailing: account?.id == widget.accountId ? const Icon(Icons.check_rounded) : null,
+              onTap: account != null ? () => widget.onPickup?.call(account) : null,
+            );
+          },
+        ),
+      ),
     );
   }
 }

@@ -1,13 +1,16 @@
-part of '../dashboard_page.dart';
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common_libs.dart';
 
-class _AccountsList extends StatefulWidget {
-  const _AccountsList({super.key});
+class AccountsList extends StatefulWidget {
+  const AccountsList({super.key});
 
   @override
-  State<_AccountsList> createState() => _AccountsListState();
+  State<AccountsList> createState() => _AccountsListState();
 }
 
-class _AccountsListState extends State<_AccountsList> {
+class _AccountsListState extends State<AccountsList> {
   @override
   void initState() {
     super.initState();

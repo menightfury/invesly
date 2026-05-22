@@ -1,3 +1,5 @@
+import 'package:invesly/accounts/widget/account_picker_widget.dart';
+import 'package:invesly/accounts/widget/accounts_list.dart';
 import 'package:invesly/amc_stat/cubit/amc_stat_cubit.dart';
 import 'package:invesly/amc_stat/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -55,148 +57,163 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     final theme = Theme.of(context);
     final cubit = context.read<GenreDetailsCubit>();
 
-    return Scaffold(
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: <Widget>[
-            SliverAppBar(title: Text(widget.genre.title, overflow: TextOverflow.ellipsis), floating: true, snap: true),
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverAppBar(title: Text(widget.genre.title, overflow: TextOverflow.ellipsis), floating: true, snap: true),
 
-            BlocBuilder<AmcStatCubit, AmcStatState>(
-              builder: (context, statState) {
-                // ~ If AmcStatState is error or initial
-                if (statState.isInitial) {
-                  return SliverToBoxAdapter(child: SizedBox.shrink());
-                }
+        BlocBuilder<AmcStatCubit, AmcStatState>(
+          builder: (context, statState) {
+            // ~ If AmcStatState is error or initial
+            if (statState.isInitial) {
+              return SliverToBoxAdapter(child: SizedBox.shrink());
+            }
 
-                if (statState.isError) {
-                  return SliverToBoxAdapter(
-                    child: Center(
-                      child: Text(
-                        'Some error occurred while fetching data',
-                        overflow: TextOverflow.ellipsis,
-                      ), // TODO: Redesign & test
-                    ),
-                  );
-                }
+            if (statState.isError) {
+              return SliverToBoxAdapter(
+                child: Center(
+                  child: Text(
+                    'Some error occurred while fetching data',
+                    overflow: TextOverflow.ellipsis,
+                  ), // TODO: Redesign & test
+                ),
+              );
+            }
 
-                return SliverMainAxisGroup(
-                  slivers: <Widget>[
-                    // ~ Overview section
-                    SliverToBoxAdapter(child: _GenreOverviewSection()),
+            return SliverMainAxisGroup(
+              slivers: <Widget>[
+                // ~ TODO: Account selection
+                AccountsList(),
+                // GestureDetector(
+                //   onTap: () async {
+                //     final newUser = await InveslyAccountPickerWidget.showModal(context, cubit.state.account?.id);
+                //     if (newUser == null) return;
 
-                    // ~ Title row with sort & filter button
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
-                        child: Row(
-                          spacing: 8.0,
-                          children: <Widget>[
-                            Text('Holdings', style: theme.textTheme.titleMedium, overflow: TextOverflow.ellipsis),
-                            SimpleChip(
-                              title: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-                                buildWhen: (prev, curr) => prev.sortAndFilterStatus != curr.sortAndFilterStatus,
-                                builder: (context, genreState) {
-                                  return Text(
-                                    '${genreState.sortAndFilterStatus.holdingFilter.label} : ${genreState.displayStats.length}',
-                                    style: theme.textTheme.labelSmall,
-                                  );
-                                },
-                              ),
-                            ),
-                            Spacer(),
+                //     cubit.updateAccount(newUser);
+                //     formFieldState.didChange(newUser);
+                //   },
+                //   child: CircleAvatar(
+                //     foregroundImage: formFieldState.value != null ? AssetImage(formFieldState.value!.avatarSrc) : null,
+                //     backgroundColor: formFieldState.hasError ? context.colors.errorContainer : null,
+                //     child: formFieldState.value == null
+                //         ? Icon(Icons.person_rounded, color: formFieldState.hasError ? context.colors.error : null)
+                //         : null,
+                //   ),
+                // ),
 
-                            // ~ Sort button
-                            BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-                              // buildWhen: (prev, curr) {
-                              //   return prev.status != curr.status && (prev.isLoaded || curr.isLoaded);
-                              // },
-                              builder: (context, genreState) {
-                                return AnimatedScale(
-                                  scale: genreState.isLtpLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
-                                  alignment: Alignment.centerRight,
-                                  duration: 240.ms,
-                                  curve: Curves.easeInOut,
-                                  child: IconButton(
-                                    onPressed: genreState.isLtpLoaded
-                                        ? () async {
-                                            final sortOptions = await _showSortOptions(
-                                              context,
-                                              genreState.sortAndFilterStatus,
-                                            );
-                                            if (sortOptions == null) return;
-                                            cubit.setSortAndFilterStatus(sortOptions);
-                                          }
-                                        : null,
-                                    padding: EdgeInsets.zero,
-                                    icon: const Icon(Icons.sort_rounded),
-                                    tooltip: 'Filter & Sort',
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                // ~ Overview section
+                SliverToBoxAdapter(child: _GenreOverviewSection()),
 
-                    // ~ Holdings list
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-                      sliver: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-                        buildWhen: (prev, curr) {
-                          return prev.stats != curr.stats || prev.sortAndFilterStatus != curr.sortAndFilterStatus;
-                        },
-                        builder: (context, state) {
-                          // ~ If no stats
-                          if (state.stats.isEmpty) {
-                            return SliverToBoxAdapter(
-                              child: Center(
-                                child: EmptyWidget(
-                                  label: Text(
-                                    'This is so empty.\n Add some transactions to see stats here.',
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-
-                          // ~ If stats available but search result is empty
-                          final displayList = state.displayStats;
-                          if (displayList.isEmpty) {
-                            return SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 24.0),
-                                child: Center(
-                                  child: Text(
-                                    'No holdings match the current filter',
-                                    style: TextStyle(color: context.colors.onSurfaceVariant),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-
-                          // ~ Display stats
-                          return SliverList.separated(
-                            itemCount: displayList.length,
-                            itemBuilder: (context, index) {
-                              final stat = displayList.elementAt(index);
-                              return _HoldingStatCard(stat: stat);
+                // ~ Title row with sort & filter button
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
+                    child: Row(
+                      spacing: 8.0,
+                      children: <Widget>[
+                        Text('Holdings', style: theme.textTheme.titleMedium, overflow: TextOverflow.ellipsis),
+                        SimpleChip(
+                          title: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+                            buildWhen: (prev, curr) => prev.sortAndFilterStatus != curr.sortAndFilterStatus,
+                            builder: (context, genreState) {
+                              return Text(
+                                '${genreState.sortAndFilterStatus.holdingFilter.label} : ${genreState.displayStats.length}',
+                                style: theme.textTheme.labelSmall,
+                              );
                             },
-                            separatorBuilder: (_, _) => const Gap(12.0),
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                        Spacer(),
+
+                        // ~ Sort button
+                        BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+                          // buildWhen: (prev, curr) {
+                          //   return prev.status != curr.status && (prev.isLoaded || curr.isLoaded);
+                          // },
+                          builder: (context, genreState) {
+                            return AnimatedScale(
+                              scale: genreState.isLtpLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
+                              alignment: Alignment.centerRight,
+                              duration: 240.ms,
+                              curve: Curves.easeInOut,
+                              child: IconButton(
+                                onPressed: genreState.isLtpLoaded
+                                    ? () async {
+                                        final sortOptions = await _showSortOptions(
+                                          context,
+                                          genreState.sortAndFilterStatus,
+                                        );
+                                        if (sortOptions == null) return;
+                                        cubit.setSortAndFilterStatus(sortOptions);
+                                      }
+                                    : null,
+                                padding: EdgeInsets.zero,
+                                icon: const Icon(Icons.sort_rounded),
+                                tooltip: 'Filter & Sort',
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                  ],
-                );
-              },
-            ),
-          ],
+                  ),
+                ),
+
+                // ~ Holdings list
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+                  sliver: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+                    buildWhen: (prev, curr) {
+                      return prev.stats != curr.stats || prev.sortAndFilterStatus != curr.sortAndFilterStatus;
+                    },
+                    builder: (context, state) {
+                      // ~ If no stats
+                      if (state.stats.isEmpty) {
+                        return SliverToBoxAdapter(
+                          child: Center(
+                            child: EmptyWidget(
+                              label: Text(
+                                'This is so empty.\n Add some transactions to see stats here.',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      // ~ If stats available but search result is empty
+                      final displayList = state.displayStats;
+                      if (displayList.isEmpty) {
+                        return SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24.0),
+                            child: Center(
+                              child: Text(
+                                'No holdings match the current filter',
+                                style: TextStyle(color: context.colors.onSurfaceVariant),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      // ~ Display stats
+                      return SliverList.separated(
+                        itemCount: displayList.length,
+                        itemBuilder: (context, index) {
+                          final stat = displayList.elementAt(index);
+                          return _HoldingStatCard(stat: stat);
+                        },
+                        separatorBuilder: (_, _) => const Gap(12.0),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
         ),
-      ),
+      ],
     );
   }
 

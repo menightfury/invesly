@@ -5,7 +5,7 @@ import 'dart:math' as math;
 
 import 'package:http/http.dart' as http;
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
+import 'package:invesly/accounts/widget/accounts_list.dart';
 import 'package:invesly/amc_stat/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
@@ -22,7 +22,6 @@ import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:invesly/transactions/transactions/transactions_page.dart';
 
-part 'widgets/accounts.dart';
 part 'widgets/genre_summeries_widget.dart';
 part 'widgets/recent_transaction_widget.dart';
 part 'widgets/spending_pie_chart.dart';
@@ -144,7 +143,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 const Gap(16.0),
 
                 // ~~~ Accounts ~~~
-                _AccountsList(),
+                AccountsList(),
                 const Gap(16.0),
 
                 // ~~~ Stats, Recent transactions etc. ~~~

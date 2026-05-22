@@ -24,7 +24,7 @@ class AmcOverviewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => AmcOverviewCubit(repository: AmcRepository.instance)),
+        BlocProvider(create: (_) => AmcOverviewCubit(repository: AmcRepository.instance)), // TODO: Not in use presently
         BlocProvider(create: (_) => TransactionsCubit(repository: TransactionRepository.instance)),
       ],
       child: BlocSelector<AppCubit, AppState, String?>(
@@ -51,24 +51,24 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
   @override
   void initState() {
     super.initState();
-    _getAmcOverview();
-    _getStats();
+    // _getAmcOverview();
+    _getTransactions();
   }
 
   @override
   void didUpdateWidget(covariant _AmcOverviewPageContent oldWidget) {
     if (oldWidget.amcId != widget.amcId) {
-      _getAmcOverview();
-      _getStats();
+      // _getAmcOverview();
+      _getTransactions();
     }
     super.didUpdateWidget(oldWidget);
   }
 
-  void _getAmcOverview() {
-    context.read<AmcOverviewCubit>().fetchAmcOverview(widget.amcId);
-  }
+  // void _getAmcOverview() {
+  //   // context.read<AmcOverviewCubit>().fetchAmcOverview(widget.amcId);
+  // }
 
-  void _getStats() {
+  void _getTransactions() {
     if (widget.accountId?.isEmpty ?? true) {
       return;
     }

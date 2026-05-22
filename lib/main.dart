@@ -46,7 +46,7 @@ class InveslyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         // BlocProvider<InternetCubit>(create: (_) => InternetCubit()),
-        BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)),
+        BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)..fetchAccounts()),
         BlocProvider<AppCubit>(create: (_) => AppCubit()),
         BlocProvider(create: (_) => AmcStatCubit(repository: statRepository)),
       ],
