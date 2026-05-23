@@ -51,51 +51,46 @@ class _InveslyDateFormatPickerState extends State<InveslyDateFormatPicker> {
   Widget build(BuildContext context) {
     final dateNow = DateTime.now();
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: Column(
-            // crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
-                child: Text(
-                  'Select a date format',
-                  style: context.textTheme.labelLarge,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              ValueListenableBuilder<String?>(
-                valueListenable: _dateFormat,
-                builder: (context, dateFormat, _) {
-                  return RadioGroup<String>(
-                    groupValue: dateFormat,
-                    onChanged: (value) {
-                      if (value == null) return;
-                      _dateFormat.value = value;
-                      widget.onPickup?.call(value);
-                    },
-                    child: Section(
-                      tiles: InveslyDateFormatPicker.dateFormats.map((data) {
-                        // final isSelectionAllowed = !columnsToExclude.contains(data.key);
-                        return RadioSectionTile<String>(
-                          title: Text(DateFormat(data).format(dateNow)),
-                          subtitle: Text(data),
-                          value: data,
-                          // onTap: () => context.pop(data),
-                          // secondaryIcon: data == value ? const Icon(Icons.check_rounded) : null,
-                          // selectedTileColor: context.theme.primaryColor.withAlpha(125),
-                          // enabled: isSelectionAllowed,
-                          // selected: data == value,
-                        );
-                      }).toList(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: Column(
+          // crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+              child: Text('Select a date format', style: context.textTheme.labelLarge, overflow: TextOverflow.ellipsis),
+            ),
+            ValueListenableBuilder<String?>(
+              valueListenable: _dateFormat,
+              builder: (context, dateFormat, _) {
+                return RadioGroup<String>(
+                  groupValue: dateFormat,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    _dateFormat.value = value;
+                    widget.onPickup?.call(value);
+                  },
+                  child: Section(
+                    tiles: InveslyDateFormatPicker.dateFormats.map((data) {
+                      // final isSelectionAllowed = !columnsToExclude.contains(data.key);
+                      return RadioSectionTile<String>(
+                        title: Text(DateFormat(data).format(dateNow)),
+                        subtitle: Text(data),
+                        value: data,
+                        // onTap: () => context.pop(data),
+                        // secondaryIcon: data == value ? const Icon(Icons.check_rounded) : null,
+                        // selectedTileColor: context.theme.primaryColor.withAlpha(125),
+                        // enabled: isSelectionAllowed,
+                        // selected: data == value,
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

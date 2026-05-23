@@ -45,85 +45,79 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountsCubit, AccountsState>(
-      builder: (context, state) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: Column(
-            // crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            // spacing: 8.0,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Text(
-                        'Select an account',
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (widget.showAddAccountOption)
-                      // IconButton(
-                      //   leading: const Icon(Icons.add_reaction_rounded),
-                      //   title: const Text('Add new account'),
-                      //   onTap: () => context.push(const EditAccountPage()),
-                      // ),
-                  ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        // crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        // spacing: 8.0,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    'Select an account',
+                    style: context.textTheme.labelLarge,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-
-              _buildAccountList(state),
-            ],
+                if (widget.showAddAccountOption)
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    tooltip: 'Add new account',
+                    onPressed: () => context.push(const EditAccountPage()),
+                    padding: EdgeInsets.zero,
+                  ),
+              ],
+            ),
           ),
-        );
-      },
+
+          _buildAccountList(context),
+        ],
+      ),
     );
   }
 
-  Widget _buildAccountList(AccountsState state) {
-    final isLoading = state.isLoading;
+  Widget _buildAccountList(BuildContext context) {
+    return BlocBuilder<AccountsCubit, AccountsState>(
+      builder: (context, state) {
+        if (state.isError) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Text('Error loading accounts', style: TextStyle(color: Colors.red)),
+          );
+        }
 
-    if (state.isError) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Text('Error loading accounts', style: TextStyle(color: Colors.red)),
-      );
-    }
+        if (state is AccountsLoadedState) {
+          if (state.accounts.isEmpty) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Text('No accounts found. Please add an account.', style: TextStyle(color: Colors.grey)),
+            );
+          }
 
-    if (state.isLoaded && (state as AccountsLoadedState).accounts.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Text('No accounts found. Please add an account.', style: TextStyle(color: Colors.grey)),
-      );
-    }
-
-    final accounts = state.isLoaded ? (state as AccountsLoadedState).accounts : null;
-    return Skeletonizer(
-      enabled: isLoading,
-      child: Column(
-        children: [
-          ...List.generate(
-            accounts?.length ?? 2, // dummy count for shimmer effect
-            (index) {
-              final account = accounts?.elementAt(index);
-
-              return ListTile(
-                leading: PhysicalModel(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  child: account != null ? Image.asset(account.avatarSrc) : null,
-                ),
-                title: Text(account?.name ?? 'Loading...', overflow: TextOverflow.ellipsis),
-                trailing: account?.id == widget.accountId ? const Icon(Icons.check_rounded) : null,
-                onTap: account != null ? () => widget.onPickup?.call(account) : null,
+          final accounts = state.accounts;
+          return Section(
+            tiles: List.generate(accounts.length, (index) {
+              final account = accounts.elementAt(index);
+              return SectionTile(
+                icon: PhysicalModel(color: Colors.white, shape: BoxShape.circle, child: Image.asset(account.avatarSrc)),
+                title: Text(account.name, overflow: TextOverflow.ellipsis),
+                secondaryIcon: account.id == widget.accountId ? const Icon(Icons.check_rounded) : null,
+                onTap: () => widget.onPickup?.call(account),
               );
-            },
+            }),
+          );
+        }
+
+        return Skeletonizer(
+          child: Section(
+            tiles: List.generate(2, (_) => Skeleton.leaf(child: SectionTile(title: const Text('Loading names ...')))),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
