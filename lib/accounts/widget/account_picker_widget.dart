@@ -10,7 +10,11 @@ class InveslyAccountPickerWidget extends StatefulWidget {
   final ValueChanged<InveslyAccount>? onPickup;
   final bool showAddAccountOption;
 
-  static Future<InveslyAccount?> showModal(BuildContext context, [String? accountId]) async {
+  static Future<InveslyAccount?> showModal(
+    BuildContext context, {
+    String? accountId,
+    bool showAddAccountOption = true,
+  }) async {
     return await showModalBottomSheet<InveslyAccount>(
       context: context,
       // isScrollControlled: true,
@@ -19,7 +23,7 @@ class InveslyAccountPickerWidget extends StatefulWidget {
         return InveslyAccountPickerWidget(
           accountId: accountId,
           onPickup: (account) => Navigator.maybePop(context, account),
-          showAddAccountOption: true,
+          showAddAccountOption: showAddAccountOption,
         );
       },
     );
@@ -46,26 +50,32 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
         return SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            // crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
+            // spacing: 8.0,
             children: <Widget>[
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
-                child: Text(
-                  'Select an account',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
+              Padding(
+                padding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        'Select an account',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (widget.showAddAccountOption)
+                      // IconButton(
+                      //   leading: const Icon(Icons.add_reaction_rounded),
+                      //   title: const Text('Add new account'),
+                      //   onTap: () => context.push(const EditAccountPage()),
+                      // ),
+                  ],
                 ),
               ),
 
               _buildAccountList(state),
-
-              if (widget.showAddAccountOption)
-                ListTile(
-                  leading: const Icon(Icons.add_reaction_rounded),
-                  title: const Text('Add new account'),
-                  onTap: () => context.push(const EditAccountPage()),
-                ),
             ],
           ),
         );
@@ -94,23 +104,25 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
     return Skeletonizer(
       enabled: isLoading,
       child: Column(
-        children: List.generate(
-          accounts?.length ?? 2, // dummy count for shimmer effect
-          (index) {
-            final account = accounts?.elementAt(index);
+        children: [
+          ...List.generate(
+            accounts?.length ?? 2, // dummy count for shimmer effect
+            (index) {
+              final account = accounts?.elementAt(index);
 
-            return ListTile(
-              leading: PhysicalModel(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                child: account != null ? Image.asset(account.avatarSrc) : null,
-              ),
-              title: Text(account?.name ?? 'Loading...', overflow: TextOverflow.ellipsis),
-              trailing: account?.id == widget.accountId ? const Icon(Icons.check_rounded) : null,
-              onTap: account != null ? () => widget.onPickup?.call(account) : null,
-            );
-          },
-        ),
+              return ListTile(
+                leading: PhysicalModel(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  child: account != null ? Image.asset(account.avatarSrc) : null,
+                ),
+                title: Text(account?.name ?? 'Loading...', overflow: TextOverflow.ellipsis),
+                trailing: account?.id == widget.accountId ? const Icon(Icons.check_rounded) : null,
+                onTap: account != null ? () => widget.onPickup?.call(account) : null,
+              );
+            },
+          ),
+        ],
       ),
     );
   }

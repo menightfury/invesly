@@ -116,6 +116,7 @@ class Section extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 2.0,
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           if (title != null)
             SectionTile(

@@ -588,7 +588,7 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
           shake: formFieldState.hasError,
           child: GestureDetector(
             onTap: () async {
-              final newUser = await InveslyAccountPickerWidget.showModal(context, cubit.state.account?.id);
+              final newUser = await InveslyAccountPickerWidget.showModal(context, accountId: cubit.state.account?.id);
               if (newUser == null) return;
 
               cubit.updateAccount(newUser);

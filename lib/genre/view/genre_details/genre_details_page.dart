@@ -1,5 +1,6 @@
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/widget/account_picker_widget.dart';
-import 'package:invesly/accounts/widget/accounts_list.dart';
 import 'package:invesly/amc_stat/cubit/amc_stat_cubit.dart';
 import 'package:invesly/amc_stat/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -82,7 +83,15 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
             return SliverMainAxisGroup(
               slivers: <Widget>[
                 // ~ TODO: Account selection
-                AccountsList(),
+                SliverToBoxAdapter(
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
+                      child: _AccountPickerWidget(),
+                    ),
+                  ),
+                ),
                 // GestureDetector(
                 //   onTap: () async {
                 //     final newUser = await InveslyAccountPickerWidget.showModal(context, cubit.state.account?.id);
@@ -824,6 +833,54 @@ class _HoldingStatCard extends StatelessWidget {
     }
 
     return Text('Loading...', overflow: TextOverflow.ellipsis);
+  }
+}
+
+class _AccountPickerWidget extends StatefulWidget {
+  const _AccountPickerWidget({super.key});
+
+  @override
+  State<_AccountPickerWidget> createState() => _AccountPickerWidgetState();
+}
+
+class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
+  List<InveslyAccount>? accounts;
+
+  @override
+  void initState() {
+    super.initState();
+    final accountsState = context.read<AccountsCubit>().state;
+    if (accountsState.isLoaded) {
+      accounts = (accountsState as AccountsLoadedState).accounts;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<AppCubit, AppState, String?>(
+      selector: (state) => state.primaryAccountId,
+      builder: (context, primaryAccountId) {
+        final account = accounts?.firstWhereOrNull((a) => a.id == primaryAccountId);
+        return ActionChip(
+          label: Text(account?.name ?? primaryAccountId ?? 'N/A', overflow: TextOverflow.ellipsis, maxLines: 1),
+          avatar: CircleAvatar(
+            foregroundImage: account != null ? AssetImage(account.avatarSrc) : null,
+            child: account == null ? Icon(Icons.person_rounded) : null,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          onPressed: () async {
+            final newUser = await InveslyAccountPickerWidget.showModal(
+              context,
+              accountId: primaryAccountId,
+              showAddAccountOption: false,
+            );
+            if (newUser == null || !context.mounted) return;
+
+            context.read<AppCubit>().updatePrimaryAccount(newUser.id);
+          },
+        );
+      },
+    );
   }
 }
 
