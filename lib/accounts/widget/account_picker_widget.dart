@@ -75,7 +75,7 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
             ),
           ),
 
-          Padding(padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), child: _buildAccountList(context)),
+          Padding(padding: EdgeInsets.symmetric(horizontal: 16.0), child: _buildAccountList(context)),
         ],
       ),
     );
@@ -104,6 +104,7 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
               }
             },
             child: Section(
+              margin: EdgeInsets.zero,
               tiles: List.generate(accounts.length, (index) {
                 final account = accounts.elementAt(index);
                 return RadioSectionTile<String>(

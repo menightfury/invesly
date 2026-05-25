@@ -323,8 +323,11 @@ class SectionTile extends StatelessWidget {
               padding: padding ?? EdgeInsets.zero,
               child: Row(
                 spacing: 16.0,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  ?leading,
+                  if (leading != null)
+                    ConstrainedBox(constraints: const BoxConstraints(maxHeight: 48.0), child: leading),
+
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,7 +335,9 @@ class SectionTile extends StatelessWidget {
                       children: <Widget>[titleText, ?subtitleText],
                     ),
                   ),
-                  ?trailing,
+
+                  if (trailing != null)
+                    ConstrainedBox(constraints: const BoxConstraints(maxHeight: 48.0), child: trailing),
                 ],
               ),
             ),
