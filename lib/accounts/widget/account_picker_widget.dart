@@ -63,6 +63,7 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+
                 if (widget.showAddAccountOption)
                   IconButton(
                     icon: const Icon(Icons.add),
@@ -74,7 +75,7 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
             ),
           ),
 
-          _buildAccountList(context),
+          Padding(padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), child: _buildAccountList(context)),
         ],
       ),
     );
@@ -84,31 +85,39 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
     return BlocBuilder<AccountsCubit, AccountsState>(
       builder: (context, state) {
         if (state.isError) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Text('Error loading accounts', style: TextStyle(color: Colors.red)),
-          );
+          return Text('Error loading accounts', style: TextStyle(color: context.colors.error));
         }
 
         if (state is AccountsLoadedState) {
           if (state.accounts.isEmpty) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text('No accounts found. Please add an account.', style: TextStyle(color: Colors.grey)),
-            );
+            return const EmptyWidget(label: Text('No accounts found. Please add an account.'));
           }
 
           final accounts = state.accounts;
-          return Section(
-            tiles: List.generate(accounts.length, (index) {
-              final account = accounts.elementAt(index);
-              return SectionTile(
-                icon: PhysicalModel(color: Colors.white, shape: BoxShape.circle, child: Image.asset(account.avatarSrc)),
-                title: Text(account.name, overflow: TextOverflow.ellipsis),
-                secondaryIcon: account.id == widget.accountId ? const Icon(Icons.check_rounded) : null,
-                onTap: () => widget.onPickup?.call(account),
-              );
-            }),
+          return RadioGroup<String>(
+            groupValue: widget.accountId,
+            onChanged: (value) {
+              if (value == null) return;
+              final account = accounts.firstWhereOrNull((a) => a.id == value);
+              if (account != null) {
+                widget.onPickup?.call(account);
+              }
+            },
+            child: Section(
+              tiles: List.generate(accounts.length, (index) {
+                final account = accounts.elementAt(index);
+                return RadioSectionTile<String>(
+                  value: account.id,
+                  icon: PhysicalModel(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    child: Image.asset(account.avatarSrc),
+                  ),
+                  title: Text(account.name, overflow: TextOverflow.ellipsis),
+                  controlAffinity: ListTileControlAffinity.trailing,
+                );
+              }),
+            ),
           );
         }
 

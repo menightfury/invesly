@@ -76,8 +76,8 @@ class _InveslyDateFormatPickerState extends State<InveslyDateFormatPicker> {
                     tiles: InveslyDateFormatPicker.dateFormats.map((data) {
                       // final isSelectionAllowed = !columnsToExclude.contains(data.key);
                       return RadioSectionTile<String>(
-                        title: Text(DateFormat(data).format(dateNow)),
-                        subtitle: Text(data),
+                        title: Text(DateFormat(data).format(dateNow), overflow: TextOverflow.ellipsis),
+                        subtitle: Text(data, overflow: TextOverflow.ellipsis),
                         value: data,
                         // onTap: () => context.pop(data),
                         // secondaryIcon: data == value ? const Icon(Icons.check_rounded) : null,
