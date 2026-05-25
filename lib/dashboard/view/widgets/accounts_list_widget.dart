@@ -93,7 +93,14 @@ class _AccountsListState extends State<_AccountsList> {
                         // ~~~ Add account ~~~
                         ActionChip(
                           onPressed: () => context.push(const EditAccountPage()),
-                          avatar: const Icon(Icons.add_rounded),
+                          avatar: PhysicalModel(
+                            color: context.colors.primary,
+                            shape: BoxShape.circle,
+                            child: SizedBox.square(
+                              dimension: 40.0,
+                              child: Icon(Icons.add_rounded, color: context.colors.onPrimary),
+                            ),
+                          ),
                           labelPadding: chipPadding,
                           label: Text('Add account', style: TextStyle(color: context.colors.onSecondaryContainer)),
                         ),

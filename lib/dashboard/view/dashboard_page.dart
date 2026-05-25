@@ -23,7 +23,7 @@ import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:invesly/transactions/transactions/transactions_page.dart';
 
-part 'widgets/accounts_list.dart';
+part 'widgets/accounts_list_widget.dart';
 part 'widgets/genre_summeries_widget.dart';
 part 'widgets/recent_transaction_widget.dart';
 part 'widgets/spending_pie_chart.dart';
@@ -199,7 +199,7 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
     if (widget.accountId?.isEmpty ?? true) {
       return;
     }
-    context.read<AmcStatCubit>().fetchTransactionStats(widget.accountId!);
+    context.read<AmcStatCubit>().fetchStats(widget.accountId!);
     context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, limit: 5);
   }
 
@@ -217,17 +217,5 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
     );
   }
 }
-
-// class EmptyAppBar extends StatelessWidget implements PreferredSizeWidget {
-//   const EmptyAppBar({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container();
-//   }
-
-//   @override
-//   Size get preferredSize => const Size.fromHeight(0.0);
-// }
 
 enum _DashboardState { loading, loaded, error }
