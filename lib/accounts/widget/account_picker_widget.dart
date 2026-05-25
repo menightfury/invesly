@@ -37,6 +37,7 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
   @override
   void initState() {
     super.initState();
+    // Fetch accounts, if not already fetched
     final cubit = context.read<AccountsCubit>();
     if (cubit.state is! AccountsLoadedState) {
       cubit.fetchAccounts();
