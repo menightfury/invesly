@@ -100,7 +100,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   void _loadStats() {
     final statState = context.read<AmcStatCubit>().state;
     if (statState is AmcStatLoadedState) {
-      final stats = statState.getStats(accountId: widget.activeAccountId, genre: widget.genre);
+      final stats = statState.filterStats(accountId: widget.activeAccountId, genre: widget.genre);
       context.read<GenreDetailsCubit>().loadStats(stats);
     }
   }
@@ -875,13 +875,13 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
               onPressed: () async {
-                final newUser = await InveslyAccountPickerWidget.showModal(
+                final newAccount = await InveslyAccountPickerWidget.showModal(
                   context,
                   accountId: activeAccountId,
                   showAddAccountOption: false,
                 );
-                if (newUser == null || !context.mounted) return;
-                context.read<GenreDetailsCubit>().updateActiveAccountId(newUser.id);
+                if (newAccount == null || !context.mounted) return;
+                context.read<GenreDetailsCubit>().updateActiveAccountId(newAccount.id);
               },
             );
           },
