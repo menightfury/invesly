@@ -56,12 +56,14 @@ enum LatestPriceStatus { initial, loading, loaded, error }
 class GenreDetailsState extends Equatable {
   const GenreDetailsState({
     this.status = LatestPriceStatus.initial,
+    this.activeAccountId,
     this.stats = const [],
     this.errorMsg,
     this.sortAndFilterStatus = const HoldingSortAndFilterStatus(),
   });
 
   final LatestPriceStatus status;
+  final String? activeAccountId;
   final List<AmcStat> stats;
   final String? errorMsg;
   final HoldingSortAndFilterStatus sortAndFilterStatus;
@@ -129,12 +131,14 @@ class GenreDetailsState extends Equatable {
 
   GenreDetailsState copyWith({
     LatestPriceStatus? status,
+    String? activeAccountId,
     List<AmcStat>? stats,
     String? errorMsg,
     HoldingSortAndFilterStatus? sortAndFilterStatus,
   }) {
     return GenreDetailsState(
       status: status ?? this.status,
+      activeAccountId: activeAccountId ?? this.activeAccountId,
       stats: stats ?? this.stats,
       errorMsg: errorMsg ?? this.errorMsg,
       sortAndFilterStatus: sortAndFilterStatus ?? this.sortAndFilterStatus,
@@ -142,7 +146,7 @@ class GenreDetailsState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, stats, errorMsg, sortAndFilterStatus];
+  List<Object?> get props => [status, activeAccountId, stats, errorMsg, sortAndFilterStatus];
 }
 
 extension GenreDetailsStateX on GenreDetailsState {

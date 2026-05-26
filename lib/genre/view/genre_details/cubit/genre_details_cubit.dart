@@ -5,47 +5,11 @@ import 'package:invesly/common_libs.dart';
 part 'genre_details_state.dart';
 
 class GenreDetailsCubit extends Cubit<GenreDetailsState> {
-  GenreDetailsCubit({required AmcRepository repository})
+  GenreDetailsCubit({required AmcRepository repository, String? activeAccountId})
     : _repository = repository,
-      // _transactionRepository = transactionRepository,
-      super(GenreDetailsState());
+      super(GenreDetailsState(activeAccountId: activeAccountId));
 
   final AmcRepository _repository;
-  // final TransactionRepository _transactionRepository;
-
-  // Future<void> loadTransactions({required String accountId, required AmcGenre genre}) async {
-  //   emit(const GenreDetailsState(status: GenreDetailsStateStatus.loading));
-
-  //   try {
-  //     final transactions = await _transactionRepository.getTransactions(accountId: accountId, genre: genre);
-
-  //     if (transactions.isEmpty) {
-  //       emit(const GenreDetailsState(status: GenreDetailsStateStatus.loaded));
-  //       return;
-  //     }
-  //     final amcTransactionsMap = groupBy(transactions, (trn) => trn.amc);
-  //     final amcTransactions = amcTransactionsMap.entries.map((entry) {
-  //       InveslyAmc? amc = entry.key;
-
-  //       return AmcTransaction(amc: amc, transactions: entry.value);
-  //     }).toList();
-
-  //     emit(GenreDetailsState(status: GenreDetailsStateStatus.loaded, stats: amcTransactions));
-  //   } catch (err) {
-  //     emit(GenreDetailsState(status: GenreDetailsStateStatus.error, errorMessage: err.toString()));
-  //   }
-  // }
-
-  // Future<void> loadStats({required String accountId, required AmcGenre genre}) async {
-  //   emit(state.copyWith(status: GenreDetailsStateStatus.loading));
-
-  //   _repository
-  //       .fetchStats(accountId)
-  //       .listen(
-  //         (stats) => state.copyWith(status: GenreDetailsStateStatus.loaded, stats: stats),
-  //         onError: (error, _) => state.copyWith(status: GenreDetailsStateStatus.error, errorMessage: error.toString()),
-  //       );
-  // }
 
   Future<void> loadStats(List<AmcStat> stats) async {
     emit(state.copyWith(status: LatestPriceStatus.loading, stats: stats));
@@ -108,5 +72,9 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
     }
 
     emit(state.copyWith(sortAndFilterStatus: sortAndFilterStatus));
+  }
+
+  void updateActiveAccountId(String id) {
+    emit(state.copyWith(activeAccountId: id));
   }
 }

@@ -135,7 +135,6 @@ class TransactionTable extends TableSchema<TransactionInDb> {
 
   TableColumn<String> get accountIdColumn =>
       TableColumn('account_id', tableName, foreignReference: ForeignReference('accounts', 'id'));
-  // TableColumn<int> get typeColumn => TableColumn('type', name, type: TableColumnType.integer); // invested or redeemed
   TableColumn<String> get amcIdColumn =>
       TableColumn('amc_id', tableName, foreignReference: ForeignReference('amcs', 'id'));
   TableColumn<double> get quantityColumn =>

@@ -199,7 +199,7 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
     if (widget.accountId?.isEmpty ?? true) {
       return;
     }
-    context.read<AmcStatCubit>().fetchStats(widget.accountId!);
+    // context.read<AmcStatCubit>().fetchStats(widget.accountId!);
     context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, limit: 5);
   }
 

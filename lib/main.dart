@@ -48,7 +48,7 @@ class InveslyApp extends StatelessWidget {
         // BlocProvider<InternetCubit>(create: (_) => InternetCubit()),
         BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)..fetchAccounts()),
         BlocProvider<AppCubit>(create: (_) => AppCubit()),
-        BlocProvider(create: (_) => AmcStatCubit(repository: statRepository)),
+        BlocProvider(create: (_) => AmcStatCubit(repository: statRepository)..fetchAllStats()),
       ],
       child: const _AppView(),
     );

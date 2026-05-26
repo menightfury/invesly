@@ -191,7 +191,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
       }
     }
 
-    return _columns.map<String>((col) => col.fullTitleWithAggregateAndAlias).toList();
+    return _columns.map<String>((col) => col._fullTitleWithAggregateAndAlias).toList();
   }
 
   TableQueryBuilder<T> join(List<TableSchema> tables) {
@@ -359,7 +359,7 @@ class TableColumnBase extends Equatable {
   String get fullTitle => '$tableName.$title';
 
   /// Effective title of the column in the SQL query
-  String get fullTitleWithAggregateAndAlias {
+  String get _fullTitleWithAggregateAndAlias {
     final buffer = StringBuffer();
 
     if (aggregateMethodName != null) {
@@ -367,7 +367,7 @@ class TableColumnBase extends Equatable {
 
       if (aggregateFilter != null) {
         final (filterSql, filterArgs) = aggregateFilter!.toSql();
-        // Inlines the filter arguments into the SQL string, replacing `?` placeholders
+        // Inline the filter arguments into the SQL string, replacing `?` placeholders
         // with the actual values. This is necessary because sqflite's `query` method
         // only supports parameterized args in the WHERE clause, not in column expressions.
         var inlineSql = filterSql;

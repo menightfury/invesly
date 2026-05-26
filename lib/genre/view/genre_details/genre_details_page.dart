@@ -25,9 +25,12 @@ class GenreDetailsPage extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: BlocProvider(
-          create: (_) => GenreDetailsCubit(repository: AmcRepository.instance),
+          create: (context) => GenreDetailsCubit(
+            repository: AmcRepository.instance,
+            activeAccountId: context.read<AppCubit>().state.primaryAccountId,
+          ),
           child: CustomScrollView(
-            slivers: [
+            slivers: <Widget>[
               SliverAppBar(
                 title: Text(genre.title, overflow: TextOverflow.ellipsis),
                 floating: true,
@@ -36,10 +39,29 @@ class GenreDetailsPage extends StatelessWidget {
                 actionsPadding: const EdgeInsets.only(right: 16.0),
               ),
 
-              BlocSelector<AppCubit, AppState, String?>(
-                selector: (state) => state.primaryAccountId,
-                builder: (context, accountId) {
-                  return _GenreDetailsPageContent(accountId: accountId, genre: genre);
+              BlocBuilder<AmcStatCubit, AmcStatState>(
+                builder: (context, statState) {
+                  if (statState.isInitial) {
+                    return SliverToBoxAdapter(child: SizedBox.shrink());
+                  }
+
+                  if (statState.isError) {
+                    return SliverToBoxAdapter(
+                      child: Center(
+                        child: Text(
+                          'Some error occurred while fetching data',
+                          overflow: TextOverflow.ellipsis,
+                        ), // TODO: Redesign & test
+                      ),
+                    );
+                  }
+
+                  return BlocSelector<GenreDetailsCubit, GenreDetailsState, String?>(
+                    selector: (state) => state.activeAccountId,
+                    builder: (context, activeAccountId) {
+                      return _GenreDetailsPageContent(activeAccountId: activeAccountId, genre: genre);
+                    },
+                  );
                 },
               ),
             ],
@@ -51,9 +73,9 @@ class GenreDetailsPage extends StatelessWidget {
 }
 
 class _GenreDetailsPageContent extends StatefulWidget {
-  const _GenreDetailsPageContent({super.key, this.accountId, required this.genre});
+  const _GenreDetailsPageContent({super.key, required this.activeAccountId, required this.genre});
 
-  final String? accountId;
+  final String? activeAccountId;
   final AmcGenre genre;
 
   @override
@@ -64,9 +86,21 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   @override
   void initState() {
     super.initState();
+    _loadStats();
+  }
+
+  @override
+  void didUpdateWidget(covariant _GenreDetailsPageContent oldWidget) {
+    if (oldWidget.activeAccountId != widget.activeAccountId || oldWidget.genre != widget.genre) {
+      _loadStats();
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  void _loadStats() {
     final statState = context.read<AmcStatCubit>().state;
     if (statState is AmcStatLoadedState) {
-      final stats = statState.getStatsByGenre(widget.genre);
+      final stats = statState.getStats(accountId: widget.activeAccountId, genre: widget.genre);
       context.read<GenreDetailsCubit>().loadStats(stats);
     }
   }
@@ -76,135 +110,115 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
     final theme = Theme.of(context);
     final cubit = context.read<GenreDetailsCubit>();
 
-    return BlocBuilder<AmcStatCubit, AmcStatState>(
-      builder: (context, statState) {
-        // ~ If AmcStatState is error or initial
-        if (statState.isInitial) {
-          return SliverToBoxAdapter(child: SizedBox.shrink());
-        }
+    return SliverMainAxisGroup(
+      slivers: <Widget>[
+        // ~ Overview section
+        SliverToBoxAdapter(child: _GenreOverviewSection()),
 
-        if (statState.isError) {
-          return SliverToBoxAdapter(
-            child: Center(
-              child: Text(
-                'Some error occurred while fetching data',
-                overflow: TextOverflow.ellipsis,
-              ), // TODO: Redesign & test
-            ),
-          );
-        }
-
-        return SliverMainAxisGroup(
-          slivers: <Widget>[
-            // ~ Overview section
-            SliverToBoxAdapter(child: _GenreOverviewSection()),
-
-            // ~ Title row with sort & filter button
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
-                child: Row(
-                  spacing: 8.0,
-                  children: <Widget>[
-                    Text('Holdings', style: theme.textTheme.titleMedium, overflow: TextOverflow.ellipsis),
-                    SimpleChip(
-                      title: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-                        buildWhen: (prev, curr) => prev.sortAndFilterStatus != curr.sortAndFilterStatus,
-                        builder: (context, genreState) {
-                          return Text(
-                            '${genreState.sortAndFilterStatus.holdingFilter.label} : ${genreState.displayStats.length}',
-                            style: theme.textTheme.labelSmall,
-                          );
-                        },
-                      ),
-                    ),
-                    Spacer(),
-
-                    // ~ Sort button
-                    BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-                      // buildWhen: (prev, curr) {
-                      //   return prev.status != curr.status && (prev.isLoaded || curr.isLoaded);
-                      // },
-                      builder: (context, genreState) {
-                        return AnimatedScale(
-                          scale: genreState.isLtpLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
-                          alignment: Alignment.centerRight,
-                          duration: 240.ms,
-                          curve: Curves.easeInOut,
-                          child: IconButton(
-                            onPressed: genreState.isLtpLoaded
-                                ? () async {
-                                    final sortOptions = await _showSortOptions(context, genreState.sortAndFilterStatus);
-                                    if (sortOptions == null) return;
-                                    cubit.setSortAndFilterStatus(sortOptions);
-                                  }
-                                : null,
-                            padding: EdgeInsets.zero,
-                            icon: const Icon(Icons.sort_rounded),
-                            tooltip: 'Filter & Sort',
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // ~ Holdings list
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-              sliver: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-                buildWhen: (prev, curr) {
-                  return prev.stats != curr.stats || prev.sortAndFilterStatus != curr.sortAndFilterStatus;
-                },
-                builder: (context, state) {
-                  // ~ If no stats
-                  if (state.stats.isEmpty) {
-                    return SliverToBoxAdapter(
-                      child: Center(
-                        child: EmptyWidget(
-                          label: Text(
-                            'This is so empty.\n Add some transactions to see stats here.',
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  // ~ If stats available but search result is empty
-                  final displayList = state.displayStats;
-                  if (displayList.isEmpty) {
-                    return SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24.0),
-                        child: Center(
-                          child: Text(
-                            'No holdings match the current filter',
-                            style: TextStyle(color: context.colors.onSurfaceVariant),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  // ~ Display stats
-                  return SliverList.separated(
-                    itemCount: displayList.length,
-                    itemBuilder: (context, index) {
-                      final stat = displayList.elementAt(index);
-                      return _HoldingStatCard(stat: stat);
+        // ~ Title row with sort & filter button
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
+            child: Row(
+              spacing: 8.0,
+              children: <Widget>[
+                Text('Holdings', style: theme.textTheme.titleMedium, overflow: TextOverflow.ellipsis),
+                SimpleChip(
+                  title: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+                    buildWhen: (prev, curr) => prev.sortAndFilterStatus != curr.sortAndFilterStatus,
+                    builder: (context, genreState) {
+                      return Text(
+                        '${genreState.sortAndFilterStatus.holdingFilter.label} : ${genreState.displayStats.length}',
+                        style: theme.textTheme.labelSmall,
+                      );
                     },
-                    separatorBuilder: (_, _) => const Gap(12.0),
-                  );
-                },
-              ),
+                  ),
+                ),
+                Spacer(),
+
+                // ~ Sort button
+                BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+                  // buildWhen: (prev, curr) {
+                  //   return prev.status != curr.status && (prev.isLoaded || curr.isLoaded);
+                  // },
+                  builder: (context, genreState) {
+                    return AnimatedScale(
+                      scale: genreState.isLtpLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
+                      alignment: Alignment.centerRight,
+                      duration: 240.ms,
+                      curve: Curves.easeInOut,
+                      child: IconButton(
+                        onPressed: genreState.isLtpLoaded
+                            ? () async {
+                                final sortOptions = await _showSortOptions(context, genreState.sortAndFilterStatus);
+                                if (sortOptions == null) return;
+                                cubit.setSortAndFilterStatus(sortOptions);
+                              }
+                            : null,
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.sort_rounded),
+                        tooltip: 'Filter & Sort',
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
-        );
-      },
+          ),
+        ),
+
+        // ~ Holdings list
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+          sliver: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+            buildWhen: (prev, curr) {
+              return prev.stats != curr.stats || prev.sortAndFilterStatus != curr.sortAndFilterStatus;
+            },
+            builder: (context, state) {
+              // ~ If no stats
+              if (state.stats.isEmpty) {
+                return SliverToBoxAdapter(
+                  child: Center(
+                    child: EmptyWidget(
+                      label: Text(
+                        'This is so empty.\n Add some transactions to see stats here.',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              // ~ If stats available but search result is empty
+              final displayList = state.displayStats;
+              if (displayList.isEmpty) {
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24.0),
+                    child: Center(
+                      child: Text(
+                        'No holdings match the current filter',
+                        style: TextStyle(color: context.colors.onSurfaceVariant),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              // ~ Display stats
+              return SliverList.separated(
+                itemCount: displayList.length,
+                itemBuilder: (context, index) {
+                  final stat = displayList.elementAt(index);
+                  return _HoldingStatCard(stat: stat);
+                },
+                separatorBuilder: (_, _) => const Gap(12.0),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -832,6 +846,8 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
   void initState() {
     super.initState();
     final cubit = context.read<AccountsCubit>();
+    // if accounts are not loaded, fetch accounts.
+    // This is to ensure that accounts are available for account picker.
     if (cubit.state is! AccountsLoadedState) {
       cubit.fetchAccounts();
     }
@@ -845,14 +861,14 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
           accounts = state.accounts;
         }
 
-        return BlocSelector<AppCubit, AppState, String?>(
-          selector: (state) => state.primaryAccountId,
-          builder: (context, primaryAccountId) {
-            final account = primaryAccountId != null && accounts != null && accounts!.isNotEmpty
-                ? accounts?.firstWhereOrNull((a) => a.id == primaryAccountId)
+        return BlocSelector<GenreDetailsCubit, GenreDetailsState, String?>(
+          selector: (state) => state.activeAccountId,
+          builder: (context, activeAccountId) {
+            final account = activeAccountId != null && accounts != null && accounts!.isNotEmpty
+                ? accounts?.firstWhereOrNull((a) => a.id == activeAccountId)
                 : null;
             return ActionChip(
-              label: Text(account?.name ?? primaryAccountId ?? 'N/A', overflow: TextOverflow.ellipsis, maxLines: 1),
+              label: Text(account?.name ?? activeAccountId ?? 'N/A', overflow: TextOverflow.ellipsis, maxLines: 1),
               avatar: CircleAvatar(
                 foregroundImage: account != null ? AssetImage(account.avatarSrc) : null,
                 child: account == null ? Icon(Icons.person_rounded) : null,
@@ -861,12 +877,11 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
               onPressed: () async {
                 final newUser = await InveslyAccountPickerWidget.showModal(
                   context,
-                  accountId: primaryAccountId,
+                  accountId: activeAccountId,
                   showAddAccountOption: false,
                 );
                 if (newUser == null || !context.mounted) return;
-
-                context.read<AppCubit>().updatePrimaryAccount(newUser.id);
+                context.read<GenreDetailsCubit>().updateActiveAccountId(newUser.id);
               },
             );
           },

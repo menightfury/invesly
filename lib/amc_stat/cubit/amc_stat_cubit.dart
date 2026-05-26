@@ -15,7 +15,38 @@ class AmcStatCubit extends Cubit<AmcStatState> {
 
   StreamSubscription<TableEvent>? _subscription;
 
+  Future<void> fetchAllStats() async {
+    // Cancel any existing subscription
+    await _subscription?.cancel();
+    _subscription = null;
+
+    _subscription ??= _repository.onDataChanged.listen(null, onError: (err) => emit(AmcStatErrorState(err.toString())));
+    _subscription?.onData((query) async {
+      emit(const AmcStatLoadingState());
+
+      _subscription?.pause();
+
+      try {
+        // if (accountId == null) {
+        //   emit(const TransactionStatErrorState('No account has been selected'));
+        // } else {
+        final transactionStats = await _repository.getAllStats();
+        emit(AmcStatLoadedState(transactionStats));
+        // }
+      } on Exception catch (error) {
+        emit(AmcStatErrorState(error.toString()));
+      } finally {
+        _subscription?.resume();
+      }
+    });
+
+    _subscription?.onDone(() {
+      _subscription?.cancel();
+    });
+  }
+
   /// Fetch transaction statistics (on initial load, on transactions change)
+  // TODO: Remove this method and use fetchAllStats
   Future<void> fetchStats(String accountId) async {
     // Cancel any existing subscription
     await _subscription?.cancel();
