@@ -27,6 +27,7 @@ class GenreDetailsPage extends StatelessWidget {
         child: BlocProvider(
           create: (context) => GenreDetailsCubit(
             repository: AmcRepository.instance,
+            genre: genre,
             activeAccountId: context.read<AppCubit>().state.primaryAccountId,
           ),
           child: CustomScrollView(
@@ -41,12 +42,9 @@ class GenreDetailsPage extends StatelessWidget {
 
               BlocBuilder<AmcStatCubit, AmcStatState>(
                 builder: (context, statState) {
-                  if (statState.isInitial) {
-                    return SliverToBoxAdapter(child: SizedBox.shrink());
-                  }
-
                   if (statState.isError) {
-                    return SliverToBoxAdapter(
+                    return SliverFillRemaining(
+                      hasScrollBody: false,
                       child: Center(
                         child: Text(
                           'Some error occurred while fetching data',
@@ -56,11 +54,28 @@ class GenreDetailsPage extends StatelessWidget {
                     );
                   }
 
-                  return BlocSelector<GenreDetailsCubit, GenreDetailsState, String?>(
-                    selector: (state) => state.activeAccountId,
-                    builder: (context, activeAccountId) {
-                      return _GenreDetailsPageContent(activeAccountId: activeAccountId, genre: genre);
-                    },
+                  if (statState is AmcStatLoadedState) {
+                    return BlocSelector<GenreDetailsCubit, GenreDetailsState, String?>(
+                      selector: (state) => state.activeAccountId,
+                      builder: (context, activeAccountId) {
+                        final filteredStats = statState.filterStats(accountId: activeAccountId, genre: genre);
+                        if (filteredStats.isEmpty) {
+                          return SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: EmptyWidget(
+                              label: Text('This is so empty!\nAdd some transactions to see stats here.'),
+                            ),
+                          );
+                        }
+                        return _GenreDetailsPageContent(key: ValueKey(activeAccountId), stats: filteredStats);
+                      },
+                    );
+                  }
+
+                  return SliverToBoxAdapter(
+                    child: Center(
+                      child: LoadingAnimationWidget.newtonCradle(color: context.colors.primary, size: 48.0),
+                    ),
                   );
                 },
               ),
@@ -73,10 +88,9 @@ class GenreDetailsPage extends StatelessWidget {
 }
 
 class _GenreDetailsPageContent extends StatefulWidget {
-  const _GenreDetailsPageContent({super.key, required this.activeAccountId, required this.genre});
+  const _GenreDetailsPageContent({super.key, required this.stats});
 
-  final String? activeAccountId;
-  final AmcGenre genre;
+  final List<AmcStat> stats;
 
   @override
   State<_GenreDetailsPageContent> createState() => _GenreDetailsPageContentState();
@@ -86,23 +100,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   @override
   void initState() {
     super.initState();
-    _loadStats();
-  }
-
-  @override
-  void didUpdateWidget(covariant _GenreDetailsPageContent oldWidget) {
-    if (oldWidget.activeAccountId != widget.activeAccountId || oldWidget.genre != widget.genre) {
-      _loadStats();
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
-  void _loadStats() {
-    final statState = context.read<AmcStatCubit>().state;
-    if (statState is AmcStatLoadedState) {
-      final stats = statState.filterStats(accountId: widget.activeAccountId, genre: widget.genre);
-      context.read<GenreDetailsCubit>().loadStats(stats);
-    }
+    context.read<GenreDetailsCubit>().loadStats(widget.stats);
   }
 
   @override

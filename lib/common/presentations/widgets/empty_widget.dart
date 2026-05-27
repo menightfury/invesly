@@ -31,9 +31,9 @@ class EmptyWidget extends StatelessWidget {
         '  <path d="M31 69H57" stroke="$darkColor" stroke-width="2" stroke-linecap="round"/>'
         '</svg>';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Center(
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -47,7 +47,12 @@ class EmptyWidget extends StatelessWidget {
             // ),
             if (label != null) ...[
               Gap(16.0),
-              DefaultTextStyle(style: theme.textTheme.labelMedium!, textAlign: TextAlign.center, child: label!),
+              DefaultTextStyle(
+                style: theme.textTheme.labelMedium!,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                child: label!,
+              ),
             ],
             if (onPressed != null) ...[
               Gap(16.0),

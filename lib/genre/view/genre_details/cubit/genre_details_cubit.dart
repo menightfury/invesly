@@ -1,13 +1,14 @@
 import 'package:invesly/amc_stat/model/amc_stat_model.dart';
+import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common_libs.dart';
 
 part 'genre_details_state.dart';
 
 class GenreDetailsCubit extends Cubit<GenreDetailsState> {
-  GenreDetailsCubit({required AmcRepository repository, String? activeAccountId})
+  GenreDetailsCubit({required AmcRepository repository, required AmcGenre genre, String? activeAccountId})
     : _repository = repository,
-      super(GenreDetailsState(activeAccountId: activeAccountId));
+      super(GenreDetailsState(genre: genre, activeAccountId: activeAccountId));
 
   final AmcRepository _repository;
 

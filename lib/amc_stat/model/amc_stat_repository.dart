@@ -48,7 +48,7 @@ class AmcStatRepository {
           ])
           .join([_amcTable])
           //.where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
-          .groupBy([_amcTable.idColumn])
+          .groupBy([_trnTable.accountIdColumn, _amcTable.idColumn])
           .toList();
       final stats = result.map<AmcStat>((map) {
         return AmcStat(
