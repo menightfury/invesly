@@ -22,11 +22,16 @@ class AmcOverviewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) {
-        return TransactionsCubit(repository: TransactionRepository.instance)
-          ..fetchTransactions(accountId: accountId, amcId: stat.amc.id);
-      },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) {
+            return TransactionsCubit(repository: TransactionRepository.instance)
+              ..fetchTransactions(accountId: accountId, amcId: stat.amc.id);
+          },
+        ),
+        BlocProvider(create: (context) => AmcOverviewCubit(repository: AmcRepository.instance)),
+      ],
       child: _AmcOverviewPageContent(stat: stat, accountId: accountId),
     );
   }

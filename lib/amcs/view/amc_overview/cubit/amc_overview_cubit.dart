@@ -7,7 +7,6 @@ part 'amc_overview_state.dart';
 class AmcOverviewCubit extends Cubit<AmcOverviewState> {
   AmcOverviewCubit({required AmcRepository repository})
     : _amcRepository = repository,
-
       super(const AmcOverviewInitialState());
 
   final AmcRepository _amcRepository;
