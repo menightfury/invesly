@@ -38,7 +38,7 @@ class InveslyApp extends StatelessWidget {
     // initialize all repositories here
     AuthRepository.initialize();
     BackupRepository.initialize(api);
-    final accountRepository = AccountRepository(api);
+    final accountRepository = AccountRepository.initialize(api);
     AmcRepository.initialize(api);
     TransactionRepository.initialize(api);
     final statRepository = AmcStatRepository.initialize(api);

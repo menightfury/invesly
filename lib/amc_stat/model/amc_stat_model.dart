@@ -19,6 +19,8 @@ class AmcStat extends Equatable {
   final double totalInvested;
   final double totalRedeemed;
 
+  double get averageBuyPrice => totalInvested / totalQuantity;
+
   double? get currentValue {
     if (amc.ltp == null) return null;
     return amc.ltp!.price * totalQuantity;

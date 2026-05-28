@@ -1,14 +1,13 @@
-import 'package:invesly/amcs/model/amc_transaction_model.dart';
-import 'package:invesly/amcs/model/latest_xirr_model.dart';
-import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
-import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/amc_stat/model/amc_stat_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
+import 'package:invesly/amcs/model/amc_transaction_model.dart';
+import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/amcs/view/amc_overview/cubit/amc_overview_cubit.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
-import 'package:invesly/common/presentations/animations/fade_in.dart';
+import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
@@ -16,92 +15,36 @@ import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 
 class AmcOverviewPage extends StatelessWidget {
-  const AmcOverviewPage(this.amcId, {super.key});
+  const AmcOverviewPage({super.key, required this.stat, required this.accountId});
 
-  final String amcId;
+  final AmcStat stat;
+  final String accountId;
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => AmcOverviewCubit(repository: AmcRepository.instance)), // TODO: Not in use presently
-        BlocProvider(create: (_) => TransactionsCubit(repository: TransactionRepository.instance)),
-      ],
-      child: BlocSelector<AppCubit, AppState, String?>(
-        selector: (state) => state.primaryAccountId,
-        builder: (context, accountId) {
-          return _AmcOverviewPageContent(amcId: amcId, accountId: accountId);
-        },
-      ),
+    return BlocProvider(
+      create: (_) {
+        return TransactionsCubit(repository: TransactionRepository.instance)
+          ..fetchTransactions(accountId: accountId, amcId: stat.amc.id);
+      },
+      child: _AmcOverviewPageContent(stat: stat, accountId: accountId),
     );
   }
 }
 
-class _AmcOverviewPageContent extends StatefulWidget {
-  const _AmcOverviewPageContent({super.key, required this.amcId, this.accountId});
+class _AmcOverviewPageContent extends StatelessWidget {
+  const _AmcOverviewPageContent({super.key, required this.stat, this.accountId});
 
-  final String amcId;
+  final AmcStat stat;
   final String? accountId;
 
-  @override
-  State<_AmcOverviewPageContent> createState() => _AmcOverviewPageContentState();
-}
-
-class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
-  @override
-  void initState() {
-    super.initState();
-    // _getAmcOverview();
-    _getTransactions();
-  }
-
-  @override
-  void didUpdateWidget(covariant _AmcOverviewPageContent oldWidget) {
-    if (oldWidget.amcId != widget.amcId) {
-      // _getAmcOverview();
-      _getTransactions();
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
-  // void _getAmcOverview() {
-  //   // context.read<AmcOverviewCubit>().fetchAmcOverview(widget.amcId);
-  // }
-
-  void _getTransactions() {
-    if (widget.accountId?.isEmpty ?? true) {
-      return;
-    }
-
-    if (mounted) {
-      context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, amcId: widget.amcId);
-    }
-  }
-
-  List<Widget> _buildAmcTags(AmcOverviewState amcState) {
-    if (amcState is AmcOverviewLoadedState) {
-      final amcTags = amcState.amc?.tags;
-      if (amcTags == null || amcTags.isEmpty) {
-        return [];
-      }
-
-      return amcTags.map((tag) {
-        if (tag.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return SimpleChip(title: Text(tag), color: context.colors.tertiary, titleColor: context.colors.onTertiary);
-      }).toList();
-    }
-
-    return List.filled(3, const Skeleton.leaf(child: SimpleChip(title: Text('Loading...'))));
-  }
+  static const _spacing = 2.0;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final textTheme = context.textTheme;
-    const spacing = 2.0;
+    final amc = stat.amc;
 
     return Scaffold(
       body: SafeArea(
@@ -110,7 +53,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
             Expanded(
               child: CustomScrollView(
                 slivers: <Widget>[
-                  SliverAppBar(title: const Text('Holding details'), floating: true, snap: true),
+                  const SliverAppBar(title: Text('Holding details'), floating: true, snap: true),
 
                   // ~ AMC Details & Stats
                   SliverToBoxAdapter(
@@ -120,7 +63,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                         builder: (context, amcState) {
                           final isAmcLoading = amcState is AmcOverviewLoadingState;
                           return Column(
-                            spacing: spacing,
+                            spacing: _spacing,
                             children: <Widget>[
                               // ~ AMC Details
                               SimpleCard(
@@ -139,57 +82,40 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                                       spacing: 12.0,
                                       children: <Widget>[
                                         // ~ Amc Name
-                                        amcState is AmcOverviewLoadedState && amcState.amc != null
-                                            ? FadeIn(
-                                                key: Key('amc_loaded'),
-                                                child: Text(
-                                                  amcState.amc!.name,
-                                                  style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                                                  textAlign: TextAlign.start,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  maxLines: 2,
-                                                ),
-                                              )
-                                            : Text(
-                                                widget.amcId,
-                                                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                                                textAlign: TextAlign.start,
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 2,
+                                        Text(
+                                          amc.name,
+                                          style: textTheme.titleLarge,
+                                          textAlign: TextAlign.start,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        ),
+
+                                        // ~ Chips (tags)
+                                        Wrap(
+                                          spacing: 6.0,
+                                          runSpacing: 4.0,
+                                          children: <Widget>[
+                                            if (amc.genre != null)
+                                              SimpleChip(
+                                                title: Text(amc.genre!.title),
+                                                color: context.colors.primary,
+                                                titleColor: context.colors.onPrimary,
                                               ),
 
-                                        // ~ Chips - if Error
-                                        if (amcState.isError)
-                                          SimpleChip(
-                                            title: const Text('Error loading AMC details'),
-                                            color: context.colors.error,
-                                            titleColor: context.colors.onError,
-                                          ),
+                                            if (amc.tags != null && amc.tags!.isNotEmpty)
+                                              ...amc.tags!.map((tag) {
+                                                if (tag.isEmpty) {
+                                                  return const SizedBox.shrink();
+                                                }
 
-                                        // ~ Chips (tags) - otherwise
-                                        if (!amcState.isError)
-                                          Skeletonizer(
-                                            enabled: amcState.isLoading || amcState.isInitial,
-                                            child: Wrap(
-                                              spacing: 6.0,
-                                              runSpacing: 4.0,
-                                              children: <Widget>[
-                                                Skeleton.leaf(
-                                                  child: SimpleChip(
-                                                    title: Text(
-                                                      amcState is AmcOverviewLoadedState
-                                                          ? (amcState.amc?.genre ?? AmcGenre.misc).title
-                                                          : 'Loading...', // 'Loading...' text will be replaced by shimmer effect when skeletonizer is enabled
-                                                    ),
-                                                    color: context.colors.primary,
-                                                    titleColor: context.colors.onPrimary,
-                                                  ),
-                                                ),
-
-                                                ..._buildAmcTags(amcState),
-                                              ],
-                                            ),
-                                          ),
+                                                return SimpleChip(
+                                                  title: Text(tag),
+                                                  color: context.colors.tertiary,
+                                                  titleColor: context.colors.onTertiary,
+                                                );
+                                              }),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -202,10 +128,9 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                                   $logger.d(trnState.transactions);
                                   final isTrnError = trnState.isError;
                                   final isTrnLoading = trnState.isLoading;
-                                  final latestPrice = amcState is AmcOverviewLoadedState ? amcState.amc?.ltp : null;
-                                  final amcTrn =
-                                      trnState.isLoaded && amcState is AmcOverviewLoadedState && amcState.amc != null
-                                      ? AmcTransaction(amc: amcState.amc!, transactions: trnState.transactions)
+                                  final latestPrice = amc.ltp;
+                                  final amcTrn = trnState.isLoaded
+                                      ? AmcTransaction(amc: amc, transactions: trnState.transactions)
                                       : null;
 
                                   // Save xirr in database
@@ -217,61 +142,55 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                                   return Skeletonizer(
                                     enabled: isTrnLoading,
                                     child: Column(
-                                      spacing: spacing,
+                                      spacing: _spacing,
                                       mainAxisSize: MainAxisSize.min,
                                       children: <Widget>[
                                         GridView.count(
                                           shrinkWrap: true,
                                           physics: const NeverScrollableScrollPhysics(),
                                           crossAxisCount: 2,
-                                          mainAxisSpacing: spacing,
-                                          crossAxisSpacing: spacing,
+                                          mainAxisSpacing: _spacing,
+                                          crossAxisSpacing: _spacing,
                                           mainAxisExtent: 104.0,
                                           children: <Widget>[
                                             // ~ No. of units section
-                                            _SectionWidget(
-                                              label: const Skeleton.keep(child: Text('No. of units')),
-                                              value: isTrnLoading
-                                                  ? const Text('Loading...')
-                                                  : Text('${amcTrn?.totalUnits.toPrecision(4)}'),
-                                              color: isTrnError ? colors.errorContainer : null,
-                                              valueColor: isTrnError ? colors.error : null,
+                                            Skeleton.keep(
+                                              child: _SectionWidget(
+                                                label: const Text('No. of units'),
+                                                value: Text('${stat.totalQuantity.toPrecision(4)}'),
+                                              ),
                                             ),
 
                                             // ~ Avg. price section
-                                            _SectionWidget(
-                                              label: const Skeleton.keep(child: Text('Avg. price')),
-                                              value: isTrnLoading
-                                                  ? const Text('Loading...')
-                                                  : BlocSelector<AppCubit, AppState, bool>(
-                                                      selector: (state) => state.isPrivateMode,
-                                                      builder: (context, isPrivateMode) {
-                                                        return CurrencyView(
-                                                          amount: amcTrn?.averageBuyPrice ?? 0.0,
-                                                          privateMode: isPrivateMode,
-                                                        );
-                                                      },
-                                                    ),
-                                              color: isTrnError ? colors.errorContainer : null,
-                                              valueColor: isTrnError ? colors.error : null,
+                                            Skeleton.keep(
+                                              child: _SectionWidget(
+                                                label: const Text('Average price'),
+                                                value: BlocSelector<AppCubit, AppState, bool>(
+                                                  selector: (state) => state.isPrivateMode,
+                                                  builder: (context, isPrivateMode) {
+                                                    return CurrencyView(
+                                                      amount: stat.averageBuyPrice,
+                                                      privateMode: isPrivateMode,
+                                                    );
+                                                  },
+                                                ),
+                                              ),
                                             ),
 
                                             // ~ Invested amount section
-                                            _SectionWidget(
-                                              label: const Skeleton.keep(child: Text('Invested amount')),
-                                              value: isTrnLoading
-                                                  ? const Text('Loading...')
-                                                  : BlocSelector<AppCubit, AppState, bool>(
-                                                      selector: (state) => state.isPrivateMode,
-                                                      builder: (context, isPrivateMode) {
-                                                        return CurrencyView(
-                                                          amount: amcTrn?.totalInvested ?? 0,
-                                                          privateMode: isPrivateMode,
-                                                        );
-                                                      },
-                                                    ),
-                                              color: isTrnError ? colors.errorContainer : null,
-                                              valueColor: isTrnError ? colors.error : null,
+                                            Skeleton.keep(
+                                              child: _SectionWidget(
+                                                label: const Text('Invested amount'),
+                                                value: BlocSelector<AppCubit, AppState, bool>(
+                                                  selector: (state) => state.isPrivateMode,
+                                                  builder: (context, isPrivateMode) {
+                                                    return CurrencyView(
+                                                      amount: stat.totalInvested,
+                                                      privateMode: isPrivateMode,
+                                                    );
+                                                  },
+                                                ),
+                                              ),
                                             ),
 
                                             // ~ Current value
@@ -465,14 +384,14 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                   // ~ Holding Transactions Section
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
-                      child: const Text('Transactions'),
+                      padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
+                      child: Text('Transactions', style: context.textTheme.titleLarge, overflow: TextOverflow.ellipsis),
                     ),
                   ),
 
                   // ~ Transactions list
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
+                    padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
                     sliver: BlocBuilder<TransactionsCubit, TransactionsState>(
                       builder: (context, trnState) {
                         final isLoading = trnState.isLoading;
@@ -508,7 +427,12 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                             itemCount: itemCount,
                             itemBuilder: (context, index) {
                               final trn = isLoaded ? transactions[index] : null;
-                              return _buildTransaction(trn, isFirst: index == 0, isLast: index == itemCount - 1);
+                              return _buildTransaction(
+                                context,
+                                trn,
+                                isFirst: index == 0,
+                                isLast: index == itemCount - 1,
+                              );
                             },
                             separatorBuilder: (_, _) => const Gap(2.0),
                           ),
@@ -557,7 +481,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
     );
   }
 
-  Widget _buildTransaction(InveslyTransaction? trn, {bool? isFirst, bool? isLast}) {
+  Widget _buildTransaction(BuildContext context, InveslyTransaction? trn, {bool? isFirst, bool? isLast}) {
     final textTheme = context.textTheme;
     BorderRadius tileRadius = iTileBorderRadius;
 

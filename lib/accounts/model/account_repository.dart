@@ -1,23 +1,30 @@
 import 'dart:async';
-// import 'package:invesly/database/data_access_object.dart';
 
+import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/database/table_schema.dart';
 
 import 'account_model.dart';
 
-import 'package:invesly/database/invesly_api.dart';
-
-// class AccountRepository extends DataAccessObject<InveslyAccount> {
 class AccountRepository {
-  // AccountRepository(InveslyApi api) : super(db: api.db, table: api.accountTable);
-  AccountRepository(InveslyApi api) : _api = api;
+  // singleton api instance
+  static AccountRepository? _instance;
+  static AccountRepository get instance {
+    assert(_instance != null, 'Please make sure to initialize before getting repository');
+    return _instance!;
+  }
+
+  factory AccountRepository.initialize(InveslyApi api) {
+    _instance ??= AccountRepository._(api);
+    return _instance!;
+  }
+  AccountRepository._(this._api);
 
   final InveslyApi _api;
 
   AccountTable get _accountTable => _api.accountTable;
 
   Stream<TableEvent> get onDataChanged {
-    return _api.onTableChange.where((event) => event.tables == _accountTable);
+    return _api.onTableChange.where((event) => event.tables.contains(_accountTable));
   }
 
   /// Get all accounts

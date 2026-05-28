@@ -35,8 +35,8 @@ class AppStyle {
         headlineMedium: GoogleFonts.rye(fontSize: 22.0),
         // headlineSmall: TextStyle(fontFamily: _headerFont, fontSize: 22.0),
         headlineSmall: GoogleFonts.rye(fontSize: 20.0),
-        titleLarge: TextStyle(fontSize: 20.0), // appbar title
-        titleMedium: TextStyle(fontSize: 18.0), // textfield
+        titleLarge: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600), // appbar title
+        titleMedium: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600), // textfield
         bodyLarge: TextStyle(fontSize: 20.0, height: 1.25), // chip, ListTile title,
         bodyMedium: TextStyle(fontSize: 18.0, height: 1.4), // body
         bodySmall: TextStyle(fontSize: 14.0), // textfield helper

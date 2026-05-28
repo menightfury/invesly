@@ -18,8 +18,7 @@ class EditAccountPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          EditAccountCubit(repository: context.read<AccountRepository>(), initialAccount: initialAccount),
+      create: (context) => EditAccountCubit(repository: AccountRepository.instance, initialAccount: initialAccount),
       child: const _EditAccountScreen(),
     );
   }

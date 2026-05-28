@@ -58,6 +58,19 @@ class GenreDetailsPage extends StatelessWidget {
                     return BlocSelector<GenreDetailsCubit, GenreDetailsState, String?>(
                       selector: (state) => state.activeAccountId,
                       builder: (context, activeAccountId) {
+                        if (activeAccountId == null || activeAccountId.isEmpty) {
+                          return SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: Center(
+                              child: Text(
+                                'No account is selected.\n Please select an account to view stats.',
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          );
+                        }
+
                         final filteredStats = statState.filterStats(accountId: activeAccountId, genre: genre);
                         if (filteredStats.isEmpty) {
                           return SliverFillRemaining(
@@ -120,7 +133,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
             child: Row(
               spacing: 8.0,
               children: <Widget>[
-                Text('Holdings', style: theme.textTheme.titleMedium, overflow: TextOverflow.ellipsis),
+                Text('Holdings', style: theme.textTheme.titleLarge, overflow: TextOverflow.ellipsis),
                 SimpleChip(
                   title: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
                     buildWhen: (prev, curr) => prev.sortAndFilterStatus != curr.sortAndFilterStatus,
@@ -175,32 +188,18 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
             builder: (context, state) {
               // ~ If no stats
               if (state.stats.isEmpty) {
-                return SliverToBoxAdapter(
-                  child: Center(
-                    child: EmptyWidget(
-                      label: Text(
-                        'This is so empty.\n Add some transactions to see stats here.',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
+                return SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')),
                 );
               }
 
               // ~ If stats available but search result is empty
               final displayList = state.displayStats;
               if (displayList.isEmpty) {
-                return SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24.0),
-                    child: Center(
-                      child: Text(
-                        'No holdings match the current filter',
-                        style: TextStyle(color: context.colors.onSurfaceVariant),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
+                return SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: EmptyWidget(label: Text('No holdings match the current filter')),
                 );
               }
 
@@ -570,13 +569,25 @@ class _HoldingStatCard extends StatelessWidget {
     final theme = Theme.of(context);
     final labelStyle = theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
+    final accountId =
+        context.read<GenreDetailsCubit>().state.activeAccountId ?? context.read<AppCubit>().state.primaryAccountId;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       spacing: _spacing,
       children: <Widget>[
         // ~ AMC name, Chips and Transaction count
         GestureDetector(
-          onTap: () => context.push(AmcOverviewPage(stat.amc.id)),
+          onTap: () {
+            if (accountId == null) {
+              $logger.w('Account ID is null. Cannot navigate to AMC overview page.');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('No account is selected. Please select an account to view AMC details.')),
+              );
+              return;
+            }
+            context.push(AmcOverviewPage(accountId: accountId, stat: stat));
+          },
           child: SimpleCard(
             elevation: 0.0,
             color: theme.canvasColor,
