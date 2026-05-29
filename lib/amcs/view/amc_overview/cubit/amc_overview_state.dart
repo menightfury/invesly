@@ -1,41 +1,27 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'amc_overview_cubit.dart';
 
-abstract class AmcOverviewState extends Equatable {
-  const AmcOverviewState();
+class AmcOverviewState extends Equatable {
+  const AmcOverviewState({this.status = LatestPriceStatus.initial, this.stat, this.errorMsg});
+
+  final LatestPriceStatus status;
+  final AmcStat? stat;
+  final String? errorMsg;
 
   @override
-  List<Object?> get props => [];
-}
+  List<Object?> get props => [status, stat, errorMsg];
 
-class AmcOverviewInitialState extends AmcOverviewState {
-  const AmcOverviewInitialState();
-}
-
-class AmcOverviewLoadingState extends AmcOverviewState {
-  const AmcOverviewLoadingState();
-}
-
-class AmcOverviewLoadedState extends AmcOverviewState {
-  const AmcOverviewLoadedState({this.amc});
-
-  final InveslyAmc? amc;
-
-  @override
-  List<Object?> get props => [amc];
-}
-
-class AmcOverviewErrorState extends AmcOverviewState {
-  const AmcOverviewErrorState(this.errorMsg);
-
-  final String errorMsg;
-
-  @override
-  List<Object?> get props => [errorMsg];
+  AmcOverviewState copyWith({LatestPriceStatus? status, AmcStat? stat, String? errorMsg}) {
+    return AmcOverviewState(
+      status: status ?? this.status,
+      stat: stat ?? this.stat,
+      errorMsg: errorMsg ?? this.errorMsg,
+    );
+  }
 }
 
 extension AmcOverviewStateX on AmcOverviewState {
-  bool get isInitial => this is AmcOverviewInitialState;
-  bool get isLoading => this is AmcOverviewLoadingState;
-  bool get isLoaded => this is AmcOverviewLoadedState;
-  bool get isError => this is AmcOverviewErrorState;
+  bool get isLtpLoading => status == LatestPriceStatus.loading;
+  bool get isLtpLoaded => status == LatestPriceStatus.loaded;
+  bool get isLtpError => status == LatestPriceStatus.error;
 }

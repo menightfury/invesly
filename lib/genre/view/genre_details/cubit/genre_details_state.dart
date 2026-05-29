@@ -51,8 +51,6 @@ class HoldingSortAndFilterStatus extends Equatable {
   List<Object?> get props => [sortOption, sortAscending, holdingFilter];
 }
 
-enum LatestPriceStatus { initial, loading, loaded, error }
-
 class GenreDetailsState extends Equatable {
   const GenreDetailsState({
     this.status = LatestPriceStatus.initial,

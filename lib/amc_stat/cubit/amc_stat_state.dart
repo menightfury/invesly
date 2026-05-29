@@ -34,6 +34,11 @@ class AmcStatLoadedState extends AmcStatState {
     }).toList();
   }
 
+  AmcStat? getStat({String? accountId, required String amcId}) {
+    final filteredStats = stats.where((stat) => stat.amc.id == amcId);
+    return filteredStats.firstWhereOrNull((stat) => accountId == null || stat.accountId == accountId);
+  }
+
   double getTotalInvested({String? accountId, AmcGenre? genre}) {
     final filteredStats = filterStats(accountId: accountId, genre: genre);
     return filteredStats.fold<double>(0, (v, el) => v + el.totalInvested);

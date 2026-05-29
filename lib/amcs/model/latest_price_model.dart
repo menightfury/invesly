@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:equatable/equatable.dart';
 import 'package:invesly/common_libs.dart';
 
+enum LatestPriceStatus { initial, loading, loaded, error } // Used in GenreDetailsState, AmcOverviewState
+
 class LatestPrice extends Equatable {
   final double price;
   final DateTime? date;

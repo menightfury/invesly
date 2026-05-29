@@ -22,14 +22,14 @@ class GenreDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: BlocProvider(
-          create: (context) => GenreDetailsCubit(
-            repository: AmcRepository.instance,
-            genre: genre,
-            activeAccountId: context.read<AppCubit>().state.primaryAccountId,
-          ),
+    return BlocProvider(
+      create: (context) => GenreDetailsCubit(
+        repository: AmcRepository.instance,
+        genre: genre,
+        activeAccountId: context.read<AppCubit>().state.primaryAccountId,
+      ),
+      child: Scaffold(
+        body: SafeArea(
           child: CustomScrollView(
             slivers: <Widget>[
               SliverAppBar(
@@ -586,7 +586,7 @@ class _HoldingStatCard extends StatelessWidget {
               );
               return;
             }
-            context.push(AmcOverviewPage(accountId: accountId, stat: stat));
+            context.push(AmcOverviewPage(accountId: accountId, amcId: stat.amc.id));
           },
           child: SimpleCard(
             elevation: 0.0,

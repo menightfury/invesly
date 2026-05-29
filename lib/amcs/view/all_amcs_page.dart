@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:http/http.dart' as http;
+import 'package:invesly/amcs/view/amc_overview/amc_overview_page.dart';
+import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/extensions/buildcontext_extension.dart';
+import 'package:invesly/common_libs.dart';
 
 class AllAmcsPage extends StatefulWidget {
   const AllAmcsPage({super.key});
@@ -45,6 +49,11 @@ class _AllAmcsPageState extends State<AllAmcsPage> {
                   title: Text(amc.name),
                   subtitle: Text('ID: ${amc.id}, tags: ${amc.tagString ?? 'N/A'}'),
                   trailing: Text(amc.genre?.title ?? 'Genre: N/A'),
+                  onTap: () {
+                    context.push(
+                      AmcOverviewPage(amcId: amc.id, accountId: context.read<AppCubit>().state.primaryAccountId!),
+                    );
+                  },
                 );
               },
             );
