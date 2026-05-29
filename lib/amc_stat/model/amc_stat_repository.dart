@@ -69,7 +69,6 @@ class AmcStatRepository {
   }
 
   /// Get statistics of all AMCs
-  // TODO: Remove this method and use getAllStats
   Future<List<AmcStat>> getStats(String accountId) async {
     try {
       final result = await _api
@@ -105,6 +104,47 @@ class AmcStatRepository {
       $logger.e(err);
       rethrow;
       // stats = List<TransactionStat>.empty();
+    }
+  }
+
+  /// Get statistics of AMC
+  Future<AmcStat?> getStat({required String accountId, required String amcId}) async {
+    try {
+      final result = await _api
+          .select(_trnTable, [
+            ..._amcTable.columns,
+            _trnTable.idColumn.count('num_transactions'),
+            _trnTable.amountColumn.sum(
+              'total_invested',
+              SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.greaterThan),
+            ),
+            _trnTable.amountColumn.sum(
+              'total_redeemed',
+              SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.lessThan),
+            ),
+            _trnTable.quantityColumn.sum('total_quantity'),
+          ])
+          .join([_amcTable])
+          .where([
+            SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId),
+            SingleValueTableFilter<String>(_amcTable.idColumn, amcId),
+          ])
+          .toList();
+
+      if (result.isEmpty) return null;
+
+      final first = result.first;
+      return AmcStat(
+        accountId: accountId,
+        amc: InveslyAmc.fromDb(_amcTable.fromMap(first)),
+        numTransactions: first['num_transactions'] as int,
+        totalQuantity: (first['total_quantity'] as num).toDouble(),
+        totalInvested: (first['total_invested'] as num).toDouble(),
+        totalRedeemed: (first['total_redeemed'] as num).toDouble(),
+      );
+    } on Exception catch (err) {
+      $logger.e(err);
+      rethrow;
     }
   }
 

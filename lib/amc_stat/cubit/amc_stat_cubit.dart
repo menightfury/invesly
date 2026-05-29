@@ -30,8 +30,8 @@ class AmcStatCubit extends Cubit<AmcStatState> {
         // if (accountId == null) {
         //   emit(const TransactionStatErrorState('No account has been selected'));
         // } else {
-        final transactionStats = await _repository.getAllStats();
-        emit(AmcStatLoadedState(transactionStats));
+        final stats = await _repository.getAllStats();
+        emit(AmcStatLoadedState(stats));
         // }
       } on Exception catch (error) {
         emit(AmcStatErrorState(error.toString()));

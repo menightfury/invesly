@@ -1,19 +1,41 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'amc_overview_cubit.dart';
 
-class AmcOverviewState extends Equatable {
-  const AmcOverviewState({this.status = LatestPriceStatus.initial, this.stat, this.errorMsg});
+enum AmcOverviewStatus { initial, loading, loaded, error }
 
-  final LatestPriceStatus status;
+class AmcOverviewState extends Equatable {
+  const AmcOverviewState({
+    this.status = AmcOverviewStatus.initial,
+    required this.accountId,
+    required this.amcId,
+    this.ltpStatus = LatestPriceStatus.initial,
+    this.stat,
+    this.errorMsg,
+  });
+
+  final AmcOverviewStatus status;
+  final String accountId;
+  final String amcId;
+  final LatestPriceStatus ltpStatus;
   final AmcStat? stat;
   final String? errorMsg;
 
   @override
-  List<Object?> get props => [status, stat, errorMsg];
+  List<Object?> get props => [status, accountId, amcId, ltpStatus, stat, errorMsg];
 
-  AmcOverviewState copyWith({LatestPriceStatus? status, AmcStat? stat, String? errorMsg}) {
+  AmcOverviewState copyWith({
+    AmcOverviewStatus? status,
+    String? accountId,
+    String? amcId,
+    LatestPriceStatus? ltpStatus,
+    AmcStat? stat,
+    String? errorMsg,
+  }) {
     return AmcOverviewState(
       status: status ?? this.status,
+      accountId: accountId ?? this.accountId,
+      amcId: amcId ?? this.amcId,
+      ltpStatus: ltpStatus ?? this.ltpStatus,
       stat: stat ?? this.stat,
       errorMsg: errorMsg ?? this.errorMsg,
     );
@@ -21,7 +43,7 @@ class AmcOverviewState extends Equatable {
 }
 
 extension AmcOverviewStateX on AmcOverviewState {
-  bool get isLtpLoading => status == LatestPriceStatus.loading;
-  bool get isLtpLoaded => status == LatestPriceStatus.loaded;
-  bool get isLtpError => status == LatestPriceStatus.error;
+  bool get isLtpLoading => ltpStatus == LatestPriceStatus.loading;
+  bool get isLtpLoaded => ltpStatus == LatestPriceStatus.loaded;
+  bool get isLtpError => ltpStatus == LatestPriceStatus.error;
 }

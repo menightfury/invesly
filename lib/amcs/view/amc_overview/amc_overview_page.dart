@@ -1,6 +1,9 @@
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
+import 'package:invesly/amc_stat/cubit/amc_stat_cubit.dart';
 import 'package:invesly/amc_stat/model/amc_stat_model.dart';
+import 'package:invesly/amc_stat/model/amc_stat_repository.dart';
+import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/amc_transaction_model.dart';
 import 'package:invesly/amcs/model/latest_xirr_model.dart';
@@ -15,474 +18,134 @@ import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 
 class AmcOverviewPage extends StatelessWidget {
-  const AmcOverviewPage({super.key, required this.stat, required this.accountId});
+  const AmcOverviewPage({super.key, required this.amcId, required this.accountId});
 
-  final AmcStat stat;
+  final String amcId;
   final String accountId;
 
   @override
   Widget build(BuildContext context) {
+    AmcStat? stat;
+    final statState = context.read<AmcStatCubit>().state;
+    if (statState is AmcStatLoadedState) {
+      stat = statState.getStat(accountId: accountId, amcId: amcId);
+    }
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(
           create: (_) {
-            return TransactionsCubit(repository: TransactionRepository.instance)
-              ..fetchTransactions(accountId: accountId, amcId: stat.amc.id);
+            return AmcOverviewCubit(accountId: accountId, amcId: amcId, stat: stat);
           },
         ),
-        BlocProvider(create: (context) => AmcOverviewCubit(repository: AmcRepository.instance)),
+        BlocProvider(create: (_) => TransactionsCubit(repository: TransactionRepository.instance)),
       ],
-      child: _AmcOverviewPageContent(stat: stat, accountId: accountId),
+      child: const Scaffold(
+        body: SafeArea(
+          child: CustomScrollView(
+            slivers: <Widget>[
+              SliverAppBar(title: Text('Holding details'), floating: true, snap: true),
+              _AmcOverviewPageContent(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
-class _AmcOverviewPageContent extends StatelessWidget {
-  const _AmcOverviewPageContent({super.key, required this.stat, this.accountId});
+class _AmcOverviewPageContent extends StatefulWidget {
+  const _AmcOverviewPageContent({super.key});
 
-  final AmcStat stat;
-  final String? accountId;
+  @override
+  State<_AmcOverviewPageContent> createState() => _AmcOverviewPageContentState();
+}
 
-  static const _spacing = 2.0;
+class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<AmcOverviewCubit>().getStat();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     final textTheme = context.textTheme;
-    final amc = stat.amc;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: CustomScrollView(
-                slivers: <Widget>[
-                  const SliverAppBar(title: Text('Holding details'), floating: true, snap: true),
+    return BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
+      builder: (context, state) {
+        if (state.status == AmcOverviewStatus.error) {
+          return SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Text(
+                'Some error occurred while fetching data',
+                overflow: TextOverflow.ellipsis,
+              ), // TODO: Redesign & test
+            ),
+          );
+        }
 
-                  // ~ AMC Details & Stats
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
-                        builder: (context, amcState) {
-                          final isAmcLoading = amcState is AmcOverviewLoadingState;
-                          return Column(
-                            spacing: _spacing,
-                            children: <Widget>[
-                              // ~ AMC Details
-                              SimpleCard(
-                                color: colors.primaryContainer.darken(3.0),
-                                elevation: 0.0,
-                                borderRadius: iCardBorderRadius.copyWith(
-                                  bottomLeft: iTileBorderRadius.bottomLeft,
-                                  bottomRight: iTileBorderRadius.bottomRight,
-                                ),
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(minHeight: 52.0, minWidth: double.infinity),
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      spacing: 12.0,
-                                      children: <Widget>[
-                                        // ~ Amc Name
-                                        Text(
-                                          amc.name,
-                                          style: textTheme.titleLarge,
-                                          textAlign: TextAlign.start,
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 2,
-                                        ),
+        return SliverMainAxisGroup(
+          slivers: <Widget>[
+            // ~ AMC Details & Stats
+            SliverToBoxAdapter(child: _AmcOverviewSection()),
 
-                                        // ~ Chips (tags)
-                                        Wrap(
-                                          spacing: 6.0,
-                                          runSpacing: 4.0,
-                                          children: <Widget>[
-                                            if (amc.genre != null)
-                                              SimpleChip(
-                                                title: Text(amc.genre!.title),
-                                                color: context.colors.primary,
-                                                titleColor: context.colors.onPrimary,
-                                              ),
-
-                                            if (amc.tags != null && amc.tags!.isNotEmpty)
-                                              ...amc.tags!.map((tag) {
-                                                if (tag.isEmpty) {
-                                                  return const SizedBox.shrink();
-                                                }
-
-                                                return SimpleChip(
-                                                  title: Text(tag),
-                                                  color: context.colors.tertiary,
-                                                  titleColor: context.colors.onTertiary,
-                                                );
-                                              }),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              // ~ Stats Section
-                              BlocBuilder<TransactionsCubit, TransactionsState>(
-                                builder: (context, trnState) {
-                                  $logger.d(trnState.transactions);
-                                  final isTrnError = trnState.isError;
-                                  final isTrnLoading = trnState.isLoading;
-                                  final latestPrice = amc.ltp;
-                                  final amcTrn = trnState.isLoaded
-                                      ? AmcTransaction(amc: amc, transactions: trnState.transactions)
-                                      : null;
-
-                                  // Save xirr in database
-                                  if (amcTrn != null && amcTrn.xirr != null) {
-                                    final latestXirr = LatestXirr(value: amcTrn.xirr!, date: DateTime.now().startOfDay);
-                                    AmcRepository.instance.saveXirr(amcTrn.amc, latestXirr);
-                                  }
-
-                                  return Skeletonizer(
-                                    enabled: isTrnLoading,
-                                    child: Column(
-                                      spacing: _spacing,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        GridView.count(
-                                          shrinkWrap: true,
-                                          physics: const NeverScrollableScrollPhysics(),
-                                          crossAxisCount: 2,
-                                          mainAxisSpacing: _spacing,
-                                          crossAxisSpacing: _spacing,
-                                          mainAxisExtent: 104.0,
-                                          children: <Widget>[
-                                            // ~ No. of units section
-                                            Skeleton.keep(
-                                              child: _SectionWidget(
-                                                label: const Text('No. of units'),
-                                                value: Text('${stat.totalQuantity.toPrecision(4)}'),
-                                              ),
-                                            ),
-
-                                            // ~ Avg. price section
-                                            Skeleton.keep(
-                                              child: _SectionWidget(
-                                                label: const Text('Average price'),
-                                                value: BlocSelector<AppCubit, AppState, bool>(
-                                                  selector: (state) => state.isPrivateMode,
-                                                  builder: (context, isPrivateMode) {
-                                                    return CurrencyView(
-                                                      amount: stat.averageBuyPrice,
-                                                      privateMode: isPrivateMode,
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                            ),
-
-                                            // ~ Invested amount section
-                                            Skeleton.keep(
-                                              child: _SectionWidget(
-                                                label: const Text('Invested amount'),
-                                                value: BlocSelector<AppCubit, AppState, bool>(
-                                                  selector: (state) => state.isPrivateMode,
-                                                  builder: (context, isPrivateMode) {
-                                                    return CurrencyView(
-                                                      amount: stat.totalInvested,
-                                                      privateMode: isPrivateMode,
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                            ),
-
-                                            // ~ Current value
-                                            _SectionWidget(
-                                              label: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: <Widget>[
-                                                  const Skeleton.keep(child: Text('Current value')),
-                                                  isTrnLoading || isAmcLoading
-                                                      ? const Text('Loading...')
-                                                      : FormattedDate(
-                                                          date: latestPrice?.date ?? DateTime.now(),
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: textTheme.labelSmall?.copyWith(
-                                                            color: context.theme.disabledColor,
-                                                          ),
-                                                        ),
-                                                ],
-                                              ),
-                                              value: isTrnLoading || isAmcLoading
-                                                  ? const Text('Loading...')
-                                                  : BlocSelector<AppCubit, AppState, bool>(
-                                                      selector: (state) => state.isPrivateMode,
-                                                      builder: (context, isPrivateMode) {
-                                                        return CurrencyView(
-                                                          amount: amcTrn?.totalCurrentValue ?? 0.0,
-                                                          style: textTheme.headlineLarge,
-                                                          decimalsStyle: textTheme.headlineSmall,
-                                                          currencyStyle: textTheme.bodyMedium,
-                                                          privateMode: isPrivateMode,
-                                                          // compactView: snapshot.data! >= 1_00_00_000
-                                                        );
-                                                      },
-                                                    ),
-                                              color: isTrnError ? colors.errorContainer : null,
-                                              valueColor: isTrnError ? colors.error : null,
-                                            ),
-
-                                            // ~ Latest NAV (Mkt. price) sections
-                                            _SectionWidget(
-                                              label: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: <Widget>[
-                                                  const Skeleton.keep(child: Text('Latest NAV')),
-                                                  isAmcLoading
-                                                      ? const Text('Loading...')
-                                                      : FormattedDate(
-                                                          date: latestPrice?.date ?? DateTime.now(),
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: textTheme.labelSmall?.copyWith(
-                                                            color: context.theme.disabledColor,
-                                                          ),
-                                                        ),
-                                                ],
-                                              ),
-                                              value: isAmcLoading
-                                                  ? const Text('Loading...')
-                                                  : BlocSelector<AppCubit, AppState, bool>(
-                                                      selector: (state) => state.isPrivateMode,
-                                                      builder: (context, isPrivateMode) {
-                                                        return CurrencyView(
-                                                          amount: latestPrice?.price ?? 0.0,
-                                                          privateMode: isPrivateMode,
-                                                        );
-                                                      },
-                                                    ),
-                                              color: isTrnError ? colors.errorContainer : null,
-                                              valueColor: isTrnError ? colors.error : null,
-                                            ),
-
-                                            // ~ Amount return sections
-                                            _SectionWidget(
-                                              label: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: <Widget>[
-                                                  const Skeleton.keep(child: Text('Return')),
-                                                  isTrnLoading || isAmcLoading
-                                                      ? const Text('Loading...')
-                                                      : FormattedDate(
-                                                          date: latestPrice?.date ?? DateTime.now(),
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: textTheme.labelSmall?.copyWith(
-                                                            color: context.theme.disabledColor,
-                                                          ),
-                                                        ),
-                                                ],
-                                              ),
-                                              value: isTrnLoading || isAmcLoading
-                                                  ? const Text('Loading...')
-                                                  : BlocSelector<AppCubit, AppState, bool>(
-                                                      selector: (state) => state.isPrivateMode,
-                                                      builder: (context, isPrivateMode) {
-                                                        final returns = amcTrn?.amountReturn;
-                                                        return CurrencyView(
-                                                          amount: returns ?? 0.0,
-                                                          privateMode: isPrivateMode,
-                                                          style: TextStyle(
-                                                            color: returns?.isNegative ?? true
-                                                                ? Colors.red
-                                                                : Colors.teal,
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                              color: isTrnError ? colors.errorContainer : null,
-                                              valueColor: isTrnError ? colors.error : null,
-                                            ),
-
-                                            // ~ Percentage returns sections
-                                            _SectionWidget(
-                                              label: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: <Widget>[
-                                                  const Skeleton.keep(child: Text('Total returns')),
-                                                  isTrnLoading || isAmcLoading
-                                                      ? const Text('Loading...')
-                                                      : FormattedDate(
-                                                          date: latestPrice?.date ?? DateTime.now(),
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: textTheme.labelSmall?.copyWith(
-                                                            color: context.theme.disabledColor,
-                                                          ),
-                                                        ),
-                                                ],
-                                              ),
-                                              value: isTrnLoading || isAmcLoading
-                                                  ? const Text('Loading...')
-                                                  : Text(
-                                                      '${amcTrn?.percentageReturn?.toPrecision(2) ?? 0}%',
-                                                      textAlign: TextAlign.right,
-                                                      style: TextStyle(
-                                                        color: amcTrn?.percentageReturn?.isNegative ?? true
-                                                            ? Colors.red
-                                                            : Colors.teal,
-                                                      ),
-                                                    ),
-                                              color: isTrnError ? colors.errorContainer : null,
-                                              valueColor: isTrnError ? colors.error : null,
-                                              borderRadius: iTileBorderRadius.copyWith(
-                                                bottomLeft: iCardBorderRadius.bottomLeft,
-                                              ),
-                                            ),
-
-                                            // ~ XIRR section
-                                            _SectionWidget(
-                                              label: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: <Widget>[
-                                                  const Skeleton.keep(child: Text('XIRR')),
-                                                  isTrnLoading || isAmcLoading
-                                                      ? const Text('Loading...')
-                                                      : FormattedDate(
-                                                          date: latestPrice?.date ?? DateTime.now(),
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: textTheme.labelSmall?.copyWith(
-                                                            color: context.theme.disabledColor,
-                                                          ),
-                                                        ),
-                                                ],
-                                              ),
-                                              value: isTrnLoading || isAmcLoading
-                                                  ? const Text('Loading...')
-                                                  : Text(
-                                                      '${((amcTrn?.xirr ?? 0) * 100).toPrecision(2)}%',
-                                                      style: TextStyle(
-                                                        color: amcTrn?.xirr?.isNegative ?? true
-                                                            ? Colors.red
-                                                            : Colors.teal,
-                                                      ),
-                                                    ),
-                                              color: isTrnError ? colors.errorContainer : null,
-                                              valueColor: isTrnError ? colors.error : null,
-                                              borderRadius: iTileBorderRadius.copyWith(
-                                                bottomRight: iCardBorderRadius.bottomRight,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-
-                  // ~ Holding Transactions Section
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
-                      child: Text('Transactions', style: context.textTheme.titleLarge, overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-
-                  // ~ Transactions list
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-                    sliver: BlocBuilder<TransactionsCubit, TransactionsState>(
-                      builder: (context, trnState) {
-                        final isLoading = trnState.isLoading;
-                        final isError = trnState.isError;
-                        final isLoaded = trnState.isLoaded;
-
-                        if (isError) {
-                          return SliverToBoxAdapter(
-                            child: Center(
-                              child: Text(
-                                'Some error occurred! Try again later.',
-                                style: TextStyle(color: context.colors.error),
-                              ),
-                            ),
-                          );
-                        }
-
-                        if (isLoaded && trnState.transactions.isEmpty) {
-                          return SliverToBoxAdapter(
-                            child: Center(
-                              child: EmptyWidget(
-                                label: Text('This is so empty.\n Add some transactions to see stats here.'),
-                              ),
-                            ),
-                          );
-                        }
-
-                        final transactions = trnState.transactions;
-                        final itemCount = isLoaded ? transactions.length : 2; // Show 2 skeleton cards while loading
-                        return SliverSkeletonizer(
-                          enabled: isLoading,
-                          child: SliverList.separated(
-                            itemCount: itemCount,
-                            itemBuilder: (context, index) {
-                              final trn = isLoaded ? transactions[index] : null;
-                              return _buildTransaction(
-                                context,
-                                trn,
-                                isFirst: index == 0,
-                                isLast: index == itemCount - 1,
-                              );
-                            },
-                            separatorBuilder: (_, _) => const Gap(2.0),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+            // ~ Holding Transactions Section
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
+                child: Text('Transactions', style: context.textTheme.titleLarge, overflow: TextOverflow.ellipsis),
               ),
             ),
 
-            const InveslyDivider(),
-            // ~ Buy/Sell Buttons
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                spacing: 16.0,
-                children: <Widget>[
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepOrange,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text('Sell'),
-                    ),
-                  ),
+            // ~ Transactions list
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+              sliver: BlocBuilder<TransactionsCubit, TransactionsState>(
+                builder: (context, trnState) {
+                  final isLoading = trnState.isLoading;
+                  final isError = trnState.isError;
+                  final isLoaded = trnState.isLoaded;
 
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal.shade500,
-                        foregroundColor: Colors.white,
+                  if (isError) {
+                    return SliverToBoxAdapter(
+                      child: Center(
+                        child: Text(
+                          'Some error occurred! Try again later.',
+                          style: TextStyle(color: context.colors.error),
+                        ),
                       ),
-                      child: const Text('Buy'),
+                    );
+                  }
+
+                  if (isLoaded && trnState.transactions.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: Center(
+                        child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')),
+                      ),
+                    );
+                  }
+
+                  final transactions = trnState.transactions;
+                  final itemCount = isLoaded ? transactions.length : 2; // Show 2 skeleton cards while loading
+                  return SliverSkeletonizer(
+                    enabled: isLoading,
+                    child: SliverList.separated(
+                      itemCount: itemCount,
+                      itemBuilder: (context, index) {
+                        final trn = isLoaded ? transactions[index] : null;
+                        return _buildTransaction(context, trn, isFirst: index == 0, isLast: index == itemCount - 1);
+                      },
+                      separatorBuilder: (_, _) => const Gap(2.0),
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -548,6 +211,320 @@ class _AmcOverviewPageContent extends StatelessWidget {
   }
 }
 
+class _AmcOverviewSection extends StatelessWidget {
+  const _AmcOverviewSection({super.key});
+
+  static const double _spacing = 2.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
+        builder: (context, amcState) {
+          final bla = amcState.stat?.amc;
+
+          if (amcState.status == AmcOverviewStatus.error) {}
+
+          return Column(
+            spacing: _spacing,
+            children: <Widget>[
+              // ~ AMC Details
+              SimpleCard(
+                color: colors.primaryContainer.darken(3.0),
+                elevation: 0.0,
+                borderRadius: iCardBorderRadius.copyWith(
+                  bottomLeft: iTileBorderRadius.bottomLeft,
+                  bottomRight: iTileBorderRadius.bottomRight,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 52.0, minWidth: double.infinity),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 12.0,
+                      children: <Widget>[
+                        // ~ Amc Name
+                        Text(
+                          amc.name,
+                          style: textTheme.titleLarge,
+                          textAlign: TextAlign.start,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                        ),
+
+                        // ~ Chips (tags)
+                        Wrap(
+                          spacing: 6.0,
+                          runSpacing: 4.0,
+                          children: <Widget>[
+                            if (amc.genre != null)
+                              SimpleChip(
+                                title: Text(amc.genre!.title),
+                                color: context.colors.primary,
+                                titleColor: context.colors.onPrimary,
+                              ),
+
+                            if (amc.tags != null && amc.tags!.isNotEmpty)
+                              ...amc.tags!.map((tag) {
+                                if (tag.isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
+
+                                return SimpleChip(
+                                  title: Text(tag),
+                                  color: context.colors.tertiary,
+                                  titleColor: context.colors.onTertiary,
+                                );
+                              }),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // ~ Stats Section
+              BlocBuilder<TransactionsCubit, TransactionsState>(
+                builder: (context, trnState) {
+                  $logger.d(trnState.transactions);
+                  final isTrnError = trnState.isError;
+                  final isTrnLoading = trnState.isLoading;
+                  final latestPrice = amc.ltp;
+                  final amcTrn = trnState.isLoaded
+                      ? AmcTransaction(amc: amc, transactions: trnState.transactions)
+                      : null;
+
+                  // Save xirr in database
+                  if (amcTrn != null && amcTrn.xirr != null) {
+                    final latestXirr = LatestXirr(value: amcTrn.xirr!, date: DateTime.now().startOfDay);
+                    AmcRepository.instance.saveXirr(amcTrn.amc, latestXirr);
+                  }
+
+                  return Skeletonizer(
+                    // enabled: isTrnLoading,
+                    child: Column(
+                      spacing: _spacing,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          mainAxisSpacing: _spacing,
+                          crossAxisSpacing: _spacing,
+                          mainAxisExtent: 104.0,
+                          children: <Widget>[
+                            // ~ No. of units section
+                            Skeleton.keep(
+                              child: _SectionWidget(
+                                label: const Text('No. of units'),
+                                value: Text('${widget.stat.totalQuantity.toPrecision(4)}'),
+                              ),
+                            ),
+
+                            // ~ Avg. price section
+                            Skeleton.keep(
+                              child: _SectionWidget(
+                                label: const Text('Average price'),
+                                value: BlocSelector<AppCubit, AppState, bool>(
+                                  selector: (state) => state.isPrivateMode,
+                                  builder: (context, isPrivateMode) {
+                                    return CurrencyView(
+                                      amount: widget.stat.averageBuyPrice,
+                                      privateMode: isPrivateMode,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+
+                            // ~ Invested amount section
+                            Skeleton.keep(
+                              child: _SectionWidget(
+                                label: const Text('Invested amount'),
+                                value: BlocSelector<AppCubit, AppState, bool>(
+                                  selector: (state) => state.isPrivateMode,
+                                  builder: (context, isPrivateMode) {
+                                    return CurrencyView(amount: widget.stat.totalInvested, privateMode: isPrivateMode);
+                                  },
+                                ),
+                              ),
+                            ),
+
+                            // ~ Current value
+                            _SectionWidget(
+                              label: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  const Skeleton.keep(child: Text('Current value')),
+                                  isTrnLoading || isAmcLoading
+                                      ? const Text('Loading...')
+                                      : FormattedDate(
+                                          date: latestPrice?.date ?? DateTime.now(),
+                                          overflow: TextOverflow.ellipsis,
+                                          style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
+                                        ),
+                                ],
+                              ),
+                              value: isTrnLoading || isAmcLoading
+                                  ? const Text('Loading...')
+                                  : BlocSelector<AppCubit, AppState, bool>(
+                                      selector: (state) => state.isPrivateMode,
+                                      builder: (context, isPrivateMode) {
+                                        return CurrencyView(
+                                          amount: amcTrn?.totalCurrentValue ?? 0.0,
+                                          style: textTheme.headlineLarge,
+                                          decimalsStyle: textTheme.headlineSmall,
+                                          currencyStyle: textTheme.bodyMedium,
+                                          privateMode: isPrivateMode,
+                                          // compactView: snapshot.data! >= 1_00_00_000
+                                        );
+                                      },
+                                    ),
+                              color: isTrnError ? colors.errorContainer : null,
+                              valueColor: isTrnError ? colors.error : null,
+                            ),
+
+                            // ~ Latest NAV (Mkt. price) sections
+                            _SectionWidget(
+                              label: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  const Skeleton.keep(child: Text('Latest NAV')),
+                                  isAmcLoading
+                                      ? const Text('Loading...')
+                                      : FormattedDate(
+                                          date: latestPrice?.date ?? DateTime.now(),
+                                          overflow: TextOverflow.ellipsis,
+                                          style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
+                                        ),
+                                ],
+                              ),
+                              value: isAmcLoading
+                                  ? const Text('Loading...')
+                                  : BlocSelector<AppCubit, AppState, bool>(
+                                      selector: (state) => state.isPrivateMode,
+                                      builder: (context, isPrivateMode) {
+                                        return CurrencyView(
+                                          amount: latestPrice?.price ?? 0.0,
+                                          privateMode: isPrivateMode,
+                                        );
+                                      },
+                                    ),
+                              color: isTrnError ? colors.errorContainer : null,
+                              valueColor: isTrnError ? colors.error : null,
+                            ),
+
+                            // ~ Amount return sections
+                            _SectionWidget(
+                              label: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  const Skeleton.keep(child: Text('Return')),
+                                  isTrnLoading || isAmcLoading
+                                      ? const Text('Loading...')
+                                      : FormattedDate(
+                                          date: latestPrice?.date ?? DateTime.now(),
+                                          overflow: TextOverflow.ellipsis,
+                                          style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
+                                        ),
+                                ],
+                              ),
+                              value: isTrnLoading || isAmcLoading
+                                  ? const Text('Loading...')
+                                  : BlocSelector<AppCubit, AppState, bool>(
+                                      selector: (state) => state.isPrivateMode,
+                                      builder: (context, isPrivateMode) {
+                                        final returns = amcTrn?.amountReturn;
+                                        return CurrencyView(
+                                          amount: returns ?? 0.0,
+                                          privateMode: isPrivateMode,
+                                          style: TextStyle(
+                                            color: returns?.isNegative ?? true ? Colors.red : Colors.teal,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                              color: isTrnError ? colors.errorContainer : null,
+                              valueColor: isTrnError ? colors.error : null,
+                            ),
+
+                            // ~ Percentage returns sections
+                            _SectionWidget(
+                              label: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  const Skeleton.keep(child: Text('Total returns')),
+                                  isTrnLoading || isAmcLoading
+                                      ? const Text('Loading...')
+                                      : FormattedDate(
+                                          date: latestPrice?.date ?? DateTime.now(),
+                                          overflow: TextOverflow.ellipsis,
+                                          style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
+                                        ),
+                                ],
+                              ),
+                              value: isTrnLoading || isAmcLoading
+                                  ? const Text('Loading...')
+                                  : Text(
+                                      '${amcTrn?.percentageReturn?.toPrecision(2) ?? 0}%',
+                                      textAlign: TextAlign.right,
+                                      style: TextStyle(
+                                        color: amcTrn?.percentageReturn?.isNegative ?? true ? Colors.red : Colors.teal,
+                                      ),
+                                    ),
+                              color: isTrnError ? colors.errorContainer : null,
+                              valueColor: isTrnError ? colors.error : null,
+                              borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
+                            ),
+
+                            // ~ XIRR section
+                            _SectionWidget(
+                              label: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  const Skeleton.keep(child: Text('XIRR')),
+                                  isTrnLoading || isAmcLoading
+                                      ? const Text('Loading...')
+                                      : FormattedDate(
+                                          date: latestPrice?.date ?? DateTime.now(),
+                                          overflow: TextOverflow.ellipsis,
+                                          style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
+                                        ),
+                                ],
+                              ),
+                              value: isTrnLoading || isAmcLoading
+                                  ? const Text('Loading...')
+                                  : Text(
+                                      '${((amcTrn?.xirr ?? 0) * 100).toPrecision(2)}%',
+                                      style: TextStyle(
+                                        color: amcTrn?.xirr?.isNegative ?? true ? Colors.red : Colors.teal,
+                                      ),
+                                    ),
+                              color: isTrnError ? colors.errorContainer : null,
+                              valueColor: isTrnError ? colors.error : null,
+                              borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _SectionWidget extends StatelessWidget {
   const _SectionWidget({
     super.key,
@@ -589,19 +566,16 @@ class _SectionWidget extends StatelessWidget {
       color: color ?? theme.canvasColor.lighten(3),
       shadowColor: theme.colorScheme.shadow,
       borderRadius: borderRadius ?? iTileBorderRadius,
-      child: SizedBox(
-        height: 96.0,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            spacing: contentSpacing ?? 0.0,
-            children: <Widget>[
-              labelText,
-              Align(alignment: Alignment.bottomRight, child: valueText),
-            ],
-          ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          spacing: contentSpacing ?? 0.0,
+          children: <Widget>[
+            labelText,
+            Align(alignment: Alignment.bottomRight, child: valueText),
+          ],
         ),
       ),
     );
