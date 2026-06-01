@@ -70,8 +70,9 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
                     providers: [
                       BlocProvider(create: (_) => AmcOverviewCubit(stat: stat)..getLatestPrice()),
                       BlocProvider(
-                        create: (_) => TransactionsCubit(repository: TransactionRepository.instance),
-                        // ..fetchTransactions(accountId: widget.accountId, amcId: widget.amcId),
+                        create: (_) =>
+                            TransactionsCubit(repository: TransactionRepository.instance)
+                              ..fetchTransactions(accountId: widget.accountId, amcId: widget.amcId),
                       ),
                     ],
                     child: _AmcOverviewPageContent(),
@@ -119,8 +120,6 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
           padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
           sliver: BlocBuilder<TransactionsCubit, TransactionsState>(
             builder: (context, trnState) {
-              final isLoaded = trnState.isLoaded;
-
               if (trnState.isError) {
                 return SliverToBoxAdapter(
                   child: Center(
@@ -129,7 +128,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                 );
               }
 
-              if (isLoaded) {
+              if (trnState.isLoaded) {
                 if (trnState.transactions.isEmpty) {
                   return SliverToBoxAdapter(
                     child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')),
@@ -150,15 +149,14 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
 
               return SliverToBoxAdapter(
                 child: Skeletonizer(
-                  enabled: trnState.isLoading,
+                  enabled: trnState.isLoading || trnState.isInitial,
                   child: Section(
                     tiles: List.generate(3, (_) {
-                      return Skeleton.leaf(
-                        child: SectionTile(
-                          title: Text('Loading...'),
-                          subtitle: Text('Loading...'),
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                        ),
+                      return const SectionTile(
+                        title: Text('Loading...'),
+                        subtitle: Text('Loading...'),
+                        icon: Bone.circle(size: 32.0),
+                        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                       );
                     }),
                     margin: EdgeInsets.zero,
@@ -172,7 +170,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
     );
   }
 
-  Widget _buildTransaction(BuildContext context, InveslyTransaction? trn, {bool? isFirst, bool? isLast}) {
+  Widget _buildTransaction(BuildContext context, InveslyTransaction trn, {bool? isFirst, bool? isLast}) {
     final textTheme = context.textTheme;
     BorderRadius tileRadius = iTileBorderRadius;
 
@@ -188,46 +186,32 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
     }
 
     return SectionTile(
-      title: trn != null
-          ? FormattedDate(
-              date: trn.investedOn,
-              style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
-            )
-          : const Text('Loading...'),
-      subtitle: trn != null
-          ? Text('${trn.quantity?.toPrecision(2) ?? ''} units | ₹${trn.rate?.toPrecision(2)}') // TODO: Fix this
-          : const Text('Loading...'),
-      icon: Skeleton.leaf(
-        child: PhysicalModel(
-          shape: BoxShape.circle,
-          color: trn != null
-              ? trn.totalAmount.isNegative
-                    ? Colors.red.lighten(60)
-                    : Colors.teal.lighten(60)
-              : Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: trn != null
-                ? Icon(
-                    trn.totalAmount.isNegative ? Icons.south_east_rounded : Icons.north_east_rounded,
-                    color: trn.totalAmount.isNegative ? Colors.red : Colors.teal,
-                  )
-                : const Bone.icon(),
+      title: FormattedDate(
+        date: trn.investedOn,
+        style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
+      ),
+      subtitle: Text('${trn.quantity?.toPrecision(2) ?? ''} units | ₹${trn.rate?.toPrecision(2)}'), // TODO: Fix this
+      icon: PhysicalModel(
+        shape: BoxShape.circle,
+        color: trn.totalAmount.isNegative ? Colors.red.lighten(60) : Colors.teal.lighten(60),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Icon(
+            trn.totalAmount.isNegative ? Icons.south_east_rounded : Icons.north_east_rounded,
+            color: trn.totalAmount.isNegative ? Colors.red : Colors.teal,
           ),
         ),
       ),
-      secondaryIcon: trn != null
-          ? BlocSelector<AppCubit, AppState, bool>(
-              selector: (state) => state.isPrivateMode,
-              builder: (context, isPrivateMode) {
-                return CurrencyView(
-                  amount: trn.totalAmount,
-                  privateMode: isPrivateMode,
-                  style: textTheme.titleLarge?.copyWith(color: trn.totalAmount > 0 ? Colors.teal : Colors.red),
-                );
-              },
-            )
-          : Text('Loading...', style: textTheme.titleLarge),
+      secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
+        selector: (state) => state.isPrivateMode,
+        builder: (context, isPrivateMode) {
+          return CurrencyView(
+            amount: trn.totalAmount,
+            privateMode: isPrivateMode,
+            style: textTheme.titleLarge?.copyWith(color: trn.totalAmount > 0 ? Colors.teal : Colors.red),
+          );
+        },
+      ),
       borderRadius: tileRadius,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
     );
@@ -592,7 +576,7 @@ class _AmcOverviewSection extends StatelessWidget {
                                 if (transactionsForXirr.isNotEmpty) {
                                   transactionsForXirr.add(
                                     xf.Transaction(
-                                      -amcState.totalCurrentValue!,
+                                      -(amcState.totalCurrentValue!),
                                       amcState.ltp!.date ?? amcState.ltp!.fetchDate,
                                     ),
                                   );
