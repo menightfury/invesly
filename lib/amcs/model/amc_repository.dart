@@ -123,7 +123,7 @@ class AmcRepository {
     LatestPrice? ltp = amc.ltp;
     // if latest price is available and is fetched today, return it
     if (ltp?.fetchDate.isToday ?? false) {
-      return amc.ltp;
+      return ltp;
     }
 
     // if latest price is not available or is outdated, fetch from network
@@ -132,15 +132,13 @@ class AmcRepository {
     try {
       final response = await client.get(Uri.parse(uri));
 
-      if (response.statusCode != 200 && response.body.isEmpty) {
-        return null;
-      }
-
       // If the server did return a 200 OK response, parse the JSON.
-      final parsed = jsonDecode(response.body) as Map<String, dynamic>;
-      ltp = amc.fromLtpMap(parsed);
-      if (ltp != null) {
-        saveLatestPrice(amc, ltp);
+      if (response.statusCode == 200 && response.body.isNotEmpty) {
+        final parsed = jsonDecode(response.body) as Map<String, dynamic>;
+        ltp = amc.fromLtpMap(parsed);
+        if (ltp != null) {
+          saveLatestPrice(amc, ltp);
+        }
       }
     } catch (err) {
       $logger.e(err);

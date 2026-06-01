@@ -674,7 +674,7 @@ class _HoldingStatCard extends StatelessWidget {
             // final prevStat = prev.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
             // final currStat = curr.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
             // return prevStat != currStat || prevStat?.amc.ltp != currStat?.amc.ltp;
-            return prev.status != curr.status;
+            return prev.ltpStatus != curr.ltpStatus;
           },
           builder: (context, genreState) {
             $logger.i('Rebuilding LTP-dependent widget for AMC ${stat.amc.name} with state: $genreState');
@@ -785,7 +785,8 @@ class _HoldingStatCard extends StatelessWidget {
 
     if (genreState.isLtpLoaded) {
       final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
-      final percentageReturns = stat_?.percentageReturn ?? 0.0;
+      // final percentageReturns = stat_?.percentageReturn ?? 0.0;
+      final percentageReturns = 0.0;
 
       return Text(
         percentageReturns > 0 ? '${percentageReturns.toPrecisionDouble(2)}%' : '(0.00%)',
@@ -805,7 +806,8 @@ class _HoldingStatCard extends StatelessWidget {
 
     if (genreState.isLtpLoaded) {
       final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
-      final returns = stat_?.amountReturn ?? 0;
+      // final returns = stat_?.amountReturn ?? 0;
+      final returns = 0;
 
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
@@ -824,15 +826,17 @@ class _HoldingStatCard extends StatelessWidget {
 
   Widget _buildCurrentValue(BuildContext context, GenreDetailsState genreState) {
     if (genreState.isLtpError) {
-      return Text('N/A', overflow: TextOverflow.ellipsis);
+      return const Text('N/A', overflow: TextOverflow.ellipsis);
     }
 
     if (genreState.isLtpLoaded) {
       final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
+      final ltp = genreState.latestPrices[stat.amc.id]?.price;
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
-          return CurrencyView(amount: stat_?.currentValue ?? 0, privateMode: isPrivateMode);
+          // return CurrencyView(amount: stat_?.currentValue ?? 0, privateMode: isPrivateMode);
+          return CurrencyView(amount: 0, privateMode: isPrivateMode);
         },
       );
     }

@@ -8,9 +8,9 @@ import 'package:invesly/common_libs.dart';
 part 'amc_overview_state.dart';
 
 class AmcOverviewCubit extends Cubit<AmcOverviewState> {
-  AmcOverviewCubit({required String amcId, required AmcStat stat})
+  AmcOverviewCubit({required AmcStat stat})
     : _amcRepository = AmcRepository.instance,
-      super(AmcOverviewState(amcId: amcId, stat: stat));
+      super(AmcOverviewState(stat: stat));
 
   final AmcRepository _amcRepository;
 

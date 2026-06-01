@@ -21,21 +21,6 @@ class AmcStat extends Equatable {
 
   double get averageBuyPrice => totalInvested / totalQuantity;
 
-  double? get currentValue {
-    if (amc.ltp == null) return null;
-    return amc.ltp!.price * totalQuantity;
-  }
-
-  double? get amountReturn {
-    if (currentValue == null) return null;
-    return currentValue! - totalInvested;
-  }
-
-  double? get percentageReturn {
-    if (amountReturn == null || totalInvested == 0) return null;
-    return (amountReturn! / totalInvested) * 100;
-  }
-
   AmcStat copyWith({
     String? accountId,
     InveslyAmc? amc,

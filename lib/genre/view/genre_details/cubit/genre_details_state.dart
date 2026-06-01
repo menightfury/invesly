@@ -53,27 +53,39 @@ class HoldingSortAndFilterStatus extends Equatable {
 
 class GenreDetailsState extends Equatable {
   const GenreDetailsState({
-    this.status = LatestPriceStatus.initial,
     required this.genre,
     this.activeAccountId,
     this.stats = const [],
+    this.ltpStatus = LatestPriceStatus.initial,
+    this.latestPrices = const {},
     this.errorMsg,
     this.sortAndFilterStatus = const HoldingSortAndFilterStatus(),
   });
 
-  final LatestPriceStatus status;
   final AmcGenre genre;
   final String? activeAccountId;
   final List<AmcStat> stats;
+  final LatestPriceStatus ltpStatus;
+  final Map<String, LatestPrice> latestPrices;
   final String? errorMsg;
   final HoldingSortAndFilterStatus sortAndFilterStatus;
 
   int get totalHoldings => stats.length;
   int get presentHoldings => stats.where((stat) => stat.totalQuantity > 0).length;
-  double get totalCurrentAmount => stats.fold<double>(0, (v, el) => v + (el.currentValue ?? 0.0));
   double get totalInvested => stats.fold<double>(0, (v, el) => v + el.totalInvested);
   double get totalRedeemed => stats.fold<double>(0, (v, el) => v + el.totalRedeemed);
-  double get totalReturns => stats.fold<double>(0, (v, el) => v + (el.amountReturn ?? 0.0));
+
+  Map<String, double> get currentAmounts {
+    final map = <String, double>{};
+    for (var i = 0; i < stats.length; i++) {
+      final stat = stats[i];
+      map[stat.amc.id] = stat.totalQuantity * (latestPrices[stat.amc.id]?.price ?? 0.0);
+    }
+    return map;
+  }
+
+  double get totalCurrentAmount => currentAmounts.values.fold<double>(0, (v, el) => v + el);
+  double get totalReturns => totalCurrentAmount - totalInvested;
 
   List<AmcStat> get displayStats {
     if (stats.isEmpty) return stats;
@@ -101,16 +113,14 @@ class GenreDetailsState extends Equatable {
           break;
 
         case HoldingSortOption.currentValue:
-          // final aVal = currentAmounts[a.amc?.id] ?? 0.0;
-          // final bVal = currentAmounts[b.amc?.id] ?? 0.0;
-          final aVal = a.currentValue ?? 0.0;
-          final bVal = b.currentValue ?? 0.0;
+          final aVal = currentAmounts[a.amc.id] ?? 0.0;
+          final bVal = currentAmounts[b.amc.id] ?? 0.0;
           result = aVal.compareTo(bVal);
           break;
 
         case HoldingSortOption.returns:
-          final aReturns = a.amountReturn ?? 0.0;
-          final bReturns = b.amountReturn ?? 0.0;
+          final aReturns = (currentAmounts[a.amc.id] ?? 0.0) - a.totalInvested;
+          final bReturns = (currentAmounts[b.amc.id] ?? 0.0) - b.totalInvested;
           result = aReturns.compareTo(bReturns);
           break;
 
@@ -139,7 +149,7 @@ class GenreDetailsState extends Equatable {
   }) {
     return GenreDetailsState(
       genre: genre ?? this.genre,
-      status: status ?? this.status,
+      ltpStatus: status ?? this.ltpStatus,
       activeAccountId: activeAccountId ?? this.activeAccountId,
       stats: stats ?? this.stats,
       errorMsg: errorMsg ?? this.errorMsg,
@@ -148,12 +158,12 @@ class GenreDetailsState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, genre, activeAccountId, stats, errorMsg, sortAndFilterStatus];
+  List<Object?> get props => [ltpStatus, genre, activeAccountId, stats, errorMsg, sortAndFilterStatus];
 }
 
 extension GenreDetailsStateX on GenreDetailsState {
   // bool get isLtpInitial => status == LatestPriceStatus.initial;
-  bool get isLtpLoading => status == LatestPriceStatus.loading;
-  bool get isLtpLoaded => status == LatestPriceStatus.loaded;
-  bool get isLtpError => status == LatestPriceStatus.error;
+  bool get isLtpLoading => ltpStatus == LatestPriceStatus.loading;
+  bool get isLtpLoaded => ltpStatus == LatestPriceStatus.loaded;
+  bool get isLtpError => ltpStatus == LatestPriceStatus.error;
 }

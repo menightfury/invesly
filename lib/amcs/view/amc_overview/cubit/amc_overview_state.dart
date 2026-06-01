@@ -2,22 +2,32 @@
 part of 'amc_overview_cubit.dart';
 
 class AmcOverviewState extends Equatable {
-  const AmcOverviewState({
-    required this.amcId,
-    this.ltpStatus = LatestPriceStatus.initial,
-    required this.stat,
-    this.ltp,
-    this.errorMsg,
-  });
+  const AmcOverviewState({required this.stat, this.ltpStatus = LatestPriceStatus.initial, this.ltp, this.errorMsg});
 
-  final String amcId;
-  final LatestPriceStatus ltpStatus;
   final AmcStat stat;
+  final LatestPriceStatus ltpStatus;
   final LatestPrice? ltp;
   final String? errorMsg;
 
+  double get averageBuyPrice => stat.totalInvested / stat.totalQuantity;
+
+  double? get totalCurrentValue {
+    if (ltp == null) return null;
+    return ltp!.price * stat.totalQuantity;
+  }
+
+  double? get amountReturn {
+    if (totalCurrentValue == null) return null;
+    return totalCurrentValue! - stat.totalInvested;
+  }
+
+  double? get percentageReturn {
+    if (amountReturn == null || stat.totalInvested == 0) return null;
+    return (amountReturn! / stat.totalInvested) * 100;
+  }
+
   @override
-  List<Object?> get props => [amcId, ltpStatus, stat, ltp, errorMsg];
+  List<Object?> get props => [stat, ltpStatus, ltp, errorMsg];
 
   AmcOverviewState copyWith({
     String? amcId,
@@ -27,7 +37,6 @@ class AmcOverviewState extends Equatable {
     String? errorMsg,
   }) {
     return AmcOverviewState(
-      amcId: amcId ?? this.amcId,
       ltpStatus: ltpStatus ?? this.ltpStatus,
       stat: stat ?? this.stat,
       ltp: ltp ?? this.ltp,
