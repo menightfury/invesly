@@ -9,10 +9,16 @@ class AmcOverviewState extends Equatable {
   final LatestPrice? ltp;
   final String? errorMsg;
 
-  double get averageBuyPrice => stat.totalInvested / stat.totalQuantity;
+  double get averageBuyPrice {
+    if (stat.totalQuantity == 0) return 0;
+    return stat.totalInvested / stat.totalQuantity;
+  }
 
   double? get totalCurrentValue {
     if (ltp == null) return null;
+
+    if (stat.totalQuantity == 0) return 0;
+
     return ltp!.price * stat.totalQuantity;
   }
 

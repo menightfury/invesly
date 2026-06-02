@@ -14,35 +14,15 @@ class AmcOverviewCubit extends Cubit<AmcOverviewState> {
 
   final AmcRepository _amcRepository;
 
-  // Future<void> getStat() async {
-  //   if (state.stat != null) {
-  //     emit(state.copyWith(status: AmcOverviewStatus.loaded));
-  //     return;
-  //   }
-
-  //   emit(state.copyWith(status: AmcOverviewStatus.loading));
-  //   try {
-  //     final stat = await _statRepository.getStat(accountId: state.accountId, amcId: state.amcId);
-  //     emit(state.copyWith(status: AmcOverviewStatus.loaded, stat: stat));
-  //   } on Exception catch (error) {
-  //     emit(state.copyWith(status: AmcOverviewStatus.error, errorMsg: error.toString()));
-  //   }
-  // }
-
   Future<void> getLatestPrice() async {
-    // Get latest price for amc if quantity > 0,
-    // this is required to calculate current amount and other metrics
-    if (state.stat.totalQuantity > 0) {
-      try {
-        final ltp = await _amcRepository.getLatestPrice(state.stat.amc);
+    try {
+      final ltp = await _amcRepository.getLatestPrice(state.stat.amc);
 
-        if (ltp == null) return;
-        // final newStat = state.stat.copyWith(amc: state.stat.amc.copyWith(ltp: ltp));
+      if (ltp == null) return;
 
-        emit(state.copyWith(ltpStatus: LatestPriceStatus.loaded, ltp: ltp));
-      } catch (err) {
-        emit(state.copyWith(ltpStatus: LatestPriceStatus.error, errorMsg: err.toString()));
-      }
+      emit(state.copyWith(ltpStatus: LatestPriceStatus.loaded, ltp: ltp));
+    } catch (err) {
+      emit(state.copyWith(ltpStatus: LatestPriceStatus.error, errorMsg: err.toString()));
     }
   }
 }

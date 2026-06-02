@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
@@ -41,7 +43,11 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: <Widget>[
-            const SliverAppBar(title: Text('Holding details'), floating: true, snap: true),
+            const SliverAppBar(
+              title: Text('Holding details', overflow: TextOverflow.ellipsis),
+              floating: true,
+              snap: true,
+            ),
             BlocBuilder<AmcStatCubit, AmcStatState>(
               builder: (context, statState) {
                 if (statState.isError) {
@@ -62,7 +68,12 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
                   if (stat == null) {
                     return SliverFillRemaining(
                       hasScrollBody: false,
-                      child: EmptyWidget(label: Text('This is so empty!\nAdd some transactions to see stats here.')),
+                      child: EmptyWidget(
+                        label: Text(
+                          'This is so empty!\nAdd some transactions to see stats here.',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     );
                   }
 
@@ -80,7 +91,9 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
                 }
 
                 return SliverToBoxAdapter(
-                  child: Center(child: LoadingAnimationWidget.newtonCradle(color: context.colors.primary, size: 48.0)),
+                  child: Center(
+                    child: LoadingAnimationWidget.staggeredDotsWave(color: context.colors.primary, size: 48.0),
+                  ),
                 );
               },
             ),
@@ -123,7 +136,11 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
               if (trnState.isError) {
                 return SliverToBoxAdapter(
                   child: Center(
-                    child: Text('Some error occurred! Try again later.', style: TextStyle(color: context.colors.error)),
+                    child: Text(
+                      'Some error occurred! Try again later.',
+                      style: TextStyle(color: context.colors.error),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 );
               }
@@ -131,7 +148,12 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
               if (trnState.isLoaded) {
                 if (trnState.transactions.isEmpty) {
                   return SliverToBoxAdapter(
-                    child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')),
+                    child: EmptyWidget(
+                      label: Text(
+                        'This is so empty.\n Add some transactions to see stats here.',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   );
                 }
 
@@ -147,11 +169,11 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                 );
               }
 
+              final numTransactions = context.read<AmcOverviewCubit>().state.stat.numTransactions;
               return SliverToBoxAdapter(
                 child: Skeletonizer(
-                  enabled: trnState.isLoading || trnState.isInitial,
                   child: Section(
-                    tiles: List.generate(3, (_) {
+                    tiles: List.generate(math.min(numTransactions, 3), (_) {
                       return const SectionTile(
                         title: Text('Loading...'),
                         subtitle: Text('Loading...'),
@@ -190,7 +212,10 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
         date: trn.investedOn,
         style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
       ),
-      subtitle: Text('${trn.quantity?.toPrecision(2) ?? ''} units | ₹${trn.rate?.toPrecision(2)}'), // TODO: Fix this
+      subtitle: Text(
+        '${trn.quantity?.toPrecision(2) ?? ''} units | ₹${trn.rate?.toPrecision(2)}',
+        overflow: TextOverflow.ellipsis,
+      ), // TODO: Fix this
       icon: PhysicalModel(
         shape: BoxShape.circle,
         color: trn.totalAmount.isNegative ? Colors.red.lighten(60) : Colors.teal.lighten(60),
@@ -270,7 +295,7 @@ class _AmcOverviewSection extends StatelessWidget {
                           children: <Widget>[
                             if (amc.genre != null)
                               SimpleChip(
-                                title: Text(amc.genre!.title),
+                                title: Text(amc.genre!.title, overflow: TextOverflow.ellipsis),
                                 color: context.colors.primary,
                                 titleColor: context.colors.onPrimary,
                               ),
@@ -282,7 +307,7 @@ class _AmcOverviewSection extends StatelessWidget {
                                 }
 
                                 return SimpleChip(
-                                  title: Text(tag),
+                                  title: Text(tag, overflow: TextOverflow.ellipsis),
                                   color: context.colors.tertiary,
                                   titleColor: context.colors.onTertiary,
                                 );
@@ -314,11 +339,11 @@ class _AmcOverviewSection extends StatelessWidget {
                     // ~ No. of units
                     Skeleton.keep(
                       child: _SectionWidget(
-                        label: const Text('No. of units'),
+                        label: const Text('Available units', overflow: TextOverflow.ellipsis),
                         value: BlocSelector<AmcOverviewCubit, AmcOverviewState, AmcStat>(
                           selector: (state) => state.stat,
                           builder: (context, stat) {
-                            return Text('${stat.totalQuantity.toPrecision(4)}');
+                            return Text('${stat.totalQuantity.toPrecision(4)}', overflow: TextOverflow.ellipsis);
                           },
                         ),
                       ),
@@ -327,7 +352,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     // ~ Avg. price
                     Skeleton.keep(
                       child: _SectionWidget(
-                        label: const Text('Average price'),
+                        label: const Text('Average price', overflow: TextOverflow.ellipsis),
                         value: BlocSelector<AmcOverviewCubit, AmcOverviewState, AmcStat>(
                           selector: (state) => state.stat,
                           builder: (context, stat) {
@@ -348,7 +373,7 @@ class _AmcOverviewSection extends StatelessWidget {
                         selector: (state) => state.stat,
                         builder: (context, stat) {
                           return _SectionWidget(
-                            label: const Text('Invested amount'),
+                            label: const Text('Invested amount', overflow: TextOverflow.ellipsis),
                             value: BlocSelector<AppCubit, AppState, bool>(
                               selector: (state) => state.isPrivateMode,
                               builder: (context, isPrivate) {
@@ -372,7 +397,7 @@ class _AmcOverviewSection extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                const Text('Latest NAV'),
+                                const Text('Latest NAV', overflow: TextOverflow.ellipsis),
                                 FormattedDate(
                                   date: state.ltp?.date ?? DateTime.now(),
                                   overflow: TextOverflow.ellipsis,
@@ -382,7 +407,7 @@ class _AmcOverviewSection extends StatelessWidget {
                             ),
                           ),
                           value: () {
-                            if (isError) return const Text('N/A');
+                            if (isError) return const Text('N/A', overflow: TextOverflow.ellipsis);
 
                             if (state.isLtpLoaded && state.ltp != null) {
                               return BlocSelector<AppCubit, AppState, bool>(
@@ -414,7 +439,7 @@ class _AmcOverviewSection extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
-                                const Text('Current value'),
+                                const Text('Current value', overflow: TextOverflow.ellipsis),
                                 FormattedDate(
                                   date: state.ltp?.date ?? DateTime.now(),
                                   overflow: TextOverflow.ellipsis,
@@ -424,7 +449,7 @@ class _AmcOverviewSection extends StatelessWidget {
                             ),
                           ),
                           value: () {
-                            if (isError) return const Text('N/A');
+                            if (isError) return const Text('N/A', overflow: TextOverflow.ellipsis);
 
                             if (state.isLtpLoaded && state.ltp != null) {
                               final color = (state.amountReturn?.isNegative ?? true) ? Colors.red : Colors.teal;
@@ -465,7 +490,7 @@ class _AmcOverviewSection extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                const Text('Return'),
+                                const Text('Return', overflow: TextOverflow.ellipsis),
                                 FormattedDate(
                                   date: state.ltp?.date ?? DateTime.now(),
                                   overflow: TextOverflow.ellipsis,
@@ -475,7 +500,7 @@ class _AmcOverviewSection extends StatelessWidget {
                             ),
                           ),
                           value: () {
-                            if (isError) return const Text('N/A');
+                            if (isError) return const Text('N/A', overflow: TextOverflow.ellipsis);
 
                             if (state.isLtpLoaded && state.ltp != null) {
                               final returns = state.amountReturn;
@@ -511,7 +536,7 @@ class _AmcOverviewSection extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                const Text('Total returns'),
+                                const Text('Total returns', overflow: TextOverflow.ellipsis),
                                 FormattedDate(
                                   date: state.ltp?.date ?? DateTime.now(),
                                   overflow: TextOverflow.ellipsis,
@@ -521,12 +546,13 @@ class _AmcOverviewSection extends StatelessWidget {
                             ),
                           ),
                           value: () {
-                            if (isError) return Text('N/A');
+                            if (isError) return Text('N/A', overflow: TextOverflow.ellipsis);
 
                             if (state.isLtpLoaded && state.ltp != null) {
                               final returns = state.percentageReturn;
                               return Text(
                                 '${returns?.toPrecision(2) ?? 0}%',
+                                overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.right,
                                 style: TextStyle(color: (returns?.isNegative ?? true) ? Colors.red : Colors.teal),
                               );
@@ -554,7 +580,7 @@ class _AmcOverviewSection extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
-                                const Text('XIRR'),
+                                const Text('XIRR', overflow: TextOverflow.ellipsis),
                                 FormattedDate(
                                   date: amcState.ltp?.date ?? DateTime.now(),
                                   overflow: TextOverflow.ellipsis,
@@ -564,13 +590,17 @@ class _AmcOverviewSection extends StatelessWidget {
                             ),
                           ),
                           value: () {
-                            if (isLtpError) return Text('N/A');
+                            if (isLtpError) return Text('N/A', overflow: TextOverflow.ellipsis);
 
                             if (amcState.isLtpLoaded && amcState.ltp != null) {
                               return BlocBuilder<TransactionsCubit, TransactionsState>(
                                 builder: (context, trnState) {
                                   if (trnState.isError) {
-                                    return Text('N/A', style: TextStyle(color: colors.error));
+                                    return Text(
+                                      'N/A',
+                                      style: TextStyle(color: colors.error),
+                                      overflow: TextOverflow.ellipsis,
+                                    );
                                   }
 
                                   if (trnState.isLoaded) {
@@ -606,6 +636,7 @@ class _AmcOverviewSection extends StatelessWidget {
                                     return Text(
                                       xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
                                       style: TextStyle(color: (xirr?.isNegative ?? true) ? Colors.red : Colors.teal),
+                                      overflow: TextOverflow.ellipsis,
                                     );
                                   }
 
