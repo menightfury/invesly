@@ -31,58 +31,48 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     await _subscription?.cancel();
     _subscription = null;
 
-    // DateTimeRange? dateRange;
-    // if (start != null || end != null) {
-    //   dateRange = DateTimeRange(start: start ?? DateTime(1970), end: end ?? DateTime.now());
-    // }
+    // Get initial transactions
+    await _getTransactions(accountId: accountId, genre: genre, amcId: amcId, dateRange: dateRange, limit: limit);
 
-    // // Get initial transactions
-    // emit(state.copyWith(status: TransactionsStatus.loading));
-    // try {
-    //   final transactions = await _repository.getTransactions(
-    //     accountId: accountId,
-    //     amcId: amcId,
-    //     genre: genre,
-    //     dateRange: dateRange,
-    //     limit: limit,
-    //   );
-    //   if (isClosed) return;
-    //   emit(state.copyWith(status: TransactionsStatus.loaded, transactions: transactions));
-    // } on Exception catch (err) {
-    //   emit(state.copyWith(status: TransactionsStatus.error, errorMsg: err.toString()));
-    // }
-
-    // Get transactions on table change
+    // Get transactions on subsequent table change
     _subscription ??= _repository.onDataChanged.listen(
       null,
       onError: (err) => emit(state.copyWith(status: TransactionsStatus.error, errorMsg: err.toString())),
     );
     _subscription?.onData((_) async {
-      emit(state.copyWith(status: TransactionsStatus.loading));
-
       _subscription?.pause();
-
       try {
-        final transactions = await _repository.getTransactions(
-          accountId: accountId,
-          amcId: amcId,
-          genre: genre,
-          dateRange: dateRange,
-          limit: limit,
-        );
-
-        if (isClosed) return;
-        emit(state.copyWith(status: TransactionsStatus.loaded, transactions: transactions));
-      } on Exception catch (err) {
-        emit(state.copyWith(status: TransactionsStatus.error, errorMsg: err.toString()));
+        await _getTransactions(accountId: accountId, genre: genre, amcId: amcId, dateRange: dateRange, limit: limit);
       } finally {
         _subscription?.resume();
       }
     });
 
-    _subscription?.onDone(() {
-      _subscription?.cancel();
-    });
+    _subscription?.onDone(() => _subscription?.cancel());
+  }
+
+  Future<void> _getTransactions({
+    String? accountId,
+    AmcGenre? genre,
+    String? amcId,
+    DateTimeRange<DateTime>? dateRange,
+    int? limit,
+  }) async {
+    emit(state.copyWith(status: TransactionsStatus.loading));
+
+    try {
+      final transactions = await _repository.getTransactions(
+        accountId: accountId,
+        amcId: amcId,
+        genre: genre,
+        dateRange: dateRange,
+        limit: limit,
+      );
+      if (isClosed) return;
+      emit(state.copyWith(status: TransactionsStatus.loaded, transactions: transactions));
+    } on Exception catch (err) {
+      emit(state.copyWith(status: TransactionsStatus.error, errorMsg: err.toString()));
+    }
   }
 
   void clearSearchFilters() {

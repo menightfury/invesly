@@ -20,57 +20,34 @@ class AmcStatCubit extends Cubit<AmcStatState> {
     await _subscription?.cancel();
     _subscription = null;
 
+    // Get initial stats
+    await _getAllStats();
+
+    // Get stats on subsequent table change
     _subscription ??= _repository.onDataChanged.listen(null, onError: (err) => emit(AmcStatErrorState(err.toString())));
     _subscription?.onData((query) async {
-      emit(const AmcStatLoadingState());
-
       _subscription?.pause();
 
       try {
-        // if (accountId == null) {
-        //   emit(const TransactionStatErrorState('No account has been selected'));
-        // } else {
-        final stats = await _repository.getAllStats();
-        emit(AmcStatLoadedState(stats));
-        // }
-      } on Exception catch (error) {
-        emit(AmcStatErrorState(error.toString()));
+        await _getAllStats();
       } finally {
         _subscription?.resume();
       }
     });
 
-    _subscription?.onDone(() {
-      _subscription?.cancel();
-    });
+    _subscription?.onDone(() => _subscription?.cancel());
   }
 
-  // /// Fetch transaction statistics (on initial load, on transactions change)
-  // Future<void> fetchStats(String accountId) async {
-  //   // Cancel any existing subscription
-  //   await _subscription?.cancel();
-  //   _subscription = null;
+  Future<void> _getAllStats() async {
+    emit(const AmcStatLoadingState());
 
-  //   _subscription ??= _repository.onDataChanged.listen(null, onError: (err) => emit(AmcStatErrorState(err.toString())));
-  //   _subscription?.onData((query) async {
-  //     emit(const AmcStatLoadingState());
-
-  //     _subscription?.pause();
-
-  //     try {
-  //       final transactionStats = await _repository.getStats(accountId);
-  //       emit(AmcStatLoadedState(transactionStats));
-  //     } on Exception catch (error) {
-  //       emit(AmcStatErrorState(error.toString()));
-  //     } finally {
-  //       _subscription?.resume();
-  //     }
-  //   });
-
-  //   _subscription?.onDone(() {
-  //     _subscription?.cancel();
-  //   });
-  // }
+    try {
+      final stats = await _repository.getAllStats();
+      emit(AmcStatLoadedState(stats));
+    } on Exception catch (error) {
+      emit(AmcStatErrorState(error.toString()));
+    }
+  }
 
   @override
   Future<void> close() {

@@ -59,10 +59,7 @@ class CurrencyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final defaultStyle = Theme.of(context).textTheme.bodyMedium!.copyWith(
-      fontFamily: GoogleFonts.rye().fontFamily,
-      fontFeatures: [const FontFeature.tabularFigures()],
-    );
+    final defaultStyle = Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.w600, fontFeatures: []);
 
     return BlocSelector<AppCubit, AppState, Currency?>(
       selector: (state) => state.currency,

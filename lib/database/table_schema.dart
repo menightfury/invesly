@@ -448,7 +448,7 @@ class ForeignReference extends Equatable {
   List<Object?> get props => [tableName, columnName];
 }
 
-enum TableEventType { loaded, inserted, updated, deleted }
+enum TableEventType { created, inserted, updated, deleted }
 
 class TableEvent {
   final Set<TableSchema> tables;

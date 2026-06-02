@@ -309,7 +309,7 @@ class _AmcOverviewSection extends StatelessWidget {
                   crossAxisCount: 2,
                   mainAxisSpacing: _spacing,
                   crossAxisSpacing: _spacing,
-                  mainAxisExtent: 104.0,
+                  mainAxisExtent: 96.0,
                   children: <Widget>[
                     // ~ No. of units
                     Skeleton.keep(
@@ -544,7 +544,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     // ~ XIRR section
                     BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
                       buildWhen: (prev, curr) {
-                        return prev.stat != curr.stat || prev.ltp != curr.ltp || prev.ltpStatus != curr.ltpStatus;
+                        return prev.stat != curr.stat || prev.ltp != curr.ltp;
                       },
                       builder: (context, amcState) {
                         final isLtpError = amcState.isLtpError;
@@ -563,53 +563,64 @@ class _AmcOverviewSection extends StatelessWidget {
                               ],
                             ),
                           ),
-                          value: BlocBuilder<TransactionsCubit, TransactionsState>(
-                            builder: (context, trnState) {
-                              if (isLtpError || trnState.isError) {
-                                return Text('N/A', style: TextStyle(color: colors.error));
-                              }
+                          value: () {
+                            if (isLtpError) return Text('N/A');
 
-                              if (amcState.isLtpLoaded && amcState.ltp != null) {
-                                final transactionsForXirr = trnState.transactions
-                                    .map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
-                                    .toList();
-                                if (transactionsForXirr.isNotEmpty) {
-                                  transactionsForXirr.add(
-                                    xf.Transaction(
-                                      -(amcState.totalCurrentValue!),
-                                      amcState.ltp!.date ?? amcState.ltp!.fetchDate,
-                                    ),
-                                  );
-                                }
-                                double? xirr = 0.0;
-                                if (transactionsForXirr.isNotEmpty) {
-                                  try {
-                                    xirr = xf.XirrFlutter.withTransactionsAndGuess(
-                                      transactionsForXirr,
-                                      0.1,
-                                    ).calculate()?.toPrecisionDouble(4);
-                                    $logger.d('Calculated XIRR: $xirr for AMC: ${amcState.stat.amc.name}');
-                                  } catch (e) {
-                                    debugPrint('Error calculating XIRR: $e');
+                            if (amcState.isLtpLoaded && amcState.ltp != null) {
+                              return BlocBuilder<TransactionsCubit, TransactionsState>(
+                                builder: (context, trnState) {
+                                  if (trnState.isError) {
+                                    return Text('N/A', style: TextStyle(color: colors.error));
                                   }
-                                }
 
-                                // Save xirr in database
-                                if (xirr != null) {
-                                  final latestXirr = LatestXirr(value: xirr, date: DateTime.now().startOfDay);
-                                  AmcRepository.instance.saveXirr(amcState.stat.amc, latestXirr);
-                                }
+                                  if (trnState.isLoaded) {
+                                    final transactionsForXirr = trnState.transactions
+                                        .map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
+                                        .toList();
+                                    if (transactionsForXirr.isNotEmpty) {
+                                      transactionsForXirr.add(
+                                        xf.Transaction(
+                                          -(amcState.totalCurrentValue!),
+                                          amcState.ltp!.date ?? amcState.ltp!.fetchDate,
+                                        ),
+                                      );
+                                    }
+                                    double? xirr = 0.0;
+                                    if (transactionsForXirr.isNotEmpty) {
+                                      try {
+                                        xirr = xf.XirrFlutter.withTransactionsAndGuess(
+                                          transactionsForXirr,
+                                          0.1,
+                                        ).calculate()?.toPrecisionDouble(4);
+                                      } catch (e) {
+                                        debugPrint('Error calculating XIRR: $e');
+                                      }
+                                    }
 
-                                return Text(
-                                  xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
-                                  style: TextStyle(color: (xirr?.isNegative ?? true) ? Colors.red : Colors.teal),
-                                );
-                              }
+                                    // Save xirr in database
+                                    if (xirr != null) {
+                                      final latestXirr = LatestXirr(value: xirr, date: DateTime.now().startOfDay);
+                                      AmcRepository.instance.saveXirr(amcState.stat.amc, latestXirr);
+                                    }
 
-                              return const Text('Loading...', overflow: TextOverflow.ellipsis);
-                            },
-                          ),
+                                    return Text(
+                                      xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
+                                      style: TextStyle(color: (xirr?.isNegative ?? true) ? Colors.red : Colors.teal),
+                                    );
+                                  }
+
+                                  return LoadingAnimationWidget.staggeredDotsWave(
+                                    size: 32.0,
+                                    color: context.colors.primary,
+                                  );
+                                },
+                              );
+                            }
+
+                            return const Text('Loading...', overflow: TextOverflow.ellipsis);
+                          }(),
                           color: isLtpError ? colors.errorContainer : null,
+                          valueColor: isLtpError ? colors.error : null,
                           borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
                         );
                       },

@@ -11,10 +11,9 @@ import 'table_schema.dart';
 
 class InveslyApi {
   final Directory databaseDirectory;
-  final BehaviorSubject<TableEvent> _tableEventController;
+  final StreamController<TableEvent> _tableEventController;
 
-  // InveslyApi(this.databaseDirectory) : _tableEventController = StreamController<TableEvent>.broadcast();
-  InveslyApi(this.databaseDirectory) : _tableEventController = BehaviorSubject<TableEvent>();
+  InveslyApi(this.databaseDirectory) : _tableEventController = StreamController<TableEvent>.broadcast();
 
   Database? _db;
   Database get db {
@@ -55,7 +54,7 @@ class InveslyApi {
 
     // ?? Close database at the end ??
     _tables.addAll([_accountTable, _amcTable, _trnTable]);
-    _tableEventController.add(TableEvent({_accountTable, _amcTable, _trnTable}, TableEventType.loaded));
+    _tableEventController.add(TableEvent({_accountTable, _amcTable, _trnTable}, TableEventType.created));
   }
 
   // helper function to get a table out of initialized tables

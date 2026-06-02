@@ -25,22 +25,19 @@ class AppStyle {
       canvasColor: colorScheme.secondaryContainer,
       cardColor: colorScheme.secondaryContainer,
       colorScheme: colorScheme,
-      fontFamily: GoogleFonts.portLligatSlab(fontWeight: FontWeight.w500).fontFamily,
+      fontFamily: GoogleFonts.portLligatSlab().fontFamily,
       // fontFamily: _primaryFont,
       dividerColor: colorScheme.primary.withAlpha(50),
       textTheme: TextTheme(
-        // headlineLarge: TextStyle(fontFamily: _headerFont, fontSize: 32.0),
-        headlineLarge: GoogleFonts.rye(fontSize: 26.0),
-        // headlineMedium: TextStyle(fontFamily: _headerFont, fontSize: 26.0),
-        headlineMedium: GoogleFonts.rye(fontSize: 22.0),
-        // headlineSmall: TextStyle(fontFamily: _headerFont, fontSize: 22.0),
-        headlineSmall: GoogleFonts.rye(fontSize: 20.0),
+        headlineLarge: TextStyle(fontSize: 26.0, fontWeight: FontWeight.w600),
+        headlineMedium: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
+        headlineSmall: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600),
         titleLarge: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600), // appbar title
         titleMedium: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600), // textfield
         bodyLarge: TextStyle(fontSize: 20.0, height: 1.25), // chip, ListTile title,
         bodyMedium: TextStyle(fontSize: 18.0, height: 1.4), // body
         bodySmall: TextStyle(fontSize: 14.0), // textfield helper
-        labelLarge: TextStyle(fontSize: 18.0, height: 1.4, fontWeight: FontWeight.bold), // button, *-chip
+        labelLarge: TextStyle(fontSize: 18.0, height: 1.4, fontWeight: FontWeight.w600), // button, *-chip
         labelMedium: TextStyle(fontSize: 16.0, height: 1.4), // bottomNavBar
         labelSmall: TextStyle(fontSize: 13.0),
       ),
