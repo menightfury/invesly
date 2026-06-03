@@ -15,17 +15,31 @@ import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/genre/view/genre_details/cubit/genre_details_cubit.dart';
 
-class GenreDetailsPage extends StatelessWidget {
+class GenreDetailsPage extends StatefulWidget {
   const GenreDetailsPage(this.genre, {super.key});
 
   final AmcGenre genre;
+
+  @override
+  State<GenreDetailsPage> createState() => _GenreDetailsPageState();
+}
+
+class _GenreDetailsPageState extends State<GenreDetailsPage> {
+  @override
+  void initState() {
+    super.initState();
+    final statCubit = context.read<AmcStatCubit>();
+    if (!statCubit.state.isLoaded) {
+      statCubit.fetchAllStats();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => GenreDetailsCubit(
         repository: AmcRepository.instance,
-        genre: genre,
+        genre: widget.genre,
         activeAccountId: context.read<AppCubit>().state.primaryAccountId,
       ),
       child: Scaffold(
@@ -33,7 +47,7 @@ class GenreDetailsPage extends StatelessWidget {
           child: CustomScrollView(
             slivers: <Widget>[
               SliverAppBar(
-                title: Text(genre.title, overflow: TextOverflow.ellipsis),
+                title: Text(widget.genre.title, overflow: TextOverflow.ellipsis),
                 floating: true,
                 snap: true,
                 actions: <Widget>[_AccountPickerWidget()],
@@ -71,7 +85,7 @@ class GenreDetailsPage extends StatelessWidget {
                           );
                         }
 
-                        final filteredStats = statState.filterStats(accountId: activeAccountId, genre: genre);
+                        final filteredStats = statState.filterStats(accountId: activeAccountId, genre: widget.genre);
                         if (filteredStats.isEmpty) {
                           return SliverFillRemaining(
                             hasScrollBody: false,
