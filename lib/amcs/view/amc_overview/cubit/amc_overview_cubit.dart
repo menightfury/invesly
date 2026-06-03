@@ -18,7 +18,7 @@ class AmcOverviewCubit extends Cubit<AmcOverviewState> {
     try {
       final ltp = await _amcRepository.getLatestPrice(state.stat.amc);
 
-      if (ltp == null) return;
+      if (ltp == null || isClosed) return;
 
       emit(state.copyWith(ltpStatus: LatestPriceStatus.loaded, ltp: ltp));
     } catch (err) {

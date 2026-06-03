@@ -177,7 +177,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
                       return const SectionTile(
                         title: Text('Loading...'),
                         subtitle: Text('Loading...'),
-                        icon: Bone.circle(size: 32.0),
+                        icon: Bone.circle(size: 40.0),
                         padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                       );
                     }),
@@ -208,10 +208,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
     }
 
     return SectionTile(
-      title: FormattedDate(
-        date: trn.investedOn,
-        style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
-      ),
+      title: FormattedDate(date: trn.investedOn),
       subtitle: Text(
         '${trn.quantity?.toPrecision(2) ?? ''} units | ₹${trn.rate?.toPrecision(2)}',
         overflow: TextOverflow.ellipsis,
@@ -634,7 +631,7 @@ class _AmcOverviewSection extends StatelessWidget {
                                     }
 
                                     return Text(
-                                      xirr != null ? '${(xirr * 100).toPrecision(2)}%' : '0.00%',
+                                      xirr != null ? '${(xirr * 100).toPrecision(2)}%' : 'N/A',
                                       style: TextStyle(color: (xirr?.isNegative ?? true) ? Colors.red : Colors.teal),
                                       overflow: TextOverflow.ellipsis,
                                     );

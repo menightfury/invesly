@@ -87,10 +87,10 @@ class InveslyTransaction extends TransactionInDb {
     return InveslyTransaction(
       id: trn.id,
       account: InveslyAccount.fromDb(account),
-      // accountId: trn.accountId,
       // transactionType: TransactionType.values.elementAt(typeIndex),
       amc: InveslyAmc.fromDb(amc),
       quantity: trn.quantity,
+      rate: trn.rate,
       totalAmount: trn.totalAmount,
       investedOn: DateTime.fromMillisecondsSinceEpoch(trn.date),
       note: trn.note,

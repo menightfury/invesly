@@ -10,12 +10,7 @@ extension ColorX on Color {
 
   Color darken([double percent = 10]) {
     assert(percent >= 0 && percent <= 100, 'Amount must be between 0 and 100');
-    // Method #1
-    // final hsl = HSLColor.fromColor(this);
-    // final darkenedHsl = hsl.withLightness((hsl.lightness - percent / 100).clamp(0.0, 1.0));
-    // return darkenedHsl.toColor();
-
-    // Method #2
+    // // Method #1
     // final f = 1 - percent / 100;
     // return Color.fromARGB(
     //   (a * 255.0).round().clamp(0, 255),
@@ -24,27 +19,22 @@ extension ColorX on Color {
     //   (b * 255.0 * f).round().clamp(0, 255),
     // );
 
-    // Method #3
+    // Method #2
     return Color.lerp(this, Color(0xFF000000), percent / 100)!;
   }
 
   Color lighten([double percent = 10]) {
     assert(percent >= 0 && percent <= 100, 'Amount must be between 0 and 100');
     // Method #1
-    // final hsl = HSLColor.fromColor(this);
-    // final lightenedHsl = hsl.withLightness((hsl.lightness + percent / 100).clamp(0.0, 1.0));
-    // return lightenedHsl.toColor();
-
-    // Method #2
     // final f = percent / 100;
     // return Color.fromARGB(
     //   (a * 255.0).round().clamp(0, 255),
-    //   ((1 - r) * 255.0 * f).round().clamp(0, 255),
-    //   ((1 - g) * 255.0 * f).round().clamp(0, 255),
-    //   ((1 - b) * 255.0 * f).round().clamp(0, 255),
+    //   ((r * (1 - f) + f) * 255.0).round().clamp(0, 255),
+    //   ((g * (1 - f) + f) * 255.0).round().clamp(0, 255),
+    //   ((b * (1 - f) + f) * 255.0).round().clamp(0, 255),
     // );
 
-    // Method #3
+    // Method #2
     return Color.lerp(this, Color(0xFFFFFFFF), percent / 100)!;
   }
 
