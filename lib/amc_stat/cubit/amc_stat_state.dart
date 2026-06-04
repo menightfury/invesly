@@ -26,7 +26,7 @@ class AmcStatLoadedState extends AmcStatState {
 
   final List<AmcStat> stats;
 
-  List<AmcStat> filterStats({String? accountId, AmcGenre? genre}) {
+  List<AmcStat> filterStats({int? accountId, AmcGenre? genre}) {
     return stats.where((stat) {
       final accountMatch = accountId == null || stat.accountId == accountId;
       final genreMatch = genre == null || stat.amc.genre == genre;
@@ -34,12 +34,12 @@ class AmcStatLoadedState extends AmcStatState {
     }).toList();
   }
 
-  AmcStat? getStat({String? accountId, required String amcId}) {
+  AmcStat? getStat({int? accountId, required String amcId}) {
     final filteredStats = stats.where((stat) => stat.amc.id == amcId);
     return filteredStats.firstWhereOrNull((stat) => accountId == null || stat.accountId == accountId);
   }
 
-  double getTotalInvested({String? accountId, AmcGenre? genre}) {
+  double getTotalInvested({int? accountId, AmcGenre? genre}) {
     final filteredStats = filterStats(accountId: accountId, genre: genre);
     return filteredStats.fold<double>(0, (v, el) => v + el.totalInvested);
   }

@@ -524,7 +524,7 @@ class MiscAmcModel extends InveslyAmc {
   }
 }
 
-class AmcInDb extends InveslyDataModel {
+class AmcInDb extends TableDataModel {
   const AmcInDb({
     required super.id,
     required this.name,
@@ -552,6 +552,8 @@ class AmcTable extends TableSchema<AmcInDb> {
   static const instance = AmcTable._();
   factory AmcTable() => instance;
 
+  @override
+  TableColumn<String> get idColumn => TableColumn('id', tableName, isPrimary: true);
   TableColumn<String> get nameColumn => TableColumn('name', tableName, isUnique: true);
   TableColumn<String> get codeColumn => TableColumn('scheme_code', tableName, isUnique: true);
   TableColumn<String> get genreColumn => TableColumn('genre', tableName, isNullable: true);
@@ -561,7 +563,7 @@ class AmcTable extends TableSchema<AmcInDb> {
 
   @override
   Set<TableColumn> get columns {
-    return super.columns..addAll([nameColumn, codeColumn, genreColumn, tagColumn, ltpColumn, xirrColumn]);
+    return {idColumn, nameColumn, codeColumn, genreColumn, tagColumn, ltpColumn, xirrColumn};
   }
 
   @override

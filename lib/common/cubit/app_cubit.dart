@@ -20,7 +20,7 @@ class AppCubit extends HydratedCubit<AppState> {
     emit(state.copyWith(user: () => user));
   }
 
-  void updatePrimaryAccount(String? accountId) {
+  void updatePrimaryAccount(int? accountId) {
     emit(state.copyWith(primaryAccountId: () => accountId));
   }
 

@@ -35,9 +35,9 @@ class AccountRepository {
   }
 
   /// Get account by id
-  Future<InveslyAccount?> getAccountById(String id) async {
+  Future<InveslyAccount?> getAccountById(int id) async {
     final list = await _api.select(_accountTable).where([
-      SingleValueTableFilter<String>(_accountTable.idColumn, id),
+      SingleValueTableFilter<int>(_accountTable.idColumn, id),
     ]).toList();
 
     if (list.isEmpty) return null;
@@ -58,10 +58,14 @@ class AccountRepository {
 
   /// Get account by id or name
   Future<InveslyAccount?> getAccount(String value) async {
-    final list = await _api.select(_accountTable).where([
-      SingleValueTableFilter<String>(_accountTable.idColumn, value),
+    final parsedId = int.tryParse(value);
+    final filters = <TableFilter>[
       SingleValueTableFilter<String>(_accountTable.nameColumn, value),
-    ], isAnd: false).toList();
+    ];
+    if (parsedId != null) {
+      filters.add(SingleValueTableFilter<int>(_accountTable.idColumn, parsedId));
+    }
+    final list = await _api.select(_accountTable).where(filters, isAnd: false).toList();
 
     if (list.isEmpty) return null;
 

@@ -91,7 +91,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     }
 
     final inv = InveslyTransaction(
-      id: state.id ?? $uuid.v1(),
+      id: state.id ?? 0,
       account: state.account!,
       amc: state.amc!,
       quantity: state.canEditRateAndQnty ? state.quantity ?? 0.0 : 0.0,

@@ -1,21 +1,214 @@
 import 'package:invesly/common_libs.dart';
 
-enum TableColumnType {
-  integer,
-  string,
-  real,
-  boolean;
+// ~ Table schema
+abstract class TableDataModel<T> extends Equatable {
+  const TableDataModel({required this.id});
 
-  String toSqlType() {
-    return switch (this) {
-      integer => 'INTEGER',
-      string => 'TEXT',
-      real => 'REAL',
-      boolean => 'BOOLEAN',
-    };
+  final T id;
+
+  @override
+  bool get stringify => true;
+
+  @override
+  List<Object?> get props => [id];
+}
+
+abstract class TableSchema<D extends TableDataModel> extends Equatable {
+  final String tableName;
+
+  const TableSchema(this.tableName);
+
+  TableColumn get idColumn;
+
+  /// Get all columns
+  Set<TableColumn> get columns;
+
+  /// Get primary keys
+  Set<TableColumn> get primaryKeys => columns.where((col) => col.isPrimary).toSet();
+
+  /// Get foreign keys
+  Set<TableColumn> get foreignKeys => columns.where((col) => col.foreignReference != null).toSet();
+
+  Type get type => D;
+
+  /// Convert the data model to a map acceptable by the table
+  Map<String, dynamic> fromModel(D data);
+
+  /// Convert the map from a table to a data model
+  D fromMap(Map<String, dynamic> map);
+
+  @override
+  List<Object?> get props => [tableName];
+
+  /// Create table SQL statement
+  String createTable() {
+    final columnDefs = columns
+        .map<String>((col) {
+          final buffer = StringBuffer('${col.title} ${col.sqlType}');
+
+          if (col.isPrimary) {
+            buffer.write(' PRIMARY KEY');
+            if (col.isAutoIncrement && col.runtimeType == int) {
+              buffer.write(' AUTOINCREMENT');
+            }
+          }
+          if (col.isUnique) {
+            buffer.write(' UNIQUE');
+          }
+          if (!col.isNullable) {
+            buffer.write(' NOT NULL');
+          }
+          if (col.defaultValue != null) {
+            buffer.write(' DEFAULT ${col.defaultValue}');
+          }
+          if (col.foreignReference != null) {
+            buffer.write(' REFERENCES ${col.foreignReference!.tableName}(${col.foreignReference!.columnName})');
+          }
+
+          return buffer.toString();
+        })
+        .join(', ');
+
+    return 'CREATE TABLE IF NOT EXISTS $tableName ($columnDefs);';
   }
 }
 
+class TableColumnBase extends Equatable {
+  const TableColumnBase(this.title, this.tableName, [this.aggregateMethodName, this.aliasTitle, this.aggregateFilter]);
+
+  final String title;
+  final String tableName;
+  final String? aggregateMethodName;
+  final String? aliasTitle;
+  final TableFilter? aggregateFilter;
+
+  /// Full title of the column
+  String get fullTitle => '$tableName.$title';
+
+  /// Effective title of the column in the SQL query
+  String get _fullTitleWithAggregateAndAlias {
+    final buffer = StringBuffer();
+
+    if (aggregateMethodName != null) {
+      buffer.write('$aggregateMethodName(');
+
+      if (aggregateFilter != null) {
+        final (filterSql, filterArgs) = aggregateFilter!.toSql();
+        // Inline the filter arguments into the SQL string, replacing `?` placeholders
+        // with the actual values. This is necessary because sqflite's `query` method
+        // only supports parameterized args in the WHERE clause, not in column expressions.
+        var inlineSql = filterSql;
+        for (final arg in filterArgs) {
+          if (arg is String) {
+            inlineSql = inlineSql.replaceFirst('?', "'${arg.replaceAll("'", "''")}'");
+          } else {
+            inlineSql = inlineSql.replaceFirst('?', '$arg');
+          }
+        }
+        buffer.write('CASE WHEN $inlineSql THEN ');
+      }
+    }
+
+    buffer.write(fullTitle);
+
+    if (aggregateMethodName != null) {
+      if (aggregateFilter != null) {
+        buffer.write(' ELSE 0 END');
+      }
+      buffer.write(')');
+    }
+
+    if (aliasTitle != null) {
+      buffer.write(' AS $aliasTitle');
+    }
+
+    return buffer.toString();
+  }
+
+  @override
+  List<Object?> get props => [title, tableName, aggregateMethodName, aliasTitle, aggregateFilter];
+}
+
+class TableColumn<T extends Object> extends TableColumnBase {
+  const TableColumn(
+    super.title,
+    super.tableName, {
+    this.defaultValue,
+    this.isPrimary = false,
+    this.isNullable = false,
+    this.isUnique = false,
+    this.isAutoIncrement = false,
+    this.foreignReference,
+  }) : assert(
+         T == String || T == num || T == int || T == double || T == bool,
+         'Type must be String, num, int, double or bool',
+       ),
+       assert(
+         (isPrimary && T == int && isAutoIncrement) ||
+             (!isPrimary && !isAutoIncrement) ||
+             (isPrimary && !isAutoIncrement),
+         'Only integer primary keys can be auto-incremented, and auto-increment can only be applied to primary keys.',
+       );
+
+  final T? defaultValue;
+  final bool isPrimary;
+  final bool isNullable;
+  final bool isUnique;
+  final bool isAutoIncrement;
+  final ForeignReference? foreignReference;
+
+  String get sqlType {
+    if (T == int) return 'INTEGER';
+    if (T == double || T == num) return 'REAL';
+    if (T == bool) return 'BOOLEAN';
+    return 'TEXT';
+  }
+
+  TableColumnBase alias(String aliasTitle) => TableColumnBase(title, tableName, null, aliasTitle);
+
+  TableColumnBase count([String? alias, TableFilter? filter]) =>
+      TableColumnBase(title, tableName, 'COUNT', alias, filter);
+
+  TableColumnBase sum([String? alias, TableFilter? filter]) => TableColumnBase(title, tableName, 'SUM', alias, filter);
+
+  TableColumnBase avg([String? alias, TableFilter? filter]) => TableColumnBase(title, tableName, 'AVG', alias, filter);
+
+  TableColumnBase min([String? alias, TableFilter? filter]) => TableColumnBase(title, tableName, 'MIN', alias, filter);
+
+  TableColumnBase max([String? alias, TableFilter? filter]) => TableColumnBase(title, tableName, 'MAX', alias, filter);
+
+  @override
+  List<Object?> get props => [
+    fullTitle,
+    defaultValue,
+    isPrimary,
+    isNullable,
+    isUnique,
+    isAutoIncrement,
+    foreignReference,
+  ];
+}
+
+class ForeignReference extends Equatable {
+  final String tableName;
+  final String columnName;
+
+  const ForeignReference(this.tableName, this.columnName);
+
+  @override
+  List<Object?> get props => [tableName, columnName];
+}
+
+enum TableEventType { created, inserted, updated, deleted }
+
+class TableEvent {
+  final Set<TableSchema> tables;
+  final TableEventType type;
+
+  const TableEvent(this.tables, this.type);
+}
+
+// ~ Table filter
 abstract class TableFilter {
   const TableFilter();
 
@@ -57,7 +250,10 @@ enum FilterOperator {
 
 class SingleValueTableFilter<T extends Object> implements TableFilter {
   const SingleValueTableFilter(this.column, this.value, {this.operator = FilterOperator.equal, this.negate = false})
-    : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool');
+    : assert(
+        T == String || T == num || T == int || T == double || T == bool,
+        'Value must be of type String, num or bool',
+      );
 
   final TableColumn column;
   final T value;
@@ -78,7 +274,10 @@ class SingleValueTableFilter<T extends Object> implements TableFilter {
 
 class MultipleValueTableFilter<T extends Object> implements TableFilter {
   MultipleValueTableFilter(this.column, this.values, [this.negate = false])
-    : assert(T == String || T == num || T == bool, 'Value must be of type String, num or bool'),
+    : assert(
+        T == String || T == num || T == int || T == double || T == bool,
+        'Value must be of type String, num or bool',
+      ),
       assert(values.isNotEmpty, 'Values list must not be empty');
 
   final TableColumn column;
@@ -139,7 +338,7 @@ class TableFilterGroup extends TableFilter {
   }
 }
 
-class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilder<T> {
+class TableQueryBuilder<T extends TableDataModel> implements TableFilterBuilder<T> {
   TableQueryBuilder({required Database db, required TableSchema table, List<TableColumnBase>? columns})
     : _db = db,
       _table = table,
@@ -265,7 +464,7 @@ class TableQueryBuilder<T extends InveslyDataModel> implements TableFilterBuilde
   }
 }
 
-abstract class TableFilterBuilder<T extends InveslyDataModel> {
+abstract class TableFilterBuilder<T extends TableDataModel> {
   TableFilterBuilder where(List<TableFilter> filters);
 
   TableFilterBuilder groupBy(List<TableColumn> columns);
@@ -275,184 +474,4 @@ abstract class TableFilterBuilder<T extends InveslyDataModel> {
   // InveslyApiFilterBuilder orderBy(String column) => InveslyApiFilterBuilder();
 
   // InveslyApiFilterBuilder limit(int limit) => InveslyApiFilterBuilder();
-}
-
-abstract class InveslyDataModel extends Equatable {
-  const InveslyDataModel({required this.id});
-
-  final String id;
-
-  @override
-  bool get stringify => true;
-
-  @override
-  List<Object?> get props => [id];
-}
-
-abstract class TableSchema<T extends InveslyDataModel> extends Equatable {
-  final String tableName;
-
-  const TableSchema(this.tableName);
-
-  TableColumn<String> get idColumn => TableColumn<String>('id', tableName, isPrimary: true);
-
-  /// Get all columns
-  Set<TableColumn> get columns => {idColumn};
-
-  /// Get primary keys
-  Set<TableColumn> get primaryKeys => columns.where((col) => col.isPrimary).toSet();
-
-  /// Get foreign keys
-  Set<TableColumn> get foreignKeys => columns.where((col) => col.foreignReference != null).toSet();
-
-  Type get type => T;
-
-  /// Convert the data model to a map acceptable by the table
-  Map<String, dynamic> fromModel(T data);
-
-  /// Convert the map from a table to a data model
-  T fromMap(Map<String, dynamic> map);
-
-  @override
-  List<Object?> get props => [tableName];
-
-  /// Create table SQL statement
-  String createTable() {
-    final columnDefs = columns
-        .map<String>((col) {
-          final buffer = StringBuffer('${col.title} ${col.type.toSqlType()}');
-
-          if (col.isPrimary) {
-            buffer.write(' PRIMARY KEY');
-          }
-          if (col.isUnique) {
-            buffer.write(' UNIQUE');
-          }
-          if (!col.isNullable) {
-            buffer.write(' NOT NULL');
-          }
-          if (col.defaultValue != null) {
-            buffer.write(' DEFAULT ${col.defaultValue}');
-          }
-          if (col.foreignReference != null) {
-            buffer.write(' REFERENCES ${col.foreignReference!.tableName}(${col.foreignReference!.columnName})');
-          }
-
-          return buffer.toString();
-        })
-        .join(', ');
-
-    return 'CREATE TABLE IF NOT EXISTS $tableName ($columnDefs);';
-  }
-}
-
-class TableColumnBase extends Equatable {
-  const TableColumnBase(this.title, this.tableName, [this.aggregateMethodName, this.aliasTitle, this.aggregateFilter]);
-
-  final String title;
-  final String tableName;
-  final String? aggregateMethodName;
-  final String? aliasTitle;
-  final TableFilter? aggregateFilter;
-
-  /// Full title of the column
-  String get fullTitle => '$tableName.$title';
-
-  /// Effective title of the column in the SQL query
-  String get _fullTitleWithAggregateAndAlias {
-    final buffer = StringBuffer();
-
-    if (aggregateMethodName != null) {
-      buffer.write('$aggregateMethodName(');
-
-      if (aggregateFilter != null) {
-        final (filterSql, filterArgs) = aggregateFilter!.toSql();
-        // Inline the filter arguments into the SQL string, replacing `?` placeholders
-        // with the actual values. This is necessary because sqflite's `query` method
-        // only supports parameterized args in the WHERE clause, not in column expressions.
-        var inlineSql = filterSql;
-        for (final arg in filterArgs) {
-          if (arg is String) {
-            inlineSql = inlineSql.replaceFirst('?', "'${arg.replaceAll("'", "''")}'");
-          } else {
-            inlineSql = inlineSql.replaceFirst('?', '$arg');
-          }
-        }
-        buffer.write('CASE WHEN $inlineSql THEN ');
-      }
-    }
-
-    buffer.write(fullTitle);
-
-    if (aggregateMethodName != null) {
-      if (aggregateFilter != null) {
-        buffer.write(' ELSE 0 END');
-      }
-      buffer.write(')');
-    }
-
-    if (aliasTitle != null) {
-      buffer.write(' AS $aliasTitle');
-    }
-
-    return buffer.toString();
-  }
-
-  @override
-  List<Object?> get props => [title, tableName, aggregateMethodName, aliasTitle, aggregateFilter];
-}
-
-class TableColumn<T> extends TableColumnBase {
-  const TableColumn(
-    super.title,
-    super.tableName, {
-    this.type = TableColumnType.string,
-    this.defaultValue,
-    this.isPrimary = false,
-    this.isNullable = false,
-    this.isUnique = false,
-    this.foreignReference,
-  });
-
-  final TableColumnType type;
-  final T? defaultValue;
-  final bool isPrimary;
-  final bool isNullable;
-  final bool isUnique;
-  final ForeignReference? foreignReference;
-
-  TableColumnBase alias(String aliasTitle) => TableColumnBase(title, tableName, null, aliasTitle);
-
-  TableColumnBase count([String? alias, TableFilter? filter]) =>
-      TableColumnBase(title, tableName, 'COUNT', alias, filter);
-
-  TableColumnBase sum([String? alias, TableFilter? filter]) => TableColumnBase(title, tableName, 'SUM', alias, filter);
-
-  TableColumnBase avg([String? alias, TableFilter? filter]) => TableColumnBase(title, tableName, 'AVG', alias, filter);
-
-  TableColumnBase min([String? alias, TableFilter? filter]) => TableColumnBase(title, tableName, 'MIN', alias, filter);
-
-  TableColumnBase max([String? alias, TableFilter? filter]) => TableColumnBase(title, tableName, 'MAX', alias, filter);
-
-  @override
-  List<Object?> get props => [fullTitle, type, defaultValue, isPrimary, isNullable, isUnique, foreignReference];
-}
-
-class ForeignReference extends Equatable {
-  final String tableName;
-  final String columnName;
-
-  const ForeignReference(this.tableName, this.columnName);
-
-  @override
-  List<Object?> get props => [tableName, columnName];
-}
-
-enum TableEventType { created, inserted, updated, deleted }
-
-class TableEvent {
-  final Set<TableSchema> tables;
-  final TableEventType type;
-
-  const TableEvent(this.tables, this.type);
 }

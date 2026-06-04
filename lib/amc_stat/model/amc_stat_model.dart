@@ -12,7 +12,7 @@ class AmcStat extends Equatable {
     this.totalRedeemed = 0.0,
   });
 
-  final String accountId;
+  final int accountId;
   final InveslyAmc amc;
   final int numTransactions;
   final double totalQuantity;
@@ -22,7 +22,7 @@ class AmcStat extends Equatable {
   double get averageBuyPrice => totalInvested / totalQuantity;
 
   AmcStat copyWith({
-    String? accountId,
+    int? accountId,
     InveslyAmc? amc,
     int? numTransactions,
     double? totalQuantity,

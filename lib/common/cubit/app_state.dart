@@ -20,7 +20,7 @@ class AppState extends Equatable {
   final bool isOnboarded;
   final bool isDarkMode;
   final InveslyUser? user;
-  final String? primaryAccountId;
+  final int? primaryAccountId;
   final int? accentColor;
   final bool isDynamicColor;
   // final AccessToken? gapiAccessToken;
@@ -43,7 +43,7 @@ class AppState extends Equatable {
     bool? isOnboarded,
     bool? isDarkMode,
     InveslyUser? Function()? user,
-    String? Function()? primaryAccountId,
+    int? Function()? primaryAccountId,
     bool? isDynamicColor,
     int? Function()? accentColor,
     bool? isPrivateMode,
@@ -111,7 +111,7 @@ class AppState extends Equatable {
       isOnboarded: map['isOnboarded'] as bool,
       isDarkMode: map['isDarkMode'] as bool,
       user: map['user'] != null ? InveslyUser.fromJson(map['user'] as String) : null,
-      primaryAccountId: map['primaryAccountId'] as String?,
+      primaryAccountId: map['primaryAccountId'] as int?,
       isDynamicColor: map['isDynamicColor'] as bool,
       accentColor: map['accentColor'] as int?,
       isPrivateMode: map['isPrivateMode'] as bool,

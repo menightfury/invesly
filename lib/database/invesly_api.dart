@@ -64,13 +64,13 @@ class InveslyApi {
     return TableQueryBuilder(db: db, table: table, columns: columns);
   }
 
-  Future<int> insert(TableSchema table, InveslyDataModel data) async {
+  Future<int> insert(TableSchema table, TableDataModel data) async {
     final r = await db.insert(table.tableName, table.fromModel(data));
     _tableEventController.add(TableEvent({table}, TableEventType.inserted));
     return r;
   }
 
-  Future<int> update(TableSchema table, InveslyDataModel data) async {
+  Future<int> update(TableSchema table, TableDataModel data) async {
     final r = await db.update(
       table.tableName,
       table.fromModel(data),
@@ -81,7 +81,7 @@ class InveslyApi {
     return r;
   }
 
-  Future<int> delete(TableSchema table, InveslyDataModel data) async {
+  Future<int> delete(TableSchema table, TableDataModel data) async {
     final r = await Future.delayed(2.seconds, () => 1); // TODO: implement
     _tableEventController.add(TableEvent({table}, TableEventType.deleted));
     return r;

@@ -5,7 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:invesly/database/table_schema.dart';
 
-class InveslyUser extends InveslyDataModel implements GoogleIdentity {
+class InveslyUser extends TableDataModel<String> implements GoogleIdentity {
   const InveslyUser({required super.id, required this.name, required this.email, this.photoUrl, this.gapiAccessToken});
 
   // const InveslyUser.empty() : name = '', email = '', photoUrl = null, gapiAccessToken = null, super(id: '');

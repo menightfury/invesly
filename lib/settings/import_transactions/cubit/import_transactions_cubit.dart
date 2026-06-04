@@ -157,7 +157,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     final noteColumnIndex = state.fields[TransactionField.notes];
 
     // Cache of accounts and amcs
-    final existingAccounts = <String, InveslyAccount>{};
+    final existingAccounts = <dynamic, InveslyAccount>{};
     final existingAmcs = <String, InveslyAmc>{};
 
     final transactionsToInsert = <InveslyTransaction>[];
@@ -203,10 +203,11 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
             // accountIdOrName is provided but account not exists
             // show modal to select one of the accounts or to add a new account with that name
             errors[i] = [...?errors[i], TransactionField.account];
-            account = InveslyAccount.empty(id: accountIdOrName, name: accountIdOrName);
+            account = InveslyAccount.empty(id: int.tryParse(accountIdOrName) ?? 0, name: accountIdOrName);
           } else {
             // add fetched account to `existingAccounts` cache for future
             existingAccounts[account_.id] = account_;
+            existingAccounts[accountIdOrName] = account_;
             account = account_;
           }
         }
@@ -247,7 +248,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
       transactionsToInsert.add(
         InveslyTransaction(
-          id: $uuid.v1(),
+          id: 0,
           account: account ?? InveslyAccount.empty(),
           investedOn: date,
           quantity: quantity ?? 0.0,

@@ -6,13 +6,13 @@ import 'package:invesly/accounts/model/account_model.dart';
 class InveslyAccountPickerWidget extends StatefulWidget {
   const InveslyAccountPickerWidget({super.key, this.accountId, this.onPickup, this.showAddAccountOption = true});
 
-  final String? accountId;
+  final int? accountId;
   final ValueChanged<InveslyAccount>? onPickup;
   final bool showAddAccountOption;
 
   static Future<InveslyAccount?> showModal(
     BuildContext context, {
-    String? accountId,
+    int? accountId,
     bool showAddAccountOption = true,
   }) async {
     return await showModalBottomSheet<InveslyAccount>(
@@ -95,7 +95,7 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
           }
 
           final accounts = state.accounts;
-          return RadioGroup<String>(
+          return RadioGroup<int>(
             groupValue: widget.accountId,
             onChanged: (value) {
               if (value == null) return;
@@ -108,7 +108,7 @@ class _InveslyAccountPickerWidgetState extends State<InveslyAccountPickerWidget>
               margin: EdgeInsets.zero,
               tiles: List.generate(accounts.length, (index) {
                 final account = accounts.elementAt(index);
-                return RadioSectionTile<String>(
+                return RadioSectionTile<int>(
                   value: account.id,
                   icon: PhysicalModel(
                     color: Colors.white,

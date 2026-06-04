@@ -69,10 +69,10 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
                   }
 
                   if (statState is AmcStatLoadedState) {
-                    return BlocSelector<GenreDetailsCubit, GenreDetailsState, String?>(
+                    return BlocSelector<GenreDetailsCubit, GenreDetailsState, int?>(
                       selector: (state) => state.activeAccountId,
                       builder: (context, activeAccountId) {
-                        if (activeAccountId == null || activeAccountId.isEmpty) {
+                        if (activeAccountId == null) {
                           return SliverFillRemaining(
                             hasScrollBody: false,
                             child: Center(
@@ -888,14 +888,14 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
           accounts = state.accounts;
         }
 
-        return BlocSelector<GenreDetailsCubit, GenreDetailsState, String?>(
+        return BlocSelector<GenreDetailsCubit, GenreDetailsState, int?>(
           selector: (state) => state.activeAccountId,
           builder: (context, activeAccountId) {
             final account = activeAccountId != null && accounts != null && accounts!.isNotEmpty
                 ? accounts?.firstWhereOrNull((a) => a.id == activeAccountId)
                 : null;
             return ActionChip(
-              label: Text(account?.name ?? activeAccountId ?? 'N/A', overflow: TextOverflow.ellipsis, maxLines: 1),
+              label: Text(account?.name ?? activeAccountId?.toString() ?? 'N/A', overflow: TextOverflow.ellipsis, maxLines: 1),
               avatar: CircleAvatar(
                 foregroundImage: account != null ? AssetImage(account.avatarSrc) : null,
                 child: account == null ? Icon(Icons.person_rounded) : null,

@@ -55,7 +55,7 @@ class _AccountsListState extends State<_AccountsList> {
                   context.read<AppCubit>().updatePrimaryAccount(accounts.first.id);
                 }
               }
-              return BlocSelector<AppCubit, AppState, String?>(
+              return BlocSelector<AppCubit, AppState, int?>(
                 selector: (state) => state.primaryAccountId,
                 builder: (context, primaryAccountId) {
                   return Row(

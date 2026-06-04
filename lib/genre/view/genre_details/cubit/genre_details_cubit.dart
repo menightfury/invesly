@@ -7,7 +7,7 @@ import 'package:invesly/common_libs.dart';
 part 'genre_details_state.dart';
 
 class GenreDetailsCubit extends Cubit<GenreDetailsState> {
-  GenreDetailsCubit({required AmcRepository repository, required AmcGenre genre, String? activeAccountId})
+  GenreDetailsCubit({required AmcRepository repository, required AmcGenre genre, int? activeAccountId})
     : _repository = repository,
       super(GenreDetailsState(genre: genre, activeAccountId: activeAccountId));
 
@@ -76,7 +76,7 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
     emit(state.copyWith(sortAndFilterStatus: sortAndFilterStatus));
   }
 
-  void updateActiveAccountId(String id) {
+  void updateActiveAccountId(int id) {
     emit(state.copyWith(activeAccountId: id));
   }
 }

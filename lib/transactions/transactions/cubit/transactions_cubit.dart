@@ -21,7 +21,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
 
   /// Fetch transaction (on initial load, on transactions change)
   Future<void> fetchTransactions({
-    String? accountId,
+    int? accountId,
     AmcGenre? genre,
     String? amcId,
     DateTimeRange<DateTime>? dateRange,
@@ -52,7 +52,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
   }
 
   Future<void> _getTransactions({
-    String? accountId,
+    int? accountId,
     AmcGenre? genre,
     String? amcId,
     DateTimeRange<DateTime>? dateRange,

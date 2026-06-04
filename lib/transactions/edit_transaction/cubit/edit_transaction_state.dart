@@ -21,7 +21,7 @@ class EditTransactionState extends Equatable {
   });
 
   final EditTransactionStatus status;
-  final String? id;
+  final int? id;
   final InveslyAccount? account;
   final double? quantity;
   final double? rate;

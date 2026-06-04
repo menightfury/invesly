@@ -48,7 +48,7 @@ class EditAccountCubit extends Cubit<EditAccountState> {
     }
 
     final account = AccountInDb(
-      id: state.initialAccount?.id ?? $uuid.v1(),
+      id: state.initialAccount?.id ?? 0,
       name: name,
       avatarIndex: state.avatarIndex,
       // panNumber: state.panNumber,

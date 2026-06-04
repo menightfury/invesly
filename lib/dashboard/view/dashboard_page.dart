@@ -151,7 +151,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 // ~~~ Stats, Recent transactions etc. ~~~
                 BlocProvider(
                   create: (context) => TransactionsCubit(repository: trnRepository),
-                  child: BlocSelector<AppCubit, AppState, String?>(
+                  child: BlocSelector<AppCubit, AppState, int?>(
                     selector: (state) => state.primaryAccountId,
                     builder: (context, accountId) {
                       return _DashboardScreenContent(accountId: accountId);
@@ -174,7 +174,7 @@ class _DashboardPageState extends State<DashboardPage> {
 class _DashboardScreenContent extends StatefulWidget {
   const _DashboardScreenContent({super.key, this.accountId});
 
-  final String? accountId;
+  final int? accountId;
 
   @override
   State<_DashboardScreenContent> createState() => _DashboardScreenContentState();
@@ -196,7 +196,7 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
   }
 
   void _getStats() {
-    if (widget.accountId?.isEmpty ?? true) {
+    if (widget.accountId == null) {
       return;
     }
     // context.read<AmcStatCubit>().fetchStats(widget.accountId!);

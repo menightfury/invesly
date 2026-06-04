@@ -34,7 +34,7 @@ class TransactionRepository {
 
   /// Get transactions
   Future<List<InveslyTransaction>> getTransactions({
-    String? accountId,
+    int? accountId,
     AmcGenre? genre,
     String? amcId,
     DateTimeRange? dateRange,
@@ -42,7 +42,7 @@ class TransactionRepository {
   }) async {
     final filter = <TableFilter>[];
     if (accountId != null) {
-      filter.add(SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId));
+      filter.add(SingleValueTableFilter<int>(_trnTable.accountIdColumn, accountId));
     }
 
     if (genre != null) {

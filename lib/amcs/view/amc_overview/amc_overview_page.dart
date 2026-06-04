@@ -21,7 +21,7 @@ class AmcOverviewPage extends StatefulWidget {
   const AmcOverviewPage({super.key, required this.amcId, required this.accountId});
 
   final String amcId;
-  final String accountId;
+  final int accountId;
 
   @override
   State<AmcOverviewPage> createState() => _AmcOverviewPageState();

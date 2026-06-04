@@ -52,7 +52,7 @@ class AmcStatRepository {
           .toList();
       final stats = result.map<AmcStat>((map) {
         return AmcStat(
-          accountId: map[_trnTable.accountIdColumn.title] as String,
+          accountId: map[_trnTable.accountIdColumn.title] as int,
           amc: InveslyAmc.fromDb(_amcTable.fromMap(map)),
           numTransactions: map['num_transactions'] as int,
           totalQuantity: (map['total_quantity'] as num).toDouble(),
@@ -69,7 +69,7 @@ class AmcStatRepository {
   }
 
   /// Get statistics of all AMCs
-  Future<List<AmcStat>> getStats(String accountId) async {
+  Future<List<AmcStat>> getStats(int accountId) async {
     try {
       final result = await _api
           .select(_trnTable, [
@@ -86,7 +86,7 @@ class AmcStatRepository {
             _trnTable.quantityColumn.sum('total_quantity'),
           ])
           .join([_amcTable])
-          .where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
+          .where([SingleValueTableFilter<int>(_trnTable.accountIdColumn, accountId)])
           .groupBy([_amcTable.idColumn])
           .toList();
       final stats = result.map<AmcStat>((map) {
@@ -108,7 +108,7 @@ class AmcStatRepository {
   }
 
   /// Get statistics of AMC
-  Future<AmcStat?> getStat({required String accountId, required String amcId}) async {
+  Future<AmcStat?> getStat({required int accountId, required String amcId}) async {
     try {
       final result = await _api
           .select(_trnTable, [
@@ -126,7 +126,7 @@ class AmcStatRepository {
           ])
           .join([_amcTable])
           .where([
-            SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId),
+            SingleValueTableFilter<int>(_trnTable.accountIdColumn, accountId),
             SingleValueTableFilter<String>(_amcTable.idColumn, amcId),
           ])
           .toList();

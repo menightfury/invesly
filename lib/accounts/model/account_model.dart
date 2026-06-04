@@ -1,7 +1,7 @@
 import 'package:invesly/database/table_schema.dart';
 
+// enum values are name of the images in the assets/images/avatar folder
 enum InveslyAccountAvatar {
-  // enum values are name of the images in the assets/images/avatar folder
   man,
   woman,
   man2,
@@ -23,9 +23,9 @@ class InveslyAccount extends AccountInDb {
   InveslyAccount({required super.id, required super.name, required this.avatarSrc})
     : super(avatarIndex: InveslyAccountAvatar.indexOf(avatarSrc));
 
-  InveslyAccount.empty({String? id, String? name, String? avatar})
+  InveslyAccount.empty({int? id, String? name, String? avatar})
     : avatarSrc = avatar ?? '',
-      super(id: id ?? 'default', name: name ?? 'Default', avatarIndex: InveslyAccountAvatar.indexOf(avatar));
+      super(id: id ?? 0, name: name ?? 'Default', avatarIndex: InveslyAccountAvatar.indexOf(avatar));
 
   final String avatarSrc;
 
@@ -38,25 +38,15 @@ class InveslyAccount extends AccountInDb {
       id: account.id,
       name: account.name,
       avatarSrc: InveslyAccountAvatar.values[avatarIndex].imgSrc,
-      // panNumber: account.panNumber,
-      // aadhaarNumber: account.aadhaarNumber,
     );
   }
 }
 
-class AccountInDb extends InveslyDataModel {
-  const AccountInDb({
-    required super.id,
-    required this.name,
-    required this.avatarIndex,
-    // this.panNumber,
-    // this.aadhaarNumber,
-  });
+class AccountInDb extends TableDataModel<int> {
+  const AccountInDb({required super.id, required this.name, required this.avatarIndex});
 
   final String name;
   final int avatarIndex;
-  // final String? panNumber;
-  // final String? aadhaarNumber;
 
   @override
   List<Object?> get props => super.props..addAll([name, avatarIndex]);
@@ -68,34 +58,29 @@ class AccountTable extends TableSchema<AccountInDb> {
   static const instance = AccountTable._();
   factory AccountTable() => instance;
 
-  TableColumn<String> get nameColumn => TableColumn('name', tableName);
-  TableColumn<int> get avatarColumn =>
-      TableColumn('avatar', tableName, type: TableColumnType.integer, isNullable: true);
-  // TableColumn<String> get panNumberColumn => TableColumn('pan_number', name, isNullable: true);
-  // TableColumn<String> get aadhaarNumberColumn => TableColumn('aadhaar_number', name, isNullable: true);
+  @override
+  TableColumn<int> get idColumn => TableColumn<int>('id', tableName, isPrimary: true, isAutoIncrement: true);
+  TableColumn<String> get nameColumn => TableColumn<String>('name', tableName);
+  TableColumn<int> get avatarColumn => TableColumn<int>('avatar', tableName, isNullable: true);
 
   @override
-  Set<TableColumn> get columns => super.columns..addAll([nameColumn, avatarColumn]);
+  Set<TableColumn> get columns => {idColumn, nameColumn, avatarColumn};
 
   @override
   Map<String, dynamic> fromModel(AccountInDb data) {
-    return {
+    return <String, dynamic>{
       idColumn.title: data.id,
       nameColumn.title: data.name,
       avatarColumn.title: data.avatarIndex,
-      // panNumberColumn.title: data.panNumber,
-      // aadhaarNumberColumn.title: data.aadhaarNumber,
     };
   }
 
   @override
   AccountInDb fromMap(Map<String, dynamic> map) {
     return AccountInDb(
-      id: map[idColumn.title] as String,
+      id: map[idColumn.title] as int,
       name: map[nameColumn.title] as String,
       avatarIndex: map[avatarColumn.title] as int,
-      // panNumber: map[panNumberColumn.title] as String?,
-      // aadhaarNumber: map[aadhaarNumberColumn.title] as String?,
     );
   }
 }
