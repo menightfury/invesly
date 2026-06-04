@@ -3,7 +3,6 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:http/http.dart' as http;
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
 import 'package:invesly/accounts/model/account_model.dart';
@@ -14,6 +13,7 @@ import 'package:invesly/authentication/user_model.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/components/add_transaction_button.dart';
+import 'package:invesly/connectivity/internet_aware_http_client.dart';
 // import 'package:invesly/common/presentations/widgets/single_digit_flip_counter.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/settings_page.dart';
@@ -49,7 +49,7 @@ class _DashboardPageState extends State<DashboardPage> {
   // check amc status is latest or not
   Future<void> _checkAndUpdateAmcData(BuildContext context) async {
     final appState = context.read<AppCubit>().state;
-    final client = http.Client();
+    final client = InternetAwareHttpClient();
 
     try {
       final response = await client.get(
@@ -78,10 +78,10 @@ class _DashboardPageState extends State<DashboardPage> {
           context.read<AppCubit>().updateAmcSha(sha);
         }
       }
+    } on NetworkException catch (e) {
+      $logger.e('Network error: Failed to fetch amc data: $e');
     } catch (e) {
       $logger.e('Failed to fetch amc data', error: e);
-    } finally {
-      client.close();
     }
   }
 

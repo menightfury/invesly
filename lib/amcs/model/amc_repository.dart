@@ -7,6 +7,7 @@ import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/common_libs.dart';
+import 'package:invesly/connectivity/internet_aware_http_client.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
@@ -103,16 +104,24 @@ class AmcRepository {
 
   /// Fetch amcs from network
   Future<List<AmcInDb>?> getAmcsFromNetwork(http.Client client, String uri) async {
-    final response = await client.get(Uri.parse(uri));
+    try {
+      final response = await client.get(Uri.parse(uri));
 
-    if (response.statusCode != 200 && response.body.isEmpty) return null;
+      if (response.statusCode != 200 && response.body.isEmpty) return null;
 
-    // If the server did return a 200 OK response, parse the JSON.
-    // Use the compute function to run parse in a separate isolate.
-    return compute<String, List<AmcInDb>>((body) {
-      final parsed = (jsonDecode(body) as List<Object?>).cast<Map<String, dynamic>>();
-      return parsed.map<AmcInDb>(AmcTable.instance.fromMap).toList();
-    }, response.body);
+      // If the server did return a 200 OK response, parse the JSON.
+      // Use the compute function to run parse in a separate Isolate.
+      return compute<String, List<AmcInDb>>((body) {
+        final parsed = (jsonDecode(body) as List<Object?>).cast<Map<String, dynamic>>();
+        return parsed.map<AmcInDb>(AmcTable.instance.fromMap).toList();
+      }, response.body);
+    } on NetworkException catch (e) {
+      $logger.e('Network error fetching AMCs: $e');
+      return null;
+    } catch (err) {
+      $logger.e(err);
+      return null;
+    }
   }
 
   /// Get latest price for an AMC
@@ -128,7 +137,7 @@ class AmcRepository {
 
     // if latest price is not available or is outdated, fetch from network
     $logger.w('Fetching latest price from network');
-    final client = http.Client();
+    final client = InternetAwareHttpClient();
     try {
       final response = await client.get(Uri.parse(uri));
 
@@ -140,6 +149,8 @@ class AmcRepository {
           saveLatestPrice(amc, ltp);
         }
       }
+    } on NetworkException catch (e) {
+      $logger.e('Network error fetching latest price: $e');
     } catch (err) {
       $logger.e(err);
     }

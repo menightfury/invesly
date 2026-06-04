@@ -1,23 +1,20 @@
 import 'package:flutter/foundation.dart';
-import 'package:invesly/amc_stat/cubit/amc_stat_cubit.dart';
-import 'package:invesly/amc_stat/model/amc_stat_repository.dart';
 import 'package:path_provider/path_provider.dart';
-// import 'connectivity/cubit/internet_cubit.dart';
-
-import 'package:invesly/authentication/auth_repository.dart';
-import 'package:invesly/database/backup/backup_repository.dart';
-import 'package:invesly/database/invesly_api.dart';
-import 'package:invesly/intro/splash_page.dart';
-
-import 'bloc_observer.dart';
 
 import 'accounts/cubit/accounts_cubit.dart';
-import 'amcs/model/amc_repository.dart';
-import 'transactions/model/transaction_repository.dart';
 import 'accounts/model/account_repository.dart';
+import 'amc_stat/cubit/amc_stat_cubit.dart';
+import 'amc_stat/model/amc_stat_repository.dart';
+import 'amcs/model/amc_repository.dart';
+import 'authentication/auth_repository.dart';
+import 'bloc_observer.dart';
+import 'common/cubit/app_cubit.dart';
 import 'common/presentations/styles/theme.dart';
 import 'common_libs.dart';
-import 'common/cubit/app_cubit.dart';
+import 'database/backup/backup_repository.dart';
+import 'database/invesly_api.dart';
+import 'intro/splash_page.dart';
+import 'transactions/model/transaction_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,7 +42,6 @@ class InveslyApp extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
-        // BlocProvider<InternetCubit>(create: (_) => InternetCubit()),
         BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)..fetchAccounts()),
         BlocProvider<AppCubit>(create: (_) => AppCubit()),
         BlocProvider(create: (_) => AmcStatCubit(repository: statRepository)..fetchAllStats()),
@@ -55,36 +51,12 @@ class InveslyApp extends StatelessWidget {
   }
 }
 
-class _AppView extends StatefulWidget {
+class _AppView extends StatelessWidget {
   const _AppView({super.key});
 
   @override
-  State<_AppView> createState() => _AppViewState();
-}
-
-class _AppViewState extends State<_AppView> {
-  // late final StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    // _connectivitySubscription =
-    //     Connectivity().onConnectivityChanged.listen(context.read<InternetCubit>().updateConnectivityStatus);
-  }
-
-  @override
-  void dispose() {
-    // _connectivitySubscription?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return
-    // BlocListener<InternetCubit, InternetState>(
-    //   listener: (context, state) {},
-    //   child:
-    BlocBuilder<AppCubit, AppState>(
+    return BlocBuilder<AppCubit, AppState>(
       buildWhen: (previous, current) {
         return previous.isDarkMode != current.isDarkMode ||
             previous.isDynamicColor != current.isDynamicColor ||
@@ -112,7 +84,6 @@ class _AppViewState extends State<_AppView> {
           },
         );
       },
-      // ),
     );
   }
 }
