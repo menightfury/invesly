@@ -18,6 +18,8 @@ class GoogleSigninButton extends StatelessWidget {
 
   Future<void> _onSignInPressed(BuildContext context) async {
     final user = await startLoginFlow(context);
-    onSigninComplete?.call(user);
+    if (user != null) {
+      onSigninComplete?.call(user);
+    }
   }
 }

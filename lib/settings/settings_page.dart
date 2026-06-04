@@ -494,6 +494,8 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       if (accessToken == null) {
         final user = await startLoginFlow(context, true);
+        if (user == null) return;
+
         accessToken = user.gapiAccessToken;
         if (accessToken == null || !context.mounted) {
           $logger.w('Google sign-in failed'); //TODO: Show error message
@@ -518,6 +520,7 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       if (accessToken == null) {
         final user = await startLoginFlow(context);
+        if (user == null) return;
         accessToken = user.gapiAccessToken;
         if (accessToken == null || !context.mounted) {
           $logger.e('Google sign-in failed');

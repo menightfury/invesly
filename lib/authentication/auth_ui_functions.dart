@@ -6,7 +6,7 @@ import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common_libs.dart';
 
-Future<InveslyUser> startLoginFlow(BuildContext context, [bool forceLogin = false]) async {
+Future<InveslyUser?> startLoginFlow(BuildContext context, [bool forceLogin = false]) async {
   debugPrint('==== Signing in ====');
   // Check if already signed in and not forced to sign in again
   InveslyUser? user = context.read<AppCubit>().state.user;
@@ -43,12 +43,18 @@ Future<InveslyUser> startLoginFlow(BuildContext context, [bool forceLogin = fals
     if (context.mounted) {
       context.read<AppCubit>().updateUser(user);
     }
-
-    return user;
   } catch (err) {
     $logger.e(err);
-    throw Exception('Error signing in');
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error during sign in. Try again later.', style: TextStyle(color: context.colors.error)),
+          backgroundColor: context.colors.errorContainer,
+        ),
+      );
+    }
   }
+  return user;
 }
 
 Future<void> startLogoutFlow(BuildContext context) async {
