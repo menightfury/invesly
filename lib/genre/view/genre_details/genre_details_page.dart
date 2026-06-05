@@ -57,6 +57,7 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
                 actionsPadding: const EdgeInsets.only(right: 16.0),
               ),
 
+              // ~ Content
               BlocBuilder<AmcStatCubit, AmcStatState>(
                 builder: (context, statState) {
                   if (statState.isError) {
@@ -88,8 +89,8 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
                           );
                         }
 
-                        final filteredStats = statState.filterStats(accountId: activeAccountId, genre: widget.genre);
-                        if (filteredStats.isEmpty) {
+                        final stats = statState.getStats(accountId: activeAccountId, genre: widget.genre);
+                        if (stats.isEmpty) {
                           return SliverFillRemaining(
                             hasScrollBody: false,
                             child: EmptyWidget(
@@ -97,12 +98,13 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
                             ),
                           );
                         }
-                        return _GenreDetailsPageContent(key: ValueKey(activeAccountId), stats: filteredStats);
+                        return _GenreDetailsPageContent(key: ValueKey(activeAccountId), stats: stats);
                       },
                     );
                   }
 
-                  return SliverToBoxAdapter(
+                  return SliverFillRemaining(
+                    hasScrollBody: false,
                     child: Center(
                       child: LoadingAnimationWidget.newtonCradle(color: context.colors.primary, size: 48.0),
                     ),
@@ -122,6 +124,7 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
 
 class _GenreDetailsPageContent extends StatefulWidget {
   const _GenreDetailsPageContent({super.key, required this.stats});
+  // ~ Empty stats state is already handled by parent
 
   final List<AmcStat> stats;
 
@@ -168,30 +171,15 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
                 Spacer(),
 
                 // ~ Sort button
-                BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-                  // buildWhen: (prev, curr) {
-                  //   return prev.status != curr.status && (prev.isLoaded || curr.isLoaded);
-                  // },
-                  builder: (context, genreState) {
-                    return AnimatedScale(
-                      scale: genreState.isLtpLoaded && genreState.stats.isNotEmpty ? 1.0 : 0.0,
-                      alignment: Alignment.centerRight,
-                      duration: 240.ms,
-                      curve: Curves.easeInOut,
-                      child: IconButton(
-                        onPressed: genreState.isLtpLoaded
-                            ? () async {
-                                final sortOptions = await _showSortOptions(context, genreState.sortAndFilterStatus);
-                                if (sortOptions == null) return;
-                                cubit.setSortAndFilterStatus(sortOptions);
-                              }
-                            : null,
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.sort_rounded),
-                        tooltip: 'Filter & Sort',
-                      ),
-                    );
+                IconButton(
+                  onPressed: () async {
+                    final sortOptions = await _showSortOptions(context, cubit.state.sortAndFilterStatus);
+                    if (sortOptions == null) return;
+                    cubit.setSortAndFilterStatus(sortOptions);
                   },
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(Icons.sort_rounded),
+                  tooltip: 'Filter & Sort',
                 ),
               ],
             ),
@@ -206,14 +194,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
               return prev.stats != curr.stats || prev.sortAndFilterStatus != curr.sortAndFilterStatus;
             },
             builder: (context, state) {
-              // ~ If no stats
-              if (state.stats.isEmpty) {
-                return SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: EmptyWidget(label: Text('This is so empty.\n Add some transactions to see stats here.')),
-                );
-              }
-
+              // ~ No stats state is already handled by parent widget.
               // ~ If stats available but search result is empty
               final displayList = state.displayStats;
               if (displayList.isEmpty) {
@@ -235,6 +216,9 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
             },
           ),
         ),
+
+        // ~ Space in bottom
+        SliverToBoxAdapter(child: SizedBox(height: 64.0)),
       ],
     );
   }
@@ -636,13 +620,8 @@ class _HoldingStatCard extends StatelessWidget {
                           ),
                         ),
 
-                        Skeleton.ignore(
-                          child: FadeIn(
-                            duration: 240.ms,
-                            curve: Curves.easeInOut,
-                            child: const Icon(Icons.east_rounded),
-                          ),
-                        ),
+                        // ~ Right arrow icon
+                        FadeIn(duration: 240.ms, curve: Curves.easeInOut, child: const Icon(Icons.east_rounded)),
                       ],
                     ),
                     _buildTagsForAmc(context),
@@ -660,9 +639,7 @@ class _HoldingStatCard extends StatelessWidget {
             // ~ Available quantity
             Expanded(
               child: _SectionWidget(
-                label: Skeleton.keep(
-                  child: Text('Available units', style: labelStyle, overflow: TextOverflow.ellipsis),
-                ),
+                label: Text('Available units', style: labelStyle, overflow: TextOverflow.ellipsis),
                 value: Text(
                   '${stat.totalQuantity.toPrecisionDouble(4)}',
                   textAlign: TextAlign.right,
@@ -675,9 +652,7 @@ class _HoldingStatCard extends StatelessWidget {
             // ~ Invested amount
             Expanded(
               child: _SectionWidget(
-                label: Skeleton.keep(
-                  child: Text('Invested', style: labelStyle, overflow: TextOverflow.ellipsis),
-                ),
+                label: Text('Invested', style: labelStyle, overflow: TextOverflow.ellipsis),
                 value: BlocSelector<AppCubit, AppState, bool>(
                   selector: (state) => state.isPrivateMode,
                   builder: (context, isPrivateMode) {
@@ -691,9 +666,6 @@ class _HoldingStatCard extends StatelessWidget {
 
         BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
           buildWhen: (prev, curr) {
-            // final prevStat = prev.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
-            // final currStat = curr.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
-            // return prevStat != currStat || prevStat?.amc.ltp != currStat?.amc.ltp;
             return prev.ltpStatus != curr.ltpStatus;
           },
           builder: (context, genreState) {

@@ -54,6 +54,8 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
               floating: true,
               snap: true,
             ),
+
+            // ~ Content
             BlocBuilder<AmcStatCubit, AmcStatState>(
               builder: (context, statState) {
                 if (statState.isError) {
@@ -192,6 +194,9 @@ class _AmcOverviewPageContent extends StatelessWidget {
             },
           ),
         ),
+
+        // ~ Space in bottom
+        SliverToBoxAdapter(child: SizedBox(height: 64.0)),
       ],
     );
   }

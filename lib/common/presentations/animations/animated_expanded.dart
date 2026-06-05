@@ -86,14 +86,11 @@ class _AnimatedExpandState extends State<AnimatedExpand> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: fadeAnimation,
-      child: SizeTransition(
-        axis: widget.axis,
-        axisAlignment: widget.alignment,
-        sizeFactor: sizeAnimation,
-        child: widget.child,
-      ),
+    return SizeTransition(
+      axis: widget.axis,
+      axisAlignment: widget.alignment,
+      sizeFactor: sizeAnimation,
+      child: FadeTransition(opacity: fadeAnimation, child: widget.child),
     );
   }
 }

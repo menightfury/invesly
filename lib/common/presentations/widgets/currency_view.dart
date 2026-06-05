@@ -2,7 +2,6 @@ import 'dart:ui';
 // import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/data/currencies.dart';
