@@ -94,7 +94,7 @@ class _DashboardPageState extends State<DashboardPage> {
       body: SafeArea(
         child: CustomScrollView(
           controller: _scrollController,
-          slivers: [
+          slivers: <Widget>[
             SliverAppBar(
               leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 48.0)),
               titleSpacing: 0.0,

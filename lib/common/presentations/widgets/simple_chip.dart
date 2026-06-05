@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 
 class SimpleChip extends StatelessWidget {
-  const SimpleChip({super.key, required this.title, this.color, this.titleColor});
+  const SimpleChip({
+    super.key,
+    required this.title,
+    this.color,
+    this.titleColor,
+    this.padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+  });
 
   final Widget title;
   final Color? color;
   final Color? titleColor;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +28,7 @@ class SimpleChip extends StatelessWidget {
     return PhysicalShape(
       clipper: ShapeBorderClipper(shape: const StadiumBorder()),
       color: color ?? colorScheme.primaryContainer,
-      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0), child: titleText),
+      child: Padding(padding: padding, child: titleText),
     );
   }
 }

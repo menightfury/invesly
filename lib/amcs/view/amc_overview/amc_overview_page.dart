@@ -1,6 +1,9 @@
 import 'dart:math' as math;
 
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
+import 'package:invesly/common/presentations/components/add_transaction_button.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 import 'package:invesly/amc_stat/cubit/amc_stat_cubit.dart';
@@ -28,6 +31,8 @@ class AmcOverviewPage extends StatefulWidget {
 }
 
 class _AmcOverviewPageState extends State<AmcOverviewPage> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +47,7 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
+          controller: _scrollController,
           slivers: <Widget>[
             const SliverAppBar(
               title: Text('Holding details', overflow: TextOverflow.ellipsis),
@@ -90,7 +96,8 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
                   );
                 }
 
-                return SliverToBoxAdapter(
+                return SliverFillRemaining(
+                  hasScrollBody: false,
                   child: Center(
                     child: LoadingAnimationWidget.staggeredDotsWave(color: context.colors.primary, size: 48.0),
                   ),
@@ -100,19 +107,16 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
           ],
         ),
       ),
-      // ),
+
+      // ~~~ Add transaction button ~~~
+      floatingActionButton: AddTransactionButton(scrollController: _scrollController),
     );
   }
 }
 
-class _AmcOverviewPageContent extends StatefulWidget {
+class _AmcOverviewPageContent extends StatelessWidget {
   const _AmcOverviewPageContent({super.key});
 
-  @override
-  State<_AmcOverviewPageContent> createState() => _AmcOverviewPageContentState();
-}
-
-class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
   @override
   Widget build(BuildContext context) {
     return SliverMainAxisGroup(
@@ -215,7 +219,7 @@ class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
       ), // TODO: Fix this
       icon: PhysicalModel(
         shape: BoxShape.circle,
-        color: trn.totalAmount.isNegative ? Colors.red.lighten(60) : Colors.teal.lighten(60),
+        color: trn.totalAmount.isNegative ? Colors.red.lighten(75) : Colors.teal.lighten(75),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Icon(
@@ -287,14 +291,32 @@ class _AmcOverviewSection extends StatelessWidget {
 
                         // ~ Chips (tags)
                         Wrap(
-                          spacing: 6.0,
+                          spacing: 4.0,
                           runSpacing: 4.0,
                           children: <Widget>[
+                            BlocBuilder<AccountsCubit, AccountsState>(
+                              builder: (context, accountsState) {
+                                InveslyAccount? account;
+                                if (accountsState is AccountsLoadedState && accountsState.accounts.isNotEmpty) {
+                                  account = accountsState.accounts.firstWhereOrNull((a) => a.id == stat.accountId);
+                                }
+                                if (account == null) return SizedBox.shrink();
+
+                                return SimpleChip(
+                                  title: Text(account.name, overflow: TextOverflow.ellipsis),
+                                  color: context.colors.primary,
+                                  titleColor: context.colors.onPrimary,
+                                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                );
+                              },
+                            ),
+
                             if (amc.genre != null)
                               SimpleChip(
                                 title: Text(amc.genre!.title, overflow: TextOverflow.ellipsis),
-                                color: context.colors.primary,
-                                titleColor: context.colors.onPrimary,
+                                color: context.colors.tertiary,
+                                titleColor: context.colors.onTertiary,
+                                padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                               ),
 
                             if (amc.tags != null && amc.tags!.isNotEmpty)
@@ -307,6 +329,7 @@ class _AmcOverviewSection extends StatelessWidget {
                                   title: Text(tag, overflow: TextOverflow.ellipsis),
                                   color: context.colors.tertiary,
                                   titleColor: context.colors.onTertiary,
+                                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                 );
                               }),
                           ],
@@ -331,7 +354,7 @@ class _AmcOverviewSection extends StatelessWidget {
                   crossAxisCount: 2,
                   mainAxisSpacing: _spacing,
                   crossAxisSpacing: _spacing,
-                  mainAxisExtent: 96.0,
+                  mainAxisExtent: 104.0,
                   children: <Widget>[
                     // ~ No. of units
                     Skeleton.keep(
@@ -702,7 +725,7 @@ class _SectionWidget extends StatelessWidget {
 
     return SimpleCard(
       elevation: 0.0,
-      color: color ?? theme.canvasColor.lighten(3),
+      color: color ?? theme.canvasColor,
       shadowColor: theme.colorScheme.shadow,
       borderRadius: borderRadius ?? iTileBorderRadius,
       child: Padding(

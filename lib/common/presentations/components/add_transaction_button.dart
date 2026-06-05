@@ -12,7 +12,7 @@ class AddTransactionButton extends StatelessWidget {
 
   final ScrollController? scrollController;
 
-  void _handleNewTransactionPressed(BuildContext context) async {
+  void _handlePressed(BuildContext context) async {
     final accountsState = context.read<AccountsCubit>().state;
 
     // Load accounts if not loaded
@@ -56,8 +56,8 @@ class AddTransactionButton extends StatelessWidget {
     }
 
     return FloatingActionButton.extended(
-      heroTag: null,
-      onPressed: () => _handleNewTransactionPressed(context),
+      heroTag: 'add_transaction',
+      onPressed: () => _handlePressed(context),
       icon: const Icon(Icons.add_rounded),
       extendedPadding: const EdgeInsetsDirectional.only(start: 16.0, end: 16.0),
       extendedIconLabelSpacing: 0.0,

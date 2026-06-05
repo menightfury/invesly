@@ -10,6 +10,7 @@ import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
+import 'package:invesly/common/presentations/components/add_transaction_button.dart';
 import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common_libs.dart';
@@ -25,6 +26,7 @@ class GenreDetailsPage extends StatefulWidget {
 }
 
 class _GenreDetailsPageState extends State<GenreDetailsPage> {
+  final ScrollController _scrollController = ScrollController();
   @override
   void initState() {
     super.initState();
@@ -45,6 +47,7 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
       child: Scaffold(
         body: SafeArea(
           child: CustomScrollView(
+            controller: _scrollController,
             slivers: <Widget>[
               SliverAppBar(
                 title: Text(widget.genre.title, overflow: TextOverflow.ellipsis),
@@ -109,6 +112,9 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
             ],
           ),
         ),
+
+        // ~~~ Add transaction button ~~~
+        floatingActionButton: AddTransactionButton(scrollController: _scrollController),
       ),
     );
   }
@@ -895,7 +901,11 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
                 ? accounts?.firstWhereOrNull((a) => a.id == activeAccountId)
                 : null;
             return ActionChip(
-              label: Text(account?.name ?? activeAccountId?.toString() ?? 'N/A', overflow: TextOverflow.ellipsis, maxLines: 1),
+              label: Text(
+                account?.name ?? activeAccountId?.toString() ?? 'N/A',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
               avatar: CircleAvatar(
                 foregroundImage: account != null ? AssetImage(account.avatarSrc) : null,
                 child: account == null ? Icon(Icons.person_rounded) : null,

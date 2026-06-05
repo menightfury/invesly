@@ -33,6 +33,7 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
         return stat.copyWith(amc: stat.amc.copyWith(ltp: ltp));
       }).toList();
 
+      if (isClosed) return;
       emit(state.copyWith(status: LatestPriceStatus.loaded, stats: newStats));
     } catch (err) {
       emit(state.copyWith(status: LatestPriceStatus.error, errorMsg: err.toString()));
