@@ -158,7 +158,7 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
               children: <Widget>[
                 Text('Holdings', style: theme.textTheme.titleLarge, overflow: TextOverflow.ellipsis),
                 SimpleChip(
-                  title: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
+                  child: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
                     buildWhen: (prev, curr) => prev.sortAndFilterStatus != curr.sortAndFilterStatus,
                     builder: (context, genreState) {
                       return Text(
@@ -571,6 +571,7 @@ class _HoldingStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     final labelStyle = theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
     final accountId =
@@ -582,11 +583,12 @@ class _HoldingStatCard extends StatelessWidget {
       children: <Widget>[
         // ~ AMC name, Chips and Transaction count
         GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: () {
             if (accountId == null) {
               $logger.w('Account ID is null. Cannot navigate to AMC overview page.');
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('No account is selected. Please select an account to view AMC details.')),
+                const SnackBar(content: Text('No account is selected. Please select an account to view AMC details.')),
               );
               return;
             }
@@ -594,7 +596,7 @@ class _HoldingStatCard extends StatelessWidget {
           },
           child: SimpleCard(
             elevation: 0.0,
-            color: theme.canvasColor,
+            color: colors.primaryContainer.darken(10),
             borderRadius: iCardBorderRadius.copyWith(
               bottomLeft: iTileBorderRadius.bottomLeft,
               bottomRight: iTileBorderRadius.bottomRight,
@@ -746,7 +748,7 @@ class _HoldingStatCard extends StatelessWidget {
       spacing: 4.0,
       runSpacing: 4.0,
       children: tags.map((tag) {
-        return SimpleChip(title: Text(tag), color: context.colors.tertiary, titleColor: context.colors.onTertiary);
+        return SimpleChip(child: Text(tag), color: context.colors.tertiary, titleColor: context.colors.onTertiary);
       }).toList(),
     );
   }
@@ -822,13 +824,14 @@ class _HoldingStatCard extends StatelessWidget {
     }
 
     if (genreState.isLtpLoaded) {
-      final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
       final ltp = genreState.latestPrices[stat.amc.id]?.price;
+      if (ltp == null) {
+        return const Text('N/A', overflow: TextOverflow.ellipsis);
+      }
       return BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
-          // return CurrencyView(amount: stat_?.currentValue ?? 0, privateMode: isPrivateMode);
-          return CurrencyView(amount: 0, privateMode: isPrivateMode);
+          return CurrencyView(amount: ltp * stat.totalQuantity, privateMode: isPrivateMode);
         },
       );
     }

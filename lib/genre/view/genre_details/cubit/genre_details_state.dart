@@ -66,7 +66,7 @@ class GenreDetailsState extends Equatable {
   final int? activeAccountId;
   final List<AmcStat> stats;
   final LatestPriceStatus ltpStatus;
-  final Map<String, LatestPrice> latestPrices;
+  final Map<String, LatestPrice?> latestPrices;
   final String? errorMsg;
   final HoldingSortAndFilterStatus sortAndFilterStatus;
 
@@ -140,18 +140,20 @@ class GenreDetailsState extends Equatable {
   }
 
   GenreDetailsState copyWith({
-    LatestPriceStatus? status,
     AmcGenre? genre,
     int? activeAccountId,
     List<AmcStat>? stats,
+    LatestPriceStatus? ltpStatus,
+    Map<String, LatestPrice?>? latestPrices,
     String? errorMsg,
     HoldingSortAndFilterStatus? sortAndFilterStatus,
   }) {
     return GenreDetailsState(
       genre: genre ?? this.genre,
-      ltpStatus: status ?? this.ltpStatus,
       activeAccountId: activeAccountId ?? this.activeAccountId,
       stats: stats ?? this.stats,
+      ltpStatus: ltpStatus ?? this.ltpStatus,
+      latestPrices: latestPrices ?? this.latestPrices,
       errorMsg: errorMsg ?? this.errorMsg,
       sortAndFilterStatus: sortAndFilterStatus ?? this.sortAndFilterStatus,
     );

@@ -308,17 +308,18 @@ class _AmcOverviewSection extends StatelessWidget {
                                 if (account == null) return SizedBox.shrink();
 
                                 return SimpleChip(
-                                  title: Text(account.name, overflow: TextOverflow.ellipsis),
                                   color: context.colors.primary,
                                   titleColor: context.colors.onPrimary,
                                   padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                  icon: Icon(Icons.account_circle_rounded, size: 16.0, color: context.colors.onPrimary),
+                                  child: Text(account.name, overflow: TextOverflow.ellipsis),
                                 );
                               },
                             ),
 
                             if (amc.genre != null)
                               SimpleChip(
-                                title: Text(amc.genre!.title, overflow: TextOverflow.ellipsis),
+                                child: Text(amc.genre!.title, overflow: TextOverflow.ellipsis),
                                 color: context.colors.tertiary,
                                 titleColor: context.colors.onTertiary,
                                 padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -331,7 +332,7 @@ class _AmcOverviewSection extends StatelessWidget {
                                 }
 
                                 return SimpleChip(
-                                  title: Text(tag, overflow: TextOverflow.ellipsis),
+                                  child: Text(tag, overflow: TextOverflow.ellipsis),
                                   color: context.colors.tertiary,
                                   titleColor: context.colors.onTertiary,
                                   padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),

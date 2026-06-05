@@ -14,60 +14,31 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
   final AmcRepository _repository;
 
   Future<void> loadStats(List<AmcStat> stats) async {
-    emit(state.copyWith(status: LatestPriceStatus.loading, stats: stats));
+    emit(state.copyWith(ltpStatus: LatestPriceStatus.loading, stats: stats));
 
     // Get latest price for every amc whose quantity > 0,
     // this is required to calculate overall current amount and other metrics
     final nonZeroStats = stats.where((stat) => stat.totalQuantity > 0);
     try {
-      final latestPriceMap = await Future.wait(
+      final latestPrices = await Future.wait(
         nonZeroStats.map((stat) async {
           final ltp = await _repository.getLatestPrice(stat.amc);
           return MapEntry(stat.amc.id, ltp);
         }),
       ).then((entries) => Map.fromEntries(entries));
 
-      final newStats = stats.map((stat) {
-        final ltp = latestPriceMap[stat.amc.id];
-        if (ltp == null) return stat;
-        return stat.copyWith(amc: stat.amc.copyWith(ltp: ltp));
-      }).toList();
+      // final newStats = stats.map((stat) {
+      //   final ltp = latestPriceMap[stat.amc.id];
+      //   if (ltp == null) return stat;
+      //   return stat.copyWith(amc: stat.amc.copyWith(ltp: ltp));
+      // }).toList();
 
       if (isClosed) return;
-      emit(state.copyWith(status: LatestPriceStatus.loaded, stats: newStats));
+      emit(state.copyWith(ltpStatus: LatestPriceStatus.loaded, latestPrices: latestPrices));
     } catch (err) {
-      emit(state.copyWith(status: LatestPriceStatus.error, errorMsg: err.toString()));
+      emit(state.copyWith(ltpStatus: LatestPriceStatus.error, errorMsg: err.toString()));
     }
   }
-
-  // void updateAmcLtp(String amcId, LatestPrice ltp) {
-  //   if (state is! GenreDetailsLoadedState) {
-  //     return;
-  //   }
-
-  //   final loadedState = state as GenreDetailsLoadedState;
-
-  //   final stats = List<AmcStat>.from(loadedState.stats);
-  //   final index = stats.indexWhere((stat) => stat.amc.id == amcId);
-  //   if (index == -1) return;
-
-  //   final updatedStat = stats[index].copyWith(amc: stats[index].amc.copyWith(ltp: ltp));
-  //   stats[index] = updatedStat;
-
-  //   emit(loadedState.copyWith(stats: stats));
-  // }
-
-  // void updateCurrentAmount(String amcId, double currentAmount) {
-  //   if (state is! GenreDetailsLoadedState) {
-  //     return;
-  //   }
-
-  //   final loadedState = state as GenreDetailsLoadedState;
-  //   final currentAmounts = Map<String, double>.from(loadedState._currentAmounts);
-  //   currentAmounts[amcId] = currentAmount;
-
-  //   emit(loadedState.copyWith(currentAmounts: currentAmounts));
-  // }
 
   void setSortAndFilterStatus(HoldingSortAndFilterStatus sortAndFilterStatus) {
     if (!state.isLtpLoaded) {

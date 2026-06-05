@@ -153,7 +153,7 @@ class _SearchResults extends StatelessWidget {
             runSpacing: 4.0,
             children: <Widget>[
               SimpleChip(
-                title: Text((amc.genre ?? AmcGenre.misc).title),
+                child: Text((amc.genre ?? AmcGenre.misc).title),
                 color: context.colors.primary,
                 titleColor: context.colors.onPrimary,
               ),
@@ -165,7 +165,7 @@ class _SearchResults extends StatelessWidget {
                   }
 
                   return SimpleChip(
-                    title: Text(tag),
+                    child: Text(tag),
                     color: context.colors.tertiary,
                     titleColor: context.colors.onTertiary,
                   );

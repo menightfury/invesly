@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 class SimpleChip extends StatelessWidget {
   const SimpleChip({
     super.key,
-    required this.title,
+    this.icon,
+    required this.child,
     this.color,
     this.titleColor,
     this.padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
   });
 
-  final Widget title;
+  final Widget? icon;
+  final Widget child;
   final Color? color;
   final Color? titleColor;
   final EdgeInsetsGeometry padding;
@@ -19,16 +21,20 @@ class SimpleChip extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final titleText = DefaultTextStyle(
+    Widget content = DefaultTextStyle(
       style: textTheme.labelSmall!.copyWith(color: titleColor),
       overflow: TextOverflow.ellipsis,
-      child: title,
+      child: child,
     );
+
+    if (icon != null) {
+      content = Row(mainAxisSize: MainAxisSize.min, spacing: 4.0, children: <Widget>[icon!, content]);
+    }
 
     return PhysicalShape(
       clipper: ShapeBorderClipper(shape: const StadiumBorder()),
       color: color ?? colorScheme.primaryContainer,
-      child: Padding(padding: padding, child: titleText),
+      child: Padding(padding: padding, child: content),
     );
   }
 }

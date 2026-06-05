@@ -524,7 +524,7 @@ class MiscAmcModel extends InveslyAmc {
   }
 }
 
-class AmcInDb extends TableDataModel {
+class AmcInDb extends TableDataModel<String> {
   const AmcInDb({
     required super.id,
     required this.name,

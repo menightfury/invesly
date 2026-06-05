@@ -124,7 +124,7 @@ class Section extends StatelessWidget {
               subtitle: subtitleText,
               icon: icon,
               secondaryIcon: trailingIcon,
-              tileColor: theme.colorScheme.primaryContainer.darken(3),
+              tileColor: theme.colorScheme.primaryContainer.darken(10),
               borderRadius: hasTiles
                   ? iCardBorderRadius.copyWith(
                       bottomLeft: iTileBorderRadius.bottomLeft,
@@ -252,7 +252,7 @@ class SectionTile extends StatelessWidget {
     final Color? color = selected
         ? selectedTileColor ?? tileTheme.selectedTileColor ?? theme.listTileTheme.selectedTileColor
         : tileColor ?? tileTheme.tileColor ?? theme.listTileTheme.tileColor;
-    return color ?? theme.canvasColor.lighten(3);
+    return color ?? theme.canvasColor;
   }
 
   @override
@@ -261,8 +261,7 @@ class SectionTile extends StatelessWidget {
     final tileTheme = ListTileTheme.of(context);
     final effectiveShape = shape ?? RoundedRectangleBorder(borderRadius: borderRadius ?? BorderRadius.zero);
 
-    final titleText = AnimatedDefaultTextStyle(
-      duration: 850.ms,
+    final titleText = DefaultTextStyle(
       style: theme.textTheme.bodyMedium!.copyWith(color: enabled ? null : theme.disabledColor),
       overflow: TextOverflow.ellipsis,
       child: title,
@@ -270,8 +269,7 @@ class SectionTile extends StatelessWidget {
 
     Widget? subtitleText;
     if (subtitle != null) {
-      subtitleText = AnimatedDefaultTextStyle(
-        duration: 850.ms,
+      subtitleText = DefaultTextStyle(
         style: theme.textTheme.bodySmall!.copyWith(color: enabled ? theme.colorScheme.secondary : theme.disabledColor),
         overflow: TextOverflow.ellipsis,
         maxLines: 2,
