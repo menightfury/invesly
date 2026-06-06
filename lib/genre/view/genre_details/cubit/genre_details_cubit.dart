@@ -13,11 +13,11 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
 
   final AmcRepository _repository;
 
+  // Get latest price for every amc whose quantity > 0,
+  // this is required to calculate overall current amount and other metrics
   Future<void> loadStats(List<AmcStat> stats) async {
     emit(state.copyWith(ltpStatus: LatestPriceStatus.loading, stats: stats));
 
-    // Get latest price for every amc whose quantity > 0,
-    // this is required to calculate overall current amount and other metrics
     final nonZeroStats = stats.where((stat) => stat.totalQuantity > 0);
     try {
       final latestPrices = await Future.wait(
@@ -26,12 +26,6 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
           return MapEntry(stat.amc.id, ltp);
         }),
       ).then((entries) => Map.fromEntries(entries));
-
-      // final newStats = stats.map((stat) {
-      //   final ltp = latestPriceMap[stat.amc.id];
-      //   if (ltp == null) return stat;
-      //   return stat.copyWith(amc: stat.amc.copyWith(ltp: ltp));
-      // }).toList();
 
       if (isClosed) return;
       emit(state.copyWith(ltpStatus: LatestPriceStatus.loaded, latestPrices: latestPrices));
