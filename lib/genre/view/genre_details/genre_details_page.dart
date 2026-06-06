@@ -672,6 +672,18 @@ class _HoldingStatCard extends StatelessWidget {
           },
           builder: (context, genreState) {
             $logger.i('Rebuilding LTP-dependent widget for AMC ${stat.amc.name} with state: $genreState');
+            double? currentValue;
+            double? returns;
+            double? percentageReturns;
+            if (genreState.isLtpLoaded) {
+              final ltp = genreState.latestPrices[stat.amc.id]?.price;
+              if (ltp != null) {
+                currentValue = ltp * stat.totalQuantity;
+                returns = currentValue - stat.totalInvested;
+                percentageReturns = stat.totalInvested != 0 ? (returns / stat.totalInvested) * 100 : 0;
+              }
+            }
+
             return Skeletonizer(
               enabled: genreState.isLtpLoading,
               child: Column(
@@ -687,7 +699,17 @@ class _HoldingStatCard extends StatelessWidget {
                           label: Skeleton.keep(
                             child: Text('Current value', style: labelStyle, overflow: TextOverflow.ellipsis),
                           ),
-                          value: _buildCurrentValue(context, genreState),
+                          value: () {
+                            if (currentValue == null) {
+                              return const Text('N/A', overflow: TextOverflow.ellipsis);
+                            }
+                            return BlocSelector<AppCubit, AppState, bool>(
+                              selector: (state) => state.isPrivateMode,
+                              builder: (context, isPrivateMode) {
+                                return CurrencyView(amount: currentValue!, privateMode: isPrivateMode);
+                              },
+                            );
+                          }(),
                         ),
                       ),
 
@@ -697,7 +719,21 @@ class _HoldingStatCard extends StatelessWidget {
                           label: Skeleton.keep(
                             child: Text('Returns', style: labelStyle, overflow: TextOverflow.ellipsis),
                           ),
-                          value: _buildReturnAmount(context, genreState),
+                          value: () {
+                            if (returns == null) {
+                              return const Text('N/A', overflow: TextOverflow.ellipsis);
+                            }
+                            return BlocSelector<AppCubit, AppState, bool>(
+                              selector: (state) => state.isPrivateMode,
+                              builder: (context, isPrivateMode) {
+                                return CurrencyView(
+                                  amount: returns!,
+                                  privateMode: isPrivateMode,
+                                  style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
+                                );
+                              },
+                            );
+                          }(),
                         ),
                       ),
                     ],
@@ -712,7 +748,17 @@ class _HoldingStatCard extends StatelessWidget {
                           label: Skeleton.keep(
                             child: Text('% Returns', style: labelStyle, overflow: TextOverflow.ellipsis),
                           ),
-                          value: _buildReturnPercentage(context, genreState),
+                          value: () {
+                            if (percentageReturns == null) {
+                              return const Text('N/A', overflow: TextOverflow.ellipsis);
+                            }
+                            return Text(
+                              percentageReturns > 0 ? '${percentageReturns.toPrecisionDouble(2)}%' : '0.00%',
+                              style: TextStyle(color: percentageReturns < 0 ? Colors.red : Colors.teal),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            );
+                          }(),
                           borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
                         ),
                       ),
@@ -723,7 +769,14 @@ class _HoldingStatCard extends StatelessWidget {
                           label: Skeleton.keep(
                             child: Text('XIRR', style: labelStyle, overflow: TextOverflow.ellipsis),
                           ),
-                          value: _buildXirr(context, genreState),
+                          value: () {
+                            final xirr = stat.amc.xirr?.value;
+                            return Text(
+                              xirr != null ? '${(xirr * 100).toPrecisionDouble(2)}%' : 'N/A',
+                              style: TextStyle(color: xirr != null && xirr < 0 ? Colors.red : Colors.teal),
+                              overflow: TextOverflow.ellipsis,
+                            );
+                          }(),
                           borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
                         ),
                       ),
@@ -748,95 +801,9 @@ class _HoldingStatCard extends StatelessWidget {
       spacing: 4.0,
       runSpacing: 4.0,
       children: tags.map((tag) {
-        return SimpleChip(child: Text(tag), color: context.colors.tertiary, titleColor: context.colors.onTertiary);
+        return SimpleChip(color: context.colors.tertiary, titleColor: context.colors.onTertiary, child: Text(tag));
       }).toList(),
     );
-  }
-
-  Widget _buildXirr(BuildContext context, GenreDetailsState genreState) {
-    if (genreState.isLtpError) {
-      return Text('N/A', overflow: TextOverflow.ellipsis);
-    }
-
-    if (genreState.isLtpLoaded) {
-      final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
-
-      final xirr = stat_?.amc.xirr?.value;
-      return Text(
-        xirr != null ? '${(xirr * 100).toPrecisionDouble(2)}%' : 'N/A',
-        style: TextStyle(color: xirr != null && xirr < 0 ? Colors.red : Colors.teal),
-        overflow: TextOverflow.ellipsis,
-      );
-    }
-
-    return Text('Loading...', overflow: TextOverflow.ellipsis);
-  }
-
-  Widget _buildReturnPercentage(BuildContext context, GenreDetailsState genreState) {
-    if (genreState.isLtpError) {
-      return Text('N/A', overflow: TextOverflow.ellipsis);
-    }
-
-    if (genreState.isLtpLoaded) {
-      final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
-      // final percentageReturns = stat_?.percentageReturn ?? 0.0;
-      final percentageReturns = 0.0;
-
-      return Text(
-        percentageReturns > 0 ? '${percentageReturns.toPrecisionDouble(2)}%' : '(0.00%)',
-        style: TextStyle(color: percentageReturns < 0 ? Colors.red : Colors.teal),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-      );
-    }
-
-    return Text('Loading...', overflow: TextOverflow.ellipsis);
-  }
-
-  Widget _buildReturnAmount(BuildContext context, GenreDetailsState genreState) {
-    if (genreState.isLtpError) {
-      return Text('N/A', overflow: TextOverflow.ellipsis);
-    }
-
-    if (genreState.isLtpLoaded) {
-      final stat_ = genreState.stats.firstWhereOrNull((s) => s.amc.id == stat.amc.id);
-      // final returns = stat_?.amountReturn ?? 0;
-      final returns = 0;
-
-      return BlocSelector<AppCubit, AppState, bool>(
-        selector: (state) => state.isPrivateMode,
-        builder: (context, isPrivateMode) {
-          return CurrencyView(
-            amount: returns,
-            privateMode: isPrivateMode,
-            style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-          );
-        },
-      );
-    }
-
-    return Text('Loading...', overflow: TextOverflow.ellipsis);
-  }
-
-  Widget _buildCurrentValue(BuildContext context, GenreDetailsState genreState) {
-    if (genreState.isLtpError) {
-      return const Text('N/A', overflow: TextOverflow.ellipsis);
-    }
-
-    if (genreState.isLtpLoaded) {
-      final ltp = genreState.latestPrices[stat.amc.id]?.price;
-      if (ltp == null) {
-        return const Text('N/A', overflow: TextOverflow.ellipsis);
-      }
-      return BlocSelector<AppCubit, AppState, bool>(
-        selector: (state) => state.isPrivateMode,
-        builder: (context, isPrivateMode) {
-          return CurrencyView(amount: ltp * stat.totalQuantity, privateMode: isPrivateMode);
-        },
-      );
-    }
-
-    return Text('Loading...', overflow: TextOverflow.ellipsis);
   }
 }
 
