@@ -562,11 +562,17 @@ class _GenreOverviewSection extends StatelessWidget {
   }
 }
 
-class _HoldingStatCard extends StatelessWidget {
+class _HoldingStatCard extends StatefulWidget {
   const _HoldingStatCard({super.key, required this.stat});
   final AmcStat stat;
 
+  @override
+  State<_HoldingStatCard> createState() => _HoldingStatCardState();
+}
+
+class _HoldingStatCardState extends State<_HoldingStatCard> {
   static const double _spacing = 2.0;
+  final GlobalKey<_XirrViewState> _xirrKey = GlobalKey<_XirrViewState>();
 
   @override
   Widget build(BuildContext context) {
@@ -584,7 +590,7 @@ class _HoldingStatCard extends StatelessWidget {
         // ~ AMC name, Chips and Transaction count
         GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () {
+          onTap: () async {
             if (accountId == null) {
               $logger.w('Account ID is null. Cannot navigate to AMC overview page.');
               ScaffoldMessenger.of(context).showSnackBar(
@@ -592,7 +598,9 @@ class _HoldingStatCard extends StatelessWidget {
               );
               return;
             }
-            context.push(AmcOverviewPage(accountId: accountId, amcId: stat.amc.id));
+            await context.push(AmcOverviewPage(accountId: accountId, amcId: widget.stat.amc.id)).then((_) {
+              _xirrKey.currentState?.refresh();
+            });
           },
           child: SimpleCard(
             elevation: 0.0,
@@ -615,7 +623,7 @@ class _HoldingStatCard extends StatelessWidget {
                       children: <Widget>[
                         Expanded(
                           child: Text(
-                            stat.amc.name,
+                            widget.stat.amc.name,
                             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 2,
@@ -627,7 +635,11 @@ class _HoldingStatCard extends StatelessWidget {
                       ],
                     ),
                     _buildTagsForAmc(context),
-                    Text('${stat.numTransactions} transactions', style: labelStyle, overflow: TextOverflow.ellipsis),
+                    Text(
+                      '${widget.stat.numTransactions} transactions',
+                      style: labelStyle,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
@@ -643,7 +655,7 @@ class _HoldingStatCard extends StatelessWidget {
               child: _SectionWidget(
                 label: Text('Available units', style: labelStyle, overflow: TextOverflow.ellipsis),
                 value: Text(
-                  '${stat.totalQuantity.toPrecisionDouble(4)}',
+                  '${widget.stat.totalQuantity.toPrecisionDouble(4)}',
                   textAlign: TextAlign.right,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -658,7 +670,7 @@ class _HoldingStatCard extends StatelessWidget {
                 value: BlocSelector<AppCubit, AppState, bool>(
                   selector: (state) => state.isPrivateMode,
                   builder: (context, isPrivateMode) {
-                    return CurrencyView(amount: stat.totalInvested, privateMode: isPrivateMode);
+                    return CurrencyView(amount: widget.stat.totalInvested, privateMode: isPrivateMode);
                   },
                 ),
               ),
@@ -671,16 +683,16 @@ class _HoldingStatCard extends StatelessWidget {
             return prev.ltpStatus != curr.ltpStatus;
           },
           builder: (context, genreState) {
-            $logger.i('Rebuilding LTP-dependent widget for AMC ${stat.amc.name} with state: $genreState');
+            $logger.i('Rebuilding LTP-dependent widget for AMC ${widget.stat.amc.name} with state: $genreState');
             double? currentValue;
             double? returns;
             double? percentageReturns;
             if (genreState.isLtpLoaded) {
-              final ltp = genreState.latestPrices[stat.amc.id]?.price;
+              final ltp = genreState.latestPrices[widget.stat.amc.id]?.price;
               if (ltp != null) {
-                currentValue = ltp * stat.totalQuantity;
-                returns = currentValue - stat.totalInvested;
-                percentageReturns = stat.totalInvested != 0 ? (returns / stat.totalInvested) * 100 : 0;
+                currentValue = ltp * widget.stat.totalQuantity;
+                returns = currentValue - widget.stat.totalInvested;
+                percentageReturns = widget.stat.totalInvested != 0 ? (returns / widget.stat.totalInvested) * 100 : 0;
               }
             }
 
@@ -763,21 +775,14 @@ class _HoldingStatCard extends StatelessWidget {
                         ),
                       ),
 
-                      // ~ XIRR
+                      // ~ XIRR - Refresh on Navigator pop
                       Expanded(
-                        child: _SectionWidget(
-                          label: Skeleton.keep(
-                            child: Text('XIRR', style: labelStyle, overflow: TextOverflow.ellipsis),
+                        child: Skeleton.keep(
+                          child: _SectionWidget(
+                            label: Text('XIRR', style: labelStyle, overflow: TextOverflow.ellipsis),
+                            value: _XirrView(key: _xirrKey, stat: widget.stat),
+                            borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
                           ),
-                          value: () {
-                            final xirr = stat.amc.xirr?.value;
-                            return Text(
-                              xirr != null ? '${(xirr * 100).toPrecisionDouble(2)}%' : 'N/A',
-                              style: TextStyle(color: xirr != null && xirr < 0 ? Colors.red : Colors.teal),
-                              overflow: TextOverflow.ellipsis,
-                            );
-                          }(),
-                          borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
                         ),
                       ),
                     ],
@@ -792,7 +797,7 @@ class _HoldingStatCard extends StatelessWidget {
   }
 
   Widget _buildTagsForAmc(BuildContext context) {
-    final tags = stat.amc.tags;
+    final tags = widget.stat.amc.tags;
     if (tags == null || tags.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -803,6 +808,33 @@ class _HoldingStatCard extends StatelessWidget {
       children: tags.map((tag) {
         return SimpleChip(color: context.colors.tertiary, titleColor: context.colors.onTertiary, child: Text(tag));
       }).toList(),
+    );
+  }
+}
+
+class _XirrView extends StatefulWidget {
+  const _XirrView({super.key, required this.stat});
+
+  final AmcStat stat;
+
+  @override
+  State<_XirrView> createState() => _XirrViewState();
+}
+
+class _XirrViewState extends State<_XirrView> {
+  void refresh() {
+    setState(() {
+      // Trigger a rebuild to refresh the XIRR value
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final xirr = widget.stat.amc.xirr?.value;
+    return Text(
+      xirr != null ? '${(xirr * 100).toPrecisionDouble(2)}%' : 'N/A',
+      style: TextStyle(color: xirr != null && xirr < 0 ? Colors.red : Colors.teal),
+      overflow: TextOverflow.ellipsis,
     );
   }
 }
