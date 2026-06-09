@@ -4,7 +4,7 @@ part of 'amc_overview_cubit.dart';
 class AmcOverviewState extends Equatable {
   const AmcOverviewState({required this.stat, this.ltpStatus = LatestPriceStatus.initial, this.ltp, this.errorMsg});
 
-  final AmcStat stat;
+  final InveslyStat stat;
   final LatestPriceStatus ltpStatus;
   final LatestPrice? ltp;
   final String? errorMsg;
@@ -38,7 +38,7 @@ class AmcOverviewState extends Equatable {
   AmcOverviewState copyWith({
     String? amcId,
     LatestPriceStatus? ltpStatus,
-    AmcStat? stat,
+    InveslyStat? stat,
     LatestPrice? ltp,
     String? errorMsg,
   }) {

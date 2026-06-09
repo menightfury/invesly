@@ -126,7 +126,7 @@ class _GenreDetailsPageContent extends StatefulWidget {
   const _GenreDetailsPageContent({super.key, required this.stats});
   // ~ Empty stats state is already handled by parent
 
-  final List<AmcStat> stats;
+  final List<InveslyStat> stats;
 
   @override
   State<_GenreDetailsPageContent> createState() => _GenreDetailsPageContentState();
@@ -564,7 +564,7 @@ class _GenreOverviewSection extends StatelessWidget {
 
 class _HoldingStatCard extends StatefulWidget {
   const _HoldingStatCard({super.key, required this.stat});
-  final AmcStat stat;
+  final InveslyStat stat;
 
   @override
   State<_HoldingStatCard> createState() => _HoldingStatCardState();
@@ -815,7 +815,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
 class _XirrView extends StatefulWidget {
   const _XirrView({super.key, required this.stat});
 
-  final AmcStat stat;
+  final InveslyStat stat;
 
   @override
   State<_XirrView> createState() => _XirrViewState();

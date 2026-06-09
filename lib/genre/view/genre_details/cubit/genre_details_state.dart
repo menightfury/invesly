@@ -64,7 +64,7 @@ class GenreDetailsState extends Equatable {
 
   final AmcGenre genre;
   final int? activeAccountId;
-  final List<AmcStat> stats;
+  final List<InveslyStat> stats;
   final LatestPriceStatus ltpStatus;
   final Map<String, LatestPrice?> latestPrices;
   final String? errorMsg;
@@ -87,7 +87,7 @@ class GenreDetailsState extends Equatable {
   double get totalCurrentAmount => currentAmounts.values.fold<double>(0, (v, el) => v + el);
   double get totalReturns => totalCurrentAmount - totalInvested;
 
-  List<AmcStat> get displayStats {
+  List<InveslyStat> get displayStats {
     if (stats.isEmpty) return stats;
 
     // Filter
@@ -100,7 +100,7 @@ class GenreDetailsState extends Equatable {
     if (filtered.isEmpty) return filtered;
 
     // Sort
-    final sorted = List<AmcStat>.from(filtered);
+    final sorted = List<InveslyStat>.from(filtered);
     sorted.sort((a, b) {
       late final int result;
       switch (sortAndFilterStatus.sortOption) {
@@ -142,7 +142,7 @@ class GenreDetailsState extends Equatable {
   GenreDetailsState copyWith({
     AmcGenre? genre,
     int? activeAccountId,
-    List<AmcStat>? stats,
+    List<InveslyStat>? stats,
     LatestPriceStatus? ltpStatus,
     Map<String, LatestPrice?>? latestPrices,
     String? errorMsg,

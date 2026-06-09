@@ -202,10 +202,11 @@ class ForeignReference extends Equatable {
 enum TableEventType { created, inserted, updated, deleted }
 
 class TableEvent {
-  final Set<TableSchema> tables;
+  final TableSchema table;
   final TableEventType type;
+  final TableDataModel? data;
 
-  const TableEvent(this.tables, this.type);
+  const TableEvent(this.table, this.type, [this.data]);
 }
 
 // ~ Table filter
@@ -338,6 +339,19 @@ class TableFilterGroup extends TableFilter {
   }
 }
 
+// ~ Table query builder
+abstract class TableFilterBuilder<T extends TableDataModel> {
+  TableFilterBuilder where(List<TableFilter> filters);
+
+  TableFilterBuilder groupBy(List<TableColumn> columns);
+
+  Future<List<Map<String, dynamic>>> toList({int? limit});
+
+  // InveslyApiFilterBuilder orderBy(String column) => InveslyApiFilterBuilder();
+
+  // InveslyApiFilterBuilder limit(int limit) => InveslyApiFilterBuilder();
+}
+
 class TableQueryBuilder<T extends TableDataModel> implements TableFilterBuilder<T> {
   TableQueryBuilder({required Database db, required TableSchema table, List<TableColumnBase>? columns})
     : _db = db,
@@ -403,7 +417,6 @@ class TableQueryBuilder<T extends TableDataModel> implements TableFilterBuilder<
   @override
   TableFilterBuilder where(List<TableFilter> filters, {bool isAnd = true}) {
     if (filters.isNotEmpty) {
-      //   _where.addAll(filters);
       _where = TableFilterGroup(filters, isAnd: isAnd);
     }
     return this;
@@ -462,16 +475,4 @@ class TableQueryBuilder<T extends TableDataModel> implements TableFilterBuilder<
     }
     return data;
   }
-}
-
-abstract class TableFilterBuilder<T extends TableDataModel> {
-  TableFilterBuilder where(List<TableFilter> filters);
-
-  TableFilterBuilder groupBy(List<TableColumn> columns);
-
-  Future<List<Map<String, dynamic>>> toList({int? limit});
-
-  // InveslyApiFilterBuilder orderBy(String column) => InveslyApiFilterBuilder();
-
-  // InveslyApiFilterBuilder limit(int limit) => InveslyApiFilterBuilder();
 }

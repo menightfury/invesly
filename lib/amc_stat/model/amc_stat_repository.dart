@@ -21,15 +21,16 @@ class AmcStatRepository {
 
   final InveslyApi _api;
 
+  StatTable get _statTable => _api.statTable;
   AmcTable get _amcTable => _api.amcTable;
   TransactionTable get _trnTable => _api.trnTable;
 
   Stream<TableEvent> get onDataChanged {
-    return _api.onTableChange.where((event) => event.tables.contains(_trnTable));
+    return _api.onTableChange.where((event) => event.table == _trnTable);
   }
 
   /// Get statistics of all AMCs
-  Future<List<AmcStat>> getAllStats() async {
+  Future<List<InveslyStat>> getAllStats() async {
     try {
       final result = await _api
           .select(_trnTable, [
@@ -50,8 +51,8 @@ class AmcStatRepository {
           //.where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
           .groupBy([_trnTable.accountIdColumn, _amcTable.idColumn])
           .toList();
-      final stats = result.map<AmcStat>((map) {
-        return AmcStat(
+      final stats = result.map<InveslyStat>((map) {
+        return InveslyStat(
           accountId: map[_trnTable.accountIdColumn.title] as int,
           amc: InveslyAmc.fromDb(_amcTable.fromMap(map)),
           numTransactions: map['num_transactions'] as int,
@@ -69,7 +70,7 @@ class AmcStatRepository {
   }
 
   /// Get statistics of all AMCs
-  Future<List<AmcStat>> getStats(int accountId) async {
+  Future<List<InveslyStat>> getStats(int accountId) async {
     try {
       final result = await _api
           .select(_trnTable, [
@@ -89,8 +90,8 @@ class AmcStatRepository {
           .where([SingleValueTableFilter<int>(_trnTable.accountIdColumn, accountId)])
           .groupBy([_amcTable.idColumn])
           .toList();
-      final stats = result.map<AmcStat>((map) {
-        return AmcStat(
+      final stats = result.map<InveslyStat>((map) {
+        return InveslyStat(
           accountId: accountId,
           amc: InveslyAmc.fromDb(_amcTable.fromMap(map)),
           numTransactions: map['num_transactions'] as int,
@@ -108,7 +109,7 @@ class AmcStatRepository {
   }
 
   /// Get statistics of AMC
-  Future<AmcStat?> getStat({required int accountId, required String amcId}) async {
+  Future<InveslyStat?> getStat({required int accountId, required String amcId}) async {
     try {
       final result = await _api
           .select(_trnTable, [
@@ -134,7 +135,7 @@ class AmcStatRepository {
       if (result.isEmpty) return null;
 
       final first = result.first;
-      return AmcStat(
+      return InveslyStat(
         accountId: accountId,
         amc: InveslyAmc.fromDb(_amcTable.fromMap(first)),
         numTransactions: first['num_transactions'] as int,

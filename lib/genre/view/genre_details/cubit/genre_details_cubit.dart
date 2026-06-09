@@ -15,7 +15,7 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
 
   // Get latest price for every amc whose quantity > 0,
   // this is required to calculate overall current amount and other metrics
-  Future<void> loadStats(List<AmcStat> stats) async {
+  Future<void> loadStats(List<InveslyStat> stats) async {
     emit(state.copyWith(ltpStatus: LatestPriceStatus.loading, stats: stats));
 
     final nonZeroStats = stats.where((stat) => stat.totalQuantity > 0);

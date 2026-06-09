@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:intl/intl.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
-import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 
@@ -163,17 +162,11 @@ class InsuranceAmcTag extends AmcTag {
   List<Object?> get props => [plan];
 }
 
+// ~ Data Model
 abstract class InveslyAmc extends AmcInDb {
-  InveslyAmc({
-    required super.id,
-    required super.name,
-    required super.code,
-    this.genre,
-    AmcTag? amcTag,
-    this.ltp,
-    this.xirr,
-  }) : _amcTag = amcTag,
-       super(genreCode: genre?.name, tagString: amcTag?.toJson(), ltpString: ltp?.toJson(), xirrString: xirr?.toJson());
+  InveslyAmc({required super.id, required super.name, required super.code, this.genre, AmcTag? amcTag, this.ltp})
+    : _amcTag = amcTag,
+      super(genreCode: genre?.name, tagString: amcTag?.toJson(), ltpString: ltp?.toJson());
 
   // InveslyAmc.misc() = MiscAmcModel;
 
@@ -187,9 +180,6 @@ abstract class InveslyAmc extends AmcInDb {
 
   /// Latest price of the AMC, if available.
   final LatestPrice? ltp;
-
-  /// Latest calculated xirr
-  final LatestXirr? xirr;
 
   factory InveslyAmc.fromDb(AmcInDb amc) {
     AmcGenre? amcGenre;
@@ -214,7 +204,7 @@ abstract class InveslyAmc extends AmcInDb {
   Set<String>? get tags => _amcTag?.tags;
   // Set<String> get tags => tag != null ? tag!.values.whereType<String>().toSet() : {};
 
-  InveslyAmc copyWith({LatestPrice? ltp, LatestXirr? xirr});
+  InveslyAmc copyWith({LatestPrice? ltp});
 }
 
 class MfAmcModel extends InveslyAmc {
@@ -228,7 +218,6 @@ class MfAmcModel extends InveslyAmc {
     // this.schemeType,
     this.amcTag,
     super.ltp,
-    super.xirr,
   }) : super(
          genre: AmcGenre.mf,
          //  amcTag: {'category': category, 'sub_category': subCategory, 'plan': plan, 'scheme_type': schemeType},
@@ -256,11 +245,6 @@ class MfAmcModel extends InveslyAmc {
       ltp = LatestPrice.fromJson(amc.ltpString!);
     }
 
-    LatestXirr? xirr;
-    if (amc.xirrString?.isNotEmpty ?? false) {
-      xirr = LatestXirr.fromJson(amc.xirrString!);
-    }
-
     return MfAmcModel(
       id: amc.id,
       name: amc.name,
@@ -271,7 +255,6 @@ class MfAmcModel extends InveslyAmc {
       // schemeType: tag?['scheme_type'] as String?,
       amcTag: amcTag,
       ltp: ltp,
-      xirr: xirr,
     );
   }
 
@@ -307,8 +290,8 @@ class MfAmcModel extends InveslyAmc {
   }
 
   @override
-  MfAmcModel copyWith({LatestPrice? ltp, LatestXirr? xirr}) {
-    return MfAmcModel(id: id, name: name, code: code, amcTag: amcTag, ltp: ltp ?? this.ltp, xirr: xirr ?? this.xirr);
+  MfAmcModel copyWith({LatestPrice? ltp}) {
+    return MfAmcModel(id: id, name: name, code: code, amcTag: amcTag, ltp: ltp ?? this.ltp);
   }
 }
 
@@ -321,7 +304,6 @@ class StockAmcModel extends InveslyAmc {
     // this.industry,
     this.amcTag,
     super.ltp,
-    super.xirr,
   }) : super(
          genre: AmcGenre.stock,
          // amcTag: {'sector': sector, 'industry': industry},
@@ -347,11 +329,6 @@ class StockAmcModel extends InveslyAmc {
       ltp = LatestPrice.fromJson(amc.ltpString!);
     }
 
-    LatestXirr? xirr;
-    if (amc.xirrString?.isNotEmpty ?? false) {
-      xirr = LatestXirr.fromJson(amc.xirrString!);
-    }
-
     return StockAmcModel(
       id: amc.id,
       name: amc.name,
@@ -360,7 +337,6 @@ class StockAmcModel extends InveslyAmc {
       // industry: tag?['industry'] as String?,
       amcTag: amcTag,
       ltp: ltp,
-      xirr: xirr,
     );
   }
 
@@ -396,7 +372,7 @@ class StockAmcModel extends InveslyAmc {
   }
 
   @override
-  StockAmcModel copyWith({LatestPrice? ltp, LatestXirr? xirr}) {
+  StockAmcModel copyWith({LatestPrice? ltp}) {
     return StockAmcModel(
       id: id,
       name: name,
@@ -405,7 +381,6 @@ class StockAmcModel extends InveslyAmc {
       // industry: tag != null ? tag['industry'] as String? : industry,
       amcTag: amcTag,
       ltp: ltp ?? this.ltp,
-      xirr: xirr ?? this.xirr,
     );
   }
 }
@@ -418,7 +393,6 @@ class InsuranceAmcModel extends InveslyAmc {
     // this.plan,
     this.amcTag,
     super.ltp,
-    super.xirr,
   }) : super(
          genre: AmcGenre.insurance,
          //amcTag: {'plan': plan}
@@ -444,11 +418,6 @@ class InsuranceAmcModel extends InveslyAmc {
       ltp = LatestPrice.fromJson(amc.ltpString!);
     }
 
-    LatestXirr? xirr;
-    if (amc.xirrString?.isNotEmpty ?? false) {
-      xirr = LatestXirr.fromJson(amc.xirrString!);
-    }
-
     return InsuranceAmcModel(
       id: amc.id,
       name: amc.name,
@@ -456,7 +425,6 @@ class InsuranceAmcModel extends InveslyAmc {
       // plan: tag?['plan'] as String?,
       amcTag: amcTag,
       ltp: ltp,
-      xirr: xirr,
     );
   }
 
@@ -467,7 +435,7 @@ class InsuranceAmcModel extends InveslyAmc {
   LatestPrice? fromLtpMap(Map<String, dynamic> response) => null; // Insurance AMC doesn't have a latest price API, so return null price
 
   @override
-  InsuranceAmcModel copyWith({LatestPrice? ltp, LatestXirr? xirr}) {
+  InsuranceAmcModel copyWith({LatestPrice? ltp}) {
     return InsuranceAmcModel(
       id: id,
       name: name,
@@ -475,16 +443,15 @@ class InsuranceAmcModel extends InveslyAmc {
       // plan: tag != null ? tag['plan'] as String? : plan,
       amcTag: amcTag,
       ltp: ltp ?? this.ltp,
-      xirr: xirr ?? this.xirr,
     );
   }
 }
 
 class MiscAmcModel extends InveslyAmc {
-  MiscAmcModel({required super.id, required super.name, required super.code, this.amcTag, super.ltp, super.xirr})
+  MiscAmcModel({required super.id, required super.name, required super.code, this.amcTag, super.ltp})
     : super(genre: AmcGenre.misc, amcTag: amcTag);
 
-  MiscAmcModel.empty({String? id, String? name, String? code, this.amcTag, super.ltp, super.xirr})
+  MiscAmcModel.empty({String? id, String? name, String? code, this.amcTag, super.ltp})
     : super(id: id ?? 'na', name: name ?? 'Not available', code: code ?? 'na', genre: AmcGenre.misc, amcTag: amcTag);
 
   final AmcTag? amcTag;
@@ -504,12 +471,7 @@ class MiscAmcModel extends InveslyAmc {
       ltp = LatestPrice.fromJson(amc.ltpString!);
     }
 
-    LatestXirr? xirr;
-    if (amc.xirrString?.isNotEmpty ?? false) {
-      xirr = LatestXirr.fromJson(amc.xirrString!);
-    }
-
-    return MiscAmcModel(id: amc.id, name: amc.name, code: amc.code, amcTag: amcTag, ltp: ltp, xirr: xirr);
+    return MiscAmcModel(id: amc.id, name: amc.name, code: amc.code, amcTag: amcTag, ltp: ltp);
   }
 
   @override
@@ -519,8 +481,8 @@ class MiscAmcModel extends InveslyAmc {
   LatestPrice? fromLtpMap(Map<String, dynamic> response) => null; // Misc AMC doesn't have a latest price API, so return null
 
   @override
-  MiscAmcModel copyWith({LatestPrice? ltp, LatestXirr? xirr}) {
-    return MiscAmcModel(id: id, name: name, code: code, amcTag: amcTag, ltp: ltp ?? this.ltp, xirr: xirr ?? this.xirr);
+  MiscAmcModel copyWith({LatestPrice? ltp}) {
+    return MiscAmcModel(id: id, name: name, code: code, amcTag: amcTag, ltp: ltp ?? this.ltp);
   }
 }
 
@@ -532,7 +494,6 @@ class AmcInDb extends TableDataModel<String> {
     this.genreCode,
     this.tagString,
     this.ltpString,
-    this.xirrString,
   });
 
   final String name;
@@ -540,12 +501,12 @@ class AmcInDb extends TableDataModel<String> {
   final String? genreCode;
   final String? tagString;
   final String? ltpString;
-  final String? xirrString;
 
   @override
-  List<Object?> get props => super.props..addAll([name, code, genreCode, tagString, ltpString, xirrString]);
+  List<Object?> get props => super.props..addAll([name, code, genreCode, tagString, ltpString]);
 }
 
+// ~ Table Model
 class AmcTable extends TableSchema<AmcInDb> {
   // Singleton pattern to ensure only one instance exists
   const AmcTable._() : super('amcs');
@@ -559,12 +520,9 @@ class AmcTable extends TableSchema<AmcInDb> {
   TableColumn<String> get genreColumn => TableColumn('genre', tableName, isNullable: true);
   TableColumn<String> get tagColumn => TableColumn('tag', tableName, isNullable: true);
   TableColumn<String> get ltpColumn => TableColumn('ltp', tableName, isNullable: true);
-  TableColumn<String> get xirrColumn => TableColumn('xirr', tableName, isNullable: true);
 
   @override
-  Set<TableColumn> get columns {
-    return {idColumn, nameColumn, codeColumn, genreColumn, tagColumn, ltpColumn, xirrColumn};
-  }
+  Set<TableColumn> get columns => {idColumn, nameColumn, codeColumn, genreColumn, tagColumn, ltpColumn};
 
   @override
   Map<String, dynamic> fromModel(AmcInDb data) {
@@ -575,7 +533,6 @@ class AmcTable extends TableSchema<AmcInDb> {
       genreColumn.title: data.genreCode,
       tagColumn.title: data.tagString,
       ltpColumn.title: data.ltpString,
-      xirrColumn.title: data.xirrString,
     };
   }
 
@@ -588,7 +545,6 @@ class AmcTable extends TableSchema<AmcInDb> {
       genreCode: map[genreColumn.title] as String?,
       tagString: map[tagColumn.title] as String?,
       ltpString: map[ltpColumn.title] as String?,
-      xirrString: map[xirrColumn.title] as String?,
     );
   }
 }

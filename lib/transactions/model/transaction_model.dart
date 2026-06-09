@@ -54,6 +54,33 @@ enum TransactionType {
   }
 }
 
+// ~ Data Model
+class TransactionInDb extends TableDataModel<int> {
+  const TransactionInDb({
+    required super.id,
+    required this.accountId,
+    // this.typeIndex = 0, // 0: invested, 1: redeemed
+    required this.amcId,
+    this.quantity,
+    this.rate,
+    this.totalAmount = 0.0,
+    required this.date,
+    this.note,
+  });
+
+  final int accountId;
+  // final int typeIndex;
+  final String amcId;
+  final double? quantity;
+  final double? rate;
+  final double totalAmount;
+  final int date;
+  final String? note;
+
+  @override
+  List<Object?> get props => super.props..addAll([accountId, amcId, quantity, rate, totalAmount, date, note]);
+}
+
 class InveslyTransaction extends TransactionInDb {
   InveslyTransaction({
     required super.id,
@@ -101,32 +128,7 @@ class InveslyTransaction extends TransactionInDb {
   List<Object?> get props => super.props..addAll([transactionType, amc, investedOn]);
 }
 
-class TransactionInDb extends TableDataModel {
-  const TransactionInDb({
-    required dynamic id,
-    required this.accountId,
-    // this.typeIndex = 0, // 0: invested, 1: redeemed
-    required this.amcId,
-    this.quantity,
-    this.rate,
-    this.totalAmount = 0.0,
-    required this.date,
-    this.note,
-  }) : super(id: id);
-
-  final int accountId;
-  // final int typeIndex;
-  final String amcId;
-  final double? quantity;
-  final double? rate;
-  final double totalAmount;
-  final int date;
-  final String? note;
-
-  @override
-  List<Object?> get props => super.props..addAll([accountId, amcId, quantity, rate, totalAmount, date, note]);
-}
-
+// ~ Table Model
 class TransactionTable extends TableSchema<TransactionInDb> {
   // Singleton pattern to ensure only one instance exists
   const TransactionTable._() : super('transactions');
@@ -153,6 +155,7 @@ class TransactionTable extends TableSchema<TransactionInDb> {
   @override
   Map<String, dynamic> fromModel(TransactionInDb data) {
     final map = <String, dynamic>{
+      idColumn.title: data.id,
       accountIdColumn.title: data.accountId,
       amcIdColumn.title: data.amcId,
       quantityColumn.title: data.quantity,
@@ -161,9 +164,7 @@ class TransactionTable extends TableSchema<TransactionInDb> {
       dateColumn.title: data.date,
       noteColumn.title: data.note,
     };
-    if (data.id != null && data.id != 0) {
-      map[idColumn.title] = data.id;
-    }
+
     return map;
   }
 

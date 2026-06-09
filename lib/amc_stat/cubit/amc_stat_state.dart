@@ -24,9 +24,9 @@ class AmcStatErrorState extends AmcStatState {
 class AmcStatLoadedState extends AmcStatState {
   const AmcStatLoadedState(this.stats);
 
-  final List<AmcStat> stats;
+  final List<InveslyStat> stats;
 
-  List<AmcStat> getStats({int? accountId, AmcGenre? genre}) {
+  List<InveslyStat> getStats({int? accountId, AmcGenre? genre}) {
     return stats.where((stat) {
       final accountMatch = accountId == null || stat.accountId == accountId;
       final genreMatch = genre == null || stat.amc.genre == genre;
@@ -34,7 +34,7 @@ class AmcStatLoadedState extends AmcStatState {
     }).toList();
   }
 
-  AmcStat? getStat({int? accountId, required String amcId}) {
+  InveslyStat? getStat({int? accountId, required String amcId}) {
     final filteredStats = stats.where((stat) => stat.amc.id == amcId);
     return filteredStats.firstWhereOrNull((stat) => accountId == null || stat.accountId == accountId);
   }

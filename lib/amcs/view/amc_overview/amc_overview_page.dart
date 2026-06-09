@@ -277,7 +277,7 @@ class _AmcOverviewSection extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: 52.0, minWidth: double.infinity),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-                child: BlocSelector<AmcOverviewCubit, AmcOverviewState, AmcStat>(
+                child: BlocSelector<AmcOverviewCubit, AmcOverviewState, InveslyStat>(
                   selector: (state) => state.stat,
                   builder: (context, stat) {
                     final amc = stat.amc;
@@ -366,7 +366,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     Skeleton.keep(
                       child: _SectionWidget(
                         label: const Text('Available units', overflow: TextOverflow.ellipsis),
-                        value: BlocSelector<AmcOverviewCubit, AmcOverviewState, AmcStat>(
+                        value: BlocSelector<AmcOverviewCubit, AmcOverviewState, InveslyStat>(
                           selector: (state) => state.stat,
                           builder: (context, stat) {
                             return Text('${stat.totalQuantity.toPrecision(4)}', overflow: TextOverflow.ellipsis);
@@ -379,7 +379,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     Skeleton.keep(
                       child: _SectionWidget(
                         label: const Text('Average price', overflow: TextOverflow.ellipsis),
-                        value: BlocSelector<AmcOverviewCubit, AmcOverviewState, AmcStat>(
+                        value: BlocSelector<AmcOverviewCubit, AmcOverviewState, InveslyStat>(
                           selector: (state) => state.stat,
                           builder: (context, stat) {
                             return BlocSelector<AppCubit, AppState, bool>(
@@ -395,7 +395,7 @@ class _AmcOverviewSection extends StatelessWidget {
 
                     // ~ Invested amount
                     Skeleton.keep(
-                      child: BlocSelector<AmcOverviewCubit, AmcOverviewState, AmcStat>(
+                      child: BlocSelector<AmcOverviewCubit, AmcOverviewState, InveslyStat>(
                         selector: (state) => state.stat,
                         builder: (context, stat) {
                           return _SectionWidget(

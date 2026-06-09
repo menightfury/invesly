@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:invesly/amc_stat/model/amc_stat_model.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:invesly/accounts/model/account_model.dart';
@@ -32,11 +33,13 @@ class InveslyApi {
   final _accountTable = AccountTable();
   final _amcTable = AmcTable();
   final _trnTable = TransactionTable();
+  final _statTable = StatTable();
 
   // Table getters
   AccountTable get accountTable => _accountTable;
   AmcTable get amcTable => _amcTable;
   TransactionTable get trnTable => _trnTable;
+  StatTable get statTable => _statTable;
 
   Future<void> initializeDatabase() async {
     _db = await openDatabase(
@@ -48,13 +51,13 @@ class InveslyApi {
         batch.execute(_accountTable.createTable());
         batch.execute(_amcTable.createTable());
         batch.execute(_trnTable.createTable());
+        batch.execute(_statTable.createTable());
         await batch.commit(noResult: true, continueOnError: true);
       },
     );
 
     // ?? Close database at the end ??
-    _tables.addAll([_accountTable, _amcTable, _trnTable]);
-    _tableEventController.add(TableEvent({_accountTable, _amcTable, _trnTable}, TableEventType.created));
+    _tables.addAll([_accountTable, _amcTable, _trnTable, _statTable]);
   }
 
   // helper function to get a table out of initialized tables
@@ -66,7 +69,7 @@ class InveslyApi {
 
   Future<int> insert(TableSchema table, TableDataModel data) async {
     final r = await db.insert(table.tableName, table.fromModel(data));
-    _tableEventController.add(TableEvent({table}, TableEventType.inserted));
+    _tableEventController.add(TableEvent(table, TableEventType.inserted, data));
     return r;
   }
 
@@ -77,13 +80,13 @@ class InveslyApi {
       where: '${table.idColumn.fullTitle} = ?',
       whereArgs: [data.id],
     );
-    _tableEventController.add(TableEvent({table}, TableEventType.updated));
+    _tableEventController.add(TableEvent(table, TableEventType.updated, data));
     return r;
   }
 
   Future<int> delete(TableSchema table, TableDataModel data) async {
     final r = await Future.delayed(2.seconds, () => 1); // TODO: implement
-    _tableEventController.add(TableEvent({table}, TableEventType.deleted));
+    _tableEventController.add(TableEvent(table, TableEventType.deleted, data));
     return r;
   }
 
