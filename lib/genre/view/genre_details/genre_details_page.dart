@@ -830,7 +830,7 @@ class _XirrViewState extends State<_XirrView> {
 
   @override
   Widget build(BuildContext context) {
-    final xirr = widget.stat.amc.xirr?.value;
+    final xirr = widget.stat.xirr?.value;
     return Text(
       xirr != null ? '${(xirr * 100).toPrecisionDouble(2)}%' : 'N/A',
       style: TextStyle(color: xirr != null && xirr < 0 ? Colors.red : Colors.teal),

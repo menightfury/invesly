@@ -656,7 +656,7 @@ class _AmcOverviewSection extends StatelessWidget {
                                     // Save xirr in database
                                     if (xirr != null) {
                                       final latestXirr = LatestXirr(value: xirr, date: DateTime.now().startOfDay);
-                                      AmcRepository.instance.saveXirr(amcState.stat.amc, latestXirr);
+                                      // AmcRepository.instance.saveXirr(amcState.stat.amc, latestXirr);
                                     }
 
                                     return Text(

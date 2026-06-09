@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
-import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/connectivity/internet_aware_http_client.dart';
 import 'package:invesly/database/invesly_api.dart';
@@ -160,12 +159,6 @@ class AmcRepository {
   /// Save latest price for an AMC
   Future<void> saveLatestPrice(InveslyAmc amc, LatestPrice ltp) async {
     final updatedAmc = amc.copyWith(ltp: ltp);
-    await saveAmc(updatedAmc, isNew: false);
-  }
-
-  /// Save xirr for an AMC
-  Future<void> saveXirr(InveslyAmc amc, LatestXirr xirr) async {
-    final updatedAmc = amc.copyWith(xirr: xirr);
     await saveAmc(updatedAmc, isNew: false);
   }
 }
