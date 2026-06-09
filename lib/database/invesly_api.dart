@@ -52,6 +52,11 @@ class InveslyApi {
         batch.execute(_amcTable.createTable());
         batch.execute(_trnTable.createTable());
         batch.execute(_statTable.createTable());
+        // create triggers for automatic stats updates
+        batch.execute(_createInsertTrigger());
+        batch.execute(_createUpdateTrigger());
+        batch.execute(_createDeleteTrigger());
+        
         await batch.commit(noResult: true, continueOnError: true);
       },
     );
@@ -59,6 +64,60 @@ class InveslyApi {
     // ?? Close database at the end ??
     _tables.addAll([_accountTable, _amcTable, _trnTable, _statTable]);
   }
+
+  String _createInsertTrigger() => '''
+    CREATE TRIGGER IF NOT EXISTS trn_insert_trigger
+    AFTER INSERT ON transactions
+    FOR EACH ROW
+    BEGIN
+      INSERT OR IGNORE INTO stats (account_id, amc_id, num_transactions, total_quantity, total_invested, total_redeemed)
+      VALUES (NEW.account_id, NEW.amc_id, 0, 0.0, 0.0, 0.0);
+
+      UPDATE stats SET
+        num_transactions = num_transactions + 1,
+        total_quantity = total_quantity + COALESCE(NEW.quantity, 0),
+        total_invested = CASE WHEN NEW.total_amount > 0 THEN total_invested + NEW.total_amount ELSE total_invested END,
+        total_redeemed = CASE WHEN NEW.total_amount < 0 THEN total_redeemed + ABS(NEW.total_amount) ELSE total_redeemed END
+      WHERE account_id = NEW.account_id AND amc_id = NEW.amc_id;
+    END;
+  ''';
+
+  String _createUpdateTrigger() => '''
+    CREATE TRIGGER IF NOT EXISTS trn_update_trigger
+    AFTER UPDATE ON transactions
+    FOR EACH ROW
+    BEGIN
+      UPDATE stats SET
+        total_quantity = total_quantity - COALESCE(OLD.quantity, 0) + COALESCE(NEW.quantity, 0),
+        total_invested = CASE
+          WHEN OLD.total_amount > 0 AND NEW.total_amount > 0 THEN total_invested - OLD.total_amount + NEW.total_amount
+          WHEN OLD.total_amount > 0 AND NEW.total_amount <= 0 THEN total_invested - OLD.total_amount
+          WHEN OLD.total_amount <= 0 AND NEW.total_amount > 0 THEN total_invested + NEW.total_amount
+          ELSE total_invested
+        END,
+        total_redeemed = CASE
+          WHEN OLD.total_amount < 0 AND NEW.total_amount < 0 THEN total_redeemed - ABS(OLD.total_amount) + ABS(NEW.total_amount)
+          WHEN OLD.total_amount < 0 AND NEW.total_amount >= 0 THEN total_redeemed - ABS(OLD.total_amount)
+          WHEN OLD.total_amount >= 0 AND NEW.total_amount < 0 THEN total_redeemed + ABS(NEW.total_amount)
+          ELSE total_redeemed
+        END
+      WHERE account_id = NEW.account_id AND amc_id = NEW.amc_id;
+    END;
+  ''';
+
+  String _createDeleteTrigger() => '''
+    CREATE TRIGGER IF NOT EXISTS trn_delete_trigger
+    AFTER DELETE ON transactions
+    FOR EACH ROW
+    BEGIN
+      UPDATE stats SET
+        num_transactions = MAX(0, num_transactions - 1),
+        total_quantity = total_quantity - COALESCE(OLD.quantity, 0),
+        total_invested = CASE WHEN OLD.total_amount > 0 THEN total_invested - OLD.total_amount ELSE total_invested END,
+        total_redeemed = CASE WHEN OLD.total_amount < 0 THEN total_redeemed - ABS(OLD.total_amount) ELSE total_redeemed END
+      WHERE account_id = OLD.account_id AND amc_id = OLD.amc_id;
+    END;
+  ''';
 
   // helper function to get a table out of initialized tables
   T? getTable<T extends TableSchema>() => _tables.firstWhereOrNull((table) => table is T) as T?;
