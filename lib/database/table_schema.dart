@@ -71,6 +71,18 @@ abstract class TableSchema<D extends TableDataModel> extends Equatable {
 
     return 'CREATE TABLE IF NOT EXISTS $tableName ($columnDefs);';
   }
+
+  // Create trigger for table
+  String createTrigger({required TableEventType eventType, required String operation}) {
+    return '''
+      CREATE TRIGGER IF NOT EXISTS ${tableName}_${eventType.name}_trigger 
+      AFTER ${eventType.sql} ON $tableName
+      FOR EACH ROW
+      BEGIN
+        $operation
+      END;
+    ''';
+  }
 }
 
 class TableColumnBase extends Equatable {
@@ -199,7 +211,19 @@ class ForeignReference extends Equatable {
   List<Object?> get props => [tableName, columnName];
 }
 
-enum TableEventType { created, inserted, updated, deleted }
+enum TableEventType {
+  insert,
+  update,
+  delete;
+
+  String get sql {
+    return switch (this) {
+      insert => 'INSERT',
+      update => 'UPDATE',
+      delete => 'DELETE',
+    };
+  }
+}
 
 class TableEvent {
   final TableSchema table;
@@ -348,8 +372,6 @@ abstract class TableFilterBuilder<T extends TableDataModel> {
   Future<List<Map<String, dynamic>>> toList({int? limit});
 
   // InveslyApiFilterBuilder orderBy(String column) => InveslyApiFilterBuilder();
-
-  // InveslyApiFilterBuilder limit(int limit) => InveslyApiFilterBuilder();
 }
 
 class TableQueryBuilder<T extends TableDataModel> implements TableFilterBuilder<T> {
@@ -433,11 +455,11 @@ class TableQueryBuilder<T extends TableDataModel> implements TableFilterBuilder<
   @override
   Future<List<Map<String, dynamic>>> toList({int? limit}) async {
     final List<Map<String, dynamic>> data = [];
-    final $where = _where?.toSql();
+    final whereSql = _where?.toSql();
     final groupBy = _group.isEmpty ? null : _group.map<String>((col) => col.fullTitle).join(', ');
     debugPrint(
       'Query: SELECT ${effectiveTableColumns.join(', ')} FROM $effectiveTableName'
-      '${$where != null ? ' WHERE ${$where.$1}: ${$where.$2}' : ''}'
+      '${whereSql != null ? ' WHERE ${whereSql.$1}: ${whereSql.$2}' : ''}'
       '${groupBy != null ? ' GROUP BY $groupBy' : ''}'
       '${limit != null ? ' LIMIT $limit' : ''}',
     );
@@ -446,8 +468,8 @@ class TableQueryBuilder<T extends TableDataModel> implements TableFilterBuilder<
       final list = await _db.query(
         effectiveTableName,
         columns: effectiveTableColumns,
-        where: $where?.$1,
-        whereArgs: $where?.$2,
+        where: whereSql?.$1,
+        whereArgs: whereSql?.$2,
         // orderBy: orderBy,
         limit: limit,
         groupBy: groupBy,

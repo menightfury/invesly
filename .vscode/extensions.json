@@ -1,5 +1,9 @@
 {
     "recommendations": [
-        "aaron-bond.better-comments"
+        "aaron-bond.better-comments",
+        "felixangelov.bloc",
+        "jeroen-meijer.pubspec-assist",
+        "streetsidesoftware.code-spell-checker",
+        "perkovec.emoji"
     ]
 }
