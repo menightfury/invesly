@@ -53,57 +53,23 @@ class InveslyApi {
         batch.execute(_trnTable.createTable());
         batch.execute(_statTable.createTable());
 
-        // create triggers for automatic stats updates
+        // create triggers for automatic stats updates (dynamically generated)
         batch.execute(
           _trnTable.createTrigger(
             eventType: TableEventType.insert,
-            operation: '''
-              INSERT OR IGNORE INTO stats (account_id, amc_id, num_transactions, total_quantity, total_invested, total_redeemed)
-              VALUES (NEW.account_id, NEW.amc_id, 0, 0.0, 0.0, 0.0);
-
-              UPDATE stats SET
-                num_transactions = num_transactions + 1,
-                total_quantity = total_quantity + COALESCE(NEW.quantity, 0),
-                total_invested = CASE WHEN NEW.total_amount > 0 THEN total_invested + NEW.total_amount ELSE total_invested END,
-                total_redeemed = CASE WHEN NEW.total_amount < 0 THEN total_redeemed + ABS(NEW.total_amount) ELSE total_redeemed END
-              WHERE account_id = NEW.account_id AND amc_id = NEW.amc_id;
-            ''',
+            operation: _buildTriggerOperation(TableEventType.insert),
           ),
         );
         batch.execute(
           _trnTable.createTrigger(
             eventType: TableEventType.update,
-            operation:
-                '''
-              UPDATE ${_statTable.tableName} SET
-                ${_statTable.totalQuantityColumn.title} = ${_statTable.totalQuantityColumn.title} - COALESCE(OLD.quantity, 0) + COALESCE(NEW.quantity, 0),
-                total_invested = CASE
-                  WHEN OLD.total_amount > 0 AND NEW.total_amount > 0 THEN total_invested - OLD.total_amount + NEW.total_amount
-                  WHEN OLD.total_amount > 0 AND NEW.total_amount <= 0 THEN total_invested - OLD.total_amount
-                  WHEN OLD.total_amount <= 0 AND NEW.total_amount > 0 THEN total_invested + NEW.total_amount
-                  ELSE total_invested
-                END,
-                total_redeemed = CASE
-                  WHEN OLD.total_amount < 0 AND NEW.total_amount < 0 THEN total_redeemed - ABS(OLD.total_amount) + ABS(NEW.total_amount)
-                  WHEN OLD.total_amount < 0 AND NEW.total_amount >= 0 THEN total_redeemed - ABS(OLD.total_amount)
-                  WHEN OLD.total_amount >= 0 AND NEW.total_amount < 0 THEN total_redeemed + ABS(NEW.total_amount)
-                  ELSE total_redeemed
-                END
-              WHERE account_id = NEW.account_id AND amc_id = NEW.amc_id;
-            ''',
+            operation: _buildTriggerOperation(TableEventType.update),
           ),
         );
         batch.execute(
           _trnTable.createTrigger(
             eventType: TableEventType.delete,
-            operation: '''
-              UPDATE stats SET
-                num_transactions = MAX(0, num_transactions - 1),
-                total_quantity = total_quantity - COALESCE(OLD.quantity, 0),
-                total_invested = CASE WHEN OLD.total_amount > 0 THEN total_invested - OLD.total_amount ELSE total_invested END,
-                total_redeemed = CASE WHEN OLD.total_amount < 0 THEN total_redeemed - ABS(OLD.total_amount) ELSE total_redeemed END
-              WHERE account_id = OLD.account_id AND amc_id = OLD.amc_id;
-            ''',
+            operation: _buildTriggerOperation(TableEventType.delete),
           ),
         );
 
@@ -113,6 +79,60 @@ class InveslyApi {
 
     // ?? Close database at the end ??
     _tables.addAll([_accountTable, _amcTable, _trnTable, _statTable]);
+  }
+
+  // Build trigger operation SQL dynamically using schema column names
+  String _buildTriggerOperation(TableEventType eventType) {
+    final stat = _statTable;
+    final accId = stat.accountIdColumn.title;
+    final amcId = stat.amcIdColumn.title;
+    final numTx = stat.numTransactionsColumn.title;
+    final qty = stat.totalQuantityColumn.title;
+    final invested = stat.totalInvestedColumn.title;
+    final redeemed = stat.totalRedeemedColumn.title;
+    final xirr = stat.xirrColumn.title;
+
+    final trn = _trnTable;
+    final trnQty = trn.quantityColumn.title;
+    final trnAmt = trn.amountColumn.title;
+    final trnAccId = trn.accountIdColumn.title;
+    final trnAmcId = trn.amcIdColumn.title;
+
+    return switch (eventType) {
+      TableEventType.insert =>
+        '''
+          INSERT OR IGNORE INTO ${stat.tableName} ($accId, $amcId, $numTx, $qty, $invested, $redeemed)
+          VALUES (NEW.$trnAccId, NEW.$trnAmcId, 1, NEW.$trnQty, IIF(NEW.$trnAmt > 0, NEW.$trnAmt, 0), IIF(NEW.$trnAmt < 0, NEW.$trnAmt, 0))
+          ON CONFLICT($accId, $amcId) DO
+          UPDATE SET
+            $numTx = $numTx + 1,
+            $qty = $qty + COALESCE(NEW.$trnQty, 0),
+            $invested = $invested + IIF(NEW.$trnAmt > 0, NEW.$trnAmt, 0),
+            $redeemed = $redeemed + IIF(NEW.$trnAmt < 0, NEW.$trnAmt, 0),
+            $xirr = NULL; -- reset xirr to be recalculated later
+        ''',
+
+      TableEventType.update =>
+        '''
+          UPDATE ${stat.tableName} SET
+            $qty = $qty - COALESCE(OLD.$trnQty, 0) + COALESCE(NEW.$trnQty, 0),
+            $invested = $invested - IIF(OLD.$trnAmt > 0, OLD.$trnAmt, 0) + IIF(NEW.$trnAmt > 0, NEW.$trnAmt, 0),
+            $redeemed = $redeemed - IIF(OLD.$trnAmt < 0, OLD.$trnAmt, 0) + IIF(NEW.$trnAmt < 0, NEW.$trnAmt, 0),
+            $xirr = NULL -- reset xirr to be recalculated later
+          WHERE $accId = NEW.$trnAccId AND $amcId = NEW.$trnAmcId;
+        ''',
+
+      TableEventType.delete =>
+        '''
+          UPDATE ${stat.tableName} SET
+            $numTx = MAX(0, $numTx - 1),
+            $qty = $qty - COALESCE(OLD.$trnQty, 0),
+            $invested = $invested - IIF(OLD.$trnAmt > 0, OLD.$trnAmt, 0),
+            $redeemed = $redeemed - IIF(OLD.$trnAmt < 0, OLD.$trnAmt, 0),
+            $xirr = NULL -- reset xirr to be recalculated later
+          WHERE $accId = OLD.$trnAccId AND $amcId = OLD.$trnAmcId;
+        ''',
+    };
   }
 
   // helper function to get a table out of initialized tables

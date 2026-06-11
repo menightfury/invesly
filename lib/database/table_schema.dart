@@ -76,7 +76,7 @@ abstract class TableSchema<D extends TableDataModel> extends Equatable {
   String createTrigger({required TableEventType eventType, required String operation}) {
     return '''
       CREATE TRIGGER IF NOT EXISTS ${tableName}_${eventType.name}_trigger 
-      AFTER ${eventType.sql} ON $tableName
+      AFTER ${eventType.sqlType} ON $tableName
       FOR EACH ROW
       BEGIN
         $operation
@@ -216,7 +216,7 @@ enum TableEventType {
   update,
   delete;
 
-  String get sql {
+  String get sqlType {
     return switch (this) {
       insert => 'INSERT',
       update => 'UPDATE',
