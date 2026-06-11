@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:invesly/common_libs.dart';
 
 // ~ Table schema
@@ -364,30 +366,33 @@ class TableFilterGroup extends TableFilter {
 }
 
 // ~ Table query builder
-abstract class TableFilterBuilder<T extends TableDataModel> {
+abstract class TableFilterBuilder<T extends TableDataModel> implements Future<T> {
   TableFilterBuilder where(List<TableFilter> filters);
 
   TableFilterBuilder groupBy(List<TableColumn> columns);
 
-  Future<List<Map<String, dynamic>>> toList({int? limit});
-
   // InveslyApiFilterBuilder orderBy(String column) => InveslyApiFilterBuilder();
 }
 
-class TableQueryBuilder<T extends TableDataModel> implements TableFilterBuilder<T> {
-  TableQueryBuilder({required Database db, required TableSchema table, List<TableColumnBase>? columns})
-    : _db = db,
-      _table = table,
+class TableQueryBuilder<T extends TableDataModel> extends TableFilterBuilder<T> {
+  TableQueryBuilder({required TableSchema table, List<TableColumnBase>? columns})
+    : _table = table,
       _columns = columns ?? [];
 
-  final Database _db;
   final TableSchema _table;
   final List<TableColumnBase> _columns;
 
   final List<TableSchema> _joinTables = [];
-  // final List<TableFilter> _where = [];
   TableFilter? _where;
   final List<TableColumnBase> _group = [];
+
+  TableSchema get table => _table;
+  TableFilter? get whereClause => _where;
+  List<TableColumnBase> get groupByColumns => _group;
+  List<TableSchema> get joinTables => _joinTables;
+  String? get whereSql => _where?.toSql().$1;
+  List<Object>? get whereArgs => _where?.toSql().$2;
+  String? get groupBySql => _group.isEmpty ? null : _group.map<String>((col) => col.fullTitle).join(', ');
 
   String get effectiveTableName {
     // SELECT table1.*, table2.id as table2_id FROM table1 JOIN table2 ON table1.amc_id = table2.id
@@ -453,48 +458,32 @@ class TableQueryBuilder<T extends TableDataModel> implements TableFilterBuilder<
   }
 
   @override
-  Future<List<Map<String, dynamic>>> toList({int? limit}) async {
-    final List<Map<String, dynamic>> data = [];
-    final whereSql = _where?.toSql();
-    final groupBy = _group.isEmpty ? null : _group.map<String>((col) => col.fullTitle).join(', ');
-    debugPrint(
-      'Query: SELECT ${effectiveTableColumns.join(', ')} FROM $effectiveTableName'
-      '${whereSql != null ? ' WHERE ${whereSql.$1}: ${whereSql.$2}' : ''}'
-      '${groupBy != null ? ' GROUP BY $groupBy' : ''}'
-      '${limit != null ? ' LIMIT $limit' : ''}',
-    );
+  Stream<T> asStream() {
+    // TODO: implement asStream
+    throw UnimplementedError();
+  }
 
-    try {
-      final list = await _db.query(
-        effectiveTableName,
-        columns: effectiveTableColumns,
-        where: whereSql?.$1,
-        whereArgs: whereSql?.$2,
-        // orderBy: orderBy,
-        limit: limit,
-        groupBy: groupBy,
-      );
-      if (list.isEmpty) return List<Map<String, dynamic>>.empty();
+  @override
+  Future<T> catchError(Function onError, {bool Function(Object error)? test}) {
+    // TODO: implement catchError
+    throw UnimplementedError();
+  }
 
-      for (final el in list) {
-        final map = Map<String, dynamic>.from(el);
-        if (_joinTables.isNotEmpty && _table.foreignKeys.isNotEmpty) {
-          for (final joinTable in _joinTables) {
-            final fkc = _table.foreignKeys.firstWhereOrNull(
-              (c) => c.foreignReference!.tableName == joinTable.tableName,
-            );
+  @override
+  Future<R> then<R>(FutureOr<R> Function(T value) onValue, {Function? onError}) {
+    // TODO: implement then
+    throw UnimplementedError();
+  }
 
-            if (fkc == null) continue;
+  @override
+  Future<T> timeout(Duration timeLimit, {FutureOr<T> Function()? onTimeout}) {
+    // TODO: implement timeout
+    throw UnimplementedError();
+  }
 
-            map.nest(joinTable.type.toString().toCamelCase());
-          }
-        }
-
-        data.add(map);
-      }
-    } on Exception catch (err) {
-      $logger.e(err);
-    }
-    return data;
+  @override
+  Future<T> whenComplete(FutureOr<void> Function() action) {
+    // TODO: implement whenComplete
+    throw UnimplementedError();
   }
 }

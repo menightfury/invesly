@@ -138,8 +138,54 @@ class InveslyApi {
   // helper function to get a table out of initialized tables
   T? getTable<T extends TableSchema>() => _tables.firstWhereOrNull((table) => table is T) as T?;
 
-  TableQueryBuilder select(TableSchema table, [List<TableColumnBase>? columns]) {
-    return TableQueryBuilder(db: db, table: table, columns: columns);
+  TableQueryBuilder select(TableSchema table, {List<TableColumnBase>? columns, int? limit}) {
+    late final TableQueryBuilder builder;
+    builder = TableQueryBuilder(table: table, columns: columns, executor: (limit) => _executeTableQuery(limit));
+    final List<Map<String, dynamic>> data = [];
+    final whereSql = builder.whereSql;
+    final whereArgs = builder.whereArgs;
+    final groupBy = builder.groupBySql;
+    debugPrint(
+      'Query: SELECT ${builder.effectiveTableColumns.join(', ')} FROM ${builder.effectiveTableName}'
+      '${whereSql != null ? ' WHERE $whereSql: $whereArgs' : ''}'
+      '${groupBy != null ? ' GROUP BY $groupBy' : ''}'
+      '${limit != null ? ' LIMIT $limit' : ''}',
+    );
+
+    try {
+      final list = db.query(
+        builder.effectiveTableName,
+        columns: builder.effectiveTableColumns,
+        where: whereSql,
+        whereArgs: whereArgs,
+        limit: limit,
+        groupBy: groupBy,
+      );
+
+      // Move rest of the code to table_schema
+      if (list.isEmpty) return List<Map<String, dynamic>>.empty();
+
+      for (final el in list) {
+        final map = Map<String, dynamic>.from(el);
+        if (builder.joinTables.isNotEmpty && builder.table.foreignKeys.isNotEmpty) {
+          for (final joinTable in builder.joinTables) {
+            final fkc = builder.table.foreignKeys.firstWhereOrNull(
+              (c) => c.foreignReference!.tableName == joinTable.tableName,
+            );
+
+            if (fkc == null) continue;
+
+            map.nest(joinTable.type.toString().toCamelCase());
+          }
+        }
+
+        data.add(map);
+      }
+    } on Exception catch (err) {
+      $logger.e(err);
+    }
+
+    return builder;
   }
 
   Future<int> insert(TableSchema table, TableDataModel data) async {
