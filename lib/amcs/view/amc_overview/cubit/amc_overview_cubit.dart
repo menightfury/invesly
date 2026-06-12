@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:invesly/amc_stat/model/amc_stat_model.dart';
+import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common_libs.dart';

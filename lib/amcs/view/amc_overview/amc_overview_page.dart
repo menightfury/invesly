@@ -6,8 +6,8 @@ import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common/presentations/components/add_transaction_button.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
-import 'package:invesly/amc_stat/cubit/amc_stat_cubit.dart';
-import 'package:invesly/amc_stat/model/amc_stat_model.dart';
+import 'package:invesly/stat/cubit/stat_cubit.dart';
+import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/amcs/view/amc_overview/cubit/amc_overview_cubit.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
@@ -35,7 +35,7 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
   @override
   void initState() {
     super.initState();
-    final statCubit = context.read<AmcStatCubit>();
+    final statCubit = context.read<StatCubit>();
     if (!statCubit.state.isLoaded) {
       statCubit.fetchAllStats();
     }
@@ -55,7 +55,7 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
             ),
 
             // ~ Content
-            BlocBuilder<AmcStatCubit, AmcStatState>(
+            BlocBuilder<StatCubit, StatState>(
               builder: (context, statState) {
                 if (statState.isError) {
                   return SliverFillRemaining(
@@ -69,7 +69,7 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
                   );
                 }
 
-                if (statState is AmcStatLoadedState) {
+                if (statState is StatLoadedState) {
                   final stat = statState.getStat(accountId: widget.accountId, amcId: widget.amcId);
 
                   if (stat == null) {

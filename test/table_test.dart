@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_print
 
-import 'package:invesly/amc_stat/model/amc_stat_model.dart';
+import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 

@@ -1,23 +1,23 @@
-import 'package:invesly/amc_stat/model/amc_stat_model.dart';
+import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 
-class AmcStatRepository {
+class StatRepository {
   // singleton api instance
-  static AmcStatRepository? _instance;
-  static AmcStatRepository get instance {
+  static StatRepository? _instance;
+  static StatRepository get instance {
     assert(_instance != null, 'Please make sure to initialize before getting repository');
     return _instance!;
   }
 
-  factory AmcStatRepository.initialize(InveslyApi api) {
-    _instance ??= AmcStatRepository._(api);
+  factory StatRepository.initialize(InveslyApi api) {
+    _instance ??= StatRepository._(api);
     return _instance!;
   }
-  AmcStatRepository._(this._api);
+  StatRepository._(this._api);
 
   final InveslyApi _api;
 

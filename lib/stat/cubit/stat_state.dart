@@ -1,28 +1,28 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-part of 'amc_stat_cubit.dart';
+part of 'stat_cubit.dart';
 
-sealed class AmcStatState extends Equatable {
-  const AmcStatState();
+sealed class StatState extends Equatable {
+  const StatState();
   @override
   List<Object?> get props => [];
 }
 
-class AmcStatInitialState extends AmcStatState {
-  const AmcStatInitialState();
+class StatInitialState extends StatState {
+  const StatInitialState();
 }
 
-class AmcStatLoadingState extends AmcStatState {
-  const AmcStatLoadingState();
+class StatLoadingState extends StatState {
+  const StatLoadingState();
 }
 
-class AmcStatErrorState extends AmcStatState {
-  const AmcStatErrorState(this.errorMsg);
+class StatErrorState extends StatState {
+  const StatErrorState(this.errorMsg);
 
   final String errorMsg;
 }
 
-class AmcStatLoadedState extends AmcStatState {
-  const AmcStatLoadedState(this.stats);
+class StatLoadedState extends StatState {
+  const StatLoadedState(this.stats);
 
   final List<InveslyStat> stats;
 
@@ -48,12 +48,12 @@ class AmcStatLoadedState extends AmcStatState {
   List<Object?> get props => [stats];
 }
 
-extension AmcStatStateX on AmcStatState {
-  bool get isInitial => this is AmcStatInitialState;
-  bool get isLoading => this is AmcStatLoadingState;
-  bool get isLoaded => this is AmcStatLoadedState;
-  bool get isError => this is AmcStatErrorState;
+extension StatStateX on StatState {
+  bool get isInitial => this is StatInitialState;
+  bool get isLoading => this is StatLoadingState;
+  bool get isLoaded => this is StatLoadedState;
+  bool get isError => this is StatErrorState;
 
-  bool get isNotEmpty => isLoaded && (this as AmcStatLoadedState).stats.isNotEmpty;
-  bool get isEmpty => isLoaded && (this as AmcStatLoadedState).stats.isEmpty;
+  bool get isNotEmpty => isLoaded && (this as StatLoadedState).stats.isNotEmpty;
+  bool get isEmpty => isLoaded && (this as StatLoadedState).stats.isEmpty;
 }

@@ -1,8 +1,8 @@
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/widget/account_picker_widget.dart';
-import 'package:invesly/amc_stat/cubit/amc_stat_cubit.dart';
-import 'package:invesly/amc_stat/model/amc_stat_model.dart';
+import 'package:invesly/stat/cubit/stat_cubit.dart';
+import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/amc_overview/amc_overview_page.dart';
@@ -30,7 +30,7 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
   @override
   void initState() {
     super.initState();
-    final statCubit = context.read<AmcStatCubit>();
+    final statCubit = context.read<StatCubit>();
     if (!statCubit.state.isLoaded) {
       statCubit.fetchAllStats();
     }
@@ -58,7 +58,7 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
               ),
 
               // ~ Content
-              BlocBuilder<AmcStatCubit, AmcStatState>(
+              BlocBuilder<StatCubit, StatState>(
                 builder: (context, statState) {
                   if (statState.isError) {
                     return SliverFillRemaining(
@@ -72,7 +72,7 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
                     );
                   }
 
-                  if (statState is AmcStatLoadedState) {
+                  if (statState is StatLoadedState) {
                     return BlocSelector<GenreDetailsCubit, GenreDetailsState, int?>(
                       selector: (state) => state.activeAccountId,
                       builder: (context, activeAccountId) {

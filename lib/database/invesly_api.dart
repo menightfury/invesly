@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:invesly/amc_stat/model/amc_stat_model.dart';
+import 'package:invesly/stat/model/stat_model.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:invesly/accounts/model/account_model.dart';

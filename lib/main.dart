@@ -3,8 +3,8 @@ import 'package:path_provider/path_provider.dart';
 
 import 'accounts/cubit/accounts_cubit.dart';
 import 'accounts/model/account_repository.dart';
-import 'amc_stat/cubit/amc_stat_cubit.dart';
-import 'amc_stat/model/amc_stat_repository.dart';
+import 'stat/cubit/stat_cubit.dart';
+import 'stat/model/stat_repository.dart';
 import 'amcs/model/amc_repository.dart';
 import 'authentication/auth_repository.dart';
 import 'bloc_observer.dart';
@@ -38,13 +38,13 @@ class InveslyApp extends StatelessWidget {
     final accountRepository = AccountRepository.initialize(api);
     AmcRepository.initialize(api);
     TransactionRepository.initialize(api);
-    final statRepository = AmcStatRepository.initialize(api);
+    final statRepository = StatRepository.initialize(api);
 
     return MultiBlocProvider(
       providers: [
         BlocProvider<AccountsCubit>(create: (_) => AccountsCubit(repository: accountRepository)..fetchAccounts()),
         BlocProvider<AppCubit>(create: (_) => AppCubit()),
-        BlocProvider(create: (_) => AmcStatCubit(repository: statRepository)..fetchAllStats()),
+        BlocProvider(create: (_) => StatCubit(repository: statRepository)..fetchAllStats()),
       ],
       child: const _AppView(),
     );

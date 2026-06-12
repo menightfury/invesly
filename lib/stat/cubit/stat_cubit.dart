@@ -1,17 +1,17 @@
 import 'dart:async';
 
-import 'package:invesly/amc_stat/model/amc_stat_repository.dart';
+import 'package:invesly/stat/model/stat_repository.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/amc_stat/model/amc_stat_model.dart';
+import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 
-part 'amc_stat_state.dart';
+part 'stat_state.dart';
 
-class AmcStatCubit extends Cubit<AmcStatState> {
-  AmcStatCubit({required AmcStatRepository repository}) : _repository = repository, super(const AmcStatInitialState());
+class StatCubit extends Cubit<StatState> {
+  StatCubit({required StatRepository repository}) : _repository = repository, super(const StatInitialState());
 
-  final AmcStatRepository _repository;
+  final StatRepository _repository;
 
   StreamSubscription<TableEvent>? _subscription;
 
@@ -24,7 +24,7 @@ class AmcStatCubit extends Cubit<AmcStatState> {
     await _getAllStats();
 
     // Get stats on subsequent table change
-    _subscription ??= _repository.onDataChanged.listen(null, onError: (err) => emit(AmcStatErrorState(err.toString())));
+    _subscription ??= _repository.onDataChanged.listen(null, onError: (err) => emit(StatErrorState(err.toString())));
     _subscription?.onData((query) async {
       _subscription?.pause();
 
@@ -39,13 +39,13 @@ class AmcStatCubit extends Cubit<AmcStatState> {
   }
 
   Future<void> _getAllStats() async {
-    emit(const AmcStatLoadingState());
+    emit(const StatLoadingState());
 
     try {
       final stats = await _repository.getAllStats();
-      emit(AmcStatLoadedState(stats));
+      emit(StatLoadedState(stats));
     } on Exception catch (error) {
-      emit(AmcStatErrorState(error.toString()));
+      emit(StatErrorState(error.toString()));
     }
   }
 
