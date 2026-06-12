@@ -1,7 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
-import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/database/table_schema.dart';
 
 // ~ Data Model
@@ -9,90 +7,87 @@ class StatInDb extends TableDataModel {
   const StatInDb({
     required this.accountId,
     required this.amcId,
-    required this.numTransactions,
-    this.totalQuantity = 0.0,
+    required this.numTrns,
+    this.totalQnty = 0.0,
     this.totalInvested = 0.0,
     this.totalRedeemed = 0.0,
-    this.xirrString,
+    this.xirr,
   });
 
   final int accountId;
   final String amcId;
-  final int numTransactions;
-  final double totalQuantity;
+  final int numTrns;
+  final double totalQnty;
   final double totalInvested;
   final double totalRedeemed;
-  final String? xirrString;
+  final double? xirr;
 
   double get averageBuyPrice {
-    if (totalQuantity == 0) {
+    if (totalQnty == 0) {
       return 0.0;
     }
-    return totalInvested / totalQuantity;
+    return totalInvested / totalQnty;
   }
 
   @override
   List<Object?> get props {
-    return [accountId, amcId, numTransactions, totalQuantity, totalInvested, totalRedeemed, xirrString];
+    return [accountId, amcId, numTrns, totalQnty, totalInvested, totalRedeemed, xirr];
   }
 
   StatInDb copyWith({
     int? accountId,
     String? amcId,
-    int? numTransactions,
-    double? totalQuantity,
+    int? numTrns,
+    double? totalQnty,
     double? totalInvested,
     double? totalRedeemed,
-    String? xirrString,
+    double? xirr,
   }) {
     return StatInDb(
       accountId: accountId ?? this.accountId,
       amcId: amcId ?? this.amcId,
-      numTransactions: numTransactions ?? this.numTransactions,
-      totalQuantity: totalQuantity ?? this.totalQuantity,
+      numTrns: numTrns ?? this.numTrns,
+      totalQnty: totalQnty ?? this.totalQnty,
       totalInvested: totalInvested ?? this.totalInvested,
       totalRedeemed: totalRedeemed ?? this.totalRedeemed,
-      xirrString: xirrString ?? this.xirrString,
+      xirr: xirr ?? this.xirr,
     );
   }
 }
 
 class InveslyStat extends StatInDb {
   InveslyStat({
-    required this.account,
+    required super.accountId,
     required this.amc,
-    super.numTransactions = 0,
-    super.totalQuantity = 0.0,
+    super.numTrns = 0,
+    super.totalQnty = 0.0,
     super.totalInvested = 0.0,
     super.totalRedeemed = 0.0,
-    this.xirr,
-  }) : super(accountId: account.id, amcId: amc.id, xirrString: xirr?.toJson());
+    super.xirr,
+  }) : super(amcId: amc.id);
 
-  final InveslyAccount account;
+  // final InveslyAccount account;
   final InveslyAmc amc;
 
-  /// Latest calculated xirr
-  final LatestXirr? xirr;
-
-  factory InveslyStat.fromDb(StatInDb stat, AccountInDb account, AmcInDb amc) {
-    LatestXirr? xirr;
-    if (stat.xirrString?.isNotEmpty ?? false) {
-      xirr = LatestXirr.fromJson(stat.xirrString!);
-    }
+  factory InveslyStat.fromDb(StatInDb stat, AmcInDb amc) {
+    // LatestXirr? xirr;
+    // if (stat.this.xirr?.isNotEmpty ?? false) {
+    //   xirr = LatestXirr.fromJson(stat.this.xirr!);
+    // }
 
     return InveslyStat(
-      account: InveslyAccount.fromDb(account),
+      accountId: stat.accountId,
       amc: InveslyAmc.fromDb(amc),
-      numTransactions: stat.numTransactions,
-      totalQuantity: stat.totalQuantity,
+      numTrns: stat.numTrns,
+      totalQnty: stat.totalQnty,
       totalInvested: stat.totalInvested,
       totalRedeemed: stat.totalRedeemed,
-      xirr: xirr,
+      xirr: stat.xirr,
     );
   }
 
   @override
-  List<Object?> get props => super.props..addAll([account, amc, xirr]);
+  List<Object?> get props => super.props..add(amc);
 }
 
 // ~ Table Model
@@ -106,8 +101,8 @@ class StatTable extends TableSchema<StatInDb> {
       TableColumn('account_id', tableName, isPrimary: true, foreignReference: ForeignReference('accounts', 'id'));
   TableColumn<String> get amcIdColumn =>
       TableColumn('amc_id', tableName, isPrimary: true, foreignReference: ForeignReference('amcs', 'id'));
-  TableColumn<int> get numTransactionsColumn => TableColumn('num_transactions', tableName);
-  TableColumn<double> get totalQuantityColumn => TableColumn('total_quantity', tableName);
+  TableColumn<int> get numTrnsColumn => TableColumn('num_transactions', tableName);
+  TableColumn<double> get totalQntyColumn => TableColumn('total_quantity', tableName);
   TableColumn<double> get totalInvestedColumn => TableColumn('total_invested', tableName);
   TableColumn<double> get totalRedeemedColumn => TableColumn('total_redeemed', tableName);
   TableColumn<String> get xirrColumn => TableColumn('xirr', tableName, isNullable: true);
@@ -116,8 +111,8 @@ class StatTable extends TableSchema<StatInDb> {
   Set<TableColumn> get columns => {
     accountIdColumn,
     amcIdColumn,
-    numTransactionsColumn,
-    totalQuantityColumn,
+    numTrnsColumn,
+    totalQntyColumn,
     totalInvestedColumn,
     totalRedeemedColumn,
     xirrColumn,
@@ -128,11 +123,11 @@ class StatTable extends TableSchema<StatInDb> {
     return <String, dynamic>{
       accountIdColumn.title: data.accountId,
       amcIdColumn.title: data.amcId,
-      numTransactionsColumn.title: data.numTransactions,
-      totalQuantityColumn.title: data.totalQuantity,
+      numTrnsColumn.title: data.numTrns,
+      totalQntyColumn.title: data.totalQnty,
       totalInvestedColumn.title: data.totalInvested,
       totalRedeemedColumn.title: data.totalRedeemed,
-      xirrColumn.title: data.xirrString,
+      xirrColumn.title: data.xirr,
     };
   }
 
@@ -141,11 +136,11 @@ class StatTable extends TableSchema<StatInDb> {
     return StatInDb(
       accountId: map[accountIdColumn.title] as int,
       amcId: map[amcIdColumn.title] as String,
-      numTransactions: map[numTransactionsColumn.title] as int,
-      totalQuantity: map[totalQuantityColumn.title] as double,
+      numTrns: map[numTrnsColumn.title] as int,
+      totalQnty: map[totalQntyColumn.title] as double,
       totalInvested: map[totalInvestedColumn.title] as double,
       totalRedeemed: map[totalRedeemedColumn.title] as double,
-      xirrString: map[xirrColumn.title] as String?,
+      xirr: map[xirrColumn.title] as double?,
     );
   }
 }

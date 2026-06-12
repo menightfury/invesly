@@ -18,7 +18,7 @@ class GenreDetailsCubit extends Cubit<GenreDetailsState> {
   Future<void> loadStats(List<InveslyStat> stats) async {
     emit(state.copyWith(ltpStatus: LatestPriceStatus.loading, stats: stats));
 
-    final nonZeroStats = stats.where((stat) => stat.totalQuantity > 0);
+    final nonZeroStats = stats.where((stat) => stat.totalQnty > 0);
     try {
       final latestPrices = await Future.wait(
         nonZeroStats.map((stat) async {

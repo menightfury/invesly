@@ -4,11 +4,11 @@ import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common/presentations/components/add_transaction_button.dart';
+import 'package:invesly/stat/model/stat_repository.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 import 'package:invesly/stat/cubit/stat_cubit.dart';
 import 'package:invesly/stat/model/stat_model.dart';
-import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/amcs/view/amc_overview/cubit/amc_overview_cubit.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
@@ -174,7 +174,7 @@ class _AmcOverviewPageContent extends StatelessWidget {
                 );
               }
 
-              final numTransactions = context.read<AmcOverviewCubit>().state.stat.numTransactions;
+              final numTransactions = context.read<AmcOverviewCubit>().state.stat.numTrns;
               return SliverToBoxAdapter(
                 child: Skeletonizer(
                   child: Section(
@@ -368,7 +368,7 @@ class _AmcOverviewSection extends StatelessWidget {
                         value: BlocSelector<AmcOverviewCubit, AmcOverviewState, InveslyStat>(
                           selector: (state) => state.stat,
                           builder: (context, stat) {
-                            return Text('${stat.totalQuantity.toPrecision(4)}', overflow: TextOverflow.ellipsis);
+                            return Text('${stat.totalQnty.toPrecision(4)}', overflow: TextOverflow.ellipsis);
                           },
                         ),
                       ),
@@ -654,8 +654,7 @@ class _AmcOverviewSection extends StatelessWidget {
 
                                     // Save xirr in database
                                     if (xirr != null) {
-                                      final latestXirr = LatestXirr(value: xirr, date: DateTime.now().startOfDay);
-                                      // AmcRepository.instance.saveXirr(amcState.stat.amc, latestXirr);
+                                      StatRepository.instance.saveXirr(amcState.stat, xirr);
                                     }
 
                                     return Text(

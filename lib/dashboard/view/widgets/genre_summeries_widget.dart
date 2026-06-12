@@ -59,7 +59,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                   final isError = accountsState.isError || statState.isError;
                   final isLoading = !isError && (accountsState.isLoading || statState.isLoading);
                   final stats = accountsState.isNotEmpty && statState is StatLoadedState
-                      ? statState.stats.where((stat) => stat.totalQuantity > 0).toList()
+                      ? statState.stats.where((stat) => stat.totalQnty > 0).toList()
                       : null;
                   final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalInvested);
 
@@ -107,7 +107,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                                 // final stat = stats?.singleWhereOrNull((stat) => stat.amc == genre);
                                 final filteredStats = stats?.where((stat) => stat.amc.genre == genre);
                                 final totalAmount = filteredStats?.fold<double>(0, (v, el) => v + el.totalInvested);
-                                final numTransactions = filteredStats?.fold<int>(0, (v, el) => v + el.numTransactions);
+                                final numTransactions = filteredStats?.fold<int>(0, (v, el) => v + el.numTrns);
                                 final holdingCount = filteredStats?.length;
 
                                 return _buildGenreTile(

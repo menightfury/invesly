@@ -71,7 +71,7 @@ class GenreDetailsState extends Equatable {
   final HoldingSortAndFilterStatus sortAndFilterStatus;
 
   int get totalHoldings => stats.length;
-  int get presentHoldings => stats.where((stat) => stat.totalQuantity > 0).length;
+  int get presentHoldings => stats.where((stat) => stat.totalQnty > 0).length;
   double get totalInvested => stats.fold<double>(0, (v, el) => v + el.totalInvested);
   double get totalRedeemed => stats.fold<double>(0, (v, el) => v + el.totalRedeemed);
 
@@ -79,7 +79,7 @@ class GenreDetailsState extends Equatable {
     final map = <String, double>{};
     for (var i = 0; i < stats.length; i++) {
       final stat = stats[i];
-      map[stat.amc.id] = stat.totalQuantity * (latestPrices[stat.amc.id]?.price ?? 0.0);
+      map[stat.amc.id] = stat.totalQnty * (latestPrices[stat.amc.id]?.price ?? 0.0);
     }
     return map;
   }
@@ -93,8 +93,8 @@ class GenreDetailsState extends Equatable {
     // Filter
     final filtered = switch (sortAndFilterStatus.holdingFilter) {
       HoldingFilter.all => stats,
-      HoldingFilter.active => stats.where((s) => s.totalQuantity > 0).toList(),
-      HoldingFilter.exited => stats.where((s) => s.totalQuantity <= 0).toList(),
+      HoldingFilter.active => stats.where((s) => s.totalQnty > 0).toList(),
+      HoldingFilter.exited => stats.where((s) => s.totalQnty <= 0).toList(),
     };
 
     if (filtered.isEmpty) return filtered;

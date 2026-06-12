@@ -86,8 +86,8 @@ class InveslyApi {
     final stat = _statTable;
     final accId = stat.accountIdColumn.title;
     final amcId = stat.amcIdColumn.title;
-    final numTx = stat.numTransactionsColumn.title;
-    final qty = stat.totalQuantityColumn.title;
+    final numTx = stat.numTrnsColumn.title;
+    final qty = stat.totalQntyColumn.title;
     final invested = stat.totalInvestedColumn.title;
     final redeemed = stat.totalRedeemedColumn.title;
     final xirr = stat.xirrColumn.title;

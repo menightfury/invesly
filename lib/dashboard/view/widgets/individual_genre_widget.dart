@@ -36,7 +36,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
                     final stats = accountsState.isNotEmpty && statState is StatLoadedState
                         ? statState.stats
                               .where((stat) => stat.amc.genre == widget.genre)
-                              .where((stat) => stat.totalQuantity > 0)
+                              .where((stat) => stat.totalQnty > 0)
                               .toList()
                         : null;
                     final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalInvested);
@@ -123,7 +123,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
         return SectionTile(
           tileColor: Colors.white.withAlpha(100),
           title: Text(stat?.amc.name ?? 'Loading...', overflow: TextOverflow.ellipsis),
-          subtitle: Text('${stat?.numTransactions ?? 0} transactions', overflow: TextOverflow.ellipsis),
+          subtitle: Text('${stat?.numTrns ?? 0} transactions', overflow: TextOverflow.ellipsis),
           secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
             selector: (state) => state.isPrivateMode,
             builder: (context, isPrivateMode) {

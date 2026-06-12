@@ -635,11 +635,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                       ],
                     ),
                     _buildTagsForAmc(context),
-                    Text(
-                      '${widget.stat.numTransactions} transactions',
-                      style: labelStyle,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    Text('${widget.stat.numTrns} transactions', style: labelStyle, overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
@@ -655,7 +651,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
               child: _SectionWidget(
                 label: Text('Available units', style: labelStyle, overflow: TextOverflow.ellipsis),
                 value: Text(
-                  '${widget.stat.totalQuantity.toPrecisionDouble(4)}',
+                  '${widget.stat.totalQnty.toPrecisionDouble(4)}',
                   textAlign: TextAlign.right,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -690,7 +686,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
             if (genreState.isLtpLoaded) {
               final ltp = genreState.latestPrices[widget.stat.amc.id]?.price;
               if (ltp != null) {
-                currentValue = ltp * widget.stat.totalQuantity;
+                currentValue = ltp * widget.stat.totalQnty;
                 returns = currentValue - widget.stat.totalInvested;
                 percentageReturns = widget.stat.totalInvested != 0 ? (returns / widget.stat.totalInvested) * 100 : 0;
               }
@@ -830,7 +826,7 @@ class _XirrViewState extends State<_XirrView> {
 
   @override
   Widget build(BuildContext context) {
-    final xirr = widget.stat.xirr?.value;
+    final xirr = widget.stat.xirr;
     return Text(
       xirr != null ? '${(xirr * 100).toPrecisionDouble(2)}%' : 'N/A',
       style: TextStyle(color: xirr != null && xirr < 0 ? Colors.red : Colors.teal),
