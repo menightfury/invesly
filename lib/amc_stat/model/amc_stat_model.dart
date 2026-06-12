@@ -103,9 +103,9 @@ class StatTable extends TableSchema<StatInDb> {
   factory StatTable() => instance;
 
   TableColumn<int> get accountIdColumn =>
-      TableColumn('account_id', tableName, foreignReference: ForeignReference('accounts', 'id'));
+      TableColumn('account_id', tableName, isPrimary: true, foreignReference: ForeignReference('accounts', 'id'));
   TableColumn<String> get amcIdColumn =>
-      TableColumn('amc_id', tableName, foreignReference: ForeignReference('amcs', 'id'));
+      TableColumn('amc_id', tableName, isPrimary: true, foreignReference: ForeignReference('amcs', 'id'));
   TableColumn<int> get numTransactionsColumn => TableColumn('num_transactions', tableName);
   TableColumn<double> get totalQuantityColumn => TableColumn('total_quantity', tableName);
   TableColumn<double> get totalInvestedColumn => TableColumn('total_invested', tableName);

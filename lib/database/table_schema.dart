@@ -35,34 +35,41 @@ abstract class TableSchema<D extends TableDataModel> extends Equatable {
 
   /// Create table SQL statement
   String createTable() {
-    final columnDefs = columns
-        .map<String>((col) {
-          final buffer = StringBuffer('${col.title} ${col.sqlType}');
+    final sql = StringBuffer('CREATE TABLE IF NOT EXISTS $tableName (');
+    final columnDefs = columns.map<String>((col) {
+      final buffer = StringBuffer('${col.title} ${col.sqlType}');
 
-          if (col.isPrimary) {
-            buffer.write(' PRIMARY KEY');
-            if (col.isAutoIncrement && col.runtimeType == int) {
-              buffer.write(' AUTOINCREMENT');
-            }
-          }
-          if (col.isUnique) {
-            buffer.write(' UNIQUE');
-          }
-          if (!col.isNullable) {
-            buffer.write(' NOT NULL');
-          }
-          if (col.defaultValue != null) {
-            buffer.write(' DEFAULT ${col.defaultValue}');
-          }
-          if (col.foreignReference != null) {
-            buffer.write(' REFERENCES ${col.foreignReference!.tableName}(${col.foreignReference!.columnName})');
-          }
+      if (primaryKeys.length == 1 && col.isPrimary) {
+        buffer.write(' PRIMARY KEY');
+        if (col.isAutoIncrement && col.runtimeType == int) {
+          buffer.write(' AUTOINCREMENT');
+        }
+      }
+      if (col.isUnique) {
+        buffer.write(' UNIQUE');
+      }
+      if (!col.isNullable) {
+        buffer.write(' NOT NULL');
+      }
+      if (col.defaultValue != null) {
+        buffer.write(' DEFAULT ${col.defaultValue}');
+      }
+      if (col.foreignReference != null) {
+        buffer.write(' REFERENCES ${col.foreignReference!.tableName}(${col.foreignReference!.columnName})');
+      }
 
-          return buffer.toString();
-        })
-        .join(', ');
+      return buffer.toString();
+    });
 
-    return 'CREATE TABLE IF NOT EXISTS $tableName ($columnDefs);';
+    sql.write(columnDefs.join(', '));
+
+    if (primaryKeys.length > 1) {
+      final pkColumns = primaryKeys.map((col) => col.title).join(', ');
+      sql.write(', PRIMARY KEY ($pkColumns)');
+    }
+    sql.write(');');
+
+    return sql.toString();
   }
 
   // Create trigger for table
