@@ -138,54 +138,67 @@ class InveslyApi {
   // helper function to get a table out of initialized tables
   T? getTable<T extends TableSchema>() => _tables.firstWhereOrNull((table) => table is T) as T?;
 
-  TableQueryBuilder select(TableSchema table, {List<TableColumnBase>? columns, int? limit}) {
-    late final TableQueryBuilder builder;
-    builder = TableQueryBuilder(table: table, columns: columns, executor: (limit) => _executeTableQuery(limit));
+  Future<List<Map<String, dynamic>>> select(
+    TableSchema table, {
+    List<TableSchema> join = const [],
+    List<TableColumnBase>? columns,
+    List<TableColumn>? groupBy,
+    TableFilter? filter,
+    int? limit,
+  }) async {
     final List<Map<String, dynamic>> data = [];
-    final whereSql = builder.whereSql;
-    final whereArgs = builder.whereArgs;
-    final groupBy = builder.groupBySql;
-    debugPrint(
-      'Query: SELECT ${builder.effectiveTableColumns.join(', ')} FROM ${builder.effectiveTableName}'
-      '${whereSql != null ? ' WHERE $whereSql: $whereArgs' : ''}'
-      '${groupBy != null ? ' GROUP BY $groupBy' : ''}'
-      '${limit != null ? ' LIMIT $limit' : ''}',
-    );
+
+    // SELECT table1.*, table2.id as table2_id FROM table1 JOIN table2 ON table1.amc_id = table2.id
+    final effectiveTableName = StringBuffer(table.tableName);
+    final defaultTableColumns = List<TableColumnBase>.from(table.columns);
+
+    if (join.isNotEmpty && table.foreignKeys.isNotEmpty) {
+      for (final j in join) {
+        // get foreignKey
+        final fkc = table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == j.tableName);
+        if (fkc == null) continue;
+        // Write table name
+        effectiveTableName.write(' JOIN ${j.tableName} ');
+        effectiveTableName.write('ON ${fkc.fullTitle} = ${j.tableName}.${fkc.foreignReference!.columnName}');
+
+        // Write default table columns
+        final jColumns = j.columns.map<TableColumnBase>((col) {
+          return col.alias('${j.type.toString().toCamelCase()}_${col.title}');
+        });
+        defaultTableColumns.addAll(jColumns);
+      }
+    }
+
+    final whereClause = filter?.toSql();
 
     try {
-      final list = db.query(
-        builder.effectiveTableName,
-        columns: builder.effectiveTableColumns,
-        where: whereSql,
-        whereArgs: whereArgs,
+      final list = await db.query(
+        effectiveTableName.toString(),
+        columns: (columns ?? defaultTableColumns).map<String>((col) => col.fullTitleWithAggregateAndAlias).toList(),
+        where: whereClause?.$1,
+        whereArgs: whereClause?.$2,
         limit: limit,
-        groupBy: groupBy,
+        groupBy: groupBy?.map<String>((col) => col.fullTitle).join(', '),
       );
 
-      // Move rest of the code to table_schema
       if (list.isEmpty) return List<Map<String, dynamic>>.empty();
 
       for (final el in list) {
         final map = Map<String, dynamic>.from(el);
-        if (builder.joinTables.isNotEmpty && builder.table.foreignKeys.isNotEmpty) {
-          for (final joinTable in builder.joinTables) {
-            final fkc = builder.table.foreignKeys.firstWhereOrNull(
-              (c) => c.foreignReference!.tableName == joinTable.tableName,
-            );
-
+        if (join.isNotEmpty && table.foreignKeys.isNotEmpty) {
+          for (final j in join) {
+            final fkc = table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == j.tableName);
             if (fkc == null) continue;
-
-            map.nest(joinTable.type.toString().toCamelCase());
+            map.nest(j.type.toString().toCamelCase());
           }
         }
-
         data.add(map);
       }
     } on Exception catch (err) {
       $logger.e(err);
+      rethrow;
     }
-
-    return builder;
+    return data;
   }
 
   Future<int> insert(TableSchema table, TableDataModel data) async {

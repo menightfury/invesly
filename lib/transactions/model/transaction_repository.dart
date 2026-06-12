@@ -40,21 +40,21 @@ class TransactionRepository {
     DateTimeRange? dateRange,
     int? limit,
   }) async {
-    final filter = <TableFilter>[];
+    final filters = <TableFilter>[];
     if (accountId != null) {
-      filter.add(SingleValueTableFilter<int>(_trnTable.accountIdColumn, accountId));
+      filters.add(SingleValueTableFilter<int>(_trnTable.accountIdColumn, accountId));
     }
 
     if (genre != null) {
-      filter.add(SingleValueTableFilter<String>(_amcTable.genreColumn, genre.name));
+      filters.add(SingleValueTableFilter<String>(_amcTable.genreColumn, genre.name));
     }
 
     if (amcId != null) {
-      filter.add(SingleValueTableFilter<String>(_trnTable.amcIdColumn, amcId));
+      filters.add(SingleValueTableFilter<String>(_trnTable.amcIdColumn, amcId));
     }
 
     if (dateRange != null) {
-      filter.add(
+      filters.add(
         RangeValueTableFilter(
           _trnTable.dateColumn,
           dateRange.start.millisecondsSinceEpoch,
@@ -65,7 +65,12 @@ class TransactionRepository {
 
     late final List<InveslyTransaction> transactions;
     try {
-      final result = await _api.select(_trnTable).join([_accountTable, _amcTable]).where(filter).toList(limit: limit);
+      final result = await _api.select(
+        _trnTable,
+        join: [_accountTable, _amcTable],
+        filter: TableFilterGroup(filters),
+        limit: limit,
+      );
       // orderBy: '${_trnTable.dateColumn.title} DESC',
       // limit: showItems,
 

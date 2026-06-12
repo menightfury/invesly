@@ -8,7 +8,6 @@ import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 import 'package:invesly/amc_stat/cubit/amc_stat_cubit.dart';
 import 'package:invesly/amc_stat/model/amc_stat_model.dart';
-import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/amcs/view/amc_overview/cubit/amc_overview_cubit.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';

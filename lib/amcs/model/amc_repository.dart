@@ -32,27 +32,28 @@ class AmcRepository {
 
   /// Get all amcs - Remove this method in production
   Future<List<InveslyAmc>> getAllAmcs() async {
-    final dbData = await _api.select(_amcTable).toList();
+    final dbData = await _api.select(_amcTable);
     return dbData.map<InveslyAmc>((e) => InveslyAmc.fromDb(_amcTable.fromMap(e))).toList();
   }
 
   /// Get all amcs matched by query
   Future<List<InveslyAmc>> getAmcs(String searchQuery, AmcGenre genre, [int limit = 10]) async {
     // get results from db
-    final dbData = await _api
-        .select(_amcTable)
-        .where([
-          SingleValueTableFilter<String>(_amcTable.genreColumn, genre.name, operator: FilterOperator.equal),
-          SingleValueTableFilter<String>(_amcTable.nameColumn, searchQuery, operator: FilterOperator.like),
-        ])
-        .toList(limit: limit);
+    final dbData = await _api.select(
+      _amcTable,
+      filter: TableFilterGroup([
+        SingleValueTableFilter<String>(_amcTable.genreColumn, genre.name, operator: FilterOperator.equal),
+        SingleValueTableFilter<String>(_amcTable.nameColumn, searchQuery, operator: FilterOperator.like),
+      ]),
+      limit: limit,
+    );
     final dbResults = dbData.map<InveslyAmc>((e) => InveslyAmc.fromDb(_amcTable.fromMap(e))).toList();
     return dbResults;
   }
 
   /// Get amc by id
   Future<InveslyAmc?> getAmcById(String id) async {
-    final list = await _api.select(_amcTable).where([SingleValueTableFilter<String>(_amcTable.idColumn, id)]).toList();
+    final list = await _api.select(_amcTable, filter: SingleValueTableFilter<String>(_amcTable.idColumn, id));
 
     if (list.isEmpty) return null;
 
@@ -61,9 +62,7 @@ class AmcRepository {
 
   /// Get amc by name
   Future<InveslyAmc?> getAmcByName(String name) async {
-    final list = await _api.select(_amcTable).where([
-      SingleValueTableFilter<String>(_amcTable.nameColumn, name),
-    ]).toList();
+    final list = await _api.select(_amcTable, filter: SingleValueTableFilter<String>(_amcTable.nameColumn, name));
 
     if (list.isEmpty) return null;
 
@@ -72,10 +71,13 @@ class AmcRepository {
 
   /// Get amc by id or name
   Future<InveslyAmc?> getAmc(String value) async {
-    final list = await _api.select(_amcTable).where([
-      SingleValueTableFilter<String>(_amcTable.idColumn, value),
-      SingleValueTableFilter<String>(_amcTable.nameColumn, value),
-    ], isAnd: false).toList();
+    final list = await _api.select(
+      _amcTable,
+      filter: TableFilterGroup([
+        SingleValueTableFilter<String>(_amcTable.idColumn, value),
+        SingleValueTableFilter<String>(_amcTable.nameColumn, value),
+      ], isAnd: false),
+    );
 
     if (list.isEmpty) return null;
 

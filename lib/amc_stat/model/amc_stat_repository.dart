@@ -32,25 +32,26 @@ class AmcStatRepository {
   /// Get statistics of all AMCs
   Future<List<InveslyStat>> getAllStats() async {
     try {
-      final result = await _api
-          .select(_trnTable, [
-            _trnTable.accountIdColumn,
-            ..._amcTable.columns,
-            _trnTable.idColumn.count('num_transactions'),
-            _trnTable.amountColumn.sum(
-              'total_invested',
-              SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.greaterThan),
-            ),
-            _trnTable.amountColumn.sum(
-              'total_redeemed',
-              SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.lessThan),
-            ),
-            _trnTable.quantityColumn.sum('total_quantity'),
-          ])
-          .join([_amcTable])
-          //.where([SingleValueTableFilter<String>(_trnTable.accountIdColumn, accountId)])
-          .groupBy([_trnTable.accountIdColumn, _amcTable.idColumn])
-          .toList();
+      final result = await _api.select(
+        _trnTable,
+        join: [_amcTable],
+        columns: [
+          _trnTable.accountIdColumn,
+          ..._amcTable.columns,
+          _trnTable.idColumn.count('num_transactions'),
+          _trnTable.amountColumn.sum(
+            'total_invested',
+            SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.greaterThan),
+          ),
+          _trnTable.amountColumn.sum(
+            'total_redeemed',
+            SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.lessThan),
+          ),
+          _trnTable.quantityColumn.sum('total_quantity'),
+        ],
+        groupBy: [_trnTable.accountIdColumn, _amcTable.idColumn],
+      );
+
       final stats = result.map<InveslyStat>((map) {
         return InveslyStat(
           accountId: map[_trnTable.accountIdColumn.title] as int,
@@ -72,24 +73,25 @@ class AmcStatRepository {
   /// Get statistics of all AMCs
   Future<List<InveslyStat>> getStats(int accountId) async {
     try {
-      final result = await _api
-          .select(_trnTable, [
-            ..._amcTable.columns,
-            _trnTable.idColumn.count('num_transactions'),
-            _trnTable.amountColumn.sum(
-              'total_invested',
-              SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.greaterThan),
-            ),
-            _trnTable.amountColumn.sum(
-              'total_redeemed',
-              SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.lessThan),
-            ),
-            _trnTable.quantityColumn.sum('total_quantity'),
-          ])
-          .join([_amcTable])
-          .where([SingleValueTableFilter<int>(_trnTable.accountIdColumn, accountId)])
-          .groupBy([_amcTable.idColumn])
-          .toList();
+      final result = await _api.select(
+        _trnTable,
+        join: [_amcTable],
+        columns: [
+          ..._amcTable.columns,
+          _trnTable.idColumn.count('num_transactions'),
+          _trnTable.amountColumn.sum(
+            'total_invested',
+            SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.greaterThan),
+          ),
+          _trnTable.amountColumn.sum(
+            'total_redeemed',
+            SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.lessThan),
+          ),
+          _trnTable.quantityColumn.sum('total_quantity'),
+        ],
+        filter: SingleValueTableFilter<int>(_trnTable.accountIdColumn, accountId),
+        groupBy: [_amcTable.idColumn],
+      );
       final stats = result.map<InveslyStat>((map) {
         return InveslyStat(
           accountId: accountId,
@@ -111,26 +113,27 @@ class AmcStatRepository {
   /// Get statistics of AMC
   Future<InveslyStat?> getStat({required int accountId, required String amcId}) async {
     try {
-      final result = await _api
-          .select(_trnTable, [
-            ..._amcTable.columns,
-            _trnTable.idColumn.count('num_transactions'),
-            _trnTable.amountColumn.sum(
-              'total_invested',
-              SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.greaterThan),
-            ),
-            _trnTable.amountColumn.sum(
-              'total_redeemed',
-              SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.lessThan),
-            ),
-            _trnTable.quantityColumn.sum('total_quantity'),
-          ])
-          .join([_amcTable])
-          .where([
-            SingleValueTableFilter<int>(_trnTable.accountIdColumn, accountId),
-            SingleValueTableFilter<String>(_amcTable.idColumn, amcId),
-          ])
-          .toList();
+      final result = await _api.select(
+        _trnTable,
+        join: [_amcTable],
+        columns: [
+          ..._amcTable.columns,
+          _trnTable.idColumn.count('num_transactions'),
+          _trnTable.amountColumn.sum(
+            'total_invested',
+            SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.greaterThan),
+          ),
+          _trnTable.amountColumn.sum(
+            'total_redeemed',
+            SingleValueTableFilter<num>(_trnTable.amountColumn, 0, operator: FilterOperator.lessThan),
+          ),
+          _trnTable.quantityColumn.sum('total_quantity'),
+        ],
+        filter: TableFilterGroup([
+          SingleValueTableFilter<int>(_trnTable.accountIdColumn, accountId),
+          SingleValueTableFilter<String>(_amcTable.idColumn, amcId),
+        ]),
+      );
 
       if (result.isEmpty) return null;
 

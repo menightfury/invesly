@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:invesly/common_libs.dart';
 
 // ~ Table schema
@@ -20,7 +18,7 @@ abstract class TableSchema<D extends TableDataModel> extends Equatable {
 
   const TableSchema(this.tableName);
 
-  TableColumn get idColumn;
+  TableColumnBase get idColumn;
 
   /// Get all columns
   Set<TableColumn> get columns;
@@ -100,7 +98,7 @@ class TableColumnBase extends Equatable {
   String get fullTitle => '$tableName.$title';
 
   /// Effective title of the column in the SQL query
-  String get _fullTitleWithAggregateAndAlias {
+  String get fullTitleWithAggregateAndAlias {
     final buffer = StringBuffer();
 
     if (aggregateMethodName != null) {
@@ -362,128 +360,5 @@ class TableFilterGroup extends TableFilter {
 
     final combinedSql = '(${sqlParts.join(isAnd ? ' AND ' : ' OR ')})';
     return (combinedSql, args);
-  }
-}
-
-// ~ Table query builder
-abstract class TableFilterBuilder<T extends TableDataModel> implements Future<T> {
-  TableFilterBuilder where(List<TableFilter> filters);
-
-  TableFilterBuilder groupBy(List<TableColumn> columns);
-
-  // InveslyApiFilterBuilder orderBy(String column) => InveslyApiFilterBuilder();
-}
-
-class TableQueryBuilder<T extends TableDataModel> extends TableFilterBuilder<T> {
-  TableQueryBuilder({required TableSchema table, List<TableColumnBase>? columns})
-    : _table = table,
-      _columns = columns ?? [];
-
-  final TableSchema _table;
-  final List<TableColumnBase> _columns;
-
-  final List<TableSchema> _joinTables = [];
-  TableFilter? _where;
-  final List<TableColumnBase> _group = [];
-
-  TableSchema get table => _table;
-  TableFilter? get whereClause => _where;
-  List<TableColumnBase> get groupByColumns => _group;
-  List<TableSchema> get joinTables => _joinTables;
-  String? get whereSql => _where?.toSql().$1;
-  List<Object>? get whereArgs => _where?.toSql().$2;
-  String? get groupBySql => _group.isEmpty ? null : _group.map<String>((col) => col.fullTitle).join(', ');
-
-  String get effectiveTableName {
-    // SELECT table1.*, table2.id as table2_id FROM table1 JOIN table2 ON table1.amc_id = table2.id
-    final buffer = StringBuffer(_table.tableName);
-    if (_joinTables.isNotEmpty && _table.foreignKeys.isNotEmpty) {
-      for (final joinTable in _joinTables) {
-        // get foreignKey
-        final fkc = _table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == joinTable.tableName);
-
-        if (fkc == null) continue;
-
-        buffer.write(' JOIN ${joinTable.tableName} ');
-        buffer.write('ON ${fkc.fullTitle} = ${joinTable.tableName}.${fkc.foreignReference!.columnName}');
-      }
-    }
-    return buffer.toString();
-  }
-
-  List<String> get effectiveTableColumns {
-    if (_columns.isEmpty) {
-      // SELECT table1.*, table2.id as table2_id FROM table1 JOIN table2 ON table1.amc_id = table2.id
-      _columns.addAll(_table.columns);
-      if (_joinTables.isNotEmpty && _table.foreignKeys.isNotEmpty) {
-        for (final joinTable in _joinTables) {
-          // get foreignKey
-          final fkc = _table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == joinTable.tableName);
-
-          if (fkc == null) continue;
-
-          final joinTableColumns = joinTable.columns.map<TableColumnBase>((col) {
-            return col.alias('${joinTable.type.toString().toCamelCase()}_${col.title}');
-          });
-
-          _columns.addAll(joinTableColumns);
-        }
-      }
-    }
-
-    return _columns.map<String>((col) => col._fullTitleWithAggregateAndAlias).toList();
-  }
-
-  TableQueryBuilder<T> join(List<TableSchema> tables) {
-    if (tables.isNotEmpty) {
-      _joinTables.addAll(tables);
-    }
-    return this;
-  }
-
-  @override
-  TableFilterBuilder where(List<TableFilter> filters, {bool isAnd = true}) {
-    if (filters.isNotEmpty) {
-      _where = TableFilterGroup(filters, isAnd: isAnd);
-    }
-    return this;
-  }
-
-  @override
-  TableFilterBuilder groupBy(List<TableColumn> columns) {
-    if (columns.isNotEmpty) {
-      _group.addAll(columns);
-    }
-    return this;
-  }
-
-  @override
-  Stream<T> asStream() {
-    // TODO: implement asStream
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<T> catchError(Function onError, {bool Function(Object error)? test}) {
-    // TODO: implement catchError
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<R> then<R>(FutureOr<R> Function(T value) onValue, {Function? onError}) {
-    // TODO: implement then
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<T> timeout(Duration timeLimit, {FutureOr<T> Function()? onTimeout}) {
-    // TODO: implement timeout
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<T> whenComplete(FutureOr<void> Function() action) {
-    // TODO: implement whenComplete
-    throw UnimplementedError();
   }
 }
