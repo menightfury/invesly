@@ -486,9 +486,9 @@ class MiscAmcModel extends InveslyAmc {
   }
 }
 
-class AmcInDb extends TableDataModel<String> {
+class AmcInDb extends TableDataModel {
   const AmcInDb({
-    required super.id,
+    required this.id,
     required this.name,
     required this.code,
     this.genreCode,
@@ -496,6 +496,7 @@ class AmcInDb extends TableDataModel<String> {
     this.ltpString,
   });
 
+  final String id;
   final String name;
   final String code;
   final String? genreCode;
@@ -503,17 +504,16 @@ class AmcInDb extends TableDataModel<String> {
   final String? ltpString;
 
   @override
-  List<Object?> get props => super.props..addAll([name, code, genreCode, tagString, ltpString]);
+  List<Object?> get props => [id, name, code, genreCode, tagString, ltpString];
 }
 
 // ~ Table Model
 class AmcTable extends TableSchema<AmcInDb> {
-  // Singleton pattern to ensure only one instance exists
+  // Singleton pattern to ensure only one instance e sts
   const AmcTable._() : super('amcs');
   static const instance = AmcTable._();
   factory AmcTable() => instance;
 
-  @override
   TableColumn<String> get idColumn => TableColumn('id', tableName, isPrimary: true);
   TableColumn<String> get nameColumn => TableColumn('name', tableName, isUnique: true);
   TableColumn<String> get codeColumn => TableColumn('scheme_code', tableName, isUnique: true);

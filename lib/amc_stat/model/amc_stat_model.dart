@@ -5,9 +5,8 @@ import 'package:invesly/amcs/model/latest_xirr_model.dart';
 import 'package:invesly/database/table_schema.dart';
 
 // ~ Data Model
-class StatInDb extends TableDataModel<int> {
+class StatInDb extends TableDataModel {
   const StatInDb({
-    required super.id,
     required this.accountId,
     required this.amcId,
     required this.numTransactions,
@@ -34,8 +33,7 @@ class StatInDb extends TableDataModel<int> {
 
   @override
   List<Object?> get props {
-    return super.props
-      ..addAll([accountId, amcId, numTransactions, totalQuantity, totalInvested, totalRedeemed, xirrString]);
+    return [accountId, amcId, numTransactions, totalQuantity, totalInvested, totalRedeemed, xirrString];
   }
 
   StatInDb copyWith({
@@ -48,7 +46,6 @@ class StatInDb extends TableDataModel<int> {
     String? xirrString,
   }) {
     return StatInDb(
-      id: id,
       accountId: accountId ?? this.accountId,
       amcId: amcId ?? this.amcId,
       numTransactions: numTransactions ?? this.numTransactions,
@@ -62,7 +59,6 @@ class StatInDb extends TableDataModel<int> {
 
 class InveslyStat extends StatInDb {
   InveslyStat({
-    required super.id,
     required this.account,
     required this.amc,
     super.numTransactions = 0,
@@ -85,7 +81,6 @@ class InveslyStat extends StatInDb {
     }
 
     return InveslyStat(
-      id: stat.id,
       account: InveslyAccount.fromDb(account),
       amc: InveslyAmc.fromDb(amc),
       numTransactions: stat.numTransactions,
@@ -107,8 +102,6 @@ class StatTable extends TableSchema<StatInDb> {
   static const instance = StatTable._();
   factory StatTable() => instance;
 
-  @override
-  TableColumn<int> get idColumn => TableColumn<int>('id', tableName, isPrimary: true, isAutoIncrement: true);
   TableColumn<int> get accountIdColumn =>
       TableColumn('account_id', tableName, foreignReference: ForeignReference('accounts', 'id'));
   TableColumn<String> get amcIdColumn =>
@@ -121,7 +114,6 @@ class StatTable extends TableSchema<StatInDb> {
 
   @override
   Set<TableColumn> get columns => {
-    idColumn,
     accountIdColumn,
     amcIdColumn,
     numTransactionsColumn,
@@ -134,7 +126,6 @@ class StatTable extends TableSchema<StatInDb> {
   @override
   Map<String, dynamic> fromModel(StatInDb data) {
     return <String, dynamic>{
-      idColumn.title: data.id,
       accountIdColumn.title: data.accountId,
       amcIdColumn.title: data.amcId,
       numTransactionsColumn.title: data.numTransactions,
@@ -148,7 +139,6 @@ class StatTable extends TableSchema<StatInDb> {
   @override
   StatInDb fromMap(Map<String, dynamic> map) {
     return StatInDb(
-      id: map[idColumn.title] as int,
       accountId: map[accountIdColumn.title] as int,
       amcId: map[amcIdColumn.title] as String,
       numTransactions: map[numTransactionsColumn.title] as int,

@@ -208,18 +208,28 @@ class InveslyApi {
   }
 
   Future<int> update(TableSchema table, TableDataModel data) async {
-    final r = await db.update(
-      table.tableName,
-      table.fromModel(data),
-      where: '${table.idColumn.fullTitle} = ?',
-      whereArgs: [data.id],
-    );
+    final values = table.fromModel(data);
+    final where = <String>[];
+    final whereArgs = <Object>[];
+    for (final pkc in table.primaryKeys) {
+      where.add('${pkc.fullTitle} = ?');
+      whereArgs.add(values.remove(pkc.title));
+    }
+
+    final r = await db.update(table.tableName, values, where: where.join(' AND '), whereArgs: whereArgs);
     _tableEventController.add(TableEvent(table, TableEventType.update, data));
     return r;
   }
 
   Future<int> delete(TableSchema table, TableDataModel data) async {
-    final r = await Future.delayed(2.seconds, () => 1); // TODO: implement
+    final values = table.fromModel(data);
+    final where = <String>[];
+    final whereArgs = <Object>[];
+    for (final pkc in table.primaryKeys) {
+      where.add('${pkc.fullTitle} = ?');
+      whereArgs.add(values.remove(pkc.title));
+    }
+    final r = await db.delete(table.tableName, where: where.join(' AND '), whereArgs: whereArgs);
     _tableEventController.add(TableEvent(table, TableEventType.delete, data));
     return r;
   }

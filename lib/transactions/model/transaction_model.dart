@@ -55,9 +55,9 @@ enum TransactionType {
 }
 
 // ~ Data Model
-class TransactionInDb extends TableDataModel<int> {
+class TransactionInDb extends TableDataModel {
   const TransactionInDb({
-    required super.id,
+    required this.id,
     required this.accountId,
     // this.typeIndex = 0, // 0: invested, 1: redeemed
     required this.amcId,
@@ -68,6 +68,7 @@ class TransactionInDb extends TableDataModel<int> {
     this.note,
   });
 
+  final int id;
   final int accountId;
   // final int typeIndex;
   final String amcId;
@@ -78,7 +79,7 @@ class TransactionInDb extends TableDataModel<int> {
   final String? note;
 
   @override
-  List<Object?> get props => super.props..addAll([accountId, amcId, quantity, rate, totalAmount, date, note]);
+  List<Object?> get props => [id, accountId, amcId, quantity, rate, totalAmount, date, note];
 }
 
 class InveslyTransaction extends TransactionInDb {
@@ -135,7 +136,6 @@ class TransactionTable extends TableSchema<TransactionInDb> {
   static const instance = TransactionTable._();
   factory TransactionTable() => instance;
 
-  @override
   TableColumn<int> get idColumn => TableColumn('id', tableName, isPrimary: true, isAutoIncrement: true);
   TableColumn<int> get accountIdColumn =>
       TableColumn('account_id', tableName, foreignReference: ForeignReference('accounts', 'id'));

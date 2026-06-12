@@ -1,24 +1,17 @@
 import 'package:invesly/common_libs.dart';
 
 // ~ Table schema
-abstract class TableDataModel<T> extends Equatable {
-  const TableDataModel({required this.id});
-
-  final T id;
+abstract class TableDataModel extends Equatable {
+  const TableDataModel();
 
   @override
   bool get stringify => true;
-
-  @override
-  List<Object?> get props => [id];
 }
 
 abstract class TableSchema<D extends TableDataModel> extends Equatable {
-  final String tableName;
-
   const TableSchema(this.tableName);
 
-  TableColumnBase get idColumn;
+  final String tableName;
 
   /// Get all columns
   Set<TableColumn> get columns;

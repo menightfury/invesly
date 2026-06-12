@@ -42,14 +42,15 @@ class InveslyAccount extends AccountInDb {
   }
 }
 
-class AccountInDb extends TableDataModel<int> {
-  const AccountInDb({required super.id, required this.name, required this.avatarIndex});
+class AccountInDb extends TableDataModel {
+  const AccountInDb({required this.id, required this.name, required this.avatarIndex});
 
+  final int id;
   final String name;
   final int avatarIndex;
 
   @override
-  List<Object?> get props => super.props..addAll([name, avatarIndex]);
+  List<Object?> get props => [id, name, avatarIndex];
 }
 
 class AccountTable extends TableSchema<AccountInDb> {
@@ -58,7 +59,6 @@ class AccountTable extends TableSchema<AccountInDb> {
   static const instance = AccountTable._();
   factory AccountTable() => instance;
 
-  @override
   TableColumn<int> get idColumn => TableColumn<int>('id', tableName, isPrimary: true, isAutoIncrement: true);
   TableColumn<String> get nameColumn => TableColumn<String>('name', tableName);
   TableColumn<int> get avatarColumn => TableColumn<int>('avatar', tableName, isNullable: true);

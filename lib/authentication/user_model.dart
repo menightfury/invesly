@@ -5,10 +5,13 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:invesly/database/table_schema.dart';
 
-class InveslyUser extends TableDataModel<String> implements GoogleIdentity {
-  const InveslyUser({required super.id, required this.name, required this.email, this.photoUrl, this.gapiAccessToken});
+class InveslyUser extends TableDataModel implements GoogleIdentity {
+  const InveslyUser({required this.id, required this.name, required this.email, this.photoUrl, this.gapiAccessToken});
 
   // const InveslyUser.empty() : name = '', email = '', photoUrl = null, gapiAccessToken = null, super(id: '');
+
+  @override
+  final String id;
 
   final String name;
 
@@ -47,7 +50,7 @@ class InveslyUser extends TableDataModel<String> implements GoogleIdentity {
   factory InveslyUser.fromJson(String source) => InveslyUser.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
-  List<Object?> get props => super.props..addAll([name, email, photoUrl, gapiAccessToken]);
+  List<Object?> get props => [id, name, email, photoUrl, gapiAccessToken];
 
   @override
   String get displayName => name;
