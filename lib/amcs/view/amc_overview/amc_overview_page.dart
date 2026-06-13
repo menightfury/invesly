@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/amcs/model/amc_model.dart';
+import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
 import 'package:invesly/common/presentations/components/add_transaction_button.dart';
 import 'package:invesly/stat/model/stat_repository.dart';
@@ -30,15 +33,12 @@ class AmcOverviewPage extends StatefulWidget {
 }
 
 class _AmcOverviewPageState extends State<AmcOverviewPage> {
-  final ScrollController _scrollController = ScrollController();
+  late final ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
-    final statCubit = context.read<StatCubit>();
-    if (!statCubit.state.isLoaded) {
-      statCubit.fetchAllStats();
-    }
+    _scrollController = ScrollController();
   }
 
   @override
@@ -55,55 +55,21 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
             ),
 
             // ~ Content
-            BlocBuilder<StatCubit, StatState>(
-              builder: (context, statState) {
-                if (statState.isError) {
-                  return SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Center(
-                      child: Text(
-                        'Some error occurred while fetching data',
-                        overflow: TextOverflow.ellipsis,
-                      ), // TODO: Redesign & test
-                    ),
-                  );
-                }
-
-                if (statState is StatLoadedState) {
-                  final stat = statState.getStat(accountId: widget.accountId, amcId: widget.amcId);
-
-                  if (stat == null) {
-                    return SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: EmptyWidget(
-                        label: Text(
-                          'This is so empty!\nAdd some transactions to see stats here.',
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    );
-                  }
-
-                  return MultiBlocProvider(
-                    providers: [
-                      BlocProvider(create: (_) => AmcOverviewCubit(stat: stat)..getLatestPrice()),
-                      BlocProvider(
-                        create: (_) =>
-                            TransactionsCubit(repository: TransactionRepository.instance)
-                              ..fetchTransactions(accountId: widget.accountId, amcId: widget.amcId),
-                      ),
-                    ],
-                    child: _AmcOverviewPageContent(),
-                  );
-                }
-
-                return SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(
-                    child: LoadingAnimationWidget.staggeredDotsWave(color: context.colors.primary, size: 48.0),
-                  ),
-                );
-              },
+            MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (_) {
+                    return AmcOverviewCubit(repository: AmcRepository.instance, amcId: widget.amcId)..getLatestPrice();
+                  },
+                ),
+                BlocProvider(
+                  create: (_) {
+                    return TransactionsCubit(repository: TransactionRepository.instance)
+                      ..fetchTransactions(accountId: widget.accountId, amcId: widget.amcId);
+                  },
+                ),
+              ],
+              child: _AmcOverviewPageContent(),
             ),
           ],
         ),
@@ -113,6 +79,12 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
       floatingActionButton: AddTransactionButton(scrollController: _scrollController),
     );
   }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 }
 
 class _AmcOverviewPageContent extends StatelessWidget {
@@ -120,83 +92,90 @@ class _AmcOverviewPageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverMainAxisGroup(
-      slivers: <Widget>[
-        // ~ AMC Details & Stats
-        SliverToBoxAdapter(child: _AmcOverviewSection()),
+    return BlocBuilder<TransactionsCubit, TransactionsState>(
+      builder: (context, trnState) {
+        // ~ Error state
+        if (trnState.isError) {
+          return SliverToBoxAdapter(
+            child: Center(
+              child: Text(
+                'Some error occurred! Try again later.',
+                style: TextStyle(color: context.colors.error),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          );
+        }
 
-        // ~ Holding Transactions Section
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
-            child: Text('Transactions', style: context.textTheme.titleLarge, overflow: TextOverflow.ellipsis),
-          ),
-        ),
+        // ~ Loaded state
+        if (trnState.isLoaded) {
+          return SliverMainAxisGroup(
+            slivers: <Widget>[
+              // ~ AMC Details & Stats
+              SliverToBoxAdapter(child: _AmcOverviewSection(trnState.transactions)),
 
-        // ~ Transactions list
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-          sliver: BlocBuilder<TransactionsCubit, TransactionsState>(
-            builder: (context, trnState) {
-              if (trnState.isError) {
-                return SliverToBoxAdapter(
-                  child: Center(
-                    child: Text(
-                      'Some error occurred! Try again later.',
-                      style: TextStyle(color: context.colors.error),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                );
-              }
-
-              if (trnState.isLoaded) {
-                if (trnState.transactions.isEmpty) {
-                  return SliverToBoxAdapter(
-                    child: EmptyWidget(
-                      label: Text(
-                        'This is so empty.\n Add some transactions to see stats here.',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  );
-                }
-
-                final transactions = trnState.transactions;
-                final itemCount = transactions.length;
-                return SliverList.separated(
-                  itemCount: itemCount,
-                  itemBuilder: (context, index) {
-                    final trn = transactions[index];
-                    return _buildTransaction(context, trn, isFirst: index == 0, isLast: index == itemCount - 1);
-                  },
-                  separatorBuilder: (_, _) => const Gap(2.0),
-                );
-              }
-
-              final numTransactions = context.read<AmcOverviewCubit>().state.stat.numTrns;
-              return SliverToBoxAdapter(
-                child: Skeletonizer(
-                  child: Section(
-                    tiles: List.generate(math.min(numTransactions, 3), (_) {
-                      return const SectionTile(
-                        title: Text('Loading...'),
-                        subtitle: Text('Loading...'),
-                        icon: Bone.circle(size: 40.0),
-                        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                      );
-                    }),
-                    margin: EdgeInsets.zero,
-                  ),
+              // ~ Holding Transactions Section
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
+                  child: Text('Transactions', style: context.textTheme.titleLarge, overflow: TextOverflow.ellipsis),
                 ),
-              );
-            },
-          ),
-        ),
+              ),
 
-        // ~ Space in bottom
-        SliverToBoxAdapter(child: SizedBox(height: 64.0)),
-      ],
+              // ~ Transactions list
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+                sliver: () {
+                  if (trnState.transactions.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: EmptyWidget(
+                        label: Text(
+                          'This is so empty.\n Add some transactions to see stats here.',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    );
+                  }
+
+                  final transactions = trnState.transactions;
+                  final itemCount = transactions.length;
+                  return SliverList.separated(
+                    itemCount: itemCount,
+                    itemBuilder: (context, index) {
+                      final trn = transactions[index];
+                      return _buildTransaction(context, trn, isFirst: index == 0, isLast: index == itemCount - 1);
+                    },
+                    separatorBuilder: (_, _) => const Gap(2.0),
+                  );
+                }(),
+              ),
+
+              // ~ Space in bottom
+              SliverToBoxAdapter(child: SizedBox(height: 64.0)),
+            ],
+          );
+        }
+
+        // ~ Loading state
+        //  TODO: Loading state
+        // final numTrns = context.read<AmcOverviewCubit>().state.amcId.numTrns;
+        final numTrns = 5;
+        return SliverToBoxAdapter(
+          child: Skeletonizer(
+            child: Section(
+              tiles: List.generate(math.min(numTrns, 3), (_) {
+                return const SectionTile(
+                  title: Text('Loading...'),
+                  subtitle: Text('Loading...'),
+                  icon: Bone.circle(size: 40.0),
+                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                );
+              }),
+              margin: EdgeInsets.zero,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -248,10 +227,31 @@ class _AmcOverviewPageContent extends StatelessWidget {
   }
 }
 
-class _AmcOverviewSection extends StatelessWidget {
-  const _AmcOverviewSection({super.key});
+class _AmcOverviewSection extends StatefulWidget {
+  const _AmcOverviewSection(this.transactions, {super.key});
 
+  final List<InveslyTransaction> transactions;
+
+  @override
+  State<_AmcOverviewSection> createState() => _AmcOverviewSectionState();
+}
+
+class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
   static const double _spacing = 2.0;
+  late final Future<InveslyAmc?> amc;
+
+  @override
+  void initState() {
+    super.initState();
+    final amcId = context.read<AmcOverviewCubit>().state.amcId;
+    // get amc details only if transactions are empty
+    if (widget.transactions.isEmpty) {
+      amc = AmcRepository.instance.getAmcById(amcId);
+    } else {
+      // If transactions are present, get amc details from transactions
+      amc = Future.value(widget.transactions.first.amc);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -276,10 +276,11 @@ class _AmcOverviewSection extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: 52.0, minWidth: double.infinity),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-                child: BlocSelector<AmcOverviewCubit, AmcOverviewState, InveslyStat>(
-                  selector: (state) => state.stat,
-                  builder: (context, stat) {
-                    final amc = stat.amc;
+                child: FutureBuilder(
+                  future: amc,
+                  // selector: (state) => state.amcId,
+                  builder: (context, snapshot) {
+                    final amc = snapshot.amc;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       spacing: 12.0,
@@ -302,7 +303,7 @@ class _AmcOverviewSection extends StatelessWidget {
                               builder: (context, accountsState) {
                                 InveslyAccount? account;
                                 if (accountsState is AccountsLoadedState && accountsState.accounts.isNotEmpty) {
-                                  account = accountsState.accounts.firstWhereOrNull((a) => a.id == stat.accountId);
+                                  account = accountsState.accounts.firstWhereOrNull((a) => a.id == snapshot.accountId);
                                 }
                                 if (account == null) return SizedBox.shrink();
 
@@ -318,10 +319,10 @@ class _AmcOverviewSection extends StatelessWidget {
 
                             if (amc.genre != null)
                               SimpleChip(
-                                child: Text(amc.genre!.title, overflow: TextOverflow.ellipsis),
                                 color: context.colors.tertiary,
                                 titleColor: context.colors.onTertiary,
                                 padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                child: Text(amc.genre!.title, overflow: TextOverflow.ellipsis),
                               ),
 
                             if (amc.tags != null && amc.tags!.isNotEmpty)
@@ -331,10 +332,10 @@ class _AmcOverviewSection extends StatelessWidget {
                                 }
 
                                 return SimpleChip(
-                                  child: Text(tag, overflow: TextOverflow.ellipsis),
                                   color: context.colors.tertiary,
                                   titleColor: context.colors.onTertiary,
                                   padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                  child: Text(tag, overflow: TextOverflow.ellipsis),
                                 );
                               }),
                           ],
@@ -366,7 +367,7 @@ class _AmcOverviewSection extends StatelessWidget {
                       child: _SectionWidget(
                         label: const Text('Available units', overflow: TextOverflow.ellipsis),
                         value: BlocSelector<AmcOverviewCubit, AmcOverviewState, InveslyStat>(
-                          selector: (state) => state.stat,
+                          selector: (state) => state.amcId,
                           builder: (context, stat) {
                             return Text('${stat.totalQnty.toPrecision(4)}', overflow: TextOverflow.ellipsis);
                           },
@@ -379,7 +380,7 @@ class _AmcOverviewSection extends StatelessWidget {
                       child: _SectionWidget(
                         label: const Text('Average price', overflow: TextOverflow.ellipsis),
                         value: BlocSelector<AmcOverviewCubit, AmcOverviewState, InveslyStat>(
-                          selector: (state) => state.stat,
+                          selector: (state) => state.amcId,
                           builder: (context, stat) {
                             return BlocSelector<AppCubit, AppState, bool>(
                               selector: (state) => state.isPrivateMode,
@@ -395,7 +396,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     // ~ Invested amount
                     Skeleton.keep(
                       child: BlocSelector<AmcOverviewCubit, AmcOverviewState, InveslyStat>(
-                        selector: (state) => state.stat,
+                        selector: (state) => state.amcId,
                         builder: (context, stat) {
                           return _SectionWidget(
                             label: const Text('Invested amount', overflow: TextOverflow.ellipsis),
@@ -413,7 +414,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     // ~ Latest NAV (Mkt. price) sections
                     BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
                       buildWhen: (prev, curr) {
-                        return prev.stat != curr.stat || prev.ltp != curr.ltp;
+                        return prev.amcId != curr.amcId || prev.ltp != curr.ltp;
                       },
                       builder: (context, state) {
                         final isError = state.isLtpError;
@@ -454,7 +455,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     // ~ Current value
                     BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
                       buildWhen: (prev, curr) {
-                        return prev.stat != curr.stat || prev.ltp != curr.ltp;
+                        return prev.amcId != curr.amcId || prev.ltp != curr.ltp;
                       },
                       builder: (context, state) {
                         final isError = state.isLtpError;
@@ -506,7 +507,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     // ~ Amount return sections
                     BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
                       buildWhen: (prev, curr) {
-                        return prev.stat != curr.stat || prev.ltp != curr.ltp;
+                        return prev.amcId != curr.amcId || prev.ltp != curr.ltp;
                       },
                       builder: (context, state) {
                         final isError = state.isLtpError;
@@ -552,7 +553,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     // ~ Percentage returns sections
                     BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
                       buildWhen: (prev, curr) {
-                        return prev.stat != curr.stat || prev.ltp != curr.ltp;
+                        return prev.amcId != curr.amcId || prev.ltp != curr.ltp;
                       },
                       builder: (context, state) {
                         final isError = state.isLtpError;
@@ -595,7 +596,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     // ~ XIRR section
                     BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
                       buildWhen: (prev, curr) {
-                        return prev.stat != curr.stat || prev.ltp != curr.ltp;
+                        return prev.amcId != curr.amcId || prev.ltp != curr.ltp;
                       },
                       builder: (context, amcState) {
                         final isLtpError = amcState.isLtpError;
@@ -654,7 +655,7 @@ class _AmcOverviewSection extends StatelessWidget {
 
                                     // Save xirr in database
                                     if (xirr != null) {
-                                      StatRepository.instance.saveXirr(amcState.stat, xirr);
+                                      StatRepository.instance.saveXirr(amcState.amcId, xirr);
                                     }
 
                                     return Text(
@@ -747,3 +748,487 @@ class _SectionWidget extends StatelessWidget {
     );
   }
 }
+
+
+// class _AmcOverviewPageContentState extends State<_AmcOverviewPageContent> {
+//   @override
+//   void initState() {
+//     super.initState();
+//     _getAmcOverview();
+//     _getStats();
+//   }
+
+//   @override
+//   void didUpdateWidget(covariant _AmcOverviewPageContent oldWidget) {
+//     if (oldWidget.amcId != widget.amcId) {
+//       _getAmcOverview();
+//       _getStats();
+//     }
+//     super.didUpdateWidget(oldWidget);
+//   }
+
+//   void _getAmcOverview() {
+//     context.read<AmcOverviewCubit>().fetchAmcOverview(widget.amcId);
+//   }
+
+//   void _getStats() {
+//     if (widget.accountId?.isEmpty ?? true) {
+//       return;
+//     }
+
+//     if (mounted) {
+//       context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, amcId: widget.amcId);
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final colors = context.colors;
+//     final textTheme = context.textTheme;
+//     const spacing = 2.0;
+
+//     return Scaffold(
+//       body: SafeArea(
+//         child: Column(
+//           children: <Widget>[
+//             Expanded(
+//               child: CustomScrollView(
+//                 slivers: <Widget>[
+//                   SliverAppBar(title: const Text('Holding details'), floating: true, snap: true),
+
+//                   // ~ AMC Details & Stats
+//                   SliverToBoxAdapter(
+//                     child: Padding(
+//                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
+//                       child: BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
+//                         builder: (context, amcState) {
+//                           final isAmcLoading = amcState is AmcOverviewLoadingState;
+//                           return Column(
+//                             spacing: spacing,
+//                             children: <Widget>[
+//                               // ~ AMC Details
+//                               SimpleCard(
+//                                 color: colors.primaryContainer.darken(3.0),
+//                                 elevation: 0.0,
+//                                 borderRadius: iCardBorderRadius.copyWith(
+//                                   bottomLeft: iTileBorderRadius.bottomLeft,
+//                                   bottomRight: iTileBorderRadius.bottomRight,
+//                                 ),
+//                                 child: ConstrainedBox(
+//                                   constraints: const BoxConstraints(minHeight: 52.0, minWidth: double.infinity),
+//                                   child: Padding(
+//                                     padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+//                                     child: Column(
+//                                       crossAxisAlignment: CrossAxisAlignment.start,
+//                                       spacing: 12.0,
+//                                       children: <Widget>[
+//                                         // ~ Amc Name
+//                                         amcState is AmcOverviewLoadedState && amcState.amc != null
+//                                             ? FadeIn(
+//                                                 key: Key('amc_loaded'),
+//                                                 child: Text(
+//                                                   amcState.amc!.name,
+//                                                   style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+//                                                   textAlign: TextAlign.start,
+//                                                   overflow: TextOverflow.ellipsis,
+//                                                   maxLines: 2,
+//                                                 ),
+//                                               )
+//                                             : Text(
+//                                                 widget.amcId,
+//                                                 style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+//                                                 textAlign: TextAlign.start,
+//                                                 overflow: TextOverflow.ellipsis,
+//                                                 maxLines: 2,
+//                                               ),
+
+//                                         // ~ Chips - if Error
+//                                         if (amcState.isError)
+//                                           SimpleChip(
+//                                             title: const Text('Error loading AMC details'),
+//                                             color: context.colors.error,
+//                                             titleColor: context.colors.onError,
+//                                           ),
+
+//                                         // ~ Chips (tags) - otherwise
+//                                         if (!amcState.isError)
+//                                           Skeletonizer(
+//                                             enabled: amcState.isLoading || amcState.isInitial,
+//                                             child: Wrap(
+//                                               spacing: 6.0,
+//                                               runSpacing: 4.0,
+//                                               children: <Widget>[
+//                                                 Skeleton.leaf(
+//                                                   child: SimpleChip(
+//                                                     title: Text(
+//                                                       amcState is AmcOverviewLoadedState
+//                                                           ? (amcState.amc?.genre ?? AmcGenre.misc).title
+//                                                           : 'Loading...', // 'Loading...' text will be replaced by shimmer effect when skeletonizer is enabled
+//                                                     ),
+//                                                     color: context.colors.primary,
+//                                                     titleColor: context.colors.onPrimary,
+//                                                   ),
+//                                                 ),
+
+//                                                 ..._buildAmcTags(amcState),
+//                                               ],
+//                                             ),
+//                                           ),
+//                                       ],
+//                                     ),
+//                                   ),
+//                                 ),
+//                               ),
+
+//                               // ~ Stats Section
+//                               BlocBuilder<TransactionsCubit, TransactionsState>(
+//                                 builder: (context, trnState) {
+//                                   final isTrnError = trnState.isError;
+//                                   final isTrnLoading = trnState.isLoading;
+//                                   final latestPrice = amcState is AmcOverviewLoadedState ? amcState.amc?.ltp : null;
+//                                   final amcTrn =
+//                                       trnState.isLoaded && amcState is AmcOverviewLoadedState && amcState.amc != null
+//                                       ? AmcTransaction(amc: amcState.amc, transactions: trnState.transactions)
+//                                       : null;
+
+//                                   return Skeletonizer(
+//                                     enabled: isTrnLoading,
+//                                     child: Column(
+//                                       spacing: spacing,
+//                                       mainAxisSize: MainAxisSize.min,
+//                                       children: <Widget>[
+//                                         GridView.count(
+//                                           shrinkWrap: true,
+//                                           physics: const NeverScrollableScrollPhysics(),
+//                                           crossAxisCount: 2,
+//                                           mainAxisSpacing: spacing,
+//                                           crossAxisSpacing: spacing,
+//                                           mainAxisExtent: 104.0,
+//                                           children: <Widget>[
+//                                             // ~ No. of units section
+//                                             _SectionWidget(
+//                                               label: const Skeleton.keep(child: Text('No. of units')),
+//                                               value: isTrnLoading
+//                                                   ? const Text('Loading...')
+//                                                   : Text('${amcTrn?.totalUnits.toPrecision(4)}'),
+//                                               color: isTrnError ? colors.errorContainer : null,
+//                                               valueColor: isTrnError ? colors.error : null,
+//                                             ),
+
+//                                             // ~ Avg. price section
+//                                             _SectionWidget(
+//                                               label: const Skeleton.keep(child: Text('Avg. price')),
+//                                               value: isTrnLoading
+//                                                   ? const Text('Loading...')
+//                                                   : BlocSelector<AppCubit, AppState, bool>(
+//                                                       selector: (state) => state.isPrivateMode,
+//                                                       builder: (context, isPrivateMode) {
+//                                                         return CurrencyView(
+//                                                           amount: amcTrn?.averageBuyPrice ?? 0.0,
+//                                                           privateMode: isPrivateMode,
+//                                                         );
+//                                                       },
+//                                                     ),
+//                                               color: isTrnError ? colors.errorContainer : null,
+//                                               valueColor: isTrnError ? colors.error : null,
+//                                             ),
+
+//                                             // ~ Invested amount section
+//                                             _SectionWidget(
+//                                               label: const Skeleton.keep(child: Text('Invested amount')),
+//                                               value: isTrnLoading
+//                                                   ? const Text('Loading...')
+//                                                   : BlocSelector<AppCubit, AppState, bool>(
+//                                                       selector: (state) => state.isPrivateMode,
+//                                                       builder: (context, isPrivateMode) {
+//                                                         return CurrencyView(
+//                                                           amount: amcTrn?.totalInvested ?? 0,
+//                                                           privateMode: isPrivateMode,
+//                                                         );
+//                                                       },
+//                                                     ),
+//                                               color: isTrnError ? colors.errorContainer : null,
+//                                               valueColor: isTrnError ? colors.error : null,
+//                                             ),
+
+//                                             // ~ Current value
+//                                             _SectionWidget(
+//                                               label: Column(
+//                                                 crossAxisAlignment: CrossAxisAlignment.start,
+//                                                 children: <Widget>[
+//                                                   const Skeleton.keep(child: Text('Current value')),
+//                                                   isTrnLoading
+//                                                       ? const Text('Loading...')
+//                                                       : FormattedDate(
+//                                                           date: latestPrice?.date ?? DateTime.now(),
+//                                                           overflow: TextOverflow.ellipsis,
+//                                                           style: textTheme.labelSmall?.copyWith(
+//                                                             color: context.theme.disabledColor,
+//                                                           ),
+//                                                         ),
+//                                                 ],
+//                                               ),
+//                                               value: isTrnLoading
+//                                                   ? Text('Loading...')
+//                                                   : BlocSelector<AppCubit, AppState, bool>(
+//                                                       selector: (state) => state.isPrivateMode,
+//                                                       builder: (context, isPrivateMode) {
+//                                                         return CurrencyView(
+//                                                           amount: amcTrn?.totalCurrentValue ?? 0.0,
+//                                                           style: textTheme.headlineLarge,
+//                                                           decimalsStyle: textTheme.headlineSmall,
+//                                                           currencyStyle: textTheme.bodyMedium,
+//                                                           privateMode: isPrivateMode,
+//                                                           // compactView: snapshot.data! >= 1_00_00_000
+//                                                         );
+//                                                       },
+//                                                     ),
+//                                               color: isTrnError ? colors.errorContainer : null,
+//                                               valueColor: isTrnError ? colors.error : null,
+//                                             ),
+
+//                                             // ~ Latest NAV (Mkt. price) sections
+//                                             _SectionWidget(
+//                                               label: Column(
+//                                                 crossAxisAlignment: CrossAxisAlignment.start,
+//                                                 children: <Widget>[
+//                                                   const Skeleton.keep(child: Text('Latest NAV')),
+//                                                   isAmcLoading
+//                                                       ? const Text('Loading...')
+//                                                       : FormattedDate(
+//                                                           date: latestPrice?.date ?? DateTime.now(),
+//                                                           overflow: TextOverflow.ellipsis,
+//                                                           style: textTheme.labelSmall?.copyWith(
+//                                                             color: context.theme.disabledColor,
+//                                                           ),
+//                                                         ),
+//                                                 ],
+//                                               ),
+//                                               value: isAmcLoading
+//                                                   ? const Text('Loading...')
+//                                                   : BlocSelector<AppCubit, AppState, bool>(
+//                                                       selector: (state) => state.isPrivateMode,
+//                                                       builder: (context, isPrivateMode) {
+//                                                         return CurrencyView(
+//                                                           amount: latestPrice?.price ?? 0.0,
+//                                                           privateMode: isPrivateMode,
+//                                                         );
+//                                                       },
+//                                                     ),
+//                                               color: isTrnError ? colors.errorContainer : null,
+//                                               valueColor: isTrnError ? colors.error : null,
+//                                             ),
+
+//                                             // ~ Amount return sections
+//                                             _SectionWidget(
+//                                               label: const Skeleton.keep(child: Text('Return')),
+//                                               value: isTrnLoading
+//                                                   ? const Text('Loading...')
+//                                                   : BlocSelector<AppCubit, AppState, bool>(
+//                                                       selector: (state) => state.isPrivateMode,
+//                                                       builder: (context, isPrivateMode) {
+//                                                         final returns = amcTrn?.amountReturn;
+//                                                         return CurrencyView(
+//                                                           amount: returns ?? 0.0,
+//                                                           privateMode: isPrivateMode,
+//                                                           style: TextStyle(
+//                                                             color: returns?.isNegative ?? true
+//                                                                 ? Colors.red
+//                                                                 : Colors.teal,
+//                                                           ),
+//                                                         );
+//                                                       },
+//                                                     ),
+//                                               color: isTrnError ? colors.errorContainer : null,
+//                                               valueColor: isTrnError ? colors.error : null,
+//                                             ),
+
+//                                             // ~ Percentage returns sections
+//                                             _SectionWidget(
+//                                               label: const Skeleton.keep(child: Text('Total returns')),
+//                                               value: isTrnLoading
+//                                                   ? const Text('Loading...')
+//                                                   : Text(
+//                                                       '${amcTrn?.percentageReturn?.toPrecision(2) ?? 0}%',
+//                                                       textAlign: TextAlign.right,
+//                                                       style: TextStyle(
+//                                                         color: amcTrn?.percentageReturn?.isNegative ?? true
+//                                                             ? Colors.red
+//                                                             : Colors.teal,
+//                                                       ),
+//                                                     ),
+//                                               color: isTrnError ? colors.errorContainer : null,
+//                                               valueColor: isTrnError ? colors.error : null,
+//                                               borderRadius: iTileBorderRadius.copyWith(
+//                                                 bottomLeft: iCardBorderRadius.bottomLeft,
+//                                               ),
+//                                             ),
+
+//                                             // ~ XIRR section
+//                                             _SectionWidget(
+//                                               label: const Skeleton.keep(child: Text('XIRR')),
+//                                               value: isTrnLoading
+//                                                   ? const Text('Loading...')
+//                                                   : Text(
+//                                                       '${((amcTrn?.xirr ?? 0) * 100).toPrecision(2)}%',
+//                                                       style: TextStyle(
+//                                                         color: amcTrn?.xirr?.isNegative ?? true
+//                                                             ? Colors.red
+//                                                             : Colors.teal,
+//                                                       ),
+//                                                     ),
+//                                               color: isTrnError ? colors.errorContainer : null,
+//                                               valueColor: isTrnError ? colors.error : null,
+//                                               borderRadius: iTileBorderRadius.copyWith(
+//                                                 bottomRight: iCardBorderRadius.bottomRight,
+//                                               ),
+//                                             ),
+//                                           ],
+//                                         ),
+//                                       ],
+//                                     ),
+//                                   );
+//                                 },
+//                               ),
+//                             ],
+//                           );
+//                         },
+//                       ),
+//                     ),
+//                   ),
+
+//                   // ~ Holding Transactions Section
+//                   SliverToBoxAdapter(
+//                     child: Padding(
+//                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
+//                       child: const Text('Transactions'),
+//                     ),
+//                   ),
+
+//                   SliverPadding(
+//                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
+//                     sliver: BlocBuilder<TransactionsCubit, TransactionsState>(
+//                       builder: (context, trnState) {
+//                         final isLoading = trnState.isLoading;
+//                         final isError = trnState.isError;
+//                         final isLoaded = trnState.isLoaded;
+
+//                         if (isError) {
+//                           return SliverToBoxAdapter(
+//                             child: Center(
+//                               child: Text(
+//                                 'Some error occurred! Try again later.',
+//                                 style: TextStyle(color: context.colors.error),
+//                               ),
+//                             ),
+//                           );
+//                         }
+
+//                         if (isLoaded && trnState.transactions.isEmpty) {
+//                           return SliverToBoxAdapter(
+//                             child: Center(
+//                               child: EmptyWidget(
+//                                 label: Text('This is so empty.\n Add some transactions to see stats here.'),
+//                               ),
+//                             ),
+//                           );
+//                         }
+
+//                         final transactions = trnState.transactions;
+//                         return SliverSkeletonizer(
+//                           enabled: isLoading,
+//                           child: SliverList.separated(
+//                             itemCount: isLoaded ? transactions.length : 2, // Show 2 skeleton cards while loading
+//                             itemBuilder: (context, index) {
+//                               final trn = isLoaded ? transactions[index] : null;
+//                               return _buildTransaction(trn);
+//                             },
+//                             separatorBuilder: (_, _) => const Gap(2.0),
+//                           ),
+//                         );
+//                       },
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+
+//             const InveslyDivider(),
+//             // ~ Buy/Sell Buttons
+//             Padding(
+//               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+//               child: Row(
+//                 spacing: 16.0,
+//                 children: <Widget>[
+//                   Expanded(
+//                     child: TextButton(
+//                       onPressed: () {},
+//                       style: ElevatedButton.styleFrom(
+//                         backgroundColor: Colors.deepOrange,
+//                         foregroundColor: Colors.white,
+//                       ),
+//                       child: const Text('Sell'),
+//                     ),
+//                   ),
+
+//                   Expanded(
+//                     child: TextButton(
+//                       onPressed: () {},
+//                       style: ElevatedButton.styleFrom(
+//                         backgroundColor: Colors.teal.shade500,
+//                         foregroundColor: Colors.white,
+//                       ),
+//                       child: const Text('Buy'),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildTransaction(InveslyTransaction? trn) {
+//     final textTheme = context.textTheme;
+
+//     return SectionTile(
+//       title: trn != null ? Text('${trn.quantity} units @ ₹${(trn.rate).toPrecision(2)}') : const Text('Loading...'),
+//       subtitle: trn != null
+//           ? FormattedDate(
+//               date: trn.investedOn,
+//               style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
+//             )
+//           : const Text('Loading...'),
+//       icon: PhysicalModel(
+//         shape: BoxShape.circle,
+//         color: (trn?.totalAmount.isNegative ?? false) ? Colors.red.shade50 : Colors.teal.shade50,
+//         child: Padding(
+//           padding: const EdgeInsets.all(8.0),
+//           child: trn != null
+//               ? Icon(
+//                   trn.totalAmount.isNegative ? Icons.south_east_rounded : Icons.north_east_rounded,
+//                   color: trn.totalAmount.isNegative ? Colors.red : Colors.teal,
+//                 )
+//               : const Bone.icon(),
+//         ),
+//       ),
+//       secondaryIcon: trn != null
+//           ? BlocSelector<AppCubit, AppState, bool>(
+//               selector: (state) => state.isPrivateMode,
+//               builder: (context, isPrivateMode) {
+//                 return CurrencyView(
+//                   amount: trn.totalAmount,
+//                   privateMode: isPrivateMode,
+//                   style: textTheme.titleLarge?.copyWith(color: trn.totalAmount > 0 ? Colors.teal : Colors.red),
+//                 );
+//               },
+//             )
+//           : Text('Loading...', style: textTheme.titleLarge),
+//     );
+//   }
+// }
+
+
+

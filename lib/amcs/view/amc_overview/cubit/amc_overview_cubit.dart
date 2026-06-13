@@ -8,15 +8,19 @@ import 'package:invesly/common_libs.dart';
 part 'amc_overview_state.dart';
 
 class AmcOverviewCubit extends Cubit<AmcOverviewState> {
-  AmcOverviewCubit({required InveslyStat stat})
-    : _amcRepository = AmcRepository.instance,
-      super(AmcOverviewState(stat: stat));
+  AmcOverviewCubit({required AmcRepository repository, required String amcId})
+    : _amcRepository = repository,
+      super(AmcOverviewState(amcId: stat));
 
   final AmcRepository _amcRepository;
 
+  Future<void> getAmcDetails() async {
+    // Implementation for fetching AMC details
+  }
+
   Future<void> getLatestPrice() async {
     try {
-      final ltp = await _amcRepository.getLatestPrice(state.stat.amc);
+      final ltp = await _amcRepository.getLatestPrice(state.amcId.amc);
 
       if (ltp == null || isClosed) return;
 

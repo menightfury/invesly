@@ -2,49 +2,43 @@
 part of 'amc_overview_cubit.dart';
 
 class AmcOverviewState extends Equatable {
-  const AmcOverviewState({required this.stat, this.ltpStatus = LatestPriceStatus.initial, this.ltp, this.errorMsg});
+  const AmcOverviewState({required this.amcId, this.ltpStatus = LatestPriceStatus.initial, this.ltp, this.errorMsg});
 
-  final InveslyStat stat;
+  final String amcId;
   final LatestPriceStatus ltpStatus;
   final LatestPrice? ltp;
   final String? errorMsg;
 
-  double get averageBuyPrice {
-    if (stat.totalQnty == 0) return 0;
-    return stat.totalInvested / stat.totalQnty;
-  }
+  // double get averageBuyPrice {
+  //   if (amcId.totalQnty == 0) return 0;
+  //   return amcId.totalInvested / amcId.totalQnty;
+  // }
 
-  double? get totalCurrentValue {
-    if (ltp == null) return null;
+  // double? get totalCurrentValue {
+  //   if (ltp == null) return null;
 
-    if (stat.totalQnty == 0) return 0;
+  //   if (amcId.totalQnty == 0) return 0;
 
-    return ltp!.price * stat.totalQnty;
-  }
+  //   return ltp!.price * amcId.totalQnty;
+  // }
 
-  double? get amountReturn {
-    if (totalCurrentValue == null) return null;
-    return totalCurrentValue! - stat.totalInvested;
-  }
+  // double? get amountReturn {
+  //   if (totalCurrentValue == null) return null;
+  //   return totalCurrentValue! - amcId.totalInvested;
+  // }
 
-  double? get percentageReturn {
-    if (amountReturn == null || stat.totalInvested == 0) return null;
-    return (amountReturn! / stat.totalInvested) * 100;
-  }
+  // double? get percentageReturn {
+  //   if (amountReturn == null || amcId.totalInvested == 0) return null;
+  //   return (amountReturn! / amcId.totalInvested) * 100;
+  // }
 
   @override
-  List<Object?> get props => [stat, ltpStatus, ltp, errorMsg];
+  List<Object?> get props => [amcId, ltpStatus, ltp, errorMsg];
 
-  AmcOverviewState copyWith({
-    String? amcId,
-    LatestPriceStatus? ltpStatus,
-    InveslyStat? stat,
-    LatestPrice? ltp,
-    String? errorMsg,
-  }) {
+  AmcOverviewState copyWith({String? amcId, LatestPriceStatus? ltpStatus, LatestPrice? ltp, String? errorMsg}) {
     return AmcOverviewState(
       ltpStatus: ltpStatus ?? this.ltpStatus,
-      stat: stat ?? this.stat,
+      amcId: amcId ?? this.amcId,
       ltp: ltp ?? this.ltp,
       errorMsg: errorMsg ?? this.errorMsg,
     );

@@ -15,6 +15,15 @@ class TransactionsState extends Equatable {
   final List<InveslyTransaction> transactions;
   final String? errorMsg;
 
+  int get numTransactions => transactions.length;
+  double get totalUnits => transactions.fold<double>(0.0, (v, el) => v + (el.quantity ?? 0));
+  double get totalInvested => transactions.fold<double>(0.0, (v, el) => v + (el.totalAmount > 0 ? el.totalAmount : 0));
+  double get totalRedeemed => transactions.fold<double>(0.0, (v, el) => v + (el.totalAmount > 0 ? 0 : el.totalAmount));
+  double get averageBuyPrice {
+    if (totalUnits == 0) return 0;
+    return totalInvested / totalUnits;
+  }
+
   TransactionsState copyWith({
     FilterTransactionsModel? searchFilters,
     TransactionsStatus? status,
