@@ -1,16 +1,16 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/model/latest_price_model.dart';
+import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/components/add_transaction_button.dart';
+import 'package:invesly/stat/cubit/stat_cubit.dart';
 import 'package:invesly/stat/model/stat_repository.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
-import 'package:invesly/stat/cubit/stat_cubit.dart';
 import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/amcs/view/amc_overview/cubit/amc_overview_cubit.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
@@ -34,11 +34,21 @@ class AmcOverviewPage extends StatefulWidget {
 
 class _AmcOverviewPageState extends State<AmcOverviewPage> {
   late final ScrollController _scrollController;
+  InveslyStat? stat; // for Fallback
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    // final statCubit = context.read<StatCubit>();
+    // if (!statCubit.state.isLoaded) {
+    //   statCubit.fetchAllStats();
+    // }
+    // This is required to display data when getting transaction details fails
+    final statState = context.read<StatCubit>().state;
+    if (statState is StatLoadedState) {
+      stat = statState.getStat(accountId: widget.accountId, amcId: widget.amcId);
+    }
   }
 
   @override
@@ -59,7 +69,7 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
               providers: [
                 BlocProvider(
                   create: (_) {
-                    return AmcOverviewCubit(repository: AmcRepository.instance, amcId: widget.amcId)..getLatestPrice();
+                    return AmcOverviewCubit(repository: AmcRepository.instance, amcId: widget.amcId)..getAmcDetails();
                   },
                 ),
                 BlocProvider(
@@ -69,7 +79,26 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
                   },
                 ),
               ],
-              child: _AmcOverviewPageContent(),
+              child: SliverMainAxisGroup(
+                slivers: <Widget>[
+                  // ~ AMC Details & Stats
+                  SliverToBoxAdapter(child: _AmcOverviewSection(stat: stat)),
+
+                  // ~ Transactions title
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
+                      child: Text('Transactions', style: context.textTheme.titleLarge, overflow: TextOverflow.ellipsis),
+                    ),
+                  ),
+
+                  // ~ Transactions list
+                  SliverPadding(padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0), sliver: _Transactions()),
+
+                  // ~ Space in bottom
+                  const SliverToBoxAdapter(child: SizedBox(height: 64.0)),
+                ],
+              ),
             ),
           ],
         ),
@@ -87,176 +116,17 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
   }
 }
 
-class _AmcOverviewPageContent extends StatelessWidget {
-  const _AmcOverviewPageContent({super.key});
+class _AmcOverviewSection extends StatelessWidget {
+  const _AmcOverviewSection({this.stat, super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<TransactionsCubit, TransactionsState>(
-      builder: (context, trnState) {
-        // ~ Error state
-        if (trnState.isError) {
-          return SliverToBoxAdapter(
-            child: Center(
-              child: Text(
-                'Some error occurred! Try again later.',
-                style: TextStyle(color: context.colors.error),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          );
-        }
+  final InveslyStat? stat; // This is required only when transaction state becomes error
 
-        // ~ Loaded state
-        if (trnState.isLoaded) {
-          return SliverMainAxisGroup(
-            slivers: <Widget>[
-              // ~ AMC Details & Stats
-              SliverToBoxAdapter(child: _AmcOverviewSection(trnState.transactions)),
-
-              // ~ Holding Transactions Section
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
-                  child: Text('Transactions', style: context.textTheme.titleLarge, overflow: TextOverflow.ellipsis),
-                ),
-              ),
-
-              // ~ Transactions list
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-                sliver: () {
-                  if (trnState.transactions.isEmpty) {
-                    return SliverToBoxAdapter(
-                      child: EmptyWidget(
-                        label: Text(
-                          'This is so empty.\n Add some transactions to see stats here.',
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    );
-                  }
-
-                  final transactions = trnState.transactions;
-                  final itemCount = transactions.length;
-                  return SliverList.separated(
-                    itemCount: itemCount,
-                    itemBuilder: (context, index) {
-                      final trn = transactions[index];
-                      return _buildTransaction(context, trn, isFirst: index == 0, isLast: index == itemCount - 1);
-                    },
-                    separatorBuilder: (_, _) => const Gap(2.0),
-                  );
-                }(),
-              ),
-
-              // ~ Space in bottom
-              SliverToBoxAdapter(child: SizedBox(height: 64.0)),
-            ],
-          );
-        }
-
-        // ~ Loading state
-        //  TODO: Loading state
-        // final numTrns = context.read<AmcOverviewCubit>().state.amcId.numTrns;
-        final numTrns = 5;
-        return SliverToBoxAdapter(
-          child: Skeletonizer(
-            child: Section(
-              tiles: List.generate(math.min(numTrns, 3), (_) {
-                return const SectionTile(
-                  title: Text('Loading...'),
-                  subtitle: Text('Loading...'),
-                  icon: Bone.circle(size: 40.0),
-                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                );
-              }),
-              margin: EdgeInsets.zero,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTransaction(BuildContext context, InveslyTransaction trn, {bool? isFirst, bool? isLast}) {
-    final textTheme = context.textTheme;
-    BorderRadius tileRadius = iTileBorderRadius;
-
-    if (isFirst ?? false) {
-      tileRadius = tileRadius.copyWith(topLeft: iCardBorderRadius.topLeft, topRight: iCardBorderRadius.topRight);
-    }
-
-    if (isLast ?? false) {
-      tileRadius = tileRadius.copyWith(
-        bottomLeft: iCardBorderRadius.bottomLeft,
-        bottomRight: iCardBorderRadius.bottomRight,
-      );
-    }
-
-    return SectionTile(
-      title: FormattedDate(date: trn.investedOn),
-      subtitle: Text(
-        '${trn.quantity?.toPrecision(2) ?? ''} units | ₹${trn.rate?.toPrecision(2)}',
-        overflow: TextOverflow.ellipsis,
-      ), // TODO: Fix this
-      icon: PhysicalModel(
-        shape: BoxShape.circle,
-        color: trn.totalAmount.isNegative ? Colors.red.lighten(75) : Colors.teal.lighten(75),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Icon(
-            trn.totalAmount.isNegative ? Icons.south_east_rounded : Icons.north_east_rounded,
-            color: trn.totalAmount.isNegative ? Colors.red : Colors.teal,
-          ),
-        ),
-      ),
-      secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
-        selector: (state) => state.isPrivateMode,
-        builder: (context, isPrivateMode) {
-          return CurrencyView(
-            amount: trn.totalAmount,
-            privateMode: isPrivateMode,
-            style: textTheme.titleLarge?.copyWith(color: trn.totalAmount > 0 ? Colors.teal : Colors.red),
-          );
-        },
-      ),
-      borderRadius: tileRadius,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-    );
-  }
-}
-
-class _AmcOverviewSection extends StatefulWidget {
-  const _AmcOverviewSection(this.transactions, {super.key});
-
-  final List<InveslyTransaction> transactions;
-
-  @override
-  State<_AmcOverviewSection> createState() => _AmcOverviewSectionState();
-}
-
-class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
   static const double _spacing = 2.0;
-  late final Future<InveslyAmc?> amc;
-
-  @override
-  void initState() {
-    super.initState();
-    final amcId = context.read<AmcOverviewCubit>().state.amcId;
-    // get amc details only if transactions are empty
-    if (widget.transactions.isEmpty) {
-      amc = AmcRepository.instance.getAmcById(amcId);
-    } else {
-      // If transactions are present, get amc details from transactions
-      amc = Future.value(widget.transactions.first.amc);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = context.textTheme;
     final colors = context.colors;
+    final textTheme = context.textTheme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -276,70 +146,34 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
               constraints: const BoxConstraints(minHeight: 52.0, minWidth: double.infinity),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-                child: FutureBuilder(
-                  future: amc,
-                  // selector: (state) => state.amcId,
-                  builder: (context, snapshot) {
-                    final amc = snapshot.amc;
+                child: BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
+                  buildWhen: (prev, curr) => prev.amc != curr.amc,
+                  builder: (context, state) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       spacing: 12.0,
                       children: <Widget>[
                         // ~ Amc Name
-                        Text(
-                          amc.name,
-                          style: textTheme.titleLarge,
-                          textAlign: TextAlign.start,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 2,
-                        ),
-
-                        // ~ Chips (tags)
-                        Wrap(
-                          spacing: 4.0,
-                          runSpacing: 4.0,
-                          children: <Widget>[
-                            BlocBuilder<AccountsCubit, AccountsState>(
-                              builder: (context, accountsState) {
-                                InveslyAccount? account;
-                                if (accountsState is AccountsLoadedState && accountsState.accounts.isNotEmpty) {
-                                  account = accountsState.accounts.firstWhereOrNull((a) => a.id == snapshot.accountId);
-                                }
-                                if (account == null) return SizedBox.shrink();
-
-                                return SimpleChip(
-                                  color: context.colors.primary,
-                                  titleColor: context.colors.onPrimary,
-                                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                  icon: Icon(Icons.account_circle_rounded, size: 16.0, color: context.colors.onPrimary),
-                                  child: Text(account.name, overflow: TextOverflow.ellipsis),
-                                );
-                              },
-                            ),
-
-                            if (amc.genre != null)
-                              SimpleChip(
-                                color: context.colors.tertiary,
-                                titleColor: context.colors.onTertiary,
-                                padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                child: Text(amc.genre!.title, overflow: TextOverflow.ellipsis),
+                        state.amc != null
+                            ? FadeIn(
+                                key: Key('amc_loaded'),
+                                child: Text(
+                                  state.amc!.name,
+                                  style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                                  textAlign: TextAlign.start,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                ),
+                              )
+                            : Text(
+                                state.amcId,
+                                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                                textAlign: TextAlign.start,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
                               ),
-
-                            if (amc.tags != null && amc.tags!.isNotEmpty)
-                              ...amc.tags!.map((tag) {
-                                if (tag.isEmpty) {
-                                  return const SizedBox.shrink();
-                                }
-
-                                return SimpleChip(
-                                  color: context.colors.tertiary,
-                                  titleColor: context.colors.onTertiary,
-                                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                  child: Text(tag, overflow: TextOverflow.ellipsis),
-                                );
-                              }),
-                          ],
-                        ),
+                        // ~ Chips
+                        _buildTags(context),
                       ],
                     );
                   },
@@ -348,12 +182,12 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
             ),
           ),
 
-          BlocSelector<AmcOverviewCubit, AmcOverviewState, LatestPriceStatus>(
-            selector: (state) => state.ltpStatus,
-            builder: (context, ltpStatus) {
-              $logger.w('==== Rebuilding state because ltpStatus is updating ====');
+          // ~ Stats Section
+          BlocBuilder<TransactionsCubit, TransactionsState>(
+            builder: (context, trnState) {
+              // $logger.w('==== Rebuilding state because ltpStatus is updating ====');
               return Skeletonizer(
-                enabled: [LatestPriceStatus.initial, LatestPriceStatus.loading].contains(ltpStatus),
+                enabled: trnState.isLoading,
                 child: GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -363,74 +197,93 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
                   mainAxisExtent: 104.0,
                   children: <Widget>[
                     // ~ No. of units
-                    Skeleton.keep(
-                      child: _SectionWidget(
-                        label: const Text('Available units', overflow: TextOverflow.ellipsis),
-                        value: BlocSelector<AmcOverviewCubit, AmcOverviewState, InveslyStat>(
-                          selector: (state) => state.amcId,
-                          builder: (context, stat) {
-                            return Text('${stat.totalQnty.toPrecision(4)}', overflow: TextOverflow.ellipsis);
-                          },
-                        ),
-                      ),
+                    _SectionWidget(
+                      label: const Skeleton.keep(child: Text('Available units', overflow: TextOverflow.ellipsis)),
+                      value: () {
+                        if (trnState.isError) {
+                          return Text('${stat?.totalQnty.toPrecision(4) ?? "N/A"}', overflow: TextOverflow.ellipsis);
+                        }
+                        if (trnState.isLoaded) {
+                          return Text('${trnState.totalQuantity.toPrecision(4)}', overflow: TextOverflow.ellipsis);
+                        }
+                        return const Text('Loading...');
+                      }(),
+                      color: trnState.isError ? colors.errorContainer : null,
+                      valueColor: trnState.isError ? colors.error : null,
                     ),
 
                     // ~ Avg. price
-                    Skeleton.keep(
-                      child: _SectionWidget(
-                        label: const Text('Average price', overflow: TextOverflow.ellipsis),
-                        value: BlocSelector<AmcOverviewCubit, AmcOverviewState, InveslyStat>(
-                          selector: (state) => state.amcId,
-                          builder: (context, stat) {
-                            return BlocSelector<AppCubit, AppState, bool>(
-                              selector: (state) => state.isPrivateMode,
-                              builder: (context, isPrivate) {
-                                return CurrencyView(amount: stat.averageBuyPrice, privateMode: isPrivate);
-                              },
-                            );
-                          },
-                        ),
-                      ),
+                    _SectionWidget(
+                      label: const Skeleton.keep(child: Text('Average price', overflow: TextOverflow.ellipsis)),
+                      value: () {
+                        if (trnState.isError) {
+                          if (stat == null) return Text('N/A', overflow: TextOverflow.ellipsis);
+
+                          return BlocSelector<AppCubit, AppState, bool>(
+                            selector: (state) => state.isPrivateMode,
+                            builder: (context, isPrivate) {
+                              return CurrencyView(amount: stat!.averageBuyPrice, privateMode: isPrivate);
+                            },
+                          );
+                        }
+                        if (trnState.isLoaded) {
+                          return BlocSelector<AppCubit, AppState, bool>(
+                            selector: (state) => state.isPrivateMode,
+                            builder: (context, isPrivate) {
+                              return CurrencyView(amount: trnState.averageBuyPrice, privateMode: isPrivate);
+                            },
+                          );
+                        }
+                        return const Text('Loading...');
+                      }(),
+                      color: trnState.isError ? colors.errorContainer : null,
+                      valueColor: trnState.isError ? colors.error : null,
                     ),
 
                     // ~ Invested amount
-                    Skeleton.keep(
-                      child: BlocSelector<AmcOverviewCubit, AmcOverviewState, InveslyStat>(
-                        selector: (state) => state.amcId,
-                        builder: (context, stat) {
-                          return _SectionWidget(
-                            label: const Text('Invested amount', overflow: TextOverflow.ellipsis),
-                            value: BlocSelector<AppCubit, AppState, bool>(
-                              selector: (state) => state.isPrivateMode,
-                              builder: (context, isPrivate) {
-                                return CurrencyView(amount: stat.totalInvested, privateMode: isPrivate);
-                              },
-                            ),
+                    _SectionWidget(
+                      label: const Skeleton.keep(child: Text('Invested amount', overflow: TextOverflow.ellipsis)),
+                      value: () {
+                        if (trnState.isError) {
+                          if (stat == null) return Text('N/A', overflow: TextOverflow.ellipsis);
+
+                          return BlocSelector<AppCubit, AppState, bool>(
+                            selector: (state) => state.isPrivateMode,
+                            builder: (context, isPrivate) {
+                              return CurrencyView(amount: stat!.totalInvested, privateMode: isPrivate);
+                            },
                           );
-                        },
-                      ),
+                        }
+                        if (trnState.isLoaded) {
+                          return BlocSelector<AppCubit, AppState, bool>(
+                            selector: (state) => state.isPrivateMode,
+                            builder: (context, isPrivate) {
+                              return CurrencyView(amount: trnState.totalInvested, privateMode: isPrivate);
+                            },
+                          );
+                        }
+                        return const Text('Loading...');
+                      }(),
+                      color: trnState.isError ? colors.errorContainer : null,
+                      valueColor: trnState.isError ? colors.error : null,
                     ),
 
                     // ~ Latest NAV (Mkt. price) sections
                     BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
-                      buildWhen: (prev, curr) {
-                        return prev.amcId != curr.amcId || prev.ltp != curr.ltp;
-                      },
+                      buildWhen: (prev, curr) => prev.ltp != curr.ltp,
                       builder: (context, state) {
                         final isError = state.isLtpError;
                         return _SectionWidget(
-                          label: Skeleton.keep(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                const Text('Latest NAV', overflow: TextOverflow.ellipsis),
-                                FormattedDate(
-                                  date: state.ltp?.date ?? DateTime.now(),
-                                  overflow: TextOverflow.ellipsis,
-                                  style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
-                                ),
-                              ],
-                            ),
+                          label: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              const Skeleton.keep(child: Text('Latest NAV', overflow: TextOverflow.ellipsis)),
+                              FormattedDate(
+                                date: state.ltp?.date ?? DateTime.now(),
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
+                              ),
+                            ],
                           ),
                           value: () {
                             if (isError) return const Text('N/A', overflow: TextOverflow.ellipsis);
@@ -454,48 +307,58 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
 
                     // ~ Current value
                     BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
-                      buildWhen: (prev, curr) {
-                        return prev.amcId != curr.amcId || prev.ltp != curr.ltp;
-                      },
+                      buildWhen: (prev, curr) => prev.ltp != curr.ltp,
                       builder: (context, state) {
                         final isError = state.isLtpError;
                         return _SectionWidget(
-                          label: Skeleton.keep(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                const Text('Current value', overflow: TextOverflow.ellipsis),
-                                FormattedDate(
-                                  date: state.ltp?.date ?? DateTime.now(),
-                                  overflow: TextOverflow.ellipsis,
-                                  style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
-                                ),
-                              ],
-                            ),
+                          label: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              const Skeleton.keep(child: Text('Current value', overflow: TextOverflow.ellipsis)),
+                              FormattedDate(
+                                date: state.ltp?.date ?? DateTime.now(),
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
+                              ),
+                            ],
                           ),
                           value: () {
                             if (isError) return const Text('N/A', overflow: TextOverflow.ellipsis);
 
                             if (state.isLtpLoaded && state.ltp != null) {
-                              final color = (state.amountReturn?.isNegative ?? true) ? Colors.red : Colors.teal;
+                              final ltp = state.ltp!.price;
+                              if (trnState.isError) {
+                                if (stat == null) return Text('N/A', overflow: TextOverflow.ellipsis);
 
-                              return BlocSelector<AppCubit, AppState, bool>(
-                                selector: (state) => state.isPrivateMode,
-                                builder: (context, isPrivateMode) {
-                                  return CurrencyView(
-                                    amount: state.totalCurrentValue ?? 0.0,
-                                    style: textTheme.headlineLarge?.copyWith(color: color),
-                                    decimalsStyle: textTheme.headlineSmall?.copyWith(color: color),
-                                    currencyStyle: textTheme.bodyMedium?.copyWith(color: color),
-                                    privateMode: isPrivateMode,
-
-                                    // compactView: snapshot.data! >= 1_00_00_000
-                                  );
-                                },
-                              );
+                                return BlocSelector<AppCubit, AppState, bool>(
+                                  selector: (state) => state.isPrivateMode,
+                                  builder: (context, isPrivate) {
+                                    return CurrencyView(
+                                      amount: stat!.totalQnty * ltp,
+                                      style: textTheme.headlineLarge,
+                                      decimalsStyle: textTheme.headlineSmall,
+                                      currencyStyle: textTheme.bodyMedium,
+                                      privateMode: isPrivate,
+                                    );
+                                  },
+                                );
+                              }
+                              if (trnState.isLoaded) {
+                                return BlocSelector<AppCubit, AppState, bool>(
+                                  selector: (state) => state.isPrivateMode,
+                                  builder: (context, isPrivate) {
+                                    return CurrencyView(
+                                      amount: trnState.totalQuantity * ltp,
+                                      style: textTheme.headlineLarge,
+                                      decimalsStyle: textTheme.headlineSmall,
+                                      currencyStyle: textTheme.bodyMedium,
+                                      privateMode: isPrivate,
+                                    );
+                                  },
+                                );
+                              }
                             }
-
                             return const Text('Loading...', overflow: TextOverflow.ellipsis);
                           }(),
                           color: state.isLtpError ? colors.errorContainer : null,
@@ -688,6 +551,204 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTags(BuildContext context) {
+    final state = context.read<AmcOverviewCubit>().state;
+
+    // ~ if Error
+    if (state.isError) {
+      return SimpleChip(
+        color: context.colors.error,
+        titleColor: context.colors.onError,
+        child: const Text('Error loading AMC details'),
+      );
+    }
+
+    // ~ otherwise
+    if (state.isLoaded && state.amc != null) {
+      final amc = state.amc!;
+      return Wrap(
+        spacing: 4.0,
+        runSpacing: 4.0,
+        children: <Widget>[
+          BlocBuilder<AccountsCubit, AccountsState>(
+            builder: (context, accountsState) {
+              InveslyAccount? account;
+              if (accountsState is AccountsLoadedState && accountsState.accounts.isNotEmpty) {
+                account = accountsState.accounts.firstWhereOrNull((a) => a.id == snapshot.accountId);
+              }
+              if (account == null) return SizedBox.shrink();
+
+              return SimpleChip(
+                color: context.colors.primary,
+                titleColor: context.colors.onPrimary,
+                padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                icon: Icon(Icons.account_circle_rounded, size: 16.0, color: context.colors.onPrimary),
+                child: Text(account.name, overflow: TextOverflow.ellipsis),
+              );
+            },
+          ),
+
+          if (amc.genre != null)
+            SimpleChip(
+              color: context.colors.tertiary,
+              titleColor: context.colors.onTertiary,
+              padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              child: Text(amc.genre!.title, overflow: TextOverflow.ellipsis),
+            ),
+
+          if (amc.tags != null && amc.tags!.isNotEmpty)
+            ...amc.tags!.map((tag) {
+              if (tag.isEmpty) {
+                return const SizedBox.shrink();
+              }
+
+              return SimpleChip(
+                color: context.colors.tertiary,
+                titleColor: context.colors.onTertiary,
+                padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: Text(tag, overflow: TextOverflow.ellipsis),
+              );
+            }),
+        ],
+      );
+    }
+
+    // ~ Loading
+    return Skeletonizer(
+      child: Wrap(
+        spacing: 4.0,
+        runSpacing: 4.0,
+        children: List.generate(3, (_) {
+          return Skeleton.leaf(
+            child: SimpleChip(
+              padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              child: Text('Loading..', overflow: TextOverflow.ellipsis),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _Transactions extends StatelessWidget {
+  const _Transactions({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverMainAxisGroup(
+      slivers: <Widget>[
+        BlocBuilder<TransactionsCubit, TransactionsState>(
+          builder: (context, trnState) {
+            // ~ Error state
+            if (trnState.isError) {
+              return SliverToBoxAdapter(
+                child: Center(
+                  child: Text(
+                    'Some error occurred! Try again later.',
+                    style: TextStyle(color: context.colors.error),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              );
+            }
+
+            // ~ Loaded state
+            if (trnState.isLoaded) {
+              if (trnState.transactions.isEmpty) {
+                return SliverToBoxAdapter(
+                  child: EmptyWidget(
+                    label: Text(
+                      'This is so empty.\n Add some transactions to see stats here.',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                );
+              }
+
+              final transactions = trnState.transactions;
+              final itemCount = transactions.length;
+              return SliverList.separated(
+                itemCount: itemCount,
+                itemBuilder: (context, index) {
+                  final trn = transactions[index];
+                  return _buildTransaction(context, trn, isFirst: index == 0, isLast: index == itemCount - 1);
+                },
+                separatorBuilder: (_, _) => const Gap(2.0),
+              );
+            }
+
+            // ~ Loading state
+            final statState = context.read<StatCubit>().state;
+            final numTrns = statState is StatLoadedState ? statState.stats.length : 3;
+            return SliverToBoxAdapter(
+              child: Skeletonizer(
+                child: Section(
+                  tiles: List.generate(numTrns, (_) {
+                    return const SectionTile(
+                      title: Text('Loading...'),
+                      subtitle: Text('Loading...'),
+                      icon: Bone.circle(size: 40.0),
+                      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    );
+                  }),
+                  margin: EdgeInsets.zero,
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTransaction(BuildContext context, InveslyTransaction trn, {bool? isFirst, bool? isLast}) {
+    final textTheme = context.textTheme;
+    BorderRadius tileRadius = iTileBorderRadius;
+
+    if (isFirst ?? false) {
+      tileRadius = tileRadius.copyWith(topLeft: iCardBorderRadius.topLeft, topRight: iCardBorderRadius.topRight);
+    }
+
+    if (isLast ?? false) {
+      tileRadius = tileRadius.copyWith(
+        bottomLeft: iCardBorderRadius.bottomLeft,
+        bottomRight: iCardBorderRadius.bottomRight,
+      );
+    }
+
+    return SectionTile(
+      title: FormattedDate(date: trn.investedOn),
+      subtitle: Text(
+        '${trn.quantity?.toPrecision(2) ?? ''} units | ₹${trn.rate?.toPrecision(2)}',
+        overflow: TextOverflow.ellipsis,
+      ), // TODO: Fix this
+      icon: PhysicalModel(
+        shape: BoxShape.circle,
+        color: trn.totalAmount.isNegative ? Colors.red.lighten(75) : Colors.teal.lighten(75),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Icon(
+            trn.totalAmount.isNegative ? Icons.south_east_rounded : Icons.north_east_rounded,
+            color: trn.totalAmount.isNegative ? Colors.red : Colors.teal,
+          ),
+        ),
+      ),
+      secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
+        selector: (state) => state.isPrivateMode,
+        builder: (context, isPrivateMode) {
+          return CurrencyView(
+            amount: trn.totalAmount,
+            privateMode: isPrivateMode,
+            style: textTheme.titleLarge?.copyWith(color: trn.totalAmount > 0 ? Colors.teal : Colors.red),
+          );
+        },
+      ),
+      borderRadius: tileRadius,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
     );
   }
 }

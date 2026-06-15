@@ -1,10 +1,21 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'amc_overview_cubit.dart';
 
+enum AmcOverviewStatus { initial, loading, loaded, error }
+
 class AmcOverviewState extends Equatable {
-  const AmcOverviewState({required this.amcId, this.ltpStatus = LatestPriceStatus.initial, this.ltp, this.errorMsg});
+  const AmcOverviewState({
+    required this.amcId,
+    this.status = AmcOverviewStatus.initial,
+    this.amc,
+    this.ltpStatus = LatestPriceStatus.initial,
+    this.ltp,
+    this.errorMsg,
+  });
 
   final String amcId;
+  final AmcOverviewStatus status;
+  final InveslyAmc? amc;
   final LatestPriceStatus ltpStatus;
   final LatestPrice? ltp;
   final String? errorMsg;
@@ -33,12 +44,20 @@ class AmcOverviewState extends Equatable {
   // }
 
   @override
-  List<Object?> get props => [amcId, ltpStatus, ltp, errorMsg];
+  List<Object?> get props => [amcId, amc, ltpStatus, ltp, errorMsg];
 
-  AmcOverviewState copyWith({String? amcId, LatestPriceStatus? ltpStatus, LatestPrice? ltp, String? errorMsg}) {
+  AmcOverviewState copyWith({
+    AmcOverviewStatus? status,
+    InveslyAmc? amc,
+    LatestPriceStatus? ltpStatus,
+    LatestPrice? ltp,
+    String? errorMsg,
+  }) {
     return AmcOverviewState(
+      amcId: amcId,
+      status: status ?? this.status,
+      amc: amc ?? this.amc,
       ltpStatus: ltpStatus ?? this.ltpStatus,
-      amcId: amcId ?? this.amcId,
       ltp: ltp ?? this.ltp,
       errorMsg: errorMsg ?? this.errorMsg,
     );
@@ -46,6 +65,11 @@ class AmcOverviewState extends Equatable {
 }
 
 extension AmcOverviewStateX on AmcOverviewState {
+  bool get isInitial => status == AmcOverviewStatus.initial;
+  bool get isLoading => status == AmcOverviewStatus.loading;
+  bool get isLoaded => status == AmcOverviewStatus.loaded;
+  bool get isError => status == AmcOverviewStatus.error;
+
   bool get isLtpLoading => ltpStatus == LatestPriceStatus.loading;
   bool get isLtpLoaded => ltpStatus == LatestPriceStatus.loaded;
   bool get isLtpError => ltpStatus == LatestPriceStatus.error;
