@@ -26,12 +26,6 @@ class AmcOverviewCubit extends Cubit<AmcOverviewState> {
     }
   }
 
-  @override
-  void onChange(Change<AmcOverviewState> change) {
-    super.onChange(change);
-    getLatestPrice();
-  }
-
   Future<void> getLatestPrice() async {
     if (state.amc == null) return;
 

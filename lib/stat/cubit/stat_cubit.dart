@@ -49,6 +49,10 @@ class StatCubit extends Cubit<StatState> {
     }
   }
 
+  Future<void> saveStat() {
+    _
+  }
+  
   @override
   Future<void> close() {
     _subscription?.cancel();
