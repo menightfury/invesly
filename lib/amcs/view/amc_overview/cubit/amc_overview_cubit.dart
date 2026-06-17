@@ -57,56 +57,58 @@ class AmcOverviewCubit extends Cubit<AmcOverviewState> {
   }
 
   Future<void> _getOverview() async {
-    emit(state.copyWith(status: AmcOverviewStatus.loading));
+    emit(state.copyWith(transactionStatus: AmcOverviewStatus.loading));
 
-    AmcOverviewState nState = state;
+    AmcOverviewState state_ = state;
     // Get transactions
     try {
-      final transactions = await _trnRepository.getTransactions(accountId: nState.accountId, amcId: nState.amcId);
-      nState = nState.copyWith(transactions: transactions);
+      final trns = await _trnRepository.getTransactions(accountId: state_.accountId, amcId: state_.amcId);
+      state_ = state_.copyWith(transactionStatus: AmcOverviewStatus.loaded, transactions: trns);
     } on Exception catch (err) {
       $logger.e(err);
-      nState = nState.copyWith(
-        // status: AmcOverviewStatus.error,
-        errors: nState.errors..add(AmcOverviewErrorType.transaction),
+      state_ = state_.copyWith(
+        transactionStatus: AmcOverviewStatus.error,
+        errors: state_.errors..add(AmcOverviewErrorType.transaction),
       );
     }
 
     // Get amc details
-    if (nState.amc == null) {
-      if (nState.transactions.isNotEmpty) {
-        nState = nState.copyWith(amc: nState.transactions.first.amc);
+    if (state_.amcStatus != AmcOverviewStatus.loaded) {
+      if (state_.transactions.isNotEmpty) {
+        state_ = state_.copyWith(amcStatus: AmcOverviewStatus.loaded, amc: state_.transactions.first.amc);
       } else {
         try {
           final amc = await _amcRepository.getAmcById(state.amcId);
-          nState = nState.copyWith(amc: amc);
+          if (amc != null) {
+            state_ = state_.copyWith(amcStatus: AmcOverviewStatus.loaded, amc: amc);
+          }
         } catch (err) {
           $logger.e(err);
-          nState = nState.copyWith(
-            // status: AmcOverviewStatus.error,
-            errors: nState.errors..add(AmcOverviewErrorType.amc),
+          state_ = state_.copyWith(
+            amcStatus: AmcOverviewStatus.error,
+            errors: state_.errors..add(AmcOverviewErrorType.amc),
           );
         }
       }
     }
 
     // Get latest price of amc
-    if (nState.amc != null) {
+    if (state_.amc != null) {
       try {
-        final ltp = await _amcRepository.getLatestPrice(nState.amc!);
+        final ltp = await _amcRepository.getLatestPrice(state_.amc!);
         if (ltp != null) {
-          nState = nState.copyWith(ltp: ltp);
+          state_ = state_.copyWith(ltpStatus: AmcOverviewStatus.loaded, ltp: ltp);
         }
       } catch (err) {
         $logger.e(err);
-        nState = nState.copyWith(
-          // ltpStatus: LatestPriceStatus.error,
-          errors: nState.errors..add(AmcOverviewErrorType.ltp),
+        state_ = state_.copyWith(
+          ltpStatus: AmcOverviewStatus.error,
+          errors: state_.errors..add(AmcOverviewErrorType.ltp),
         );
       }
     }
 
-    emit(nState.copyWith(status: AmcOverviewStatus.loaded));
+    emit(state_);
   }
 
   @override

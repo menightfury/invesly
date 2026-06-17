@@ -21,27 +21,39 @@ class AmcOverviewState extends Equatable {
   const AmcOverviewState({
     required this.accountId,
     required this.amcId,
-    this.status = AmcOverviewStatus.initial,
+    this.amcStatus = AmcOverviewStatus.initial,
     this.amc,
-    this.ltpStatus = LatestPriceStatus.initial,
+    this.ltpStatus = AmcOverviewStatus.initial,
     this.ltp,
+    this.transactionStatus = AmcOverviewStatus.initial,
     this.transactions = const [],
-    this.errors = const [],
+    this.errors = const {},
     // this.errorMsg,
   });
 
   final int accountId;
   final String amcId;
-  final AmcOverviewStatus status;
+  final AmcOverviewStatus amcStatus;
   final InveslyAmc? amc;
-  final LatestPriceStatus ltpStatus;
+  final AmcOverviewStatus ltpStatus;
   final LatestPrice? ltp;
+  final AmcOverviewStatus transactionStatus;
   final List<InveslyTransaction> transactions;
-  final List<AmcOverviewErrorType> errors;
+  final Set<AmcOverviewErrorType> errors;
   // final String? errorMsg;
 
   @override
-  List<Object?> get props => [accountId, amcId, amc, ltpStatus, ltp, transactions, errors];
+  List<Object?> get props => [
+    accountId,
+    amcId,
+    amcStatus,
+    amc,
+    ltpStatus,
+    ltp,
+    transactionStatus,
+    transactions,
+    errors,
+  ];
 
   int get numTransactions => transactions.length;
   double get totalQnty => transactions.fold<double>(0.0, (v, el) => v + (el.quantity ?? 0));
@@ -62,22 +74,24 @@ class AmcOverviewState extends Equatable {
   double? get perReturn => amountReturn != null && totalInvested > 0 ? (amountReturn! / totalInvested) * 100 : null;
 
   AmcOverviewState copyWith({
-    AmcOverviewStatus? status,
+    AmcOverviewStatus? amcStatus,
     InveslyAmc? amc,
-    LatestPriceStatus? ltpStatus,
+    AmcOverviewStatus? ltpStatus,
     LatestPrice? ltp,
+    AmcOverviewStatus? transactionStatus,
     List<InveslyTransaction>? transactions,
     // String? errorMsg,
-    List<AmcOverviewErrorType>? errors,
+    Set<AmcOverviewErrorType>? errors,
   }) {
     return AmcOverviewState(
       accountId: accountId,
       amcId: amcId,
-      status: status ?? this.status,
+      amcStatus: amcStatus ?? this.amcStatus,
       amc: amc ?? this.amc,
+      transactionStatus: transactionStatus ?? this.transactionStatus,
+      transactions: transactions ?? this.transactions,
       ltpStatus: ltpStatus ?? this.ltpStatus,
       ltp: ltp ?? this.ltp,
-      transactions: transactions ?? this.transactions,
       // errorMsg: errorMsg ?? this.errorMsg,
       errors: errors ?? this.errors,
     );
@@ -85,12 +99,15 @@ class AmcOverviewState extends Equatable {
 }
 
 extension AmcOverviewStateX on AmcOverviewState {
-  bool get isInitial => status == AmcOverviewStatus.initial;
-  bool get isLoading => status == AmcOverviewStatus.loading;
-  bool get isLoaded => status == AmcOverviewStatus.loaded;
-  bool get isError => status == AmcOverviewStatus.error;
+  bool get isTrnLoading => [AmcOverviewStatus.initial, AmcOverviewStatus.loading].contains(transactionStatus);
+  bool get isTrnLoaded => transactionStatus == AmcOverviewStatus.loaded;
+  bool get isTrnError => transactionStatus == AmcOverviewStatus.error;
 
-  bool get isLtpLoading => ltpStatus == LatestPriceStatus.loading;
-  bool get isLtpLoaded => ltpStatus == LatestPriceStatus.loaded;
-  bool get isLtpError => ltpStatus == LatestPriceStatus.error;
+  bool get isAmcLoading => [AmcOverviewStatus.initial, AmcOverviewStatus.loading].contains(amcStatus);
+  bool get isAmcLoaded => amcStatus == AmcOverviewStatus.loaded;
+  bool get isAmcError => amcStatus == AmcOverviewStatus.error;
+
+  bool get isLtpLoading => [AmcOverviewStatus.initial, AmcOverviewStatus.loading].contains(ltpStatus);
+  bool get isLtpLoaded => ltpStatus == AmcOverviewStatus.loaded;
+  bool get isLtpError => ltpStatus == AmcOverviewStatus.error;
 }

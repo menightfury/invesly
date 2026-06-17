@@ -116,31 +116,12 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
   }
 }
 
-class _AmcOverviewSection extends StatefulWidget {
+class _AmcOverviewSection extends StatelessWidget {
   const _AmcOverviewSection({super.key, this.stat});
 
   final InveslyStat? stat; // This is required only when transaction state becomes error
 
-  @override
-  State<_AmcOverviewSection> createState() => _AmcOverviewSectionState();
-}
-
-class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
   static const double _spacing = 2.0;
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   final amcCubit = context.read<AmcOverviewCubit>();
-  //   amcCubit.getLatestPrice();
-  // }
-
-  // @override
-  // void didUpdateWidget(covariant _AmcOverviewSection oldWidget) {
-  //   final amcCubit = context.read<AmcOverviewCubit>();
-  //   if(amcCubit.state.amc)
-  //   super.didUpdateWidget(oldWidget);
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -167,8 +148,9 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
                 child: BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
-                  buildWhen: (prev, curr) => prev.amc != curr.amc,
+                  buildWhen: (prev, curr) => prev.amcStatus != curr.amcStatus || prev.amc != curr.amc,
                   builder: (context, state) {
+                    $logger.i('==== Rebuilding AMC Details ====');
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       spacing: 12.0,
@@ -203,21 +185,15 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
           ),
 
           // ~ Stats Section
-          // BlocBuilder<TransactionsCubit, TransactionsState>(
-          //   builder: (context, trnState) {
-          //     return
           BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
-            // buildWhen: (prev, curr) => prev.ltp != curr.ltp,
-            builder: (context, amcState) {
-              final isError = amcState.isLtpError;
+            builder: (context, state) {
+              final totalQnty = state.isTrnLoaded ? state.totalQnty : stat?.totalQnty;
+              final avgBuyPrice = state.isTrnLoaded ? state.averageBuyPrice : stat?.averageBuyPrice;
+              final totalInvested = state.isTrnLoaded ? state.totalInvested : stat?.totalInvested;
 
-              final totalQnty = amcState.isLoaded ? amcState.totalQnty : widget.stat?.totalQnty;
-              final avgBuyPrice = amcState.isLoaded ? amcState.averageBuyPrice : widget.stat?.averageBuyPrice;
-              final totalInvested = amcState.isLoaded ? amcState.totalInvested : widget.stat?.totalInvested;
-
-              final ltp = amcState.ltp?.price;
-              final currentValue = amcState.isLoaded
-                  ? amcState.currentValue
+              final ltp = state.ltp?.price;
+              final currentValue = state.isTrnLoaded
+                  ? state.currentValue
                   : ltp != null && totalQnty != null
                   ? ltp * totalQnty
                   : null;
@@ -229,7 +205,7 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
               final color = (amountReturn?.isNegative ?? true) ? Colors.red : Colors.teal;
 
               return Skeletonizer(
-                enabled: amcState.isLoading,
+                enabled: state.isTrnLoading || state.isAmcLoading || state.isLtpLoading,
                 child: GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -243,24 +219,26 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
                       child: _SectionWidget(
                         label: const Text('Available units', overflow: TextOverflow.ellipsis),
                         value: Text('${totalQnty?.toPrecision(4) ?? "N/A"}', overflow: TextOverflow.ellipsis),
-                        color: amcState.isError ? colors.errorContainer : null,
-                        valueColor: amcState.isError ? colors.error : null,
+                        color: (state.isTrnError && totalQnty == null) ? colors.errorContainer : null,
+                        valueColor: (state.isTrnError && totalQnty == null) ? colors.error : null,
                       ),
                     ),
 
                     // ~ Avg. price
-                    _SectionWidget(
-                      label: const Skeleton.keep(child: Text('Average price', overflow: TextOverflow.ellipsis)),
-                      value: avgBuyPrice != null
-                          ? BlocSelector<AppCubit, AppState, bool>(
-                              selector: (state) => state.isPrivateMode,
-                              builder: (context, isPrivate) {
-                                return CurrencyView(amount: avgBuyPrice, privateMode: isPrivate);
-                              },
-                            )
-                          : const Text('N/A', overflow: TextOverflow.ellipsis),
-                      color: amcState.isError ? colors.errorContainer : null,
-                      valueColor: amcState.isError ? colors.error : null,
+                    Skeleton.leaf(
+                      child: _SectionWidget(
+                        label: const Text('Average price', overflow: TextOverflow.ellipsis),
+                        value: avgBuyPrice != null
+                            ? BlocSelector<AppCubit, AppState, bool>(
+                                selector: (state) => state.isPrivateMode,
+                                builder: (context, isPrivate) {
+                                  return CurrencyView(amount: avgBuyPrice, privateMode: isPrivate);
+                                },
+                              )
+                            : const Text('N/A', overflow: TextOverflow.ellipsis),
+                        color: (state.isTrnError && avgBuyPrice == null) ? colors.errorContainer : null,
+                        valueColor: (state.isTrnError && avgBuyPrice == null) ? colors.error : null,
+                      ),
                     ),
 
                     // ~ Invested amount
@@ -275,8 +253,8 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
                                 },
                               )
                             : const Text('N/A', overflow: TextOverflow.ellipsis),
-                        color: amcState.isError ? colors.errorContainer : null,
-                        valueColor: amcState.isError ? colors.error : null,
+                        color: (state.isTrnError && totalInvested == null) ? colors.errorContainer : null,
+                        valueColor: (state.isTrnError && totalInvested == null) ? colors.error : null,
                       ),
                     ),
 
@@ -289,7 +267,7 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
                           children: <Widget>[
                             const Text('Latest NAV', overflow: TextOverflow.ellipsis),
                             FormattedDate(
-                              date: amcState.ltp?.date ?? now,
+                              date: state.ltp?.date ?? now,
                               overflow: TextOverflow.ellipsis,
                               style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
                             ),
@@ -426,7 +404,7 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
                           if (isError) return Text('N/A', overflow: TextOverflow.ellipsis);
 
                           double? xirr;
-                          if (amcState.isLoaded && amcState.transactions.isNotEmpty) {
+                          if (amcState.isTrnLoaded && amcState.transactions.isNotEmpty) {
                             final transactionsForXirr = amcState.transactions
                                 .map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
                                 .toList();
@@ -488,7 +466,7 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
     final state = context.read<AmcOverviewCubit>().state;
 
     // ~ if Error
-    if (state.isError) {
+    if (state.isAmcError) {
       return SimpleChip(
         color: context.colors.error,
         titleColor: context.colors.onError,
@@ -497,7 +475,7 @@ class _AmcOverviewSectionState extends State<_AmcOverviewSection> {
     }
 
     // ~ otherwise
-    if (state.isLoaded && state.amc != null) {
+    if (state.isAmcLoaded && state.amc != null) {
       final amc = state.amc!;
       return Wrap(
         spacing: 4.0,
