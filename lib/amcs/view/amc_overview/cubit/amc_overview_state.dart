@@ -40,40 +40,26 @@ class AmcOverviewState extends Equatable {
   final List<AmcOverviewErrorType> errors;
   // final String? errorMsg;
 
-  // double get averageBuyPrice {
-  //   if (amcId.totalQnty == 0) return 0;
-  //   return amcId.totalInvested / amcId.totalQnty;
-  // }
-
-  // double? get totalCurrentValue {
-  //   if (ltp == null) return null;
-
-  //   if (amcId.totalQnty == 0) return 0;
-
-  //   return ltp!.price * amcId.totalQnty;
-  // }
-
-  // double? get amountReturn {
-  //   if (totalCurrentValue == null) return null;
-  //   return totalCurrentValue! - amcId.totalInvested;
-  // }
-
-  // double? get percentageReturn {
-  //   if (amountReturn == null || amcId.totalInvested == 0) return null;
-  //   return (amountReturn! / amcId.totalInvested) * 100;
-  // }
-
   @override
   List<Object?> get props => [accountId, amcId, amc, ltpStatus, ltp, transactions, errors];
 
   int get numTransactions => transactions.length;
-  double get totalQuantity => transactions.fold<double>(0.0, (v, el) => v + (el.quantity ?? 0));
+  double get totalQnty => transactions.fold<double>(0.0, (v, el) => v + (el.quantity ?? 0));
   double get totalInvested => transactions.fold<double>(0.0, (v, el) => v + (el.totalAmount > 0 ? el.totalAmount : 0));
   double get totalRedeemed => transactions.fold<double>(0.0, (v, el) => v + (el.totalAmount > 0 ? 0 : el.totalAmount));
   double get averageBuyPrice {
-    if (totalQuantity == 0) return 0;
-    return totalInvested / totalQuantity;
+    if (totalQnty == 0) return 0;
+    return totalInvested / totalQnty;
   }
+
+  double? get currentValue {
+    if (ltp == null) return null;
+    if (totalQnty == 0) return 0;
+    return ltp!.price * totalQnty;
+  }
+
+  double? get amountReturn => currentValue != null ? currentValue! - totalInvested : null;
+  double? get perReturn => amountReturn != null && totalInvested > 0 ? (amountReturn! / totalInvested) * 100 : null;
 
   AmcOverviewState copyWith({
     AmcOverviewStatus? status,
