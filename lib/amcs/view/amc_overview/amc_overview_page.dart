@@ -15,7 +15,6 @@ import 'package:invesly/stat/cubit/stat_cubit.dart';
 import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 
 class AmcOverviewPage extends StatefulWidget {
   const AmcOverviewPage({super.key, required this.amcId, required this.accountId});
@@ -29,7 +28,6 @@ class AmcOverviewPage extends StatefulWidget {
 
 class _AmcOverviewPageState extends State<AmcOverviewPage> {
   late final ScrollController _scrollController;
-  InveslyStat? stat; // for Fallback
 
   @override
   void initState() {
@@ -39,11 +37,6 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
     // if (!statCubit.state.isLoaded) {
     //   statCubit.fetchAllStats();
     // }
-    // This is required to display data when getting transaction details fails
-    final statState = context.read<StatCubit>().state;
-    if (statState is StatLoadedState) {
-      stat = statState.getStat(accountId: widget.accountId, amcId: widget.amcId);
-    }
   }
 
   @override
@@ -60,29 +53,20 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
             ),
 
             // ~ Content
-            MultiBlocProvider(
-              providers: [
-                BlocProvider(
-                  create: (_) {
-                    return AmcOverviewCubit(
-                      amcRepository: AmcRepository.instance,
-                      trnRepository: TransactionRepository.instance,
-                      accountId: widget.accountId,
-                      amcId: widget.amcId,
-                    )..fetchOverview();
-                  },
-                ),
-                // BlocProvider(
-                //   create: (_) {
-                //     return TransactionsCubit(repository: TransactionRepository.instance)
-                //       ..fetchTransactions(accountId: widget.accountId, amcId: widget.amcId);
-                //   },
-                // ),
-              ],
+            BlocProvider(
+              create: (_) {
+                return AmcOverviewCubit(
+                  amcRepository: AmcRepository.instance,
+                  trnRepository: TransactionRepository.instance,
+                  accountId: widget.accountId,
+                  amcId: widget.amcId,
+                )..fetchOverview();
+              },
+
               child: SliverMainAxisGroup(
                 slivers: <Widget>[
                   // ~ AMC Details & Stats
-                  SliverToBoxAdapter(child: _AmcOverviewSection(stat: stat)),
+                  SliverToBoxAdapter(child: _AmcOverviewSection()),
 
                   // ~ Transactions title
                   SliverToBoxAdapter(
@@ -117,96 +101,133 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
 }
 
 class _AmcOverviewSection extends StatelessWidget {
-  const _AmcOverviewSection({super.key, this.stat});
-
-  final InveslyStat? stat; // This is required only when transaction state becomes error
+  const _AmcOverviewSection({super.key});
 
   static const double _spacing = 2.0;
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.read<AmcOverviewCubit>();
+    late final InveslyStat? stat; // This is required only when transaction state becomes error
+    final statState = context.read<StatCubit>().state;
+    if (statState is StatLoadedState) {
+      stat = statState.getStat(accountId: cubit.state.accountId, amcId: cubit.state.amcId);
+    }
     final colors = context.colors;
     final textTheme = context.textTheme;
     final now = DateTime.now();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        spacing: _spacing,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          // ~ AMC Details
-          SimpleCard(
-            color: colors.primaryContainer.darken(3.0),
-            elevation: 0.0,
-            borderRadius: iCardBorderRadius.copyWith(
-              bottomLeft: iTileBorderRadius.bottomLeft,
-              bottomRight: iTileBorderRadius.bottomRight,
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 52.0, minWidth: double.infinity),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-                child: BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
-                  buildWhen: (prev, curr) => prev.amcStatus != curr.amcStatus || prev.amc != curr.amc,
-                  builder: (context, state) {
-                    $logger.i('==== Rebuilding AMC Details ====');
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 12.0,
-                      children: <Widget>[
-                        // ~ Amc Name
-                        state.amc != null
-                            ? FadeIn(
-                                key: Key('amc_loaded'),
-                                child: Text(
-                                  state.amc!.name,
+      child: BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
+        builder: (context, state) {
+          double? totalQnty = stat?.totalQnty,
+              avgBuyPrice = stat?.averageBuyPrice,
+              totalInvested = stat?.totalInvested,
+              ltp,
+              currentValue,
+              amountReturn,
+              perReturn,
+              xirr;
+
+          if (state.isTrnLoaded) {
+            totalQnty = state.totalQnty;
+            avgBuyPrice = state.averageBuyPrice;
+            totalInvested = state.totalInvested;
+
+            if (state.isLtpLoaded && state.ltp != null) {
+              ltp = state.ltp!.price;
+              currentValue = state.currentValue;
+              amountReturn = state.amountReturn;
+              perReturn = state.perReturn;
+
+              if (state.transactions.isNotEmpty) {
+                final transactionsForXirr = state.transactions
+                    .map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
+                    .toList();
+                if (transactionsForXirr.isNotEmpty && currentValue != null) {
+                  transactionsForXirr.add(xf.Transaction(-currentValue, state.ltp!.date ?? state.ltp!.fetchDate));
+                }
+                if (transactionsForXirr.isNotEmpty) {
+                  try {
+                    xirr = xf.XirrFlutter.withTransactionsAndGuess(
+                      transactionsForXirr,
+                      0.1,
+                    ).calculate()?.toPrecisionDouble(4);
+
+                    // ~ Save data in database
+                    // final stat = StatInDb(
+                    //   accountId: widget.accountId,
+                    //   amcId: widget.amcId,
+                    //   numTrns: trnState.transactions.length,
+                    //   totalQnty: totalQnty ?? 0.0,
+                    //   totalInvested: totalInvested ?? 0.0,
+                    //   totalRedeemed: trnState.totalRedeemed,
+                    //   xirr: xirr,
+                    // );
+                    // StatRepository.instance.saveXirr(stat, xirr);
+                  } catch (e) {
+                    debugPrint('Error calculating XIRR: $e');
+                  }
+                }
+              }
+            }
+          }
+
+          final color = (amountReturn?.isNegative ?? true) ? Colors.red : Colors.teal;
+
+          return Skeletonizer(
+            enabled: state.isTrnLoading || state.isAmcLoading || state.isLtpLoading,
+            child: Column(
+              spacing: _spacing,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                // ~ AMC Details
+                SimpleCard(
+                  color: colors.primaryContainer.darken(3.0),
+                  elevation: 0.0,
+                  borderRadius: iCardBorderRadius.copyWith(
+                    bottomLeft: iTileBorderRadius.bottomLeft,
+                    bottomRight: iTileBorderRadius.bottomRight,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 52.0, minWidth: double.infinity),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 12.0,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          // ~ Amc Name
+                          state.amc != null
+                              ? FadeIn(
+                                  key: Key('amc_loaded'),
+                                  child: Text(
+                                    state.amc!.name,
+                                    style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                                    textAlign: TextAlign.start,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                  ),
+                                )
+                              : Text(
+                                  state.amcId,
                                   style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                                   textAlign: TextAlign.start,
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 2,
                                 ),
-                              )
-                            : Text(
-                                state.amcId,
-                                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                                textAlign: TextAlign.start,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 2,
-                              ),
-                        // ~ Chips
-                        _buildTags(context),
-                      ],
-                    );
-                  },
+                          // ~ Chips
+                          _buildTags(context),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ),
 
-          // ~ Stats Section
-          BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
-            builder: (context, state) {
-              final totalQnty = state.isTrnLoaded ? state.totalQnty : stat?.totalQnty;
-              final avgBuyPrice = state.isTrnLoaded ? state.averageBuyPrice : stat?.averageBuyPrice;
-              final totalInvested = state.isTrnLoaded ? state.totalInvested : stat?.totalInvested;
-
-              final ltp = state.ltp?.price;
-              final currentValue = state.isTrnLoaded
-                  ? state.currentValue
-                  : ltp != null && totalQnty != null
-                  ? ltp * totalQnty
-                  : null;
-              final amountReturn = currentValue != null && totalInvested != null ? currentValue - totalInvested : null;
-              final perReturn = amountReturn != null && totalInvested != null && totalInvested > 0
-                  ? amountReturn / totalInvested
-                  : null;
-
-              final color = (amountReturn?.isNegative ?? true) ? Colors.red : Colors.teal;
-
-              return Skeletonizer(
-                enabled: state.isTrnLoading || state.isAmcLoading || state.isLtpLoading,
-                child: GridView.count(
+                // ~ Stats Section
+                GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
@@ -232,7 +253,7 @@ class _AmcOverviewSection extends StatelessWidget {
                             ? BlocSelector<AppCubit, AppState, bool>(
                                 selector: (state) => state.isPrivateMode,
                                 builder: (context, isPrivate) {
-                                  return CurrencyView(amount: avgBuyPrice, privateMode: isPrivate);
+                                  return CurrencyView(amount: avgBuyPrice!, privateMode: isPrivate);
                                 },
                               )
                             : const Text('N/A', overflow: TextOverflow.ellipsis),
@@ -249,7 +270,7 @@ class _AmcOverviewSection extends StatelessWidget {
                             ? BlocSelector<AppCubit, AppState, bool>(
                                 selector: (state) => state.isPrivateMode,
                                 builder: (context, isPrivate) {
-                                  return CurrencyView(amount: totalInvested, privateMode: isPrivate);
+                                  return CurrencyView(amount: totalInvested!, privateMode: isPrivate);
                                 },
                               )
                             : const Text('N/A', overflow: TextOverflow.ellipsis),
@@ -274,15 +295,10 @@ class _AmcOverviewSection extends StatelessWidget {
                           ],
                         ),
                         value: ltp != null
-                            ? BlocSelector<AppCubit, AppState, bool>(
-                                selector: (state) => state.isPrivateMode,
-                                builder: (context, isPrivate) {
-                                  return CurrencyView(amount: ltp, privateMode: isPrivate);
-                                },
-                              )
+                            ? CurrencyView(amount: ltp)
                             : const Text('N/A', overflow: TextOverflow.ellipsis),
-                        color: amcState.isLtpError ? colors.errorContainer : null,
-                        valueColor: amcState.isLtpError ? colors.error : null,
+                        color: state.isLtpError ? colors.errorContainer : null,
+                        valueColor: state.isLtpError ? colors.error : null,
                       ),
                     ),
 
@@ -295,7 +311,7 @@ class _AmcOverviewSection extends StatelessWidget {
                           children: <Widget>[
                             const Text('Current value', overflow: TextOverflow.ellipsis),
                             FormattedDate(
-                              date: amcState.ltp?.date ?? now,
+                              date: state.ltp?.date ?? now,
                               overflow: TextOverflow.ellipsis,
                               style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
                             ),
@@ -306,7 +322,7 @@ class _AmcOverviewSection extends StatelessWidget {
                                 selector: (state) => state.isPrivateMode,
                                 builder: (context, isPrivate) {
                                   return CurrencyView(
-                                    amount: currentValue,
+                                    amount: currentValue!,
                                     privateMode: isPrivate,
                                     style: textTheme.headlineLarge?.copyWith(color: color),
                                     decimalsStyle: textTheme.headlineSmall?.copyWith(color: color),
@@ -315,8 +331,8 @@ class _AmcOverviewSection extends StatelessWidget {
                                 },
                               )
                             : const Text('N/A', overflow: TextOverflow.ellipsis),
-                        color: isError ? colors.errorContainer : null,
-                        valueColor: isError ? colors.error : null,
+                        color: (state.isLtpError && currentValue == null) ? colors.errorContainer : null,
+                        valueColor: (state.isLtpError && currentValue == null) ? colors.error : null,
                       ),
                     ),
 
@@ -329,7 +345,7 @@ class _AmcOverviewSection extends StatelessWidget {
                           children: <Widget>[
                             const Text('Return', overflow: TextOverflow.ellipsis),
                             FormattedDate(
-                              date: amcState.ltp?.date ?? now,
+                              date: state.ltp?.date ?? now,
                               overflow: TextOverflow.ellipsis,
                               style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
                             ),
@@ -340,15 +356,15 @@ class _AmcOverviewSection extends StatelessWidget {
                                 selector: (state) => state.isPrivateMode,
                                 builder: (context, isPrivate) {
                                   return CurrencyView(
-                                    amount: amountReturn,
+                                    amount: amountReturn!,
                                     privateMode: isPrivate,
                                     style: TextStyle(color: color),
                                   );
                                 },
                               )
                             : const Text('N/A', overflow: TextOverflow.ellipsis),
-                        color: isError ? colors.errorContainer : null,
-                        valueColor: isError ? colors.error : null,
+                        color: (state.isLtpError && amountReturn == null) ? colors.errorContainer : null,
+                        valueColor: (state.isLtpError && amountReturn == null) ? colors.error : null,
                       ),
                     ),
 
@@ -361,7 +377,7 @@ class _AmcOverviewSection extends StatelessWidget {
                           children: <Widget>[
                             const Text('Total returns', overflow: TextOverflow.ellipsis),
                             FormattedDate(
-                              date: amcState.ltp?.date ?? now,
+                              date: state.ltp?.date ?? now,
                               overflow: TextOverflow.ellipsis,
                               style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
                             ),
@@ -372,15 +388,15 @@ class _AmcOverviewSection extends StatelessWidget {
                                 selector: (state) => state.isPrivateMode,
                                 builder: (context, isPrivate) {
                                   return CurrencyView(
-                                    amount: perReturn,
+                                    amount: perReturn!,
                                     privateMode: isPrivate,
                                     style: TextStyle(color: color),
                                   );
                                 },
                               )
                             : const Text('N/A', overflow: TextOverflow.ellipsis),
-                        color: isError ? colors.errorContainer : null,
-                        valueColor: isError ? colors.error : null,
+                        color: (state.isLtpError && perReturn == null) ? colors.errorContainer : null,
+                        valueColor: (state.isLtpError && perReturn == null) ? colors.error : null,
                         borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
                       ),
                     ),
@@ -394,70 +410,30 @@ class _AmcOverviewSection extends StatelessWidget {
                           children: <Widget>[
                             const Text('XIRR', overflow: TextOverflow.ellipsis),
                             FormattedDate(
-                              date: amcState.ltp?.date ?? now,
+                              date: state.ltp?.date ?? now,
                               overflow: TextOverflow.ellipsis,
                               style: textTheme.labelSmall?.copyWith(color: context.theme.disabledColor),
                             ),
                           ],
                         ),
-                        value: () {
-                          if (isError) return Text('N/A', overflow: TextOverflow.ellipsis);
-
-                          double? xirr;
-                          if (amcState.isTrnLoaded && amcState.transactions.isNotEmpty) {
-                            final transactionsForXirr = amcState.transactions
-                                .map((trn) => xf.Transaction(trn.totalAmount, trn.investedOn))
-                                .toList();
-                            if (transactionsForXirr.isNotEmpty && amcState.ltp != null && currentValue != null) {
-                              transactionsForXirr.add(
-                                xf.Transaction(-currentValue, amcState.ltp!.date ?? amcState.ltp!.fetchDate),
-                              );
-                            }
-                            if (transactionsForXirr.isNotEmpty) {
-                              try {
-                                xirr = xf.XirrFlutter.withTransactionsAndGuess(
-                                  transactionsForXirr,
-                                  0.1,
-                                ).calculate()?.toPrecisionDouble(4);
-                              } catch (e) {
-                                debugPrint('Error calculating XIRR: $e');
-                              }
-                            }
-
-                            // ~ Save data in database
-                            // final stat = StatInDb(
-                            //   accountId: widget.accountId,
-                            //   amcId: widget.amcId,
-                            //   numTrns: trnState.transactions.length,
-                            //   totalQnty: totalQnty ?? 0.0,
-                            //   totalInvested: totalInvested ?? 0.0,
-                            //   totalRedeemed: trnState.totalRedeemed,
-                            //   xirr: xirr,
-                            // );
-                            // StatRepository.instance.saveXirr(stat, xirr);
-
-                            return Text(
-                              xirr != null ? '${(xirr * 100).toPrecision(2)}%' : 'N/A',
-                              style: TextStyle(color: (xirr?.isNegative ?? true) ? Colors.red : Colors.teal),
-                              overflow: TextOverflow.ellipsis,
-                            );
-                          }
-
-                          return const Text('Loading...', overflow: TextOverflow.ellipsis);
-                        }(),
-                        color: isError ? colors.errorContainer : null,
-                        valueColor: isError ? colors.error : null,
+                        value: Text(
+                          xirr != null ? '${(xirr * 100).toPrecision(2)}%' : 'N/A',
+                          style: TextStyle(color: xirr != null ? color : null),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        color: (state.isLtpError && xirr == null) ? colors.errorContainer : null,
+                        valueColor: (state.isLtpError && xirr == null) ? colors.error : null,
                         borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
                       ),
                     ),
                   ],
                 ),
-              );
-            },
-            //   );
-            // },
-          ),
-        ],
+              ],
+            ),
+          );
+        },
+        //   );
+        // },
       ),
     );
   }
@@ -530,7 +506,7 @@ class _AmcOverviewSection extends StatelessWidget {
         spacing: 4.0,
         runSpacing: 4.0,
         children: List.generate(3, (_) {
-          return Skeleton.leaf(
+          return const Skeleton.leaf(
             child: SimpleChip(
               padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: Text('Loading..', overflow: TextOverflow.ellipsis),
@@ -549,10 +525,10 @@ class _Transactions extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverMainAxisGroup(
       slivers: <Widget>[
-        BlocBuilder<TransactionsCubit, TransactionsState>(
-          builder: (context, trnState) {
+        BlocBuilder<AmcOverviewCubit, AmcOverviewState>(
+          builder: (context, state) {
             // ~ Error state
-            if (trnState.isError) {
+            if (state.isTrnError) {
               return SliverToBoxAdapter(
                 child: Center(
                   child: Text(
@@ -565,8 +541,9 @@ class _Transactions extends StatelessWidget {
             }
 
             // ~ Loaded state
-            if (trnState.isLoaded) {
-              if (trnState.transactions.isEmpty) {
+            if (state.isTrnLoaded) {
+              final transactions = state.transactions;
+              if (transactions.isEmpty) {
                 return SliverToBoxAdapter(
                   child: EmptyWidget(
                     label: Text(
@@ -577,7 +554,6 @@ class _Transactions extends StatelessWidget {
                 );
               }
 
-              final transactions = trnState.transactions;
               final itemCount = transactions.length;
               return SliverList.separated(
                 itemCount: itemCount,
