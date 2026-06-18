@@ -49,8 +49,8 @@ class StatCubit extends Cubit<StatState> {
     }
   }
 
-  // Future<void> saveStat() {
-  //   _
+  // Future<void> saveStat(StatInDb stat) async {
+  //   _repository.saveStat(stat);
   // }
 
   @override

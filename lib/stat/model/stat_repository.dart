@@ -154,9 +154,14 @@ class StatRepository {
   }
 
   /// Save latest xirr
-  Future<void> saveXirr(InveslyStat stat, double xirr) async {
-    final updatedStat = stat.copyWith(xirr: xirr);
-    await _api.update(_statTable, updatedStat);
+  // Future<void> saveXirr(StatInDb stat, double xirr) async {
+  //   final updatedStat = stat.copyWith(xirr: xirr);
+  //   await _api.update(_statTable, updatedStat);
+  // }
+
+  /// Save updated stat
+  Future<void> saveStat(StatInDb stat) async {
+    await _api.update(_statTable, stat);
   }
 
   Future<void> close() => _api.close();

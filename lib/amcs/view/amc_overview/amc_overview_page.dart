@@ -1,3 +1,4 @@
+import 'package:invesly/stat/model/stat_repository.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
@@ -154,23 +155,25 @@ class _AmcOverviewSection extends StatelessWidget {
                       transactionsForXirr,
                       0.1,
                     ).calculate()?.toPrecisionDouble(4);
-
-                    // ~ Save data in database
-                    // final stat = StatInDb(
-                    //   accountId: widget.accountId,
-                    //   amcId: widget.amcId,
-                    //   numTrns: trnState.transactions.length,
-                    //   totalQnty: totalQnty ?? 0.0,
-                    //   totalInvested: totalInvested ?? 0.0,
-                    //   totalRedeemed: trnState.totalRedeemed,
-                    //   xirr: xirr,
-                    // );
-                    // StatRepository.instance.saveXirr(stat, xirr);
                   } catch (e) {
                     debugPrint('Error calculating XIRR: $e');
                   }
                 }
               }
+            }
+
+            // ~ Save data in database if calculated data is different from stat get from StatTable
+            final newStat = StatInDb(
+              accountId: state.accountId,
+              amcId: state.amcId,
+              numTrns: state.transactions.length,
+              totalQnty: state.totalQnty,
+              totalInvested: state.totalInvested,
+              totalRedeemed: state.totalRedeemed,
+              xirr: xirr,
+            );
+            if (state.accountId != stat?.accountId) {
+              StatRepository.instance.saveStat(newStat);
             }
           }
 
@@ -200,11 +203,11 @@ class _AmcOverviewSection extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
                           // ~ Amc Name
-                          state.amc != null
+                          state.isAmcLoaded
                               ? FadeIn(
                                   key: Key('amc_loaded'),
                                   child: Text(
-                                    state.amc!.name,
+                                    state.amc?.name ?? stat?.amc.name ?? state.amcId,
                                     style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                                     textAlign: TextAlign.start,
                                     overflow: TextOverflow.ellipsis,
