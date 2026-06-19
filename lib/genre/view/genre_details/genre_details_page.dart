@@ -60,8 +60,7 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
               // ~ Content
               BlocBuilder<StatCubit, StatState>(
                 buildWhen: (prev, curr) {
-                  return prev.runtimeType != curr.runtimeType ||
-                      (prev is StatLoadedState && curr is StatLoadedState && prev.stats.length != curr.stats.length);
+                  return prev.status != curr.status || prev.stats.length != curr.stats.length;
                 },
                 builder: (context, statState) {
                   $logger.w('===== Rebuilding Genre Details page due to change in Stat, $statState =======');
@@ -77,7 +76,7 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
                     );
                   }
 
-                  if (statState is StatLoadedState) {
+                  if (statState.isLoaded) {
                     return BlocSelector<GenreDetailsCubit, GenreDetailsState, int?>(
                       selector: (state) => state.activeAccountId,
                       builder: (context, activeAccountId) {

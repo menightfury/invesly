@@ -9,7 +9,7 @@ import 'package:invesly/common_libs.dart';
 part 'stat_state.dart';
 
 class StatCubit extends Cubit<StatState> {
-  StatCubit({required StatRepository repository}) : _repository = repository, super(const StatInitialState());
+  StatCubit({required StatRepository repository}) : _repository = repository, super(const StatState());
 
   final StatRepository _repository;
 
@@ -39,11 +39,11 @@ class StatCubit extends Cubit<StatState> {
     // _subscription?.onDone(() => _subscription?.cancel());
 
     // ~ new method
-    emit(const StatLoadingState());
+    emit(const StatState(status: StatStatus.loading));
 
     _subscription ??= _repository.fetchAllStats().listen(
-      (data) => emit(StatLoadedState(data)),
-      onError: (error) => emit(StatErrorState(error.toString())),
+      (data) => emit(StatState(status: StatStatus.loaded, stats: data)),
+      onError: (error) => emit(StatState(status: StatStatus.error)),
     );
   }
 

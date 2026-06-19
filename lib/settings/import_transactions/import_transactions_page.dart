@@ -82,7 +82,7 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
   Widget build(BuildContext context) {
     final cubit = context.read<ImportTransactionsCubit>();
     // TODO: Move steps to initState
-    final _steps = [
+    final steps = [
       _Step(
         index: 0,
         title: const Text('Select CSV file'),
@@ -475,15 +475,15 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
             currentStep: currentStep,
             onStepTapped: (value) => setState(() => currentStep = value),
             controlsBuilder: (context, details) {
-              final step = _steps.elementAt(currentStep);
+              final step = steps.elementAt(currentStep);
               if (step.controlsBuilder == null) {
                 return SizedBox.shrink();
               }
 
               return Row(spacing: 8.0, children: step.controlsBuilder!(context, details));
             },
-            onStepContinue: currentStep < _steps.length - 1 ? () => setState(() => currentStep++) : null,
-            steps: _steps.map<Step>((step) => buildStep(context, step)).toList(),
+            onStepContinue: currentStep < steps.length - 1 ? () => setState(() => currentStep++) : null,
+            steps: steps.map<Step>((step) => buildStep(context, step)).toList(),
           ),
         ),
 
@@ -496,7 +496,7 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
             child: BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
               builder: (context, state) {
                 return FilledButton.icon(
-                  onPressed: _steps.length - 1 == currentStep
+                  onPressed: steps.length - 1 == currentStep
                       ? () {
                           cubit.reviewTransactions();
                           context.push(BlocProvider.value(value: cubit, child: const ReviewTransactionsPage()));

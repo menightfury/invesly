@@ -40,7 +40,7 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
     //   statCubit.fetchAllStats();
     // }
     final statState = context.read<StatCubit>().state;
-    if (statState is StatLoadedState) {
+    if (statState.isLoaded) {
       stat = statState.getStat(accountId: widget.accountId, amcId: widget.amcId);
     }
   }

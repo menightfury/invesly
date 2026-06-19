@@ -37,7 +37,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       state.copyWith(
         status: EditTransactionStatus.edited,
         quantity: quantity,
-        amount: state.canEditAmount ? null : quantity * (state.rate ?? 0.0),
+        totalAmount: state.canEditAmount ? null : quantity * (state.rate ?? 0.0),
       ),
     );
   }
@@ -47,17 +47,17 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       state.copyWith(
         status: EditTransactionStatus.edited,
         rate: rate,
-        amount: state.canEditAmount ? null : rate * (state.quantity ?? 0.0),
+        totalAmount: state.canEditAmount ? null : rate * (state.quantity ?? 0.0),
       ),
     );
   }
 
   void updateAmount(double value) {
-    emit(state.copyWith(status: EditTransactionStatus.edited, amount: value));
+    emit(state.copyWith(status: EditTransactionStatus.edited, totalAmount: value));
   }
 
   void updateAutoAmount(bool value) {
-    emit(state.copyWith(autoAmount: value, amount: value ? (state.rate ?? 0.0) * (state.quantity ?? 0.0) : null));
+    emit(state.copyWith(autoAmount: value, totalAmount: value ? (state.rate ?? 0.0) * (state.quantity ?? 0.0) : null));
   }
 
   void updateTransactionType(TransactionType type) {

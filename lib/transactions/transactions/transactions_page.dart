@@ -57,7 +57,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
   //       _animationControllerSearch.value = 1 - percent;
   //     }
   //   }
-  late AnimationController _animationControllerSearch;
+  // late AnimationController _animationControllerSearch;
   //   final _debouncer = Debouncer(milliseconds: 500);
   late FilterTransactionsModel searchFilters;
   TextEditingController searchInputController = TextEditingController();
@@ -74,7 +74,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
     //         skipSearchQuery: true,
     //       );
 
-    _animationControllerSearch = AnimationController(vsync: this, value: 1);
+    // _animationControllerSearch = AnimationController(vsync: this, value: 1);
   }
 
   Future<void> selectFilters(BuildContext context) async {
@@ -225,7 +225,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                       enabled: state.isLoading,
                       child: Column(
                         children: <Widget>[
-                          ...List.generate(groupTransactions?.length ?? 2, (index) {
+                          ...List.generate(groupTransactions.length, (index) {
                             // dummy quantity for shimmer effect
                             final gtEntry = groupTransactions.entries.elementAt(index);
                             return Column(
@@ -233,30 +233,28 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                               children: <Widget>[
                                 Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                                  child: gtEntry != null ? FormattedDate(date: gtEntry.key) : Bone.text(),
+                                  child: FormattedDate(date: gtEntry.key),
                                 ),
                                 Section(
-                                  tiles: List.generate(gtEntry?.value.length ?? 4, (i) {
+                                  tiles: List.generate(gtEntry.value.length, (i) {
                                     // dummy quantity for shimmer effect
-                                    final trn = gtEntry?.value.elementAt(i);
+                                    final trn = gtEntry.value.elementAt(i);
                                     $logger.e(trn);
                                     return SectionTile(
-                                      icon: trn != null
-                                          ? CircleAvatar(
-                                              backgroundColor: trn.transactionType.color(context).lighten(80),
-                                              child: Icon(
-                                                trn.transactionType.icon,
-                                                color: trn.transactionType.color(context),
-                                              ),
-                                            )
-                                          : Bone.circle(size: 40.0),
-                                      title: Text(trn?.amc?.name ?? 'NULL', style: context.textTheme.bodyMedium),
+                                      icon: CircleAvatar(
+                                        backgroundColor: trn.transactionType.color(context).lighten(80),
+                                        child: Icon(
+                                          trn.transactionType.icon,
+                                          color: trn.transactionType.color(context),
+                                        ),
+                                      ),
+                                      title: Text(trn.amc.name, style: context.textTheme.bodyMedium),
                                       subtitle: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: <Widget>[
-                                          trn != null ? FormattedDate(date: trn.investedOn) : Bone.text(),
-                                          Text(trn?.account.name ?? 'NULL'),
+                                          FormattedDate(date: trn.investedOn),
+                                          Text(trn.account.name),
                                         ],
                                       ),
                                       secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
@@ -265,21 +263,17 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                           return Column(
                                             crossAxisAlignment: CrossAxisAlignment.end,
                                             children: <Widget>[
-                                              trn != null
-                                                  ? CurrencyView(
-                                                      amount: trn.totalAmount,
-                                                      style: context.textTheme.headlineSmall?.copyWith(
-                                                        color: trn.transactionType.color(context),
-                                                      ),
-                                                      privateMode: isPrivateMode,
-                                                    )
-                                                  : Bone.text(style: context.textTheme.headlineSmall),
-                                              trn != null
-                                                  ? Text(
-                                                      '${trn.quantity?.toPrecisionString(2)} | ${trn.rate?.toPrecisionString(2)}',
-                                                      style: context.textTheme.bodySmall,
-                                                    )
-                                                  : Bone.text(style: context.textTheme.bodySmall),
+                                              CurrencyView(
+                                                amount: trn.totalAmount,
+                                                style: context.textTheme.headlineSmall?.copyWith(
+                                                  color: trn.transactionType.color(context),
+                                                ),
+                                                privateMode: isPrivateMode,
+                                              ),
+                                              Text(
+                                                '${trn.quantity?.toPrecisionString(2)} | ${trn.rate?.toPrecisionString(2)}',
+                                                style: context.textTheme.bodySmall,
+                                              ),
                                             ],
                                           );
                                         },

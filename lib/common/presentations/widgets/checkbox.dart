@@ -30,7 +30,7 @@ class EMCheckbox extends StatefulWidget {
 
 class _EMCheckboxState extends State<EMCheckbox> with SingleTickerProviderStateMixin {
   late final AnimationController _animController;
-  late bool _previousValue;
+  // late bool _previousValue;
 
   @override
   void initState() {
@@ -40,7 +40,7 @@ class _EMCheckboxState extends State<EMCheckbox> with SingleTickerProviderStateM
       duration: widget.duration ?? const Duration(milliseconds: 500),
       value: widget.value ? 1.0 : 0.0,
     );
-    _previousValue = widget.value;
+    // _previousValue = widget.value;
   }
 
   @override
@@ -48,7 +48,7 @@ class _EMCheckboxState extends State<EMCheckbox> with SingleTickerProviderStateM
     super.didUpdateWidget(oldWidget);
 
     if (widget.value != oldWidget.value) {
-      _previousValue = oldWidget.value;
+      // _previousValue = oldWidget.value;
       if (widget.value) {
         _animController.forward();
       } else {

@@ -33,7 +33,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
                   builder: (context, statState) {
                     final isError = accountsState.isError || statState.isError;
                     final isLoading = !isError && (accountsState.isLoading || statState.isLoading);
-                    final stats = accountsState.isNotEmpty && statState is StatLoadedState
+                    final stats = accountsState.isNotEmpty && statState.isLoaded && statState.stats.isNotEmpty
                         ? statState.stats
                               .where((stat) => stat.amc.genre == widget.genre)
                               .where((stat) => stat.totalQnty > 0)

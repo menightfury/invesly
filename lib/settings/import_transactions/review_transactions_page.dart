@@ -7,7 +7,7 @@ class ReviewTransactionsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<ImportTransactionsCubit>();
+    // final cubit = context.read<ImportTransactionsCubit>();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Review CSV')),

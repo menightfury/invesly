@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/amc_overview/amc_overview_page.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
-import 'package:invesly/common/extensions/buildcontext_extension.dart';
 import 'package:invesly/common_libs.dart';
 
 class AllAmcsPage extends StatefulWidget {

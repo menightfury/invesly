@@ -77,10 +77,10 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<AmcSearchCubit>();
-    final searchChipsData = AmcGenre.values
-        .map((genre) => InveslyChipData(value: genre, label: Text(genre.title)))
-        .toList();
+    // final cubit = context.read<AmcSearchCubit>();
+    // final searchChipsData = AmcGenre.values
+    //     .map((genre) => InveslyChipData(value: genre, label: Text(genre.title)))
+    //     .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,9 +153,9 @@ class _SearchResults extends StatelessWidget {
             runSpacing: 4.0,
             children: <Widget>[
               SimpleChip(
-                child: Text((amc.genre ?? AmcGenre.misc).title),
                 color: context.colors.primary,
                 titleColor: context.colors.onPrimary,
+                child: Text((amc.genre ?? AmcGenre.misc).title),
               ),
 
               if (amc.tags?.isNotEmpty ?? false)
@@ -165,9 +165,9 @@ class _SearchResults extends StatelessWidget {
                   }
 
                   return SimpleChip(
-                    child: Text(tag),
                     color: context.colors.tertiary,
                     titleColor: context.colors.onTertiary,
+                    child: Text(tag),
                   );
                 }),
             ],

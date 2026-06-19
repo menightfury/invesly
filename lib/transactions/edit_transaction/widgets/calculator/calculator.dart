@@ -302,7 +302,7 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
                             cubit.calculate();
                           }
 
-                          final currentState = cubit.state;
+                          // final currentState = cubit.state;
 
                           // XOR operation
                           if (state.leftOperand.isZeroOrEmpty ^ state.rightOperand.isZeroOrEmpty) {

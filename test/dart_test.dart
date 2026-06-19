@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print, no_leading_underscores_for_local_identifiers
 
 import 'package:collection/collection.dart';
-import 'package:intl/intl.dart';
+// import 'package:intl/intl.dart';
 import 'package:invesly/common/extensions/num_extension.dart';
 
 void main() async {
@@ -17,14 +17,14 @@ void main() async {
   };
 
   final csvRows = _csvData;
-  final dateNow = DateTime.now();
+  // final dateNow = DateTime.now();
   final amountColumnIndex = _fields[TransactionField.amount];
-  final qntyColumnIndex = _fields[TransactionField.quantity];
+  // final qntyColumnIndex = _fields[TransactionField.quantity];
   final accountColumnIndex = _fields[TransactionField.account];
   final amcColumnIndex = _fields[TransactionField.amc];
-  final typeColumnIndex = _fields[TransactionField.amount];
+  // final typeColumnIndex = _fields[TransactionField.amount];
   final dateColumnIndex = _fields[TransactionField.date];
-  final noteColumnIndex = _fields[TransactionField.notes];
+  // final noteColumnIndex = _fields[TransactionField.notes];
 
   // Cache of accounts and amcs
   final existingAccounts = <String, AccountInDb>{};
@@ -32,7 +32,7 @@ void main() async {
 
   final errors = <int, List<TransactionField>>{}; // { rowNumber : [ Errors ] }
 
-  final transactionsToInsert = <TransactionInDb>[];
+  // final transactionsToInsert = <TransactionInDb>[];
   for (var i = 0; i < csvRows.length; i++) {
     final row = csvRows[i];
     // Resolve type
@@ -53,17 +53,17 @@ void main() async {
     }
 
     // Resolve quantity
-    final quantity = qntyColumnIndex == null ? null : double.tryParse(row[qntyColumnIndex].toString());
+    // final quantity = qntyColumnIndex == null ? null : double.tryParse(row[qntyColumnIndex].toString());
 
     // Resolve account
     // distinguish between accountIdOrName = null and account = null
     // (i.e. accountIdOrName is provided but account not exists)
     final accountIdOrName = accountColumnIndex == null ? null : row[accountColumnIndex].toString().trim().toLowerCase();
-    String? accountId;
+    // String? accountId;
     if (accountIdOrName != null && accountIdOrName.isNotEmpty) {
       // Look for account in cache first
       if (existingAccounts.containsKey(accountIdOrName)) {
-        accountId = existingAccounts[accountIdOrName]!.id;
+        // accountId = existingAccounts[accountIdOrName]!.id;
       } else {
         // Look for account in database
         // final account = await _accountRepository.getAccount(accountIdOrName);
@@ -80,18 +80,18 @@ void main() async {
         } else {
           // add fetched account to `existingAccounts` cache for future
           existingAccounts[account.id] = account;
-          accountId = account.id;
+          // accountId = account.id;
         }
       }
     }
 
     // Resolve amc
     final amcIdOrName = amcColumnIndex == null ? null : row[amcColumnIndex].toString().trim();
-    String? amcId;
+    // String? amcId;
     if (amcIdOrName != null && amcIdOrName.isNotEmpty) {
       // Look for amc in cache first
       if (existingAmcs.containsKey(amcIdOrName)) {
-        amcId = existingAmcs[amcIdOrName]!.id;
+        // amcId = existingAmcs[amcIdOrName]!.id;
       } else {
         // Look for amc in database
         // final amc = await _amcRepository.getAmc(amcIdOrName);
@@ -103,21 +103,21 @@ void main() async {
         } else {
           // add fetched amc to `existingAmcs` cache for future
           existingAmcs[amc.id] = amc;
-          amcId = amc.id;
+          // amcId = amc.id;
         }
       }
     }
 
     // Resolve date
-    late final DateTime date;
+    // late final DateTime date;
     if (dateColumnIndex != null) {
-      date = DateFormat('d-M-yyyy').tryParse(row[dateColumnIndex].toString()) ?? dateNow;
+      // date = DateFormat('d-M-yyyy').tryParse(row[dateColumnIndex].toString()) ?? dateNow;
     } else {
-      date = dateNow;
+      // date = dateNow;
     }
 
     // Resolve note
-    final note = noteColumnIndex == null ? null : row[noteColumnIndex].toString();
+    // final note = noteColumnIndex == null ? null : row[noteColumnIndex].toString();
 
     // if (errors[i]?.isEmpty ?? true) {
     //   transactionsToInsert.add(

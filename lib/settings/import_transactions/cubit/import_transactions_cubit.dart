@@ -20,12 +20,12 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     required TransactionRepository transactionRepository,
   }) : _accountRepository = accountRepository,
        _amcRepository = amcRepository,
-       _transactionRepository = transactionRepository,
+       //  _transactionRepository = transactionRepository,
        super(const ImportTransactionsState());
 
   final AccountRepository _accountRepository;
   final AmcRepository _amcRepository;
-  final TransactionRepository _transactionRepository;
+  // final TransactionRepository _transactionRepository;
 
   void readFile() async {
     final result = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
@@ -168,12 +168,12 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
       // Resolve type
       // The type can be integer (i.e. 0 for investment and 1 for redemption, 2 for dividend) or
       // can be one character (like I, R, D) or can be string (Investment, Redemption or Dividend)
-      TransactionType? type = state.defaultType;
+      // TransactionType? type = state.defaultType;
       final rawType = typeColumnIndex == null ? null : row[typeColumnIndex];
       if (rawType is int) {
-        type = TransactionType.fromCode(rawType);
+        // type = TransactionType.fromCode(rawType);
       } else if (rawType is String) {
-        type = rawType.length == 1 ? TransactionType.fromChar(rawType) : TransactionType.fromString(rawType);
+        // type = rawType.length == 1 ? TransactionType.fromChar(rawType) : TransactionType.fromString(rawType);
       }
 
       // Resolve amount

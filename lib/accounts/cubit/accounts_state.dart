@@ -31,11 +31,11 @@ class AccountsLoadedState extends AccountsState {
 
   bool get hasNoAccounts => accounts.isEmpty;
 
-  InveslyAccount? getAccount(String id) {
+  InveslyAccount? getAccount(int id) {
     return accounts.firstWhereOrNull((a) => a.id == id);
   }
 
-  bool hasAccount(String id) => getAccount(id) != null;
+  bool hasAccount(int id) => getAccount(id) != null;
 
   @override
   List<Object> get props => [accounts];
@@ -48,7 +48,7 @@ extension AccountsStateX on AccountsState {
   bool get isEmpty => isLoaded && (this as AccountsLoadedState).accounts.isEmpty;
   bool get isNotEmpty => isLoaded && (this as AccountsLoadedState).accounts.isNotEmpty;
 
-  bool idExists(String id) {
+  bool idExists(int id) {
     return isLoaded &&
         (this as AccountsLoadedState).accounts.isNotEmpty &&
         (this as AccountsLoadedState).accounts.map((acc) => acc.id).contains(id);
