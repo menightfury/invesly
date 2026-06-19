@@ -10,6 +10,8 @@ class StatState extends Equatable {
   final List<InveslyStat> stats;
 
   List<InveslyStat> getStats({int? accountId, AmcGenre? genre}) {
+    if (!isLoaded || stats.isEmpty) return const <InveslyStat>[];
+
     return stats.where((stat) {
       final accountMatch = accountId == null || stat.accountId == accountId;
       final genreMatch = genre == null || stat.amc.genre == genre;
