@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
@@ -27,6 +29,14 @@ class StatRepository {
 
   Stream<TableEvent> get onDataChanged {
     return _api.onTableChange.where((event) => event.table == _statTable);
+  }
+
+  /// Fetch statistics of all AMCs, including initial data and updates on table changes.
+  Stream<List<InveslyStat>> fetchAllStats() async* {
+    yield await getAllStats();
+    await for (final _ in onDataChanged) {
+      yield await getAllStats();
+    }
   }
 
   /// Get statistics of all AMCs

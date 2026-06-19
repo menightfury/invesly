@@ -29,6 +29,7 @@ class AmcOverviewPage extends StatefulWidget {
 
 class _AmcOverviewPageState extends State<AmcOverviewPage> {
   late final ScrollController _scrollController;
+  late final InveslyStat? stat; // This is required only when transaction state becomes error
 
   @override
   void initState() {
@@ -38,6 +39,10 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
     // if (!statCubit.state.isLoaded) {
     //   statCubit.fetchAllStats();
     // }
+    final statState = context.read<StatCubit>().state;
+    if (statState is StatLoadedState) {
+      stat = statState.getStat(accountId: widget.accountId, amcId: widget.amcId);
+    }
   }
 
   @override
@@ -67,7 +72,7 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
               child: SliverMainAxisGroup(
                 slivers: <Widget>[
                   // ~ AMC Details & Stats
-                  SliverToBoxAdapter(child: _AmcOverviewSection()),
+                  SliverToBoxAdapter(child: _AmcOverviewSection(stat: stat)),
 
                   // ~ Transactions title
                   SliverToBoxAdapter(
@@ -78,7 +83,10 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
                   ),
 
                   // ~ Transactions list
-                  SliverPadding(padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0), sliver: _Transactions()),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+                    sliver: _Transactions(stat: stat),
+                  ),
 
                   // ~ Space in bottom
                   const SliverToBoxAdapter(child: SizedBox(height: 64.0)),
@@ -102,18 +110,14 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
 }
 
 class _AmcOverviewSection extends StatelessWidget {
-  const _AmcOverviewSection({super.key});
+  const _AmcOverviewSection({super.key, this.stat});
+
+  final InveslyStat? stat;
 
   static const double _spacing = 2.0;
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<AmcOverviewCubit>();
-    late final InveslyStat? stat; // This is required only when transaction state becomes error
-    final statState = context.read<StatCubit>().state;
-    if (statState is StatLoadedState) {
-      stat = statState.getStat(accountId: cubit.state.accountId, amcId: cubit.state.amcId);
-    }
     final colors = context.colors;
     final textTheme = context.textTheme;
     final now = DateTime.now();
@@ -162,8 +166,8 @@ class _AmcOverviewSection extends StatelessWidget {
               }
             }
 
-            // ~ Save data in database if calculated data is different from stat get from StatTable
-            final newStat = StatInDb(
+            // ~ Save data in database if calculated data is different from stat of StatTable
+            final nStat = StatInDb(
               accountId: state.accountId,
               amcId: state.amcId,
               numTrns: state.transactions.length,
@@ -172,12 +176,24 @@ class _AmcOverviewSection extends StatelessWidget {
               totalRedeemed: state.totalRedeemed,
               xirr: xirr,
             );
-            if (state.accountId != stat?.accountId) {
-              StatRepository.instance.saveStat(newStat);
+
+            if (nStat.accountId != stat?.accountId ||
+                nStat.amcId != stat?.amcId ||
+                nStat.numTrns != stat?.numTrns ||
+                nStat.totalQnty != stat?.totalQnty ||
+                nStat.totalInvested != stat?.totalInvested ||
+                nStat.totalRedeemed != stat?.totalRedeemed ||
+                nStat.xirr != stat?.xirr) {
+              $logger.i('Saving new stat for $nStat');
+              StatRepository.instance.saveStat(nStat);
             }
           }
 
-          final color = (amountReturn?.isNegative ?? true) ? Colors.red : Colors.teal;
+          final color = amountReturn != null
+              ? amountReturn.isNegative
+                    ? Colors.red
+                    : Colors.teal
+              : null;
 
           return Skeletonizer(
             enabled: state.isTrnLoading || state.isAmcLoading || state.isLtpLoading,
@@ -214,13 +230,7 @@ class _AmcOverviewSection extends StatelessWidget {
                                     maxLines: 2,
                                   ),
                                 )
-                              : Text(
-                                  state.amcId,
-                                  style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                                  textAlign: TextAlign.start,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                ),
+                              : Bone.text(),
                           // ~ Chips
                           _buildTags(context),
                         ],
@@ -522,7 +532,9 @@ class _AmcOverviewSection extends StatelessWidget {
 }
 
 class _Transactions extends StatelessWidget {
-  const _Transactions({super.key});
+  const _Transactions({super.key, this.stat});
+
+  final InveslyStat? stat;
 
   @override
   Widget build(BuildContext context) {
@@ -569,8 +581,7 @@ class _Transactions extends StatelessWidget {
             }
 
             // ~ Loading state
-            final statState = context.read<StatCubit>().state;
-            final numTrns = statState is StatLoadedState ? statState.stats.length : 3;
+            final numTrns = stat?.numTrns ?? 3;
             return SliverToBoxAdapter(
               child: Skeletonizer(
                 child: Section(
@@ -607,21 +618,20 @@ class _Transactions extends StatelessWidget {
       );
     }
 
+    final color = trn.totalAmount.isNegative ? Colors.red : Colors.teal;
+
     return SectionTile(
       title: FormattedDate(date: trn.investedOn),
       subtitle: Text(
         '${trn.quantity?.toPrecision(2) ?? ''} units | ₹${trn.rate?.toPrecision(2)}',
         overflow: TextOverflow.ellipsis,
-      ), // TODO: Fix this
+      ),
       icon: PhysicalModel(
         shape: BoxShape.circle,
-        color: trn.totalAmount.isNegative ? Colors.red.lighten(75) : Colors.teal.lighten(75),
+        color: color.lighten(75),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Icon(
-            trn.totalAmount.isNegative ? Icons.south_east_rounded : Icons.north_east_rounded,
-            color: trn.totalAmount.isNegative ? Colors.red : Colors.teal,
-          ),
+          child: Icon(trn.totalAmount.isNegative ? Icons.south_east_rounded : Icons.north_east_rounded, color: color),
         ),
       ),
       secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
@@ -630,7 +640,7 @@ class _Transactions extends StatelessWidget {
           return CurrencyView(
             amount: trn.totalAmount,
             privateMode: isPrivateMode,
-            style: textTheme.titleLarge?.copyWith(color: trn.totalAmount > 0 ? Colors.teal : Colors.red),
+            style: textTheme.titleLarge?.copyWith(color: color),
           );
         },
       ),

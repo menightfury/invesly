@@ -32,5 +32,5 @@ void main() {
   );
 
   print(statInDb == statInDb2);
-  print(statInDb == inveslyStat);
+  print(statInDb == (inveslyStat as StatInDb));
 }

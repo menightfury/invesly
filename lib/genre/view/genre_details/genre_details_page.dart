@@ -59,9 +59,14 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
 
               // ~ Content
               BlocBuilder<StatCubit, StatState>(
+                buildWhen: (prev, curr) {
+                  return prev.runtimeType != curr.runtimeType ||
+                      (prev is StatLoadedState && curr is StatLoadedState && prev.stats.length != curr.stats.length);
+                },
                 builder: (context, statState) {
+                  $logger.w('===== Rebuilding Genre Details page due to change in Stat, $statState =======');
                   if (statState.isError) {
-                    return SliverFillRemaining(
+                    return const SliverFillRemaining(
                       hasScrollBody: false,
                       child: Center(
                         child: Text(
@@ -77,7 +82,7 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
                       selector: (state) => state.activeAccountId,
                       builder: (context, activeAccountId) {
                         if (activeAccountId == null) {
-                          return SliverFillRemaining(
+                          return const SliverFillRemaining(
                             hasScrollBody: false,
                             child: Center(
                               child: Text(
@@ -90,14 +95,6 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
                         }
 
                         final stats = statState.getStats(accountId: activeAccountId, genre: widget.genre);
-                        if (stats.isEmpty) {
-                          return SliverFillRemaining(
-                            hasScrollBody: false,
-                            child: EmptyWidget(
-                              label: Text('This is so empty!\nAdd some transactions to see stats here.'),
-                            ),
-                          );
-                        }
                         return _GenreDetailsPageContent(key: ValueKey(activeAccountId), stats: stats);
                       },
                     );
@@ -136,13 +133,23 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
   @override
   void initState() {
     super.initState();
-    context.read<GenreDetailsCubit>().loadStats(widget.stats);
+    if (widget.stats.isNotEmpty) {
+      context.read<GenreDetailsCubit>().loadStats(widget.stats);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cubit = context.read<GenreDetailsCubit>();
+
+    // ~ If no stats
+    if (widget.stats.isEmpty) {
+      return const SliverFillRemaining(
+        hasScrollBody: false,
+        child: EmptyWidget(label: Text('This is so empty!\nAdd some transactions to see stats here.')),
+      );
+    }
 
     return SliverMainAxisGroup(
       slivers: <Widget>[
@@ -190,15 +197,14 @@ class _GenreDetailsPageContentState extends State<_GenreDetailsPageContent> {
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
           sliver: BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-            buildWhen: (prev, curr) {
-              return prev.stats != curr.stats || prev.sortAndFilterStatus != curr.sortAndFilterStatus;
-            },
+            // buildWhen: (prev, curr) {
+            //   return prev.stats != curr.stats || prev.sortAndFilterStatus != curr.sortAndFilterStatus;
+            // },
             builder: (context, state) {
-              // ~ No stats state is already handled by parent widget.
-              // ~ If stats available but search result is empty
+              // ~ If search result is empty
               final displayList = state.displayStats;
               if (displayList.isEmpty) {
-                return SliverFillRemaining(
+                return const SliverFillRemaining(
                   hasScrollBody: false,
                   child: EmptyWidget(label: Text('No holdings match the current filter')),
                 );

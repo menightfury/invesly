@@ -66,15 +66,9 @@ class InveslyStat extends StatInDb {
     super.xirr,
   }) : super(amcId: amc.id);
 
-  // final InveslyAccount account;
   final InveslyAmc amc;
 
   factory InveslyStat.fromDb(StatInDb stat, AmcInDb amc) {
-    // LatestXirr? xirr;
-    // if (stat.this.xirr?.isNotEmpty ?? false) {
-    //   xirr = LatestXirr.fromJson(stat.this.xirr!);
-    // }
-
     return InveslyStat(
       accountId: stat.accountId,
       amc: InveslyAmc.fromDb(amc),

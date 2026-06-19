@@ -4,7 +4,7 @@ import 'package:invesly/stat/model/stat_repository.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/database/table_schema.dart';
+// import 'package:invesly/database/table_schema.dart';
 
 part 'stat_state.dart';
 
@@ -13,44 +13,49 @@ class StatCubit extends Cubit<StatState> {
 
   final StatRepository _repository;
 
-  StreamSubscription<TableEvent>? _subscription;
+  // StreamSubscription<TableEvent>? _subscription;
+  StreamSubscription<List<InveslyStat>>? _subscription;
 
   Future<void> fetchAllStats() async {
     // Cancel any existing subscription
     await _subscription?.cancel();
     _subscription = null;
 
-    // Get initial stats
-    await _getAllStats();
+    // // Get initial stats
+    // await _getAllStats();
 
-    // Get stats on subsequent table change
-    _subscription ??= _repository.onDataChanged.listen(null, onError: (err) => emit(StatErrorState(err.toString())));
-    _subscription?.onData((query) async {
-      _subscription?.pause();
+    // // Get stats on subsequent table change
+    // _subscription ??= _repository.onDataChanged.listen(null, onError: (err) => emit(StatErrorState(err.toString())));
+    // _subscription?.onData((query) async {
+    //   _subscription?.pause();
 
-      try {
-        await _getAllStats();
-      } finally {
-        _subscription?.resume();
-      }
-    });
+    //   try {
+    //     await _getAllStats();
+    //   } finally {
+    //     _subscription?.resume();
+    //   }
+    // });
 
-    _subscription?.onDone(() => _subscription?.cancel());
-  }
+    // _subscription?.onDone(() => _subscription?.cancel());
 
-  Future<void> _getAllStats() async {
+    // ~ new method
     emit(const StatLoadingState());
 
-    try {
-      final stats = await _repository.getAllStats();
-      emit(StatLoadedState(stats));
-    } on Exception catch (error) {
-      emit(StatErrorState(error.toString()));
-    }
+    _subscription ??= _repository.fetchAllStats().listen(
+      (data) => emit(StatLoadedState(data)),
+      onError: (error) => emit(StatErrorState(error.toString())),
+    );
   }
 
-  // Future<void> saveStat(StatInDb stat) async {
-  //   _repository.saveStat(stat);
+  // Future<void> _getAllStats() async {
+  //   emit(const StatLoadingState());
+
+  //   try {
+  //     final stats = await _repository.getAllStats();
+  //     emit(StatLoadedState(stats));
+  //   } on Exception catch (error) {
+  //     emit(StatErrorState(error.toString()));
+  //   }
   // }
 
   @override
