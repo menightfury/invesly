@@ -396,18 +396,11 @@ class _AmcOverviewSection extends StatelessWidget {
                             ),
                           ],
                         ),
-                        value: perReturn != null
-                            ? BlocSelector<AppCubit, AppState, bool>(
-                                selector: (state) => state.isPrivateMode,
-                                builder: (context, isPrivate) {
-                                  return CurrencyView(
-                                    amount: perReturn!,
-                                    privateMode: isPrivate,
-                                    style: TextStyle(color: color),
-                                  );
-                                },
-                              )
-                            : const Text('N/A', overflow: TextOverflow.ellipsis),
+                        value: Text(
+                          perReturn?.toString() ?? 'N/A',
+                          style: TextStyle(color: color),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         color: (state.isLtpError && perReturn == null) ? colors.errorContainer : null,
                         valueColor: (state.isLtpError && perReturn == null) ? colors.error : null,
                         borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),

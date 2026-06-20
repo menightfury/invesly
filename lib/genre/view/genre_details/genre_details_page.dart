@@ -564,17 +564,11 @@ class _GenreOverviewSection extends StatelessWidget {
   }
 }
 
-class _HoldingStatCard extends StatefulWidget {
+class _HoldingStatCard extends StatelessWidget {
   const _HoldingStatCard({super.key, required this.stat});
   final InveslyStat stat;
 
-  @override
-  State<_HoldingStatCard> createState() => _HoldingStatCardState();
-}
-
-class _HoldingStatCardState extends State<_HoldingStatCard> {
   static const double _spacing = 2.0;
-  final GlobalKey<_XirrViewState> _xirrKey = GlobalKey<_XirrViewState>();
 
   @override
   Widget build(BuildContext context) {
@@ -582,12 +576,9 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     final colors = theme.colorScheme;
     final labelStyle = theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
-    final accountId =
-        context.read<GenreDetailsCubit>().state.activeAccountId ?? context.read<AppCubit>().state.primaryAccountId;
-
     return BlocSelector<GenreDetailsCubit, GenreDetailsState, InveslyStat>(
-      selector: (state) => state.stats.firstWhere((st) => st == widget.stat),
-      builder: (context, state) {
+      selector: (state) => state.stats.firstWhere((st) => st == stat),
+      builder: (context, st) {
         return Column(
           mainAxisSize: MainAxisSize.min,
           spacing: _spacing,
@@ -595,20 +586,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
             // ~ AMC name, Chips and Transaction count
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () async {
-                if (accountId == null) {
-                  $logger.w('Account ID is null. Cannot navigate to AMC overview page.');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('No account is selected. Please select an account to view AMC details.'),
-                    ),
-                  );
-                  return;
-                }
-                await context.push(AmcOverviewPage(accountId: accountId, amcId: widget.stat.amc.id)).then((_) {
-                  _xirrKey.currentState?.refresh();
-                });
-              },
+              onTap: () => context.push(AmcOverviewPage(accountId: st.accountId, amcId: st.amc.id)),
               child: SimpleCard(
                 elevation: 0.0,
                 color: colors.primaryContainer.darken(10),
@@ -630,7 +608,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                           children: <Widget>[
                             Expanded(
                               child: Text(
-                                widget.stat.amc.name,
+                                st.amc.name,
                                 style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 2,
@@ -641,8 +619,8 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                             FadeIn(duration: 240.ms, curve: Curves.easeInOut, child: const Icon(Icons.east_rounded)),
                           ],
                         ),
-                        _buildTagsForAmc(context),
-                        Text('${widget.stat.numTrns} transactions', style: labelStyle, overflow: TextOverflow.ellipsis),
+                        _buildTagsForAmc(context, st.amc.tags),
+                        Text('${st.numTrns} transactions', style: labelStyle, overflow: TextOverflow.ellipsis),
                       ],
                     ),
                   ),
@@ -658,7 +636,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                   child: _SectionWidget(
                     label: Text('Available units', style: labelStyle, overflow: TextOverflow.ellipsis),
                     value: Text(
-                      '${widget.stat.totalQnty.toPrecisionDouble(4)}',
+                      '${st.totalQnty.toPrecisionDouble(4)}',
                       textAlign: TextAlign.right,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -672,9 +650,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                     label: Text('Invested', style: labelStyle, overflow: TextOverflow.ellipsis),
                     value: BlocSelector<AppCubit, AppState, bool>(
                       selector: (state) => state.isPrivateMode,
-                      builder: (context, isPrivateMode) {
-                        return CurrencyView(amount: widget.stat.totalInvested, privateMode: isPrivateMode);
-                      },
+                      builder: (context, isPrivate) => CurrencyView(amount: st.totalInvested, privateMode: isPrivate),
                     ),
                   ),
                 ),
@@ -682,24 +658,22 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
             ),
 
             BlocBuilder<GenreDetailsCubit, GenreDetailsState>(
-              buildWhen: (prev, curr) {
-                return prev.ltpStatus != curr.ltpStatus;
-              },
+              buildWhen: (prev, curr) => prev.ltpStatus != curr.ltpStatus,
               builder: (context, genreState) {
-                $logger.i('Rebuilding LTP-dependent widget for AMC ${widget.stat.amc.name} with state: $genreState');
-                double? currentValue;
-                double? returns;
-                double? percentageReturns;
+                double? currentValue, amountReturn, perReturn;
                 if (genreState.isLtpLoaded) {
-                  final ltp = genreState.latestPrices[widget.stat.amc.id]?.price;
+                  final ltp = genreState.latestPrices[st.amc.id]?.price;
                   if (ltp != null) {
-                    currentValue = ltp * widget.stat.totalQnty;
-                    returns = currentValue - widget.stat.totalInvested;
-                    percentageReturns = widget.stat.totalInvested != 0
-                        ? (returns / widget.stat.totalInvested) * 100
-                        : 0;
+                    currentValue = ltp * st.totalQnty;
+                    amountReturn = currentValue - st.totalInvested;
+                    perReturn = st.totalInvested != 0 ? (amountReturn / st.totalInvested) * 100 : 0;
                   }
                 }
+                final color = amountReturn != null
+                    ? amountReturn.isNegative
+                          ? Colors.red
+                          : Colors.teal
+                    : null;
 
                 return Skeletonizer(
                   enabled: genreState.isLtpLoading,
@@ -716,17 +690,20 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                               label: Skeleton.keep(
                                 child: Text('Current value', style: labelStyle, overflow: TextOverflow.ellipsis),
                               ),
-                              value: () {
-                                if (currentValue == null) {
-                                  return const Text('N/A', overflow: TextOverflow.ellipsis);
-                                }
-                                return BlocSelector<AppCubit, AppState, bool>(
-                                  selector: (state) => state.isPrivateMode,
-                                  builder: (context, isPrivateMode) {
-                                    return CurrencyView(amount: currentValue!, privateMode: isPrivateMode);
-                                  },
-                                );
-                              }(),
+                              value: currentValue != null
+                                  ? BlocSelector<AppCubit, AppState, bool>(
+                                      selector: (state) => state.isPrivateMode,
+                                      builder: (context, isPrivate) {
+                                        return CurrencyView(
+                                          amount: currentValue!,
+                                          privateMode: isPrivate,
+                                          style: TextStyle(color: color),
+                                        );
+                                      },
+                                    )
+                                  : const Text('N/A', overflow: TextOverflow.ellipsis),
+                              // color: (state.isLtpError && perReturn == null) ? colors.errorContainer : null,
+                              // valueColor: (state.isLtpError && perReturn == null) ? colors.error : null,
                             ),
                           ),
 
@@ -734,23 +711,22 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                           Expanded(
                             child: _SectionWidget(
                               label: Skeleton.keep(
-                                child: Text('Returns', style: labelStyle, overflow: TextOverflow.ellipsis),
+                                child: Text('Return', style: labelStyle, overflow: TextOverflow.ellipsis),
                               ),
-                              value: () {
-                                if (returns == null) {
-                                  return const Text('N/A', overflow: TextOverflow.ellipsis);
-                                }
-                                return BlocSelector<AppCubit, AppState, bool>(
-                                  selector: (state) => state.isPrivateMode,
-                                  builder: (context, isPrivateMode) {
-                                    return CurrencyView(
-                                      amount: returns!,
-                                      privateMode: isPrivateMode,
-                                      style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
-                                    );
-                                  },
-                                );
-                              }(),
+                              value: amountReturn != null
+                                  ? BlocSelector<AppCubit, AppState, bool>(
+                                      selector: (state) => state.isPrivateMode,
+                                      builder: (context, isPrivate) {
+                                        return CurrencyView(
+                                          amount: amountReturn!,
+                                          privateMode: isPrivate,
+                                          style: TextStyle(color: color),
+                                        );
+                                      },
+                                    )
+                                  : const Text('N/A', overflow: TextOverflow.ellipsis),
+                              // color: (state.isLtpError && perReturn == null) ? colors.errorContainer : null,
+                              // valueColor: (state.isLtpError && perReturn == null) ? colors.error : null,
                             ),
                           ),
                         ],
@@ -765,17 +741,13 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                               label: Skeleton.keep(
                                 child: Text('% Returns', style: labelStyle, overflow: TextOverflow.ellipsis),
                               ),
-                              value: () {
-                                if (percentageReturns == null) {
-                                  return const Text('N/A', overflow: TextOverflow.ellipsis);
-                                }
-                                return Text(
-                                  percentageReturns > 0 ? '${percentageReturns.toPrecisionDouble(2)}%' : '0.00%',
-                                  style: TextStyle(color: percentageReturns < 0 ? Colors.red : Colors.teal),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                );
-                              }(),
+                              value: Text(
+                                perReturn?.toString() ?? 'N/A',
+                                style: TextStyle(color: color),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              // color: (state.isLtpError && perReturn == null) ? colors.errorContainer : null,
+                              // valueColor: (state.isLtpError && perReturn == null) ? colors.error : null,
                               borderRadius: iTileBorderRadius.copyWith(bottomLeft: iCardBorderRadius.bottomLeft),
                             ),
                           ),
@@ -785,7 +757,13 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
                             child: Skeleton.keep(
                               child: _SectionWidget(
                                 label: Text('XIRR', style: labelStyle, overflow: TextOverflow.ellipsis),
-                                value: _XirrView(key: _xirrKey, stat: widget.stat),
+                                value: Text(
+                                  stat.xirr != null ? '${(stat.xirr! * 100).toPrecisionDouble(2)}%' : 'N/A',
+                                  style: TextStyle(
+                                    color: stat.xirr != null && stat.xirr! > 0 ? Colors.teal : Colors.red,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                                 borderRadius: iTileBorderRadius.copyWith(bottomRight: iCardBorderRadius.bottomRight),
                               ),
                             ),
@@ -803,8 +781,7 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
     );
   }
 
-  Widget _buildTagsForAmc(BuildContext context) {
-    final tags = widget.stat.amc.tags;
+  Widget _buildTagsForAmc(BuildContext context, Set<String>? tags) {
     if (tags == null || tags.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -815,33 +792,6 @@ class _HoldingStatCardState extends State<_HoldingStatCard> {
       children: tags.map((tag) {
         return SimpleChip(color: context.colors.tertiary, titleColor: context.colors.onTertiary, child: Text(tag));
       }).toList(),
-    );
-  }
-}
-
-class _XirrView extends StatefulWidget {
-  const _XirrView({super.key, required this.stat});
-
-  final InveslyStat stat;
-
-  @override
-  State<_XirrView> createState() => _XirrViewState();
-}
-
-class _XirrViewState extends State<_XirrView> {
-  void refresh() {
-    setState(() {
-      // Trigger a rebuild to refresh the XIRR value
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final xirr = widget.stat.xirr;
-    return Text(
-      xirr != null ? '${(xirr * 100).toPrecisionDouble(2)}%' : 'N/A',
-      style: TextStyle(color: xirr != null && xirr < 0 ? Colors.red : Colors.teal),
-      overflow: TextOverflow.ellipsis,
     );
   }
 }
