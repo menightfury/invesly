@@ -96,7 +96,7 @@ class _DashboardPageState extends State<DashboardPage> {
           controller: _scrollController,
           slivers: <Widget>[
             SliverAppBar(
-              leading: Align(child: Image.asset('assets/images/app_icon/app_icon.png', height: 48.0)),
+              leading: Align(child: Image.asset('assets/images/icon/icon.png', height: 48.0)),
               titleSpacing: 0.0,
               actions: <Widget>[
                 // ~~~ User avatar ~~~

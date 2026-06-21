@@ -64,7 +64,7 @@ class _SplashPageState extends State<SplashPage> {
                       child: SizedBox(
                         height: 120.0,
                         width: 120.0,
-                        child: Image.asset('assets/images/app_icon/app_icon.png', fit: BoxFit.cover),
+                        child: Image.asset('assets/images/icon/icon.png', fit: BoxFit.cover),
                       ),
                     ),
                     const Gap(24.0),
