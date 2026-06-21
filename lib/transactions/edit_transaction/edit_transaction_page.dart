@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:intl/intl.dart';
 
-import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/widget/account_picker_widget.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
@@ -124,7 +122,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 SliverAppBar(
                   pinned: true,
                   floating: true,
-                  actions: [_AccountPickerWidget()],
+                  actions: <Widget>[_AccountPickerWidget()],
                   actionsPadding: const EdgeInsets.only(right: 16.0),
                 ),
 
@@ -549,58 +547,24 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
   }
 }
 
-class _AccountPickerWidget extends StatefulWidget {
+class _AccountPickerWidget extends StatelessWidget {
   const _AccountPickerWidget({super.key});
-
-  @override
-  State<_AccountPickerWidget> createState() => _AccountPickerWidgetState();
-}
-
-class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
-  InveslyAccount? initialAccount;
-
-  @override
-  void initState() {
-    super.initState();
-    final cubit = context.read<EditTransactionCubit>();
-    final accountsState = context.read<AccountsCubit>().state;
-    if (accountsState.isLoaded) {
-      final accounts = (accountsState as AccountsLoadedState).accounts;
-      if (accounts.isEmpty) return;
-
-      final currentAccountId = cubit.state.account ?? context.read<AppCubit>().state.primaryAccountId;
-
-      if (cubit.state.isNewTransaction) {
-        initialAccount = accounts.firstWhere((acc) => acc.id == currentAccountId, orElse: () => accounts.first);
-        cubit.updateAccount(initialAccount!);
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
 
-    return FormField<InveslyAccount>(
-      initialValue: initialAccount,
+    return FormField<int>(
+      initialValue: cubit.state.account?.id ?? context.read<AppCubit>().state.primaryAccountId,
       builder: (formFieldState) {
         return Shake(
           shake: formFieldState.hasError,
-          child: GestureDetector(
-            onTap: () async {
-              final newUser = await InveslyAccountPickerWidget.showModal(context, accountId: cubit.state.account?.id);
-              if (newUser == null) return;
-
-              cubit.updateAccount(newUser);
-              formFieldState.didChange(newUser);
+          child: AccountPickerWidget(
+            accountId: formFieldState.value,
+            onChanged: (value) {
+              cubit.updateAccount(value);
+              formFieldState.didChange(value.id);
             },
-            child: CircleAvatar(
-              foregroundImage: formFieldState.value != null ? AssetImage(formFieldState.value!.avatarSrc) : null,
-              backgroundColor: formFieldState.hasError ? context.colors.errorContainer : null,
-              child: formFieldState.value == null
-                  ? Icon(Icons.person_rounded, color: formFieldState.hasError ? context.colors.error : null)
-                  : null,
-            ),
           ),
         );
       },

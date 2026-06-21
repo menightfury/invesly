@@ -249,7 +249,7 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                     return null;
                   },
                   onTapCallback: (value) async {
-                    final newAccount = await InveslyAccountPickerWidget.showModal(context, accountId: value?.id);
+                    final newAccount = await AccountPickerWidget.showModal(context, accountId: value?.id);
                     return newAccount ?? value;
                   },
                   onChanged: (value) {

@@ -1,5 +1,3 @@
-import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/widget/account_picker_widget.dart';
 import 'package:invesly/stat/cubit/stat_cubit.dart';
 import 'package:invesly/stat/model/stat_model.dart';
@@ -796,63 +794,17 @@ class _HoldingStatCard extends StatelessWidget {
   }
 }
 
-class _AccountPickerWidget extends StatefulWidget {
+class _AccountPickerWidget extends StatelessWidget {
   const _AccountPickerWidget({super.key});
 
   @override
-  State<_AccountPickerWidget> createState() => _AccountPickerWidgetState();
-}
-
-class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
-  List<InveslyAccount>? accounts;
-
-  @override
-  void initState() {
-    super.initState();
-    final cubit = context.read<AccountsCubit>();
-    // if accounts are not loaded, fetch accounts.
-    // This is to ensure that accounts are available for account picker.
-    if (cubit.state is! AccountsLoadedState) {
-      cubit.fetchAccounts();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountsCubit, AccountsState>(
-      builder: (context, state) {
-        if (state is AccountsLoadedState) {
-          accounts = state.accounts;
-        }
-
-        return BlocSelector<GenreDetailsCubit, GenreDetailsState, int?>(
-          selector: (state) => state.activeAccountId,
-          builder: (context, activeAccountId) {
-            final account = activeAccountId != null && accounts != null && accounts!.isNotEmpty
-                ? accounts?.firstWhereOrNull((a) => a.id == activeAccountId)
-                : null;
-            return ActionChip(
-              label: Text(
-                account?.name ?? activeAccountId?.toString() ?? 'N/A',
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-              avatar: CircleAvatar(
-                foregroundImage: account != null ? AssetImage(account.avatarSrc) : null,
-                child: account == null ? Icon(Icons.person_rounded) : null,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-              onPressed: () async {
-                final newAccount = await InveslyAccountPickerWidget.showModal(
-                  context,
-                  accountId: activeAccountId,
-                  showAddAccountOption: false,
-                );
-                if (newAccount == null || !context.mounted) return;
-                context.read<GenreDetailsCubit>().updateActiveAccountId(newAccount.id);
-              },
-            );
-          },
+    return BlocSelector<GenreDetailsCubit, GenreDetailsState, int?>(
+      selector: (state) => state.activeAccountId,
+      builder: (context, activeAccountId) {
+        return AccountPickerWidget(
+          accountId: activeAccountId,
+          onChanged: (value) => context.read<GenreDetailsCubit>().updateActiveAccountId(value.id),
         );
       },
     );
