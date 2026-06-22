@@ -16,7 +16,6 @@ export 'common/presentations/widgets/divider.dart';
 export 'common/presentations/widgets/selection_indicator.dart';
 export 'common/presentations/widgets/tab_indicator.dart';
 export 'common/presentations/widgets/tappable.dart';
-export 'common/presentations/widgets/tapzoom_effect.dart';
 export 'constants.dart';
 export 'common/presentations/widgets/currency_view.dart';
 export 'common/presentations/widgets/formatted_date.dart';

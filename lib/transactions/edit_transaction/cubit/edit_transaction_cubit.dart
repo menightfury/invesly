@@ -22,7 +22,6 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
           date: initial?.investedOn ?? DateTime.now().startOfDay,
           amc: initial?.amc,
           notes: initial?.note,
-          // isPopping: false,
         ),
       );
 
@@ -78,10 +77,6 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
 
   void updateNotes(String notes) {
     emit(state.copyWith(status: EditTransactionStatus.edited, notes: notes));
-  }
-
-  void requestPop(bool value) {
-    emit(state.copyWith(isPopping: value));
   }
 
   Future<void> save() async {

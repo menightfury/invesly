@@ -17,7 +17,6 @@ class EditTransactionState extends Equatable {
     this.date,
     this.amc,
     this.notes,
-    this.isPopping = false,
   });
 
   final EditTransactionStatus status;
@@ -32,7 +31,6 @@ class EditTransactionState extends Equatable {
   final DateTime? date;
   final InveslyAmc? amc;
   final String? notes;
-  final bool isPopping;
 
   bool get isNewTransaction => id == null;
 
@@ -64,7 +62,6 @@ class EditTransactionState extends Equatable {
     DateTime? date,
     InveslyAmc? Function()? amc,
     String? notes,
-    bool? isPopping,
   }) {
     return EditTransactionState(
       id: id,
@@ -79,7 +76,6 @@ class EditTransactionState extends Equatable {
       date: date ?? this.date,
       amc: amc != null ? amc() : this.amc,
       notes: notes ?? this.notes,
-      isPopping: isPopping ?? this.isPopping,
     );
   }
 
@@ -97,7 +93,6 @@ class EditTransactionState extends Equatable {
     date,
     amc,
     notes,
-    isPopping,
   ];
 }
 

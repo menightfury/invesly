@@ -69,51 +69,36 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
-
+    $logger.i('Rebuilding edit transaction screen');
     return BlocListener<EditTransactionCubit, EditTransactionState>(
       listenWhen: (prev, curr) {
-        return (prev.status != curr.status && curr.isFailureOrSuccess) ||
-            (prev.isPopping != curr.isPopping && curr.isPopping);
+        return (prev.status != curr.status && curr.isFailureOrSuccess);
       },
       listener: (context, state) async {
-        if (state.isPopping) {
-          if (state.status == EditTransactionStatus.edited) {
-            final canPop = await showDiscardChangesDialog(context) ?? false;
-            if (canPop && context.mounted) {
-              context.pop();
-            } else {
-              cubit.requestPop(false);
-            }
-          } else {
-            if (context.mounted) {
-              context.pop();
-            }
-          }
-        } else {
-          late final SnackBar message;
-          if (state.status == EditTransactionStatus.saved) {
-            if (context.canPop) {
-              context.pop();
-            } else {
-              // context.go(AppRouter.dashboard);
-              context.go(const DashboardPage());
-            }
-            message = const SnackBar(content: Text('Investment saved successfully'), backgroundColor: Colors.teal);
-          } else if (state.status == EditTransactionStatus.failed) {
-            message = const SnackBar(content: Text('Sorry! some error occurred'), backgroundColor: Colors.redAccent);
-          }
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(message);
+        late final SnackBar message;
+        if (state.status == EditTransactionStatus.saved) {
+          message = const SnackBar(content: Text('Investment saved successfully'), backgroundColor: Colors.teal);
+          context.canPop ? Navigator.pop(context) : context.go(const DashboardPage());
+        } else if (state.status == EditTransactionStatus.failed) {
+          message = const SnackBar(content: Text('Sorry! some error occurred'), backgroundColor: Colors.redAccent);
         }
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(message);
       },
       child: Scaffold(
         body: SafeArea(
           child: Form(
             canPop: false, // prevents default
-            onPopInvokedWithResult: (didPop, _) {
+            onPopInvokedWithResult: (didPop, _) async {
               if (didPop) return;
-              cubit.requestPop(true);
+
+              if (cubit.state.status == EditTransactionStatus.edited) {
+                final shouldPop = await showDiscardChangesDialog(context) ?? false;
+                if (shouldPop && context.mounted) Navigator.pop(context);
+              } else {
+                if (context.mounted) Navigator.pop(context);
+              }
             },
             key: _formKey,
             autovalidateMode: AutovalidateMode.disabled,
@@ -163,7 +148,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                     cubit.updateAmc(null);
                                     _amcFieldKey.currentState?.didChange(null);
                                   },
-                                ).withLabel('Investment type'),
+                                ).withLabel('Investment genre'),
                               ),
 
                               // ~ Date ~
