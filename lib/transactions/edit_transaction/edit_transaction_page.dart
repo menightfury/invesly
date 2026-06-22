@@ -167,6 +167,16 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                             ],
                           ),
 
+                          InveslyChoiceChips(
+                            options: [
+                              InveslyChipData(value: 0, label: Text('Satya')),
+                              InveslyChipData(value: 1, label: Text('Jyoti')),
+                              InveslyChipData(value: 2, label: Text('Biswas')),
+                            ],
+                            selected: {0, 2},
+                            onChanged: (value) {},
+                          ),
+
                           // ~~~ AMC ~~~
                           Column(
                             spacing: iFormFieldLabelSpacing,

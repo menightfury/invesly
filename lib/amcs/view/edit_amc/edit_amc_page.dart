@@ -188,7 +188,7 @@ class __EditViewState extends State<_EditView> {
                                   chipSpacing: 8.0,
                                   selected: selectedTags,
                                   showCheckmark: false,
-                                  onDeleted: (value) => editAmcCubit.updateSelectedTags(value, false),
+                                  // onDeleted: (value) => editAmcCubit.updateSelectedTags(value, false),
                                 );
                               },
                             ),
