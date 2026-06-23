@@ -7,7 +7,7 @@ class FadeIn extends StatefulWidget {
     super.key,
     required this.child,
     this.duration = const Duration(milliseconds: 240),
-    this.fadeIn = true,
+    this.enable = true,
     this.from = const Offset(0, -0.1),
     this.curve = Curves.fastOutSlowIn,
     this.controller,
@@ -15,7 +15,7 @@ class FadeIn extends StatefulWidget {
 
   final Widget child;
   final Duration duration;
-  final bool fadeIn;
+  final bool enable;
   final Offset from;
   final Curve curve;
   final void Function(AnimationController)? controller;
@@ -43,7 +43,7 @@ class _FadeInState extends State<FadeIn> with SingleTickerProviderStateMixin {
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: widget.curve));
 
-    if (widget.fadeIn) {
+    if (widget.enable) {
       _controller.forward();
     }
 
@@ -60,14 +60,16 @@ class _FadeInState extends State<FadeIn> with SingleTickerProviderStateMixin {
 
   @override
   void didUpdateWidget(covariant FadeIn oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.fadeIn != oldWidget.fadeIn) {
-      if (widget.fadeIn) {
-        _controller.forward();
-      } else {
-        _controller.reverse();
-      }
+    if (widget.child != oldWidget.child && widget.enable) {
+      _controller
+        ..reset()
+        ..forward();
+
+      // else {
+      //   _controller.reverse();
+      // }
     }
+    super.didUpdateWidget(oldWidget);
   }
 
   @override

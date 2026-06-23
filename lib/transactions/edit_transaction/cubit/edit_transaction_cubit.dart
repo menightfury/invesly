@@ -17,7 +17,11 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
           rate: initial?.rate,
           totalAmount: initial?.totalAmount,
           autoAmount: [AmcGenre.mf, AmcGenre.stock].contains(initial?.amc.genre ?? AmcGenre.mf),
-          type: (initial?.totalAmount.isNegative ?? false) ? TransactionType.redeemed : TransactionType.invested,
+          type: (initial?.totalAmount.isNegative ?? false)
+              ? (initial?.quantity?.isZero ?? true)
+                    ? TransactionType.dividend
+                    : TransactionType.redeemed
+              : TransactionType.invested,
           genre: initial?.amc.genre ?? AmcGenre.mf,
           date: initial?.investedOn ?? DateTime.now().startOfDay,
           amc: initial?.amc,
@@ -55,7 +59,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     emit(state.copyWith(status: EditTransactionStatus.edited, totalAmount: value));
   }
 
-  void updateAutoAmount(bool value) {
+  void updateAutoAmountMode(bool value) {
     emit(state.copyWith(autoAmount: value, totalAmount: value ? (state.rate ?? 0.0) * (state.quantity ?? 0.0) : null));
   }
 

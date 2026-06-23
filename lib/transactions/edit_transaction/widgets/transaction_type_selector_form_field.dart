@@ -38,7 +38,7 @@ class TransactionTypeSelectorFormField extends StatelessWidget {
       leading: leading,
       trailing: Icon(Icons.unfold_more_rounded),
       childBuilder: (value) {
-        return FadeIn(key: ValueKey(value), from: Offset(0.0, 0.4), child: Text(value!.name.toUpperCase()));
+        return FadeIn(from: Offset(0.0, 0.4), child: Text(value!.name.toUpperCase()));
       },
       validator: (value) {
         if (value == null) {

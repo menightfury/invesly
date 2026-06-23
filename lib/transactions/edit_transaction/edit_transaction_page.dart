@@ -15,9 +15,10 @@ import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/dashboard/view/dashboard_page.dart';
 import 'package:invesly/transactions/edit_transaction/widgets/calculator/calculator.dart';
+import 'package:invesly/transactions/edit_transaction/widgets/transaction_type_selector_form_field.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/transactions/widgets/genre_selector_form_field.dart';
+import 'package:invesly/transactions/edit_transaction/widgets/genre_selector_form_field.dart';
 
 import 'cubit/edit_transaction_cubit.dart';
 
@@ -148,7 +149,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                     cubit.updateAmc(null);
                                     _amcFieldKey.currentState?.didChange(null);
                                   },
-                                ).withLabel('Investment genre'),
+                                ).withLabel('Genre'),
                               ),
 
                               // ~ Date ~
@@ -167,15 +168,17 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                             ],
                           ),
 
-                          InveslyChoiceChips(
-                            options: [
-                              InveslyChipData(value: 0, label: Text('Satya')),
-                              InveslyChipData(value: 1, label: Text('Jyoti')),
-                              InveslyChipData(value: 2, label: Text('Biswas')),
-                            ],
-                            selected: {0, 2},
-                            onChanged: (value) {},
-                          ),
+                          // InveslyChoiceChips<TransactionType>.single(
+                          //   options: TransactionType.values.map((type) {
+                          //     return InveslyChipData(
+                          //       value: type,
+                          //       label: Text(type.name.toSentenceCase(), overflow: TextOverflow.ellipsis),
+                          //     );
+                          //   }).toList(),
+                          //   selected: state.type,
+                          //   onChanged: (value) => cubit.updateTransactionType(value),
+                          // ).withLabel('Investment type'),
+                          TransactionTypeSelectorFormField().withLabel('Transaction type'),
 
                           // ~~~ AMC ~~~
                           Column(
@@ -195,7 +198,6 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
                                     child: FadeIn(
-                                      key: ValueKey(label),
                                       from: Offset(0.0, 0.4),
                                       child: Text(label, overflow: TextOverflow.ellipsis),
                                     ),
@@ -279,7 +281,6 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                                     return Padding(
                                                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                                                       child: FadeIn(
-                                                        key: ValueKey(label),
                                                         from: Offset(0.0, 0.4),
                                                         child: Text(label, overflow: TextOverflow.ellipsis),
                                                       ),
@@ -349,7 +350,6 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                                     return Padding(
                                                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                                                       child: FadeIn(
-                                                        key: ValueKey(label),
                                                         from: Offset(0.0, 0.4),
                                                         child: Text(label, overflow: TextOverflow.ellipsis),
                                                       ),
@@ -445,7 +445,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                                         value: autoAmount,
                                                         onChanged: disabled
                                                             ? null
-                                                            : (value) => cubit.updateAutoAmount(value),
+                                                            : (value) => cubit.updateAutoAmountMode(value),
                                                       ),
                                                     ),
                                                   ),

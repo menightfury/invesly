@@ -10,7 +10,7 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/import_transactions/cubit/import_transactions_cubit.dart';
 import 'package:invesly/settings/import_transactions/review_transactions_page.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/transactions/widgets/transaction_type_selector_form_field.dart';
+import 'package:invesly/transactions/edit_transaction/widgets/transaction_type_selector_form_field.dart';
 
 class ImportTransactionsPage extends StatelessWidget {
   const ImportTransactionsPage({super.key});

@@ -7,11 +7,26 @@ extension StringX on String {
   /// ```
   String toSentenceCase() {
     if (isEmpty) return '';
-    if (length == 1) return this[0].toUpperCase();
+    if (length == 1) return toUpperCase();
 
     final sentences = split(RegExp(r'(?<=[.!?])\s+'));
-    sentences.map((s) => s.trim().substring(0, 1).toUpperCase() + s.trim().substring(1).toLowerCase());
-    return sentences.join(' ');
+    final buffer = StringBuffer();
+    bool isFirst = true;
+
+    for (var s in sentences) {
+      final p = s.trim();
+      if (p.isEmpty) continue;
+
+      if (!isFirst) {
+        buffer.write(' ');
+      }
+      buffer.write(p.substring(0, 1).toUpperCase());
+      if (p.length > 1) {
+        buffer.write(p.substring(1).toLowerCase());
+      }
+      isFirst = false;
+    }
+    return buffer.toString();
   }
 
   /// Converts to CamelCase.
