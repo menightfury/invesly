@@ -3,8 +3,6 @@ import 'package:path_provider/path_provider.dart';
 
 import 'accounts/cubit/accounts_cubit.dart';
 import 'accounts/model/account_repository.dart';
-import 'stat/cubit/stat_cubit.dart';
-import 'stat/model/stat_repository.dart';
 import 'amcs/model/amc_repository.dart';
 import 'authentication/auth_repository.dart';
 import 'bloc_observer.dart';
@@ -14,6 +12,8 @@ import 'common_libs.dart';
 import 'database/backup/backup_repository.dart';
 import 'database/invesly_api.dart';
 import 'intro/splash_page.dart';
+import 'stat/cubit/stat_cubit.dart';
+import 'stat/model/stat_repository.dart';
 import 'transactions/model/transaction_repository.dart';
 
 void main() async {
