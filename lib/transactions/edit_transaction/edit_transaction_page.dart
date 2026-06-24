@@ -590,6 +590,7 @@ class _GenreSelectorFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     return FormField<AmcGenre>(
       initialValue: initialValue,
+      autovalidateMode: AutovalidateMode.disabled,
       builder: (state) {
         return RollingThroughOptions<AmcGenre>(
           value: state.value,
@@ -622,7 +623,9 @@ class TransactionTypeSelectorFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     return FormField<TransactionType>(
       initialValue: initialValue,
+      autovalidateMode: AutovalidateMode.disabled,
       builder: (state) {
+        $logger.w('Rebuilding widget ====');
         return RollingThroughOptions<TransactionType>(
           value: state.value,
           options: _types,
