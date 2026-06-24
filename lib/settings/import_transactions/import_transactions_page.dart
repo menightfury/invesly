@@ -6,11 +6,12 @@ import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';
 import 'package:invesly/common/presentations/widgets/async_form_field.dart';
 import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
+import 'package:invesly/common/presentations/widgets/rolling_through_options.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/import_transactions/cubit/import_transactions_cubit.dart';
 import 'package:invesly/settings/import_transactions/review_transactions_page.dart';
+import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/transactions/edit_transaction/widgets/transaction_type_selector_form_field.dart';
 
 class ImportTransactionsPage extends StatelessWidget {
   const ImportTransactionsPage({super.key});
@@ -450,12 +451,14 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                   ),
                 ),
                 _ColumnSelector(field: TransactionField.type),
-
-                TransactionTypeSelectorFormField(
-                  initialValue: cubit.state.defaultType,
-                  onChanged: (value) {
-                    if (value == null) return;
-                    cubit.updateDefaultType(value);
+                BlocBuilder<ImportTransactionsCubit, ImportTransactionsState>(
+                  builder: (context, state) {
+                    return RollingThroughOptions<TransactionType>(
+                      value: state.defaultType,
+                      options: TransactionType.values,
+                      builder: (type) => Text(type.title, overflow: TextOverflow.ellipsis),
+                      onChanged: (value) => cubit.updateDefaultType(value),
+                    );
                   },
                 ).withLabel('Default transaction type'),
               ],

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:intl/intl.dart';
+import 'package:invesly/accounts/model/account_model.dart';
 
 import 'package:invesly/accounts/widget/account_picker_widget.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -11,14 +12,13 @@ import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/presentations/widgets/async_form_field.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
+import 'package:invesly/common/presentations/widgets/rolling_through_options.dart';
 import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/dashboard/view/dashboard_page.dart';
 import 'package:invesly/transactions/edit_transaction/widgets/calculator/calculator.dart';
-import 'package:invesly/transactions/edit_transaction/widgets/transaction_type_selector_form_field.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
-import 'package:invesly/transactions/edit_transaction/widgets/genre_selector_form_field.dart';
 
 import 'cubit/edit_transaction_cubit.dart';
 
@@ -108,7 +108,12 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 SliverAppBar(
                   pinned: true,
                   floating: true,
-                  actions: <Widget>[_AccountPickerWidget()],
+                  actions: <Widget>[
+                    _AccountPickerWidget(
+                      initialValue: cubit.state.account?.id ?? context.read<AppCubit>().state.primaryAccountId,
+                      onChanged: (value) => cubit.updateAccount(value),
+                    ),
+                  ],
                   actionsPadding: const EdgeInsets.only(right: 16.0),
                 ),
 
@@ -141,11 +146,12 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                             children: <Widget>[
                               // ~ Genre ~
                               Expanded(
-                                child: GenreSelectorFormField(
+                                child: _GenreSelectorFormField(
                                   initialValue: cubit.state.genre,
                                   onChanged: (value) {
-                                    if (value == null) return;
                                     cubit.updateGenre(value);
+
+                                    // Reset AMC
                                     cubit.updateAmc(null);
                                     _amcFieldKey.currentState?.didChange(null);
                                   },
@@ -336,8 +342,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                           Expanded(
                                             child: Column(
                                               spacing: iFormFieldLabelSpacing,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start, // CrossAxisAlignment.stretch
+                                              crossAxisAlignment: CrossAxisAlignment.start,
                                               mainAxisSize: MainAxisSize.min,
                                               children: <Widget>[
                                                 BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
@@ -543,22 +548,23 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
 }
 
 class _AccountPickerWidget extends StatelessWidget {
-  const _AccountPickerWidget({super.key});
+  const _AccountPickerWidget({super.key, this.initialValue, this.onChanged});
+
+  final int? initialValue;
+  final ValueChanged<InveslyAccount>? onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<EditTransactionCubit>();
-
     return FormField<int>(
-      initialValue: cubit.state.account?.id ?? context.read<AppCubit>().state.primaryAccountId,
-      builder: (formFieldState) {
+      initialValue: initialValue,
+      builder: (state) {
         return Shake(
-          shake: formFieldState.hasError,
+          shake: state.hasError,
           child: AccountPickerWidget(
-            accountId: formFieldState.value,
+            accountId: state.value,
             onChanged: (value) {
-              cubit.updateAccount(value);
-              formFieldState.didChange(value.id);
+              state.didChange(value.id);
+              onChanged?.call(value);
             },
           ),
         );
@@ -566,6 +572,70 @@ class _AccountPickerWidget extends StatelessWidget {
       validator: (value) {
         if (value == null) {
           return 'Please select a user';
+        }
+        return null;
+      },
+    );
+  }
+}
+
+class _GenreSelectorFormField extends StatelessWidget {
+  const _GenreSelectorFormField({super.key, this.initialValue, this.onChanged});
+
+  final AmcGenre? initialValue;
+  final ValueChanged<AmcGenre>? onChanged;
+  final _genres = AmcGenre.values;
+
+  @override
+  Widget build(BuildContext context) {
+    return FormField<AmcGenre>(
+      initialValue: initialValue,
+      builder: (state) {
+        return RollingThroughOptions<AmcGenre>(
+          value: state.value,
+          options: _genres,
+          builder: (genre) => Text(genre.title, overflow: TextOverflow.ellipsis),
+          onChanged: (value) {
+            state.didChange(value);
+            onChanged?.call(value);
+          },
+        );
+      },
+      validator: (value) {
+        if (value == null) {
+          return 'Can\'t be null';
+        }
+        return null;
+      },
+    );
+  }
+}
+
+class TransactionTypeSelectorFormField extends StatelessWidget {
+  const TransactionTypeSelectorFormField({super.key, this.initialValue, this.onChanged});
+
+  final TransactionType? initialValue;
+  final ValueChanged<TransactionType>? onChanged;
+  final _types = TransactionType.values;
+
+  @override
+  Widget build(BuildContext context) {
+    return FormField<TransactionType>(
+      initialValue: initialValue,
+      builder: (state) {
+        return RollingThroughOptions<TransactionType>(
+          value: state.value,
+          options: _types,
+          builder: (type) => Text(type.title, overflow: TextOverflow.ellipsis),
+          onChanged: (value) {
+            state.didChange(value);
+            onChanged?.call(value);
+          },
+        );
+      },
+      validator: (value) {
+        if (value == null) {
+          return 'Can\'t be empty';
         }
         return null;
       },

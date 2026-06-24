@@ -5,9 +5,13 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 
 enum TransactionType {
-  invested,
-  redeemed,
-  dividend;
+  invested('Invested'),
+  redeemed('Redeemed'),
+  dividend('Dividend');
+
+  const TransactionType(this.title);
+
+    final String title;
 
   IconData get icon {
     return switch (this) {

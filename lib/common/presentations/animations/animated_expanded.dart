@@ -123,7 +123,7 @@ class AnimatedSizeSwitcher extends StatelessWidget {
       switchOutCurve: Curves.fastOutSlowIn,
       duration: duration,
       transitionBuilder: (child, animation) {
-        return SizeTransition(axisAlignment: 1, sizeFactor: animation, axis: axis, child: child);
+        return SizeTransition(alignment: Alignment.bottomRight, sizeFactor: animation, axis: axis, child: child);
       },
       child: child,
     );
