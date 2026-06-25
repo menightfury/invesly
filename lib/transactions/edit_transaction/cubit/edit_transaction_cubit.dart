@@ -1,4 +1,3 @@
-import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
@@ -12,7 +11,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       super(
         EditTransactionState(
           id: initial?.id,
-          account: initial?.account,
+          accountId: initial?.accountId,
           quantity: initial?.quantity,
           rate: initial?.rate,
           totalAmount: initial?.totalAmount,
@@ -24,15 +23,15 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
               : TransactionType.invested,
           genre: initial?.amc.genre ?? AmcGenre.mf,
           date: initial?.investedOn ?? DateTime.now().startOfDay,
-          amc: initial?.amc,
+          amcId: initial?.amcId,
           notes: initial?.note,
         ),
       );
 
   final TransactionRepository _repository;
 
-  void updateAccount(InveslyAccount account) {
-    emit(state.copyWith(account: account));
+  void updateAccount(int accountId) {
+    emit(state.copyWith(accountId: accountId));
   }
 
   void updateQuantity(double quantity) {
@@ -71,8 +70,8 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     emit(state.copyWith(genre: genre));
   }
 
-  void updateAmc(InveslyAmc? amc) {
-    emit(state.copyWith(status: EditTransactionStatus.edited, amc: () => amc));
+  void updateAmc(String? amcId) {
+    emit(state.copyWith(status: EditTransactionStatus.edited, amcId: () => amcId));
   }
 
   void updateDate(DateTime date) {
@@ -89,14 +88,14 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       return;
     }
 
-    final inv = InveslyTransaction(
+    final inv = TransactionInDb(
       id: state.id ?? 0,
-      account: state.account!,
-      amc: state.amc!,
+      accountId: state.accountId!,
+      amcId: state.amcId!,
       quantity: state.canEditRateAndQnty ? state.quantity ?? 0.0 : 0.0,
       rate: state.canEditRateAndQnty ? state.rate ?? 0.0 : 0.0,
       totalAmount: state.type == TransactionType.invested ? state.totalAmount!.abs() : -state.totalAmount!.abs(),
-      investedOn: state.date ?? DateTime.now().startOfDay,
+      date: (state.date ?? DateTime.now().startOfDay).millisecondsSinceEpoch,
       note: state.notes,
     );
     $logger.i(inv);

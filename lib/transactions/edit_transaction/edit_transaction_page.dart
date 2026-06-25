@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:intl/intl.dart';
-import 'package:invesly/accounts/model/account_model.dart';
 
 import 'package:invesly/accounts/widget/account_picker_widget.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -47,7 +46,15 @@ class _EditTransactionPageContent extends StatefulWidget {
 
 class _EditTransactionPageContentState extends State<_EditTransactionPageContent> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  final _amcFieldKey = GlobalKey<FormFieldState<InveslyAmc>>();
+
+  @override
+  void initState() {
+    super.initState();
+    final pa = context.read<AppCubit>().state.primaryAccountId;
+    if (pa != null) {
+      context.read<EditTransactionCubit>().updateAccount(pa);
+    }
+  }
 
   @override
   void dispose() {
@@ -70,7 +77,10 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
+    final genres = AmcGenre.values;
+
     $logger.i('Rebuilding edit transaction screen');
+
     return BlocListener<EditTransactionCubit, EditTransactionState>(
       listenWhen: (prev, curr) {
         return (prev.status != curr.status && curr.isFailureOrSuccess);
@@ -89,6 +99,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
       },
       child: Scaffold(
         body: SafeArea(
+          // TODO: Remove Form, because it rebuilds on every child change
           child: Form(
             canPop: false, // prevents default
             onPopInvokedWithResult: (didPop, _) async {
@@ -109,9 +120,18 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                   pinned: true,
                   floating: true,
                   actions: <Widget>[
-                    _AccountPickerWidget(
-                      initialValue: cubit.state.account?.id ?? context.read<AppCubit>().state.primaryAccountId,
-                      onChanged: (value) => cubit.updateAccount(value),
+                    // ~ Account picker
+                    BlocSelector<EditTransactionCubit, EditTransactionState, int?>(
+                      selector: (state) => state.accountId,
+                      builder: (context, accountId) {
+                        return Shake(
+                          shake: accountId == null,
+                          child: AccountPickerWidget(
+                            accountId: accountId,
+                            onChanged: (value) => cubit.updateAccount(value.id),
+                          ),
+                        );
+                      },
                     ),
                   ],
                   actionsPadding: const EdgeInsets.only(right: 16.0),
@@ -146,14 +166,20 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                             children: <Widget>[
                               // ~ Genre ~
                               Expanded(
-                                child: _GenreSelectorFormField(
-                                  initialValue: cubit.state.genre,
-                                  onChanged: (value) {
-                                    cubit.updateGenre(value);
+                                child: BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
+                                  selector: (state) => state.genre,
+                                  builder: (context, genre) {
+                                    return RollingThroughOptions<AmcGenre>(
+                                      value: genre,
+                                      options: genres,
+                                      builder: (value) => Text(value.title, overflow: TextOverflow.ellipsis),
+                                      onChanged: (value) {
+                                        cubit.updateGenre(genre);
 
-                                    // Reset AMC
-                                    cubit.updateAmc(null);
-                                    _amcFieldKey.currentState?.didChange(null);
+                                        // Reset AMC
+                                        cubit.updateAmc(null);
+                                      },
+                                    );
                                   },
                                 ).withLabel('Genre'),
                               ),
@@ -204,56 +230,14 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
                                     child: FadeIn(
+                                      // key: Key(label),
                                       from: Offset(0.0, 0.4),
                                       child: Text(label, overflow: TextOverflow.ellipsis),
                                     ),
                                   );
                                 },
                               ),
-                              AsyncFormField<InveslyAmc>(
-                                key: _amcFieldKey,
-                                autovalidateMode: AutovalidateMode.disabled,
-                                initialValue: cubit.state.amc,
-                                validator: (value) {
-                                  $logger.d('Validating AMC field with value: $value');
-                                  if (value == null) {
-                                    return 'Can\'t be empty';
-                                  }
-                                  return null;
-                                },
-                                onTapCallback: (value) async {
-                                  // final newAmc = await InveslyAmcPickerWidget.showModal(context, value?.id);
-                                  final newAmc = await context.push<InveslyAmc>(
-                                    InveslyAmcPickerWidget(
-                                      amcId: value?.id,
-                                      genre: cubit.state.genre,
-                                      onPickup: (amc) => context.pop(amc),
-                                    ),
-                                  );
-                                  return newAmc ?? value;
-                                },
-                                onChanged: (value) {
-                                  if (value == null) return;
-                                  cubit.updateAmc(value);
-                                },
-                                childBuilder: (value) {
-                                  if (value == null) {
-                                    return const Text('Select AMC', style: TextStyle(color: Colors.grey));
-                                  }
-                                  return Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text(value.name, overflow: TextOverflow.ellipsis),
-                                      Text(
-                                        (value.genre ?? AmcGenre.misc).title,
-                                        style: context.textTheme.labelSmall,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
+                              _AmcPicker(),
                             ],
                           ),
 
@@ -547,68 +531,75 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
   }
 }
 
-class _AccountPickerWidget extends StatelessWidget {
-  const _AccountPickerWidget({super.key, this.initialValue, this.onChanged});
-
-  final int? initialValue;
-  final ValueChanged<InveslyAccount>? onChanged;
-
+class _AmcPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return FormField<int>(
-      initialValue: initialValue,
-      builder: (state) {
-        return Shake(
-          shake: state.hasError,
-          child: AccountPickerWidget(
-            accountId: state.value,
-            onChanged: (value) {
-              state.didChange(value.id);
-              onChanged?.call(value);
-            },
-          ),
+    final cubit = context.read<EditTransactionCubit>();
+    InveslyAmc? amc;
+
+    return BlocSelector<EditTransactionCubit, EditTransactionState, String?>(
+      selector: (state) => state.amcId,
+      builder: (context, amcId) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 4.0,
+          children: <Widget>[
+            Shake(
+              shake: amcId == null,
+              child: Tappable(
+                onTap: () async {
+                  final newAmc = await context.push<InveslyAmc>(
+                    InveslyAmcPickerWidget(amcId: amcId, onPickup: (amc) => Navigator.pop(context, amc)),
+                  );
+                  if (newAmc == null) return;
+                  amc = newAmc;
+                  cubit.updateAmc(newAmc.id);
+                },
+                childAlignment: contentAlignment,
+                padding: padding,
+                leading: leading,
+                trailing: trailing,
+                color:
+                    color?.resolve(state.widgetState) ??
+                    WidgetStateProperty.resolveAs(state.defaultColor, state.widgetState),
+                child:  (value == null) {
+                                    return const Text('Select AMC', style: TextStyle(color: Colors.grey));
+                                  }
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(value.name, overflow: TextOverflow.ellipsis),
+                                      Text(
+                                        (value.genre ?? AmcGenre.misc).title,
+                                        style: context.textTheme.labelSmall,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  );,
+              ),
+            ),
+
+            Padding(
+              padding: iFormFieldContentPadding.resolve(TextDirection.ltr).copyWith(top: 0.0, bottom: 0.0),
+              child: FadeIn(from: Offset(0.0, -0.25), enable: state.hasError, child: error ?? SizedBox.shrink()),
+            ),
+          ],
         );
       },
-      validator: (value) {
-        if (value == null) {
-          return 'Please select a user';
-        }
-        return null;
-      },
     );
-  }
-}
-
-class _GenreSelectorFormField extends StatelessWidget {
-  const _GenreSelectorFormField({super.key, this.initialValue, this.onChanged});
-
-  final AmcGenre? initialValue;
-  final ValueChanged<AmcGenre>? onChanged;
-  final _genres = AmcGenre.values;
-
-  @override
-  Widget build(BuildContext context) {
-    return FormField<AmcGenre>(
-      initialValue: initialValue,
-      autovalidateMode: AutovalidateMode.disabled,
-      builder: (state) {
-        return RollingThroughOptions<AmcGenre>(
-          value: state.value,
-          options: _genres,
-          builder: (genre) => Text(genre.title, overflow: TextOverflow.ellipsis),
-          onChanged: (value) {
-            state.didChange(value);
-            onChanged?.call(value);
-          },
-        );
-      },
-      validator: (value) {
-        if (value == null) {
-          return 'Can\'t be null';
-        }
-        return null;
-      },
-    );
+    // return AsyncFormField(
+    // key: _amcFieldKey,
+    // autovalidateMode: AutovalidateMode.disabled,
+    // initialValue: cubit.state.amcId,
+    // validator: (value) {
+    //   $logger.d('Validating AMC field with value: $value');
+    //   if (value == null) {
+    //     return 'Can\'t be empty';
+    //   }
+    //   return null;
+    // },
   }
 }
 

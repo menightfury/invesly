@@ -60,14 +60,10 @@ class _FadeInState extends State<FadeIn> with SingleTickerProviderStateMixin {
 
   @override
   void didUpdateWidget(covariant FadeIn oldWidget) {
-    if (widget.child != oldWidget.child && widget.enable) {
+    if (widget.enable != oldWidget.enable && widget.enable) {
       _controller
         ..reset()
         ..forward();
-
-      // else {
-      //   _controller.reverse();
-      // }
     }
     super.didUpdateWidget(oldWidget);
   }

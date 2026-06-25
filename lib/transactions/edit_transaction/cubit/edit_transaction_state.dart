@@ -3,11 +3,13 @@ part of 'edit_transaction_cubit.dart';
 
 enum EditTransactionStatus { initial, edited, saving, saved, failed }
 
+// enum EditTransactionFieldStatus { initial, success, error }
+
 class EditTransactionState extends Equatable {
   const EditTransactionState({
     this.status = EditTransactionStatus.initial,
     this.id,
-    this.account,
+    this.accountId,
     this.quantity,
     this.rate,
     required this.totalAmount,
@@ -15,13 +17,13 @@ class EditTransactionState extends Equatable {
     this.type = TransactionType.invested,
     this.genre = AmcGenre.mf,
     this.date,
-    this.amc,
+    this.amcId,
     this.notes,
   });
 
   final EditTransactionStatus status;
   final int? id;
-  final InveslyAccount? account;
+  final int? accountId;
   final double? quantity;
   final double? rate;
   final double? totalAmount;
@@ -29,15 +31,15 @@ class EditTransactionState extends Equatable {
   final TransactionType type;
   final AmcGenre genre;
   final DateTime? date;
-  final InveslyAmc? amc;
+  final String? amcId;
   final String? notes;
 
   bool get isNewTransaction => id == null;
 
   // Check if all required fields are filled and valid
   bool get canSave {
-    return account != null &&
-        amc != null &&
+    return accountId != null &&
+        amcId != null &&
         totalAmount != null &&
         (totalAmount?.isFinite ?? false) &&
         (totalAmount != 0);
@@ -52,7 +54,7 @@ class EditTransactionState extends Equatable {
   EditTransactionState copyWith({
     EditTransactionStatus? status,
     InveslyTransaction? initialTransaction,
-    InveslyAccount? account,
+    int? accountId,
     double? quantity,
     double? rate,
     double? totalAmount,
@@ -60,13 +62,13 @@ class EditTransactionState extends Equatable {
     TransactionType? type,
     AmcGenre? genre,
     DateTime? date,
-    InveslyAmc? Function()? amc,
+    String? Function()? amcId,
     String? notes,
   }) {
     return EditTransactionState(
       id: id,
       status: status ?? this.status,
-      account: account ?? this.account,
+      accountId: accountId ?? this.accountId,
       quantity: quantity ?? this.quantity,
       rate: rate ?? this.rate,
       totalAmount: totalAmount ?? this.totalAmount,
@@ -74,7 +76,7 @@ class EditTransactionState extends Equatable {
       type: type ?? this.type,
       genre: genre ?? this.genre,
       date: date ?? this.date,
-      amc: amc != null ? amc() : this.amc,
+      amcId: amcId != null ? amcId() : this.amcId,
       notes: notes ?? this.notes,
     );
   }
@@ -83,7 +85,8 @@ class EditTransactionState extends Equatable {
   List<Object?> get props => [
     status,
     id,
-    account,
+    accountId,
+
     quantity,
     rate,
     totalAmount,
@@ -91,7 +94,7 @@ class EditTransactionState extends Equatable {
     type,
     genre,
     date,
-    amc,
+    amcId,
     notes,
   ];
 }
