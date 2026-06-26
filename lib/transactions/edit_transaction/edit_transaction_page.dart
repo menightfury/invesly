@@ -65,19 +65,20 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
   Future<void> _handleSavePressed(BuildContext context) async {
     final transactionCubit = context.read<EditTransactionCubit>();
     // final amcRepository = context.read<AmcRepository>();
-    if (_formKey.currentState!.validate()) {
-      await transactionCubit.save();
-      // if (!context.mounted) return;
-      // const message = SnackBar(content: Text('Investment saved successfully.'), backgroundColor: Colors.teal);
-      // ScaffoldMessenger.of(context).showSnackBar(message);
-      // Navigator.maybePop<bool>(context);
-    }
+    // if (_formKey.currentState!.validate()) {
+    await transactionCubit.save();
+    // if (!context.mounted) return;
+    // const message = SnackBar(content: Text('Investment saved successfully.'), backgroundColor: Colors.teal);
+    // ScaffoldMessenger.of(context).showSnackBar(message);
+    // Navigator.maybePop<bool>(context);
+    // }
   }
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
     final genres = AmcGenre.values;
+    final types = TransactionType.values;
 
     $logger.i('Rebuilding edit transaction screen');
 
@@ -90,7 +91,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
         if (state.status == EditTransactionStatus.saved) {
           message = const SnackBar(content: Text('Investment saved successfully'), backgroundColor: Colors.teal);
           context.canPop ? Navigator.pop(context) : context.go(const DashboardPage());
-        } else if (state.status == EditTransactionStatus.failed) {
+        } else if (state.status == EditTransactionStatus.error) {
           message = const SnackBar(content: Text('Sorry! some error occurred'), backgroundColor: Colors.redAccent);
         }
         ScaffoldMessenger.of(context)
@@ -159,59 +160,6 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                         spacing: 12.0,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // ~~~ Genre and Date ~~~
-                          Row(
-                            spacing: 12.0,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              // ~ Genre ~
-                              Expanded(
-                                child: BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
-                                  selector: (state) => state.genre,
-                                  builder: (context, genre) {
-                                    return RollingThroughOptions<AmcGenre>(
-                                      value: genre,
-                                      options: genres,
-                                      builder: (value) => Text(value.title, overflow: TextOverflow.ellipsis),
-                                      onChanged: (value) {
-                                        cubit.updateGenre(genre);
-
-                                        // Reset AMC
-                                        cubit.updateAmc(null);
-                                      },
-                                    );
-                                  },
-                                ).withLabel('Genre'),
-                              ),
-
-                              // ~ Date ~
-                              Expanded(
-                                child: InveslyDatePicker(
-                                  initialDate: cubit.state.date,
-                                  validator: (value) {
-                                    if (value == null) {
-                                      return 'Can\'t be empty';
-                                    }
-                                    return null;
-                                  },
-                                  onPickup: (value) => cubit.updateDate(value),
-                                ).withLabel('Date'),
-                              ),
-                            ],
-                          ),
-
-                          // InveslyChoiceChips<TransactionType>.single(
-                          //   options: TransactionType.values.map((type) {
-                          //     return InveslyChipData(
-                          //       value: type,
-                          //       label: Text(type.name.toSentenceCase(), overflow: TextOverflow.ellipsis),
-                          //     );
-                          //   }).toList(),
-                          //   selected: state.type,
-                          //   onChanged: (value) => cubit.updateTransactionType(value),
-                          // ).withLabel('Investment type'),
-                          TransactionTypeSelectorFormField().withLabel('Transaction type'),
-
                           // ~~~ AMC ~~~
                           Column(
                             spacing: iFormFieldLabelSpacing,
@@ -238,6 +186,62 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                 },
                               ),
                               _AmcPicker(),
+                            ],
+                          ),
+
+                          // ~~~ Genre and Date ~~~
+                          Row(
+                            spacing: 12.0,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              // // ~ Genre ~
+                              // Expanded(
+                              //   child: BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
+                              //     selector: (state) => state.genre,
+                              //     builder: (context, genre) {
+                              //       return RollingThroughOptions<AmcGenre>(
+                              //         value: genre,
+                              //         options: genres,
+                              //         builder: (value) => Text(value.title, overflow: TextOverflow.ellipsis),
+                              //         onChanged: (value) {
+                              //           cubit.updateGenre(genre);
+
+                              //           // Reset AMC
+                              //           cubit.updateAmc(null);
+                              //         },
+                              //       );
+                              //     },
+                              //   ).withLabel('Genre'),
+                              // ),
+                              // ~ Transaction type
+                              Expanded(
+                                child: BlocSelector<EditTransactionCubit, EditTransactionState, TransactionType>(
+                                  selector: (state) => state.type,
+                                  builder: (context, type) {
+                                    $logger.i('Rebuilding');
+                                    return RollingThroughOptions<TransactionType>(
+                                      value: type,
+                                      options: types,
+                                      builder: (value) => Text(value.title, overflow: TextOverflow.ellipsis),
+                                      onChanged: (value) => cubit.updateTransactionType(type),
+                                    );
+                                  },
+                                ).withLabel('Transaction type'),
+                              ),
+
+                              // ~ Date ~
+                              Expanded(
+                                child: InveslyDatePicker(
+                                  initialDate: cubit.state.date,
+                                  validator: (value) {
+                                    if (value == null) {
+                                      return 'Can\'t be empty';
+                                    }
+                                    return null;
+                                  },
+                                  onPickup: (value) => cubit.updateDate(value),
+                                ).withLabel('Date'),
+                              ),
                             ],
                           ),
 
@@ -534,104 +538,69 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
 class _AmcPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<EditTransactionCubit>();
     InveslyAmc? amc;
+    final cubit = context.read<EditTransactionCubit>();
 
-    return BlocSelector<EditTransactionCubit, EditTransactionState, String?>(
-      selector: (state) => state.amcId,
-      builder: (context, amcId) {
+    return BlocBuilder<EditTransactionCubit, EditTransactionState>(
+      buildWhen: (prev, curr) => prev.amcId != curr.amcId || prev.status != curr.status,
+      builder: (context, state) {
+        final isError = state.status == EditTransactionStatus.error && amc == null;
+
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 4.0,
           children: <Widget>[
             Shake(
-              shake: amcId == null,
+              shake: isError,
               child: Tappable(
                 onTap: () async {
                   final newAmc = await context.push<InveslyAmc>(
-                    InveslyAmcPickerWidget(amcId: amcId, onPickup: (amc) => Navigator.pop(context, amc)),
+                    InveslyAmcPickerWidget(amcId: state.amcId, onPickup: (amc) => Navigator.pop(context, amc)),
                   );
                   if (newAmc == null) return;
+
                   amc = newAmc;
                   cubit.updateAmc(newAmc.id);
                 },
-                childAlignment: contentAlignment,
-                padding: padding,
-                leading: leading,
-                trailing: trailing,
-                color:
-                    color?.resolve(state.widgetState) ??
-                    WidgetStateProperty.resolveAs(state.defaultColor, state.widgetState),
-                child:  (value == null) {
-                                    return const Text('Select AMC', style: TextStyle(color: Colors.grey));
-                                  }
-                                  return Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text(value.name, overflow: TextOverflow.ellipsis),
-                                      Text(
-                                        (value.genre ?? AmcGenre.misc).title,
-                                        style: context.textTheme.labelSmall,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  );,
+                // childAlignment: contentAlignment,
+                padding: iFormFieldContentPadding,
+                // leading: leading,
+                // trailing: trailing,
+                color: isError ? context.colors.errorContainer : null,
+                child: amc != null
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(amc!.name, overflow: TextOverflow.ellipsis),
+                          Text(
+                            (amc!.genre ?? AmcGenre.misc).title,
+                            style: context.textTheme.labelSmall,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      )
+                    : const Text('Select AMC', style: TextStyle(color: Colors.grey)),
               ),
             ),
 
+            // Error
+            // TODO: Fix negative spacing
             Padding(
-              padding: iFormFieldContentPadding.resolve(TextDirection.ltr).copyWith(top: 0.0, bottom: 0.0),
-              child: FadeIn(from: Offset(0.0, -0.25), enable: state.hasError, child: error ?? SizedBox.shrink()),
+              padding: iFormFieldContentPadding.copyWith(top: 0.0, bottom: 0.0),
+              child: FadeIn(
+                enable: isError,
+                from: Offset(0.0, -0.25),
+                child: Text(
+                  'Can\'t be empty',
+                  overflow: TextOverflow.ellipsis,
+                  style: context.textTheme.bodySmall?.copyWith(color: context.colors.error),
+                ),
+              ),
             ),
           ],
         );
-      },
-    );
-    // return AsyncFormField(
-    // key: _amcFieldKey,
-    // autovalidateMode: AutovalidateMode.disabled,
-    // initialValue: cubit.state.amcId,
-    // validator: (value) {
-    //   $logger.d('Validating AMC field with value: $value');
-    //   if (value == null) {
-    //     return 'Can\'t be empty';
-    //   }
-    //   return null;
-    // },
-  }
-}
-
-class TransactionTypeSelectorFormField extends StatelessWidget {
-  const TransactionTypeSelectorFormField({super.key, this.initialValue, this.onChanged});
-
-  final TransactionType? initialValue;
-  final ValueChanged<TransactionType>? onChanged;
-  final _types = TransactionType.values;
-
-  @override
-  Widget build(BuildContext context) {
-    return FormField<TransactionType>(
-      initialValue: initialValue,
-      autovalidateMode: AutovalidateMode.disabled,
-      builder: (state) {
-        $logger.w('Rebuilding widget ====');
-        return RollingThroughOptions<TransactionType>(
-          value: state.value,
-          options: _types,
-          builder: (type) => Text(type.title, overflow: TextOverflow.ellipsis),
-          onChanged: (value) {
-            state.didChange(value);
-            onChanged?.call(value);
-          },
-        );
-      },
-      validator: (value) {
-        if (value == null) {
-          return 'Can\'t be empty';
-        }
-        return null;
       },
     );
   }

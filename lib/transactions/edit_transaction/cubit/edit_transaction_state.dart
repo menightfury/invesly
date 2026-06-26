@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'edit_transaction_cubit.dart';
 
-enum EditTransactionStatus { initial, edited, saving, saved, failed }
+enum EditTransactionStatus { initial, edited, saving, saved, error }
 
 // enum EditTransactionFieldStatus { initial, success, error }
 
@@ -101,5 +101,5 @@ class EditTransactionState extends Equatable {
 
 extension EditTransactionStateX on EditTransactionState {
   bool get isLoadingOrSuccess => [EditTransactionStatus.saving, EditTransactionStatus.saved].contains(status);
-  bool get isFailureOrSuccess => [EditTransactionStatus.failed, EditTransactionStatus.saved].contains(status);
+  bool get isFailureOrSuccess => [EditTransactionStatus.error, EditTransactionStatus.saved].contains(status);
 }

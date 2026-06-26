@@ -10,5 +10,5 @@ const iButtonSize = Size(96.0, 48.0);
 const iCardBorderRadius = BorderRadius.all(Radius.circular(16.0));
 const iTileBorderRadius = BorderRadius.all(Radius.circular(4.0));
 const iFormFieldLabelSpacing = 6.0;
-const iFormFieldContentPadding = EdgeInsetsGeometry.symmetric(horizontal: 12.0, vertical: 16.0);
+const iFormFieldContentPadding = EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0);
 const iTextFieldBorderRadius = BorderRadius.all(Radius.circular(16.0));

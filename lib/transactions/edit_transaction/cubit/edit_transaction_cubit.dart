@@ -84,7 +84,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
 
   Future<void> save() async {
     if (!state.canSave) {
-      emit(state.copyWith(status: EditTransactionStatus.failed));
+      emit(state.copyWith(status: EditTransactionStatus.error));
       return;
     }
 
@@ -106,7 +106,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       emit(state.copyWith(status: EditTransactionStatus.saved));
     } on Exception catch (e) {
       $logger.e(e);
-      emit(state.copyWith(status: EditTransactionStatus.failed));
+      emit(state.copyWith(status: EditTransactionStatus.error));
     }
   }
 }
