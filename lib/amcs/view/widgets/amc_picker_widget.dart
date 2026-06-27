@@ -77,35 +77,37 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // final cubit = context.read<AmcSearchCubit>();
-    // final searchChipsData = AmcGenre.values
-    //     .map((genre) => InveslyChipData(value: genre, label: Text(genre.title)))
-    //     .toList();
+    final cubit = context.read<AmcSearchCubit>();
+    final searchChipsData = AmcGenre.values
+        .map((genre) => InveslyChipData(value: genre, label: Text(genre.title)))
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: iFormFieldLabelSpacing,
       children: <Widget>[
-        TextFormField(
+        // ~ Chips for filtering by genre
+        BlocSelector<AmcSearchCubit, AmcSearchState, AmcGenre?>(
+          selector: (state) => state.searchGenre,
+          builder: (context, amcGenre) {
+            return InveslyChoiceChips<AmcGenre>.single(
+              wrapped: false,
+              options: searchChipsData,
+              selected: amcGenre,
+              onChanged: (value) {
+                cubit.updateSearchGenre(value);
+                cubit.search(_searchController.text);
+              },
+            );
+          },
+        ),
+        TextField(
           decoration: const InputDecoration(hintText: 'Enter keyword to search', prefixIcon: Icon(Icons.search)),
           controller: _searchController,
           autofocus: true,
         ),
-        // // ~ Chips for filtering by genre
-        // BlocSelector<AmcSearchCubit, AmcSearchState, AmcGenre?>(
-        //   selector: (state) => state.searchGenre,
-        //   builder: (context, amcGenre) {
-        //     return InveslyChoiceChips<AmcGenre>.single(
-        //       wrapped: false,
-        //       options: searchChipsData,
-        //       selected: amcGenre,
-        //       // onChanged: (value) {
-        //       //   cubit.updateSearchGenre(value);
-        //       //   cubit.search(_searchController.text);
-        //       // },
-        //     );
-        //   },
-        // ),
+        
+        // ~ Result
         Expanded(
           child: BlocBuilder<AmcSearchCubit, AmcSearchState>(
             builder: (context, state) {
@@ -114,7 +116,7 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
                 AmcSearchStateStatus.error => Center(child: Text(state.error!)),
                 AmcSearchStateStatus.success =>
                   state.results.isEmpty
-                      ? const Text('Sorry! No results found 😞')
+                      ? const EmptyWidget(label: Text('Sorry! No results found 😞'))
                       : _SearchResults(
                           amcs: state.results,
                           onPickup: (amc) {

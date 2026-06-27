@@ -77,7 +77,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
-    final genres = AmcGenre.values;
+    // final genres = AmcGenre.values;
     final types = TransactionType.values;
 
     $logger.i('Rebuilding edit transaction screen');
@@ -159,71 +159,69 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                       child: Column(
                         spacing: 12.0,
                         mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // ~~~ AMC ~~~
-                          Column(
-                            spacing: iFormFieldLabelSpacing,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
-                                selector: (state) => state.genre,
-                                builder: (context, genre) {
-                                  final label = switch (genre) {
-                                    AmcGenre.mf => 'Asset management company (AMC)',
-                                    AmcGenre.stock => 'Company',
-                                    AmcGenre.insurance => 'Insurance provider',
-                                    _ => 'Company / Service provider',
-                                  };
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                    child: FadeIn(
-                                      // key: Key(label),
-                                      from: Offset(0.0, 0.4),
-                                      child: Text(label, overflow: TextOverflow.ellipsis),
-                                    ),
-                                  );
-                                },
-                              ),
-                              _AmcPicker(),
-                            ],
-                          ),
+                        children: <Widget>[
+                          // // ~ Genre ~
+                          // BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
+                          //   selector: (state) => state.genre,
+                          //   builder: (context, genre) {
+                          //     return RollingThroughOptions<AmcGenre>(
+                          //       value: genre,
+                          //       options: genres,
+                          //       builder: (value) => Text(value.title, overflow: TextOverflow.ellipsis),
+                          //       onChanged: (value) {
+                          //         cubit.updateGenre(genre);
 
-                          // ~~~ Genre and Date ~~~
+                          //         // Reset AMC
+                          //         cubit.updateAmc(null);
+                          //       },
+                          //     );
+                          //   },
+                          // ).withLabel('Genre'),
+                          // ~~~ AMC ~~~
+                          // Column(
+                          //   spacing: iFormFieldLabelSpacing,
+                          //   crossAxisAlignment: CrossAxisAlignment.start,
+                          //   mainAxisSize: MainAxisSize.min,
+                          //   children: <Widget>[
+                          //     BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
+                          //       selector: (state) => state.genre,
+                          //       builder: (context, genre) {
+                          //         final label = switch (genre) {
+                          //           AmcGenre.mf => 'Asset management company (AMC)',
+                          //           AmcGenre.stock => 'Company',
+                          //           AmcGenre.insurance => 'Insurance provider',
+                          //           _ => 'Company / Service provider',
+                          //         };
+                          //         return Padding(
+                          //           padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          //           child: FadeIn(
+                          //             // key: Key(label),
+                          //             from: Offset(0.0, 0.4),
+                          //             child: Text(label, overflow: TextOverflow.ellipsis),
+                          //           ),
+                          //         );
+                          //       },
+                          //     ),
+                          //     _AmcPicker(),
+                          //   ],
+                          // ),
+                          _AmcPicker().withLabel('Asset management company (AMC)'),
+
+                          // ~~~ Type and Date ~~~
                           Row(
                             spacing: 12.0,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              // // ~ Genre ~
-                              // Expanded(
-                              //   child: BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
-                              //     selector: (state) => state.genre,
-                              //     builder: (context, genre) {
-                              //       return RollingThroughOptions<AmcGenre>(
-                              //         value: genre,
-                              //         options: genres,
-                              //         builder: (value) => Text(value.title, overflow: TextOverflow.ellipsis),
-                              //         onChanged: (value) {
-                              //           cubit.updateGenre(genre);
-
-                              //           // Reset AMC
-                              //           cubit.updateAmc(null);
-                              //         },
-                              //       );
-                              //     },
-                              //   ).withLabel('Genre'),
-                              // ),
                               // ~ Transaction type
                               Expanded(
                                 child: BlocSelector<EditTransactionCubit, EditTransactionState, TransactionType>(
                                   selector: (state) => state.type,
                                   builder: (context, type) {
-                                    $logger.i('Rebuilding');
                                     return RollingThroughOptions<TransactionType>(
                                       value: type,
                                       options: types,
                                       builder: (value) => Text(value.title, overflow: TextOverflow.ellipsis),
-                                      onChanged: (value) => cubit.updateTransactionType(type),
+                                      onChanged: (value) => cubit.updateTransactionType(value),
                                     );
                                   },
                                 ).withLabel('Transaction type'),
@@ -549,7 +547,6 @@ class _AmcPicker extends StatelessWidget {
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 4.0,
           children: <Widget>[
             Shake(
               shake: isError,

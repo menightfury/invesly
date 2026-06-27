@@ -83,10 +83,9 @@ class EditTransactionState extends Equatable {
 
   @override
   List<Object?> get props => [
-    status,
     id,
+    status,
     accountId,
-
     quantity,
     rate,
     totalAmount,

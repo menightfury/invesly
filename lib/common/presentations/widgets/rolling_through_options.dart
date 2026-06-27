@@ -41,7 +41,7 @@ class RollingThroughOptions<T extends Object> extends StatelessWidget {
       padding: padding,
       leading: leading,
       trailing: const Icon(Icons.unfold_more_rounded),
-      child: FadeIn(from: Offset(0.0, 0.4), child: builder(effectiveValue)),
+      child: FadeIn(key: ValueKey(effectiveValue), from: Offset(0.0, 0.4), child: builder(effectiveValue)),
     );
   }
 }
