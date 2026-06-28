@@ -78,9 +78,7 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<AmcSearchCubit>();
-    final searchChipsData = AmcGenre.values
-        .map((genre) => InveslyChipData(value: genre, label: Text(genre.title)))
-        .toList();
+    final searchChipsData = AmcGenre.values;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,6 +91,7 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
             return InveslyChoiceChips<AmcGenre>.single(
               wrapped: false,
               options: searchChipsData,
+              labelBuilder: (context, genre) => Text(genre.title),
               selected: amcGenre,
               onChanged: (value) {
                 cubit.updateSearchGenre(value);
@@ -106,7 +105,7 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
           controller: _searchController,
           autofocus: true,
         ),
-        
+
         // ~ Result
         Expanded(
           child: BlocBuilder<AmcSearchCubit, AmcSearchState>(

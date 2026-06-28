@@ -273,14 +273,8 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
             valueListenable: _holdingFilter,
             builder: (context, filter, _) {
               return InveslyChoiceChips<HoldingFilter>.single(
-                options: HoldingFilter.values
-                    .map(
-                      (f) => InveslyChipData(
-                        value: f,
-                        label: Text(f.label, overflow: TextOverflow.ellipsis),
-                      ),
-                    )
-                    .toList(),
+                options: HoldingFilter.values,
+                labelBuilder: (context, filter) => Text(filter.label, overflow: TextOverflow.ellipsis),
                 selected: filter,
                 onChanged: (filter) {
                   if (filter == null) return;
@@ -324,19 +318,15 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
                             valueListenable: _isAscending,
                             builder: (context, isAscending, _) {
                               return InveslyChoiceChips<bool>.single(
-                                options: [
-                                  InveslyChipData(
-                                    value: true,
-                                    label: Text(option.ascendingLabel ?? 'Ascending', overflow: TextOverflow.ellipsis),
-                                  ),
-                                  InveslyChipData(
-                                    value: false,
-                                    label: Text(
-                                      option.descendingLabel ?? 'Descending',
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
+                                options: [true, false],
+                                labelBuilder: (context, value) {
+                                  return Text(
+                                    value
+                                        ? option.ascendingLabel ?? 'Ascending'
+                                        : option.descendingLabel ?? 'Descending',
+                                    overflow: TextOverflow.ellipsis,
+                                  );
+                                },
                                 selected: isAscending,
                                 onChanged: (value) {
                                   if (value == null) return;

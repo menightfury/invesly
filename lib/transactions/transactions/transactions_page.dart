@@ -403,16 +403,9 @@ class _TransactionFiltersSelectionState extends State<TransactionFiltersSelectio
             }
 
             return InveslyChoiceChips<InveslyAccount>(
-              options: List.generate(accounts.length, (index) {
-                // dummy quantity for shimmer effect
-                final account = accounts.elementAt(index);
-
-                return InveslyChipData(
-                  label: Text(account.name),
-                  icon: CircleAvatar(backgroundImage: AssetImage(account.avatarSrc)),
-                  value: account,
-                );
-              }),
+              options: accounts,
+              labelBuilder: (context, account) => Text(account.name),
+              iconBuilder: (context, account) => CircleAvatar(backgroundImage: AssetImage(account.avatarSrc)),
               selected: accounts.toSet(),
               wrapped: false,
               onChanged: (value) => cubit.updateSelectedAccounts(value),

@@ -71,6 +71,7 @@ dependencies:
   sqlite_viewer2: ^2.0.0
   uuid: ^4.5.1
   xirr_flutter: ^1.0.3
+  portal_labs: ^0.34.0
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.4

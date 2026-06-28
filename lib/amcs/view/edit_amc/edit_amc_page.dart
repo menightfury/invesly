@@ -151,10 +151,8 @@ class __EditViewState extends State<_EditView> {
                               selector: (state) => state.genre,
                               builder: (context, genre) {
                                 return InveslyChoiceChips<AmcGenre>.single(
-                                  options: List.generate(_allGenres.length, (index) {
-                                    final option = _allGenres[index];
-                                    return InveslyChipData(value: option, label: Text(option.title));
-                                  }),
+                                  options: _allGenres,
+                                  labelBuilder: (context, genre) => Text(genre.title),
                                   selected: genre,
                                   onChanged: (value) {
                                     if (value == null) return;
@@ -180,10 +178,8 @@ class __EditViewState extends State<_EditView> {
                                 if (selectedTags.isEmpty) return const SizedBox();
                                 return InveslyChoiceChips<String>(
                                   clearable: true,
-                                  options: List.generate(selectedTags.length, (index) {
-                                    final option = selectedTags.elementAt(index);
-                                    return InveslyChipData(value: option, label: Text(option));
-                                  }),
+                                  options: selectedTags.toList(),
+                                  labelBuilder: (context, tag) => Text(tag),
                                   onChanged: (_) {},
                                   chipSpacing: 8.0,
                                   selected: selectedTags,
@@ -231,10 +227,8 @@ class __EditViewState extends State<_EditView> {
 
                                 return InveslyChoiceChips<String>.single(
                                   clearable: true,
-                                  options: List.generate(tags.length, (index) {
-                                    final option = tags.elementAt(index);
-                                    return InveslyChipData(value: option, label: Text(option));
-                                  }),
+                                  options: tags.toList(),
+                                  labelBuilder: (context, tag) => Text(tag),
                                   onChanged: (value) {
                                     if (value == null) return;
                                     editAmcCubit.updateSelectedTags(value);
