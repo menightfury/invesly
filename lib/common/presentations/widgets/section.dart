@@ -162,12 +162,14 @@ class SectionTile extends StatelessWidget {
   final _SectionTileVariant _variant;
   final ListTileControlAffinity controlAffinity;
 
+  static const _defaultPadding = EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
+
   const SectionTile({
     super.key,
     required this.title,
     this.subtitle,
     this.contentSpacing,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    this.padding = _defaultPadding,
     this.icon,
     this.secondaryIcon,
     this.tileColor,
@@ -188,7 +190,7 @@ class SectionTile extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.contentSpacing,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    this.padding = _defaultPadding,
     this.icon,
     this.secondaryIcon,
     this.tileColor,
@@ -209,7 +211,7 @@ class SectionTile extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.contentSpacing,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    this.padding = _defaultPadding,
     this.icon,
     required bool value,
     this.tileColor,

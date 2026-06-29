@@ -1,39 +1,12 @@
 import 'package:flutter/foundation.dart';
+import 'package:invesly/common/extensions/color_extension.dart';
 // import 'dart:math' as math;
 
 import 'package:invesly/common_libs.dart';
 
-class InveslyChipData<T> {
-  const InveslyChipData({required this.value, required this.label, this.icon});
-
-  final T value;
-  final Widget label;
-  final Widget? icon;
-}
-
 class InveslyChoiceChips<T> extends StatelessWidget {
-  /// Multi-select choice chips
-  const InveslyChoiceChips({
-    super.key,
-    required this.options,
-    Set<T>? selected,
-    this.onChanged,
-    this.clearable = false,
-    this.color,
-    this.chipSpacing = 2.0,
-    this.wrapped = true,
-    this.showCheckmark = true,
-    // this.onDeleted,
-    // this.deleteIcon,
-    required this.labelBuilder,
-    this.iconBuilder,
-  }) : multiselect = true,
-       _selected = selected ?? const {},
-       assert(options.length > 0),
-       assert((selected != null && selected.length > 0) || clearable);
-
   /// Single-select choice chips
-  InveslyChoiceChips.single({
+  InveslyChoiceChips({
     super.key,
     required this.options,
     T? selected,
@@ -41,10 +14,12 @@ class InveslyChoiceChips<T> extends StatelessWidget {
     this.clearable = false,
     this.color,
     this.chipSpacing = 2.0,
-    this.wrapped = true,
+    // this.wrapped = true,
     this.showCheckmark = true,
+    this.extended = false,
     // this.onDeleted,
     // this.deleteIcon,
+    this.padding = const EdgeInsetsGeometry.all(8.0),
     required this.labelBuilder,
     this.iconBuilder,
   }) : multiselect = false,
@@ -52,6 +27,28 @@ class InveslyChoiceChips<T> extends StatelessWidget {
        onChanged = onChanged != null ? ((Set<T> values) => onChanged.call(values.firstOrNull)) : null,
        assert(options.isNotEmpty),
        assert(selected != null || clearable);
+
+  /// Multi-select choice chips
+  const InveslyChoiceChips.multi({
+    super.key,
+    required this.options,
+    Set<T>? selected,
+    this.onChanged,
+    this.clearable = false,
+    this.color,
+    this.chipSpacing = 2.0,
+    // this.wrapped = true,
+    this.showCheckmark = true,
+    this.extended = false,
+    // this.onDeleted,
+    // this.deleteIcon,
+    this.padding = const EdgeInsetsGeometry.all(8.0),
+    required this.labelBuilder,
+    this.iconBuilder,
+  }) : multiselect = true,
+       _selected = selected ?? const {},
+       assert(options.length > 0),
+       assert((selected != null && selected.length > 0) || clearable);
 
   final List<T> options;
   final ValueChanged<Set<T>>? onChanged;
@@ -62,10 +59,12 @@ class InveslyChoiceChips<T> extends StatelessWidget {
   final WidgetStateColor? color;
   final double chipSpacing;
   final bool multiselect;
-  final bool wrapped;
+  // final bool wrapped;
   final bool showCheckmark;
   // final ValueChanged<T>? onDeleted;
   // final Widget? deleteIcon;
+  final EdgeInsetsGeometry? padding;
+  final bool extended;
   final Widget Function(BuildContext context, T value) labelBuilder;
   final Widget Function(BuildContext context, T value)? iconBuilder;
 
@@ -101,9 +100,10 @@ class InveslyChoiceChips<T> extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final childCount = options.length;
 
-    return Row(
+    final chips = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       spacing: chipSpacing,
+      mainAxisSize: MainAxisSize.min,
       children: List.generate(childCount, (index) {
         final value = options[index];
         final isSelected = _selected.contains(value);
@@ -127,7 +127,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
           );
         }
 
-        return FilterChip(
+        final chip = FilterChip(
           selected: isSelected,
           onSelected: _enabled ? (selected) => _handleChanged(selected, value) : null,
           label: Center(child: labelBuilder(context, value)),
@@ -136,7 +136,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
             if (states.contains(WidgetState.selected)) return colors.primary;
             return colors.primaryContainer;
           }),
-          // materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           // onDeleted: onDeleted != null ? () => onDeleted!(option.value) : null,
           // deleteIcon: deleteIcon,
           showCheckmark: showCheckmark,
@@ -146,16 +146,30 @@ class InveslyChoiceChips<T> extends StatelessWidget {
             fontWeight: FontWeight.normal,
             color: WidgetStateColor.resolveWith((states) {
               if (states.contains(WidgetState.selected)) return colors.onPrimary;
-              return colors.onPrimaryContainer;
+              return colors.primary;
             }),
+            overflow: TextOverflow.ellipsis,
           ),
-          // labelPadding: EdgeInsets.zero,
+          padding: padding,
+          side: WidgetStateBorderSide.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) return BorderSide(color: colors.primary);
+            return BorderSide(color: colors.primaryContainer.darken(20));
+          }),
           shape: RoundedRectangleBorder(borderRadius: chipRadius),
-
-          // padding: EdgeInsets.zero,
         );
+
+        if (extended) {
+          return Expanded(child: chip);
+        }
+
+        return chip;
       }).toList(),
-      // ),
     );
+
+    if (extended) {
+      return chips;
+    }
+
+    return SingleChildScrollView(scrollDirection: Axis.horizontal, child: chips);
   }
 }

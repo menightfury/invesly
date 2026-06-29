@@ -11,18 +11,7 @@ class AmcSearchCubit extends Cubit<AmcSearchState> {
   AmcSearchCubit({required AmcRepository amcRepository, AmcGenre? genre})
     : _amcRepository = amcRepository,
       _debouncer = Debouncer(1.seconds),
-      super(AmcSearchState.initial(searchGenre: genre ?? AmcGenre.misc));
-
-  //  EditTransactionState(
-  //     id: initial?.id,
-  //     account: initial?.account,
-  //     quantity: initial?.quantity,
-  //     amount: initial?.totalAmount,
-  //     type: (initial?.totalAmount.isNegative ?? false) ? TransactionType.redeemed : TransactionType.invested,
-  //     genre: initial?.amc?.genre ?? AmcGenre.misc,
-  //     amc: initial?.amc,
-  //     notes: initial?.note,
-  //   ),
+      super(AmcSearchState.initial(searchGenre: genre ?? AmcGenre.mf));
 
   final AmcRepository _amcRepository;
   final Map<String, List<InveslyAmc>> _amcCache = {}; // key is combination of query and genre

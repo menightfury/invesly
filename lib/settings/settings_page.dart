@@ -6,7 +6,6 @@ import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/database/backup/restore_drive_backup_page.dart';
 import 'package:invesly/intro/splash_page.dart';
 import 'package:invesly/main.dart';
-import 'package:invesly/test/chip_test.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
@@ -476,12 +475,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       title: const Text('View Database'),
                       subtitle: const Text('View raw database of Invesly'),
                       onTap: () => context.push(DatabaseList(dbPath: p.dirname(Bootstrap.instance.api.dbPath))),
-                    ),
-                    SectionTile(
-                      icon: const Icon(Icons.data_object_rounded),
-                      title: const Text('Test Screen'),
-                      subtitle: const Text('View InveslyChips Test Screen'),
-                      onTap: () => context.push(Scaffold(body: InveslyChipTestWidget())),
                     ),
                   ],
                 ),

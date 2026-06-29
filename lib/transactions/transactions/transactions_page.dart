@@ -402,12 +402,11 @@ class _TransactionFiltersSelectionState extends State<TransactionFiltersSelectio
               return const Center(child: Text('No accounts found'));
             }
 
-            return InveslyChoiceChips<InveslyAccount>(
+            return InveslyChoiceChips<InveslyAccount>.multi(
               options: accounts,
               labelBuilder: (context, account) => Text(account.name),
               iconBuilder: (context, account) => CircleAvatar(backgroundImage: AssetImage(account.avatarSrc)),
               selected: accounts.toSet(),
-              wrapped: false,
               onChanged: (value) => cubit.updateSelectedAccounts(value),
             );
           },

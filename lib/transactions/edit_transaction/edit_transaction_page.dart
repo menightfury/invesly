@@ -555,7 +555,11 @@ class _AmcPicker extends StatelessWidget {
               child: Tappable(
                 onTap: () async {
                   final newAmc = await context.push<InveslyAmc>(
-                    InveslyAmcPickerWidget(amcId: state.amcId, onPickup: (amc) => Navigator.pop(context, amc)),
+                    InveslyAmcPickerWidget(
+                      keyword: amc?.name,
+                      genre: amc?.genre,
+                      onPickup: (amc) => Navigator.pop(context, amc),
+                    ),
                   );
                   if (newAmc == null) return;
 
@@ -584,20 +588,20 @@ class _AmcPicker extends StatelessWidget {
               ),
             ),
 
-            // Error
-            // TODO: Fix negative spacing
-            Padding(
-              padding: iFormFieldContentPadding.copyWith(top: 0.0, bottom: 0.0),
-              child: FadeIn(
-                enable: isError,
-                from: Offset(0.0, -0.25),
-                child: Text(
-                  'Can\'t be empty',
-                  overflow: TextOverflow.ellipsis,
-                  style: context.textTheme.bodySmall?.copyWith(color: context.colors.error),
+            // ~ Error
+            if (isError)
+              Padding(
+                padding: iFormFieldContentPadding.copyWith(top: 4.0, bottom: 0.0),
+                child: FadeIn(
+                  enable: isError,
+                  from: Offset(0.0, -0.25),
+                  child: Text(
+                    'Can\'t be empty',
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.bodySmall?.copyWith(color: context.colors.error),
+                  ),
                 ),
               ),
-            ),
           ],
         );
       },

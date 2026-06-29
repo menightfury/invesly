@@ -211,20 +211,3 @@ class AppStyle {
     );
   }
 }
-
-class CustomChipBorderSide extends WidgetStateBorderSide {
-  const CustomChipBorderSide(this.colorScheme);
-
-  final ColorScheme colorScheme;
-
-  @override
-  BorderSide? resolve(Set<WidgetState> states) {
-    if (states.contains(WidgetState.disabled)) {
-      return BorderSide(color: colorScheme.onSurface.withAlpha(30));
-    }
-    if (states.contains(WidgetState.selected)) {
-      return BorderSide(color: Colors.red);
-    }
-    return BorderSide(color: colorScheme.outlineVariant, width: 2.0);
-  }
-}

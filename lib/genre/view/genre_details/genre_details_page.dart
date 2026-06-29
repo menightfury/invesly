@@ -272,7 +272,7 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
           ValueListenableBuilder(
             valueListenable: _holdingFilter,
             builder: (context, filter, _) {
-              return InveslyChoiceChips<HoldingFilter>.single(
+              return InveslyChoiceChips<HoldingFilter>(
                 options: HoldingFilter.values,
                 labelBuilder: (context, filter) => Text(filter.label, overflow: TextOverflow.ellipsis),
                 selected: filter,
@@ -280,7 +280,7 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
                   if (filter == null) return;
                   _holdingFilter.value = filter;
                 },
-                wrapped: false,
+                extended: true,
               );
             },
           ),
@@ -317,7 +317,7 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
                           child: ValueListenableBuilder<bool>(
                             valueListenable: _isAscending,
                             builder: (context, isAscending, _) {
-                              return InveslyChoiceChips<bool>.single(
+                              return InveslyChoiceChips<bool>(
                                 options: [true, false],
                                 labelBuilder: (context, value) {
                                   return Text(
@@ -332,7 +332,6 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
                                   if (value == null) return;
                                   _isAscending.value = value;
                                 },
-                                wrapped: false,
                               );
                             },
                           ),

@@ -150,7 +150,7 @@ class __EditViewState extends State<_EditView> {
                             BlocSelector<EditAmcCubit, EditAmcState, AmcGenre>(
                               selector: (state) => state.genre,
                               builder: (context, genre) {
-                                return InveslyChoiceChips<AmcGenre>.single(
+                                return InveslyChoiceChips<AmcGenre>(
                                   options: _allGenres,
                                   labelBuilder: (context, genre) => Text(genre.title),
                                   selected: genre,
@@ -176,7 +176,7 @@ class __EditViewState extends State<_EditView> {
                               selector: (state) => state.selectedTags,
                               builder: (context, selectedTags) {
                                 if (selectedTags.isEmpty) return const SizedBox();
-                                return InveslyChoiceChips<String>(
+                                return InveslyChoiceChips<String>.multi(
                                   clearable: true,
                                   options: selectedTags.toList(),
                                   labelBuilder: (context, tag) => Text(tag),
@@ -225,7 +225,7 @@ class __EditViewState extends State<_EditView> {
                                 final tags = state.tags;
                                 if (tags.isEmpty) return const SizedBox();
 
-                                return InveslyChoiceChips<String>.single(
+                                return InveslyChoiceChips<String>(
                                   clearable: true,
                                   options: tags.toList(),
                                   labelBuilder: (context, tag) => Text(tag),
