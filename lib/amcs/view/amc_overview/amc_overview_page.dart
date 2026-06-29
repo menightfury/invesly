@@ -1,4 +1,5 @@
 import 'package:invesly/stat/model/stat_repository.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_page.dart';
 import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
@@ -639,6 +640,7 @@ class _Transactions extends StatelessWidget {
       ),
       borderRadius: tileRadius,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      onTap: () => context.push(EditTransactionPage(initialTransaction: trn)),
     );
   }
 }

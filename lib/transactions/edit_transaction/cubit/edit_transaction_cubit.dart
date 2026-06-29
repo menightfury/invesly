@@ -23,7 +23,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
               : TransactionType.invested,
           genre: initial?.amc.genre ?? AmcGenre.mf,
           date: initial?.investedOn ?? DateTime.now().startOfDay,
-          amcId: initial?.amcId,
+          amc: initial?.amc,
           notes: initial?.note,
         ),
       );
@@ -70,8 +70,8 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     emit(state.copyWith(genre: genre));
   }
 
-  void updateAmc(String? amcId) {
-    emit(state.copyWith(status: EditTransactionStatus.edited, amcId: () => amcId));
+  void updateAmc(InveslyAmc? amc) {
+    emit(state.copyWith(status: EditTransactionStatus.edited, amc: () => amc));
   }
 
   void updateDate(DateTime date) {
@@ -91,7 +91,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     final inv = TransactionInDb(
       id: state.id ?? 0,
       accountId: state.accountId!,
-      amcId: state.amcId!,
+      amcId: state.amc!.id,
       quantity: state.canEditRateAndQnty ? state.quantity ?? 0.0 : 0.0,
       rate: state.canEditRateAndQnty ? state.rate ?? 0.0 : 0.0,
       totalAmount: state.type == TransactionType.invested ? state.totalAmount!.abs() : -state.totalAmount!.abs(),

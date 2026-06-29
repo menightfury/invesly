@@ -538,14 +538,12 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
 class _AmcPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    InveslyAmc? amc;
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
-      buildWhen: (prev, curr) => prev.amcId != curr.amcId || prev.status != curr.status,
+      buildWhen: (prev, curr) => prev.amc != curr.amc || prev.status != curr.status,
       builder: (context, state) {
-        final isError = state.status == EditTransactionStatus.error && amc == null;
-
+        final isError = state.status == EditTransactionStatus.error && state.amc == null;
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -556,29 +554,27 @@ class _AmcPicker extends StatelessWidget {
                 onTap: () async {
                   final newAmc = await context.push<InveslyAmc>(
                     InveslyAmcPickerWidget(
-                      keyword: amc?.name,
-                      genre: amc?.genre,
+                      keyword: state.amc?.name,
+                      genre: state.amc?.genre,
                       onPickup: (amc) => Navigator.pop(context, amc),
                     ),
                   );
                   if (newAmc == null) return;
-
-                  amc = newAmc;
-                  cubit.updateAmc(newAmc.id);
+                  cubit.updateAmc(newAmc);
                 },
-                // childAlignment: contentAlignment,
+                childAlignment: AlignmentGeometry.centerLeft,
                 padding: iFormFieldContentPadding,
                 // leading: leading,
-                // trailing: trailing,
+                trailing: const Icon(Icons.chevron_right_rounded),
                 color: isError ? context.colors.errorContainer : null,
-                child: amc != null
+                child: state.amc != null
                     ? Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(amc!.name, overflow: TextOverflow.ellipsis),
+                          Text(state.amc!.name, overflow: TextOverflow.ellipsis),
                           Text(
-                            (amc!.genre ?? AmcGenre.misc).title,
+                            (state.amc!.genre ?? AmcGenre.misc).title,
                             style: context.textTheme.labelSmall,
                             overflow: TextOverflow.ellipsis,
                           ),

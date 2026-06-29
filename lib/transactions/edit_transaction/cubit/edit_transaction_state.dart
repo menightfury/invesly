@@ -17,7 +17,7 @@ class EditTransactionState extends Equatable {
     this.type = TransactionType.invested,
     this.genre = AmcGenre.mf,
     this.date,
-    this.amcId,
+    this.amc,
     this.notes,
   });
 
@@ -31,7 +31,7 @@ class EditTransactionState extends Equatable {
   final TransactionType type;
   final AmcGenre genre;
   final DateTime? date;
-  final String? amcId;
+  final InveslyAmc? amc;
   final String? notes;
 
   bool get isNewTransaction => id == null;
@@ -39,7 +39,7 @@ class EditTransactionState extends Equatable {
   // Check if all required fields are filled and valid
   bool get canSave {
     return accountId != null &&
-        amcId != null &&
+        amc != null &&
         totalAmount != null &&
         (totalAmount?.isFinite ?? false) &&
         (totalAmount != 0);
@@ -62,7 +62,7 @@ class EditTransactionState extends Equatable {
     TransactionType? type,
     AmcGenre? genre,
     DateTime? date,
-    String? Function()? amcId,
+    InveslyAmc? Function()? amc,
     String? notes,
   }) {
     return EditTransactionState(
@@ -76,7 +76,7 @@ class EditTransactionState extends Equatable {
       type: type ?? this.type,
       genre: genre ?? this.genre,
       date: date ?? this.date,
-      amcId: amcId != null ? amcId() : this.amcId,
+      amc: amc != null ? amc() : this.amc,
       notes: notes ?? this.notes,
     );
   }
@@ -93,7 +93,7 @@ class EditTransactionState extends Equatable {
     type,
     genre,
     date,
-    amcId,
+    amc,
     notes,
   ];
 }
