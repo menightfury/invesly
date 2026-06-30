@@ -62,11 +62,22 @@ class _AccountPickerWidgetState extends State<AccountPickerWidget> {
         ? accounts.firstWhereOrNull((a) => a.id == accountId)
         : null;
     return ActionChip(
-      label: Text(account?.name ?? accountId?.toString() ?? 'N/A', overflow: TextOverflow.ellipsis, maxLines: 1),
-      avatar: CircleAvatar(
-        foregroundImage: account != null ? AssetImage(account.avatarSrc) : null,
-        child: account == null ? Icon(Icons.person_rounded) : null,
+      label: Text(
+        account?.name ?? accountId?.toString() ?? 'Select account',
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
       ),
+      avatar: PhysicalModel(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        child: account != null
+            ? Image.asset(account.avatarSrc, height: 22.0, width: 22.0)
+            : Icon(Icons.supervised_user_circle_rounded, size: 22.0),
+      ),
+      // avatar: CircleAvatar(
+      //   foregroundImage: account != null ? AssetImage(account.avatarSrc) : null,
+      //   child: account == null ? Icon(Icons.person_rounded) : null,
+      // ),
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
       onPressed: () async {
         final newAccount = await AccountPickerWidget.showModal(

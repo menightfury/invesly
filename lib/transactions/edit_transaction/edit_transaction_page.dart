@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:invesly/accounts/widget/account_picker_widget.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
-import 'package:invesly/common/cubit/app_cubit.dart';
+// import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
@@ -47,14 +47,14 @@ class _EditTransactionPageContent extends StatefulWidget {
 class _EditTransactionPageContentState extends State<_EditTransactionPageContent> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
 
-  @override
-  void initState() {
-    super.initState();
-    final pa = context.read<AppCubit>().state.primaryAccountId;
-    if (pa != null) {
-      context.read<EditTransactionCubit>().updateAccount(pa);
-    }
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   final pa = context.read<AppCubit>().state.primaryAccountId;
+  //   if (pa != null) {
+  //     context.read<EditTransactionCubit>().updateAccount(pa);
+  //   }
+  // }
 
   @override
   void dispose() {
@@ -231,7 +231,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                 // ~ Date ~
                                 Expanded(
                                   child: InveslyDatePicker(
-                                    initialDate: cubit.state.date,
+                                    // initialDate: cubit.state.date,
                                     validator: (value) {
                                       if (value == null) {
                                         return 'Can\'t be empty';
@@ -536,8 +536,11 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
 }
 
 class _AmcPicker extends StatelessWidget {
+  const _AmcPicker({super.key});
+
   @override
   Widget build(BuildContext context) {
+    $logger.i('Rebuilding');
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(

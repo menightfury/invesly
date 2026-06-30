@@ -21,23 +21,29 @@ class RollingThroughOptions<T extends Object> extends StatelessWidget {
   final List<T> options;
   final Widget Function(T value) builder;
 
-  @override
-  Widget build(BuildContext context) {
-    int index = 0;
+  int get index {
+    // int index = 0;
     if (value != null) {
       final i = options.indexOf(value!);
-      if (i > 0 && i < options.length) index = i;
+      if (i > 0 && i < options.length) return i;
     }
+
+    return 0;
+  }
+
+  void _handleChange() {
+    final i = index;
+    final nextIndex = i < (options.length - 1) ? i + 1 : 0;
+    final nextValue = options.elementAt(nextIndex);
+    onChanged!.call(nextValue);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final effectiveValue = options.elementAt(index);
     return Tappable(
-      // contentAlignment: Alignment.center,
-      onTap: onChanged != null
-          ? () {
-              final nextIndex = index < (options.length - 1) ? index + 1 : 0;
-              final nextValue = options.elementAt(nextIndex);
-              onChanged!.call(nextValue);
-            }
-          : null,
+      childAlignment: AlignmentGeometry.centerLeft,
+      onTap: onChanged != null ? _handleChange : null,
       padding: padding,
       leading: leading,
       trailing: const Icon(Icons.unfold_more_rounded),
