@@ -1,3 +1,4 @@
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/widget/account_picker_widget.dart';
 import 'package:invesly/stat/cubit/stat_cubit.dart';
 import 'package:invesly/stat/model/stat_model.dart';
@@ -791,9 +792,20 @@ class _AccountPickerWidget extends StatelessWidget {
     return BlocSelector<GenreDetailsCubit, GenreDetailsState, int?>(
       selector: (state) => state.activeAccountId,
       builder: (context, activeAccountId) {
+        final accountsState = context.read<AccountsCubit>().state;
+        final accounts = (accountsState is AccountsLoadedState) ? accountsState.accounts : null;
+        final account = activeAccountId != null && accounts != null && accounts.isNotEmpty
+            ? accounts.firstWhereOrNull((a) => a.id == activeAccountId)
+            : null;
+
         return AccountPickerWidget(
           accountId: activeAccountId,
           onChanged: (value) => context.read<GenreDetailsCubit>().updateActiveAccountId(value.id),
+          child: Text(
+            account?.name ?? activeAccountId?.toString() ?? 'Select account',
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
         );
       },
     );

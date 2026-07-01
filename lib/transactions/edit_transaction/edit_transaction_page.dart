@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:intl/intl.dart';
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 
 import 'package:invesly/accounts/widget/account_picker_widget.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -126,11 +127,21 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                       BlocSelector<EditTransactionCubit, EditTransactionState, int?>(
                         selector: (state) => state.accountId,
                         builder: (context, accountId) {
+                          final accountsState = context.read<AccountsCubit>().state;
+                          final accounts = (accountsState is AccountsLoadedState) ? accountsState.accounts : null;
+                          final account = accountId != null && accounts != null && accounts.isNotEmpty
+                              ? accounts.firstWhereOrNull((a) => a.id == accountId)
+                              : null;
                           return Shake(
                             shake: accountId == null,
                             child: AccountPickerWidget(
                               accountId: accountId,
                               onChanged: (value) => cubit.updateAccount(value.id),
+                              child: Text(
+                                account?.name ?? accountId?.toString() ?? 'Select account',
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                             ),
                           );
                         },

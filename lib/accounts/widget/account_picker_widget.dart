@@ -3,12 +3,23 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 
-class AccountPickerWidget extends StatefulWidget {
-  const AccountPickerWidget({super.key, this.accountId, this.onChanged, this.showAddAccountOption = true});
+class AccountPickerWidget extends StatelessWidget {
+  const AccountPickerWidget({
+    super.key,
+    this.accountId,
+    this.onChanged,
+    this.showAddAccountOption = true,
+    this.enabled = true,
+    required this.child,
+    this.avatar,
+  });
 
   final int? accountId;
   final ValueChanged<InveslyAccount>? onChanged;
   final bool showAddAccountOption;
+  final bool enabled;
+  final Widget child;
+  final Widget? avatar;
 
   static Future<InveslyAccount?> showModal(
     BuildContext context, {
@@ -17,7 +28,6 @@ class AccountPickerWidget extends StatefulWidget {
   }) async {
     return await showModalBottomSheet<InveslyAccount>(
       context: context,
-      // isScrollControlled: true,
       useSafeArea: true,
       builder: (context) {
         return _AccountsList(
@@ -30,63 +40,33 @@ class AccountPickerWidget extends StatefulWidget {
   }
 
   @override
-  State<AccountPickerWidget> createState() => _AccountPickerWidgetState();
-}
-
-class _AccountPickerWidgetState extends State<AccountPickerWidget> {
-  @override
-  void initState() {
-    super.initState();
-    final cubit = context.read<AccountsCubit>();
-    // if accounts are not loaded, fetch accounts.
-    // This is to ensure that accounts are available for account picker.
-    if (cubit.state is! AccountsLoadedState) {
-      cubit.fetchAccounts();
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant AccountPickerWidget oldWidget) {
-    if (oldWidget.accountId != widget.accountId) {
-      setState(() {});
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final accountId = widget.accountId;
-    final state = context.read<AccountsCubit>().state;
-    final accounts = (state is AccountsLoadedState) ? state.accounts : null;
-    final account = accountId != null && accounts != null && accounts.isNotEmpty
-        ? accounts.firstWhereOrNull((a) => a.id == accountId)
-        : null;
+    final theme = Theme.of(context);
+    final label = DefaultTextStyle(
+      style: theme.textTheme.bodyMedium!.copyWith(color: enabled ? null : theme.disabledColor),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+      child: child,
+    );
     return ActionChip(
-      label: Text(
-        account?.name ?? accountId?.toString() ?? 'Select account',
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-      ),
-      avatar: PhysicalModel(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        child: account != null
-            ? Image.asset(account.avatarSrc, height: 22.0, width: 22.0)
-            : Icon(Icons.supervised_user_circle_rounded, size: 22.0),
-      ),
-      // avatar: CircleAvatar(
-      //   foregroundImage: account != null ? AssetImage(account.avatarSrc) : null,
-      //   child: account == null ? Icon(Icons.person_rounded) : null,
+      label: label,
+      // avatar: PhysicalModel(
+      //   color: Colors.white,
+      //   shape: BoxShape.circle,
+      //   child: account != null
+      //       ? Image.asset(account.avatarSrc, height: 22.0, width: 22.0)
+      //       : Icon(Icons.supervised_user_circle_rounded, size: 22.0),
       // ),
+      avatar: avatar,
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
       onPressed: () async {
         final newAccount = await AccountPickerWidget.showModal(
           context,
-          accountId: account?.id,
-          showAddAccountOption: widget.showAddAccountOption,
+          accountId: accountId,
+          showAddAccountOption: showAddAccountOption,
         );
         if (newAccount == null) return;
-        widget.onChanged?.call(newAccount);
+        onChanged?.call(newAccount);
       },
     );
   }
