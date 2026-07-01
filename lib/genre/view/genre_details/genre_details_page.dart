@@ -801,11 +801,14 @@ class _AccountPickerWidget extends StatelessWidget {
         return AccountPickerWidget(
           accountId: activeAccountId,
           onChanged: (value) => context.read<GenreDetailsCubit>().updateActiveAccountId(value.id),
-          child: Text(
-            account?.name ?? activeAccountId?.toString() ?? 'Select account',
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
+          avatar: PhysicalModel(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            child: account != null
+                ? Image.asset(account.avatarSrc, height: 22.0, width: 22.0)
+                : Icon(Icons.supervised_user_circle_rounded, size: 22.0),
           ),
+          child: Text(account?.name ?? activeAccountId?.toString() ?? 'Select account'),
         );
       },
     );

@@ -48,15 +48,6 @@ class _EditTransactionPageContent extends StatefulWidget {
 class _EditTransactionPageContentState extends State<_EditTransactionPageContent> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   final pa = context.read<AppCubit>().state.primaryAccountId;
-  //   if (pa != null) {
-  //     context.read<EditTransactionCubit>().updateAccount(pa);
-  //   }
-  // }
-
   @override
   void dispose() {
     _formKey.currentState?.reset();
@@ -122,31 +113,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                   SliverAppBar(
                     pinned: true,
                     floating: true,
-                    actions: <Widget>[
-                      // ~ Account picker
-                      BlocSelector<EditTransactionCubit, EditTransactionState, int?>(
-                        selector: (state) => state.accountId,
-                        builder: (context, accountId) {
-                          final accountsState = context.read<AccountsCubit>().state;
-                          final accounts = (accountsState is AccountsLoadedState) ? accountsState.accounts : null;
-                          final account = accountId != null && accounts != null && accounts.isNotEmpty
-                              ? accounts.firstWhereOrNull((a) => a.id == accountId)
-                              : null;
-                          return Shake(
-                            shake: accountId == null,
-                            child: AccountPickerWidget(
-                              accountId: accountId,
-                              onChanged: (value) => cubit.updateAccount(value.id),
-                              child: Text(
-                                account?.name ?? accountId?.toString() ?? 'Select account',
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                    actions: <Widget>[_AccountPickerWidget()],
                     actionsPadding: const EdgeInsets.only(right: 16.0),
                   ),
 
@@ -189,6 +156,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                             //     );
                             //   },
                             // ).withLabel('Genre'),
+                            
                             // ~~~ AMC ~~~
                             // Column(
                             //   spacing: iFormFieldLabelSpacing,
@@ -546,12 +514,55 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
   }
 }
 
+class _AccountPickerWidget extends StatelessWidget {
+  const _AccountPickerWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    $logger.i('Account Picker Rebuilding');
+    final cubit = context.read<EditTransactionCubit>();
+
+    return BlocBuilder<EditTransactionCubit, EditTransactionState>(
+      buildWhen: (prev, curr) => prev.accountId != curr.accountId || prev.status != curr.status,
+      // selector: (state) => state.accountId,
+      builder: (context, state) {
+        final isError = state.status == EditTransactionStatus.error && state.accountId == null;
+        final accountsState = context.read<AccountsCubit>().state;
+        final accounts = (accountsState is AccountsLoadedState) ? accountsState.accounts : null;
+        final account = state.accountId != null && accounts != null && accounts.isNotEmpty
+            ? accounts.firstWhereOrNull((a) => a.id == state.accountId)
+            : null;
+
+        return Shake(
+          shake: isError,
+          child: AccountPickerWidget(
+            accountId: state.accountId,
+            onChanged: (value) => cubit.updateAccount(value.id),
+            avatar: PhysicalModel(
+              color: isError ? context.colors.error : context.colors.primary,
+              shape: BoxShape.circle,
+              child: account != null
+                  ? Image.asset(account.avatarSrc, height: 22.0, width: 22.0)
+                  : Icon(Icons.supervised_user_circle_rounded, size: 22.0, color: Colors.white),
+            ),
+            side: isError ? BorderSide(color: context.colors.errorContainer) : null,
+            child: Text(
+              account?.name ?? state.accountId?.toString() ?? 'Select account',
+              style: TextStyle(color: isError ? context.colors.error : null),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _AmcPicker extends StatelessWidget {
   const _AmcPicker({super.key});
 
   @override
   Widget build(BuildContext context) {
-    $logger.i('Rebuilding');
+    $logger.i('AMC Picker Rebuilding');
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(

@@ -12,6 +12,8 @@ class AccountPickerWidget extends StatelessWidget {
     this.enabled = true,
     required this.child,
     this.avatar,
+    this.side,
+    this.color,
   });
 
   final int? accountId;
@@ -20,6 +22,8 @@ class AccountPickerWidget extends StatelessWidget {
   final bool enabled;
   final Widget child;
   final Widget? avatar;
+  final BorderSide? side;
+  final WidgetStateColor? color;
 
   static Future<InveslyAccount?> showModal(
     BuildContext context, {
@@ -39,6 +43,16 @@ class AccountPickerWidget extends StatelessWidget {
     );
   }
 
+  Future<void> _handlePressed(BuildContext context) async {
+    final newAccount = await AccountPickerWidget.showModal(
+      context,
+      accountId: accountId,
+      showAddAccountOption: showAddAccountOption,
+    );
+    if (newAccount == null) return;
+    onChanged?.call(newAccount);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -50,24 +64,11 @@ class AccountPickerWidget extends StatelessWidget {
     );
     return ActionChip(
       label: label,
-      // avatar: PhysicalModel(
-      //   color: Colors.white,
-      //   shape: BoxShape.circle,
-      //   child: account != null
-      //       ? Image.asset(account.avatarSrc, height: 22.0, width: 22.0)
-      //       : Icon(Icons.supervised_user_circle_rounded, size: 22.0),
-      // ),
       avatar: avatar,
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-      onPressed: () async {
-        final newAccount = await AccountPickerWidget.showModal(
-          context,
-          accountId: accountId,
-          showAddAccountOption: showAddAccountOption,
-        );
-        if (newAccount == null) return;
-        onChanged?.call(newAccount);
-      },
+      onPressed: enabled ? () => _handlePressed(context) : null,
+      side: side,
+      color: color,
     );
   }
 }
