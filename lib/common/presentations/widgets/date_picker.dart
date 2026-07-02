@@ -1,149 +1,107 @@
-import 'package:invesly/common/cubit/app_cubit.dart';
-import 'package:invesly/common/presentations/animations/fade_in.dart';
-import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common_libs.dart';
 
-class InveslyDatePicker extends StatefulWidget {
+class InveslyDatePicker extends StatelessWidget {
   const InveslyDatePicker({
     super.key,
     this.initialDate,
     this.onPickup,
     this.leadingIcon = const Icon(Icons.edit_calendar_rounded),
     this.color,
-    this.validator,
+    // this.validator,
     this.enabled = true,
+    required this.child,
   });
 
   final DateTime? initialDate;
   final ValueChanged<DateTime>? onPickup;
   final Widget? leadingIcon;
-  final WidgetStateColor? color;
-  final FormFieldValidator<DateTime>? validator;
+  final Color? color;
+  // final FormFieldValidator<DateTime>? validator;
   final bool enabled;
+  final Widget child;
 
-  @override
-  State<InveslyDatePicker> createState() => _InveslyDatePickerState();
-}
+  //   @override
+  //   State<InveslyDatePicker> createState() => _InveslyDatePickerState();
+  // }
 
-class _InveslyDatePickerState extends State<InveslyDatePicker> {
-  late final DateTime _dateNow;
-  DateTime? _date;
-  String? _errorText;
+  // class _InveslyDatePickerState extends State<InveslyDatePicker> {
+  //   late final DateTime _dateNow;
+  //   DateTime? _date;
+  //   String? _errorText;
 
-  @override
-  void initState() {
-    super.initState();
-    _dateNow = DateTime.now();
-    _date = widget.initialDate;
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _dateNow = DateTime.now();
+  //   _date = widget.initialDate;
+  // }
 
-  @override
-  void didUpdateWidget(covariant InveslyDatePicker oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.initialDate != oldWidget.initialDate) {
-      _date = widget.initialDate;
-    }
-  }
+  // @override
+  // void didUpdateWidget(covariant InveslyDatePicker oldWidget) {
+  //   super.didUpdateWidget(oldWidget);
+  //   if (widget.initialDate != oldWidget.initialDate) {
+  //     _date = widget.initialDate;
+  //   }
+  // }
 
-  Widget _buildChild(BuildContext context, [DateTime? date]) {
-    if (date == null) {
-      return const Text(
-        'Select date',
-        style: TextStyle(color: Colors.grey),
-        overflow: TextOverflow.ellipsis,
-      );
-    }
-    final days = _dateNow.difference(date).inDays;
-    final label = switch (days) {
-      0 => 'Today',
-      1 => 'Yesterday',
-      _ => date.toReadable(context.read<AppCubit>().state.dateFormat),
-    };
-    return Text(label, overflow: TextOverflow.ellipsis);
-  }
+  // void _validate() {
+  //   if (widget.validator != null) {
+  //     _errorText = widget.validator!(_date);
+  //   }
+  // }
 
-  void _validate() {
-    // if (widget.forceErrorText != null) {
-    //   _errorText.value = widget.forceErrorText;
-    //   // Skip validating if error is forced.
-    //   return;
-    // }
-    if (widget.validator != null) {
-      _errorText = widget.validator!(_date);
-    }
-  }
+  // bool get _hasError => _errorText != null;
 
-  bool get _hasError => _errorText != null;
+  // Set<WidgetState> get widgetState => <WidgetState>{
+  //   if (!widget.enabled) WidgetState.disabled,
+  //   if (_hasError) WidgetState.error,
+  // };
 
-  Set<WidgetState> get widgetState => <WidgetState>{
-    if (!widget.enabled) WidgetState.disabled,
-    // if (isFocused) WidgetState.focused,
-    // if (isHovering) WidgetState.hovered,
-    if (_hasError) WidgetState.error,
-  };
+  // Color get defaultColor => WidgetStateColor.resolveWith((Set<WidgetState> states) {
+  //   if (states.contains(WidgetState.disabled)) {
+  //     return context.theme.disabledColor;
+  //   }
 
-  Color get defaultColor => WidgetStateColor.resolveWith((Set<WidgetState> states) {
-    if (states.contains(WidgetState.disabled)) {
-      return Colors.black12;
-    }
+  //   if (states.contains(WidgetState.error)) {
+  //     return context.colors.errorContainer;
+  //   }
 
-    if (states.contains(WidgetState.error)) {
-      return context.colors.errorContainer;
-    }
-
-    return context.colors.primaryContainer;
-  });
+  //   return context.colors.primaryContainer;
+  // });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    // final theme = Theme.of(context);
+    // final colors = theme.colorScheme;
+    // final textTheme = theme.textTheme;
 
-    TextStyle errorStyle = textTheme.bodySmall ?? const TextStyle();
-    errorStyle = errorStyle.copyWith(color: colors.error).merge(theme.inputDecorationTheme.errorStyle);
+    // TextStyle errorStyle = textTheme.bodySmall ?? const TextStyle();
+    // errorStyle = errorStyle.copyWith(color: colors.error).merge(theme.inputDecorationTheme.errorStyle);
 
-    Widget? error;
-    if (_hasError) {
-      error = Text(_errorText!, style: errorStyle, overflow: TextOverflow.ellipsis, maxLines: 1);
-    }
+    // Widget? error;
+    // if (_hasError) {
+    //   error = Text(_errorText!, style: errorStyle, overflow: TextOverflow.ellipsis, maxLines: 1);
+    // }
+    final dateNow = DateTime.now();
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      // spacing: 4.0,
-      children: <Widget>[
-        Shake(
-          shake: _hasError,
-          child: Tappable(
-            onTap: () async {
-              final newDate = await showDatePicker(
-                context: context,
-                initialDate: _date ?? _dateNow,
-                firstDate: DateTime(1990),
-                lastDate: _dateNow,
-              );
-              if (newDate == null) return;
+    return Tappable(
+      onTap: () async {
+        final newDate = await showDatePicker(
+          context: context,
+          initialDate: initialDate ?? dateNow,
+          firstDate: DateTime(1990),
+          lastDate: dateNow,
+        );
+        if (newDate == null) return;
 
-              final startOfDay = newDate.startOfDay;
-              setState(() => _date = newDate);
-              widget.onPickup?.call(startOfDay);
-            },
-            childAlignment: AlignmentGeometry.centerLeft,
-            padding: iFormFieldContentPadding,
-            leading: widget.leadingIcon,
-            // trailing: trailing,
-            color: widget.color?.resolve(widgetState) ?? WidgetStateProperty.resolveAs(defaultColor, widgetState),
-            child: _buildChild(context, _date),
-          ),
-        ),
-
-        if (error != null)
-          Padding(
-            padding: iFormFieldContentPadding.resolve(TextDirection.ltr).copyWith(top: 4.0, bottom: 0.0),
-            child: FadeIn(from: Offset(0.0, -0.25), child: error),
-          ),
-      ],
+        onPickup?.call(newDate.startOfDay);
+      },
+      childAlignment: AlignmentGeometry.centerLeft,
+      padding: iFormFieldContentPadding,
+      leading: leadingIcon,
+      // trailing: trailing,
+      color: color,
+      child: child,
     );
   }
 }

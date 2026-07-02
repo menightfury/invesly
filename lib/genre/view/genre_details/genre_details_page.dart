@@ -800,7 +800,7 @@ class _AccountPickerWidget extends StatelessWidget {
 
         return AccountPickerWidget(
           accountId: activeAccountId,
-          onChanged: (value) => context.read<GenreDetailsCubit>().updateActiveAccountId(value.id),
+          onPickup: (value) => context.read<GenreDetailsCubit>().updateActiveAccountId(value.id),
           avatar: PhysicalModel(
             color: Colors.white,
             shape: BoxShape.circle,

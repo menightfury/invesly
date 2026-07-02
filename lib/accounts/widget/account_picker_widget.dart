@@ -7,7 +7,7 @@ class AccountPickerWidget extends StatelessWidget {
   const AccountPickerWidget({
     super.key,
     this.accountId,
-    this.onChanged,
+    this.onPickup,
     this.showAddAccountOption = true,
     this.enabled = true,
     required this.child,
@@ -17,13 +17,13 @@ class AccountPickerWidget extends StatelessWidget {
   });
 
   final int? accountId;
-  final ValueChanged<InveslyAccount>? onChanged;
+  final ValueChanged<InveslyAccount>? onPickup;
   final bool showAddAccountOption;
   final bool enabled;
   final Widget child;
   final Widget? avatar;
   final BorderSide? side;
-  final WidgetStateColor? color;
+  final Color? color;
 
   static Future<InveslyAccount?> showModal(
     BuildContext context, {
@@ -50,7 +50,7 @@ class AccountPickerWidget extends StatelessWidget {
       showAddAccountOption: showAddAccountOption,
     );
     if (newAccount == null) return;
-    onChanged?.call(newAccount);
+    onPickup?.call(newAccount);
   }
 
   @override
@@ -68,7 +68,10 @@ class AccountPickerWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
       onPressed: enabled ? () => _handlePressed(context) : null,
       side: side,
-      color: color,
+      color: WidgetStateProperty.resolveWith<Color?>((states) {
+        if (states.contains(WidgetState.disabled)) return theme.disabledColor;
+        return color;
+      }),
     );
   }
 }
