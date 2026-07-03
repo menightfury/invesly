@@ -249,44 +249,38 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                                       );
                                                     },
                                                   ),
-                                                  BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
-                                                    selector: (state) =>
-                                                        [AmcGenre.insurance, AmcGenre.misc].contains(state.genre),
-                                                    builder: (context, disabled) {
-                                                      return CustomField<num>(
-                                                        initialValue: cubit.state.rate,
-                                                        enabled: !disabled,
-                                                        validator: (value) {
-                                                          if (value == null || value.isNegative) {
-                                                            return 'Can\'t be empty or negative';
-                                                          }
-                                                          return null;
-                                                        },
-                                                        onTapCallback: (value) async {
-                                                          final newValue = await InveslyCalculatorWidget.showModal(
-                                                            context,
-                                                            value,
-                                                          );
-                                                          return newValue ?? value;
-                                                        },
-                                                        onChanged: (value) {
-                                                          if (value == null) return;
-                                                          cubit.updateRate(value.toDouble());
-                                                        },
-                                                        childBuilder: (value) {
-                                                          if (value == null) {
-                                                            return const Text(
-                                                              'e.g. 1,500',
-                                                              style: TextStyle(color: Colors.grey),
-                                                              overflow: TextOverflow.ellipsis,
-                                                            );
-                                                          }
-                                                          return Text(
-                                                            NumberFormat.decimalPattern('en_IN').format(value),
-                                                            textAlign: TextAlign.right,
-                                                            overflow: TextOverflow.ellipsis,
-                                                          );
-                                                        },
+                                                  AsyncFormField<num>(
+                                                    initialValue: cubit.state.rate,
+                                                    // enabled: !disabled,
+                                                    validator: (value) {
+                                                      if (value == null || value.isNegative) {
+                                                        return 'Can\'t be empty or negative';
+                                                      }
+                                                      return null;
+                                                    },
+                                                    onTapCallback: (value) async {
+                                                      final newValue = await InveslyCalculatorWidget.showModal(
+                                                        context,
+                                                        value,
+                                                      );
+                                                      return newValue ?? value;
+                                                    },
+                                                    onChanged: (value) {
+                                                      if (value == null) return;
+                                                      cubit.updateRate(value.toDouble());
+                                                    },
+                                                    childBuilder: (value) {
+                                                      if (value == null) {
+                                                        return const Text(
+                                                          'e.g. 1,500',
+                                                          style: TextStyle(color: Colors.grey),
+                                                          overflow: TextOverflow.ellipsis,
+                                                        );
+                                                      }
+                                                      return Text(
+                                                        NumberFormat.decimalPattern('en_IN').format(value),
+                                                        textAlign: TextAlign.right,
+                                                        overflow: TextOverflow.ellipsis,
                                                       );
                                                     },
                                                   ),
@@ -321,8 +315,8 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                                     selector: (state) =>
                                                         [AmcGenre.insurance, AmcGenre.misc].contains(state.genre),
                                                     builder: (context, disabled) {
-                                                      return CustomField<num>(
-                                                        initialValue: cubit.state.quantity,
+                                                      return AsyncFormField<num>(
+                                                        initialValue: cubit.state.qnty,
                                                         enabled: !disabled,
                                                         validator: (value) {
                                                           // if (value == null) {
@@ -424,10 +418,10 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                   buildWhen: (prev, curr) {
                                     return prev.canEditAmount != curr.canEditAmount ||
                                         prev.rate != curr.rate ||
-                                        prev.quantity != curr.quantity;
+                                        prev.qnty != curr.qnty;
                                   },
                                   builder: (context, state) {
-                                    return CustomField<num>(
+                                    return AsyncFormField<num>(
                                       key: ValueKey(state.canEditAmount),
                                       initialValue: state.totalAmount,
                                       enabled: state.canEditAmount,
@@ -509,20 +503,19 @@ class _AccountPickerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    $logger.i('Account Picker Rebuilding');
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
-      buildWhen: (prev, curr) => prev.accountId != curr.accountId || prev.status != curr.status,
-      // selector: (state) => state.accountId,
+      buildWhen: (prev, curr) => prev.accountId != curr.accountId || prev.accountStatus != curr.accountStatus,
       builder: (context, state) {
-        final isError = state.status == EditTransactionStatus.error && state.accountId == null;
+        final isError = state.accountStatus != null || state.accountId == null;
         final accountsState = context.read<AccountsCubit>().state;
         final accounts = (accountsState is AccountsLoadedState) ? accountsState.accounts : null;
         final account = state.accountId != null && accounts != null && accounts.isNotEmpty
             ? accounts.firstWhereOrNull((a) => a.id == state.accountId)
             : null;
 
+        $logger.i('Account Picker Rebuilding');
         return Shake(
           shake: isError,
           child: AccountPickerWidget(
@@ -553,14 +546,14 @@ class _AmcPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    $logger.i('AMC Picker Rebuilding');
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
-      buildWhen: (prev, curr) => prev.amc != curr.amc || prev.status != curr.status,
+      buildWhen: (prev, curr) => prev.amc != curr.amc || prev.amcStatus != curr.amcStatus,
       builder: (context, state) {
-        final isError = state.status == EditTransactionStatus.error && state.amc == null;
+        final isError = state.amcStatus != null || state.amc == null;
 
+        $logger.i('AMC Picker Rebuilding');
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -643,14 +636,14 @@ class _DatePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    $logger.i('Date Picker Rebuilding');
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
-      buildWhen: (prev, curr) => prev != curr,
+      buildWhen: (prev, curr) => prev.date != curr.date || prev.dateStatus != curr.dateStatus,
       builder: (context, state) {
-        final isError = state.status == EditTransactionStatus.error && state.date == null;
+        final isError = state.dateStatus != null || state.date == null;
 
+        $logger.i('Date Picker Rebuilding');
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -692,132 +685,132 @@ class _DatePicker extends StatelessWidget {
   }
 }
 
-class CustomField<T> extends StatefulWidget {
-  const CustomField({
-    super.key,
-    this.forceErrorText,
-    this.validator,
-    this.errorBuilder,
-    this.initialValue,
-    this.enabled = true,
-    FutureOr<T?> Function(T? value)? onTapCallback,
-    this.onChanged,
-    required Widget Function(T? value) childBuilder,
-    Widget? leading,
-    Widget? trailing,
-    EdgeInsetsGeometry padding = iFormFieldContentPadding,
-    AlignmentGeometry contentAlignment = Alignment.centerLeft,
-    WidgetStateColor? color,
-  });
+// class CustomField<T> extends StatefulWidget {
+//   const CustomField({
+//     super.key,
+//     this.forceErrorText,
+//     this.validator,
+//     this.errorBuilder,
+//     this.initialValue,
+//     this.enabled = true,
+//     FutureOr<T?> Function(T? value)? onTapCallback,
+//     this.onChanged,
+//     required Widget Function(T? value) childBuilder,
+//     Widget? leading,
+//     Widget? trailing,
+//     EdgeInsetsGeometry padding = iFormFieldContentPadding,
+//     AlignmentGeometry contentAlignment = Alignment.centerLeft,
+//     WidgetStateColor? color,
+//   });
 
-  final ValueChanged<T?>? onChanged;
-  final FormFieldValidator<T>? validator;
-  final String? forceErrorText;
-  final FormFieldErrorBuilder? errorBuilder;
-  final T? initialValue;
-  final bool enabled;
+//   final ValueChanged<T?>? onChanged;
+//   final FormFieldValidator<T>? validator;
+//   final String? forceErrorText;
+//   final FormFieldErrorBuilder? errorBuilder;
+//   final T? initialValue;
+//   final bool enabled;
 
-  @override
-  State<CustomField<T>> createState() => _CustomFieldState();
-}
+//   @override
+//   State<CustomField<T>> createState() => _CustomFieldState();
+// }
 
-class _CustomFieldState<T> extends State<CustomField<T>> {
-  Set<WidgetState> get widgetState => <WidgetState>{
-    if (!_formField.enabled) WidgetState.disabled,
-    // if (isFocused) WidgetState.focused,
-    // if (isHovering) WidgetState.hovered,
-    if (hasError) WidgetState.error,
-  };
+// class _CustomFieldState<T> extends State<CustomField<T>> {
+//   Set<WidgetState> get widgetState => <WidgetState>{
+//     if (!_formField.enabled) WidgetState.disabled,
+//     // if (isFocused) WidgetState.focused,
+//     // if (isHovering) WidgetState.hovered,
+//     if (hasError) WidgetState.error,
+//   };
 
-  Color get defaultColor => WidgetStateColor.resolveWith((Set<WidgetState> states) {
-    if (states.contains(WidgetState.disabled)) {
-      return Colors.black12;
-    }
+//   Color get defaultColor => WidgetStateColor.resolveWith((Set<WidgetState> states) {
+//     if (states.contains(WidgetState.disabled)) {
+//       return Colors.black12;
+//     }
 
-    if (states.contains(WidgetState.error)) {
-      return context.colors.errorContainer;
-    }
+//     if (states.contains(WidgetState.error)) {
+//       return context.colors.errorContainer;
+//     }
 
-    return context.colors.primaryContainer;
-  });
+//     return context.colors.primaryContainer;
+//   });
 
-  @override
-  void didChange(T? value) {
-    super.didChange(value);
-    if (_formField.autovalidateMode != AutovalidateMode.disabled) {
-      validate();
-    }
-    // Call the onChanged callback if provided
-    _formField.onChanged?.call(value);
-  }
+//   @override
+//   void didChange(T? value) {
+//     super.didChange(value);
+//     if (_formField.autovalidateMode != AutovalidateMode.disabled) {
+//       validate();
+//     }
+//     // Call the onChanged callback if provided
+//     _formField.onChanged?.call(value);
+//   }
 
-  @override
-  void didUpdateWidget(CustomField<T> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.initialValue != widget.initialValue) {
-      setValue(widget.initialValue);
-    }
-  }
+//   @override
+//   void didUpdateWidget(CustomField<T> oldWidget) {
+//     super.didUpdateWidget(oldWidget);
+//     if (oldWidget.initialValue != widget.initialValue) {
+//       setValue(widget.initialValue);
+//     }
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    final state = fieldState as _AsyncFormFieldState;
-    final theme = Theme.of(state.context);
+//   @override
+//   Widget build(BuildContext context) {
+//     final state = fieldState as _AsyncFormFieldState;
+//     final theme = Theme.of(state.context);
 
-    final colors = theme.colorScheme;
-    final textTheme = theme.textTheme;
+//     final colors = theme.colorScheme;
+//     final textTheme = theme.textTheme;
 
-    final errorText = state.errorText;
+//     final errorText = state.errorText;
 
-    TextStyle errorStyle = textTheme.bodySmall ?? const TextStyle();
-    errorStyle = errorStyle.copyWith(color: colors.error).merge(theme.inputDecorationTheme.errorStyle);
+//     TextStyle errorStyle = textTheme.bodySmall ?? const TextStyle();
+//     errorStyle = errorStyle.copyWith(color: colors.error).merge(theme.inputDecorationTheme.errorStyle);
 
-    Widget? error;
-    if (errorText != null) {
-      error =
-          errorBuilder?.call(state.context, errorText) ??
-          Text(errorText, style: errorStyle, overflow: TextOverflow.ellipsis, maxLines: 1);
-    }
+//     Widget? error;
+//     if (errorText != null) {
+//       error =
+//           errorBuilder?.call(state.context, errorText) ??
+//           Text(errorText, style: errorStyle, overflow: TextOverflow.ellipsis, maxLines: 1);
+//     }
 
-    //  final hasError = errorText != null && error != null;
+//     //  final hasError = errorText != null && error != null;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 4.0,
-      children: <Widget>[
-        Shake(
-          shake: state.hasError,
-          child: Tappable(
-            onTap: enabled
-                ? () {
-                    if (onTapCallback == null) return;
+//     return Column(
+//       mainAxisSize: MainAxisSize.min,
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       spacing: 4.0,
+//       children: <Widget>[
+//         Shake(
+//           shake: state.hasError,
+//           child: Tappable(
+//             onTap: enabled
+//                 ? () {
+//                     if (onTapCallback == null) return;
 
-                    final result = onTapCallback.call(state.value);
-                    if (result is Future<T?>) {
-                      result.then((value) => state.didChange(value));
-                    } else {
-                      state.didChange(result);
-                    }
-                  }
-                : null,
-            childAlignment: contentAlignment,
-            padding: padding,
-            leading: leading,
-            trailing: trailing,
-            color:
-                color?.resolve(state.widgetState) ??
-                WidgetStateProperty.resolveAs(state.defaultColor, state.widgetState),
-            child: childBuilder(state.value),
-          ),
-        ),
+//                     final result = onTapCallback.call(state.value);
+//                     if (result is Future<T?>) {
+//                       result.then((value) => state.didChange(value));
+//                     } else {
+//                       state.didChange(result);
+//                     }
+//                   }
+//                 : null,
+//             childAlignment: contentAlignment,
+//             padding: padding,
+//             leading: leading,
+//             trailing: trailing,
+//             color:
+//                 color?.resolve(state.widgetState) ??
+//                 WidgetStateProperty.resolveAs(state.defaultColor, state.widgetState),
+//             child: childBuilder(state.value),
+//           ),
+//         ),
 
-        //  if (hasError)
-        Padding(
-          padding: padding.resolve(TextDirection.ltr).copyWith(top: 0.0, bottom: 0.0),
-          child: FadeIn(from: Offset(0.0, -0.25), enable: state.hasError, child: error ?? SizedBox.shrink()),
-        ),
-      ],
-    );
-  }
-}
+//         //  if (hasError)
+//         Padding(
+//           padding: padding.resolve(TextDirection.ltr).copyWith(top: 0.0, bottom: 0.0),
+//           child: FadeIn(from: Offset(0.0, -0.25), enable: state.hasError, child: error ?? SizedBox.shrink()),
+//         ),
+//       ],
+//     );
+//   }
+// }

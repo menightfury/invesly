@@ -12,7 +12,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
         EditTransactionState(
           id: initial?.id,
           accountId: initial?.accountId,
-          quantity: initial?.quantity,
+          qnty: initial?.quantity,
           rate: initial?.rate,
           totalAmount: initial?.totalAmount,
           autoAmount: [AmcGenre.mf, AmcGenre.stock].contains(initial?.amc.genre ?? AmcGenre.mf),
@@ -31,14 +31,14 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
   final TransactionRepository _repository;
 
   void updateAccount(int accountId) {
-    emit(state.copyWith(accountId: accountId));
+    emit(state.copyWith(status: EditTransactionStatus.edited, accountId: accountId));
   }
 
   void updateQuantity(double quantity) {
     emit(
       state.copyWith(
         status: EditTransactionStatus.edited,
-        quantity: quantity,
+        qnty: quantity,
         totalAmount: state.canEditAmount ? null : quantity * (state.rate ?? 0.0),
       ),
     );
@@ -49,7 +49,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       state.copyWith(
         status: EditTransactionStatus.edited,
         rate: rate,
-        totalAmount: state.canEditAmount ? null : rate * (state.quantity ?? 0.0),
+        totalAmount: state.canEditAmount ? null : rate * (state.qnty ?? 0.0),
       ),
     );
   }
@@ -59,7 +59,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
   }
 
   void updateAutoAmountMode(bool value) {
-    emit(state.copyWith(autoAmount: value, totalAmount: value ? (state.rate ?? 0.0) * (state.quantity ?? 0.0) : null));
+    emit(state.copyWith(autoAmount: value, totalAmount: value ? (state.rate ?? 0.0) * (state.qnty ?? 0.0) : null));
   }
 
   void updateTransactionType(TransactionType type) {
@@ -70,8 +70,8 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     emit(state.copyWith(genre: genre));
   }
 
-  void updateAmc(InveslyAmc? amc) {
-    emit(state.copyWith(status: EditTransactionStatus.edited, amc: () => amc));
+  void updateAmc(InveslyAmc amc) {
+    emit(state.copyWith(status: EditTransactionStatus.edited, amc: amc));
   }
 
   void updateDate(DateTime date) {
@@ -83,7 +83,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
   }
 
   Future<void> save() async {
-    if (!state.canSave) {
+    if (!state.isFormValid) {
       emit(state.copyWith(status: EditTransactionStatus.error));
       return;
     }
@@ -92,7 +92,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       id: state.id ?? 0,
       accountId: state.accountId!,
       amcId: state.amc!.id,
-      quantity: state.canEditRateAndQnty ? state.quantity ?? 0.0 : 0.0,
+      quantity: state.canEditRateAndQnty ? state.qnty ?? 0.0 : 0.0,
       rate: state.canEditRateAndQnty ? state.rate ?? 0.0 : 0.0,
       totalAmount: state.type == TransactionType.invested ? state.totalAmount!.abs() : -state.totalAmount!.abs(),
       date: (state.date ?? DateTime.now().startOfDay).millisecondsSinceEpoch,

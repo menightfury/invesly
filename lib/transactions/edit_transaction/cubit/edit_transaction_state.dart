@@ -3,41 +3,53 @@ part of 'edit_transaction_cubit.dart';
 
 enum EditTransactionStatus { initial, edited, saving, saved, error }
 
-// enum EditTransactionFieldStatus { initial, success, error }
+// enum EditTransactionFormFieldStatus { initial, success, error }
 
 class EditTransactionState extends Equatable {
   const EditTransactionState({
     this.status = EditTransactionStatus.initial,
     this.id,
     this.accountId,
-    this.quantity,
+    this.accountStatus,
+    this.qnty,
+    this.qntyStatus,
     this.rate,
+    this.rateStatus,
     required this.totalAmount,
+    this.totalAmountStatus,
     this.autoAmount = true,
     this.type = TransactionType.invested,
     this.genre = AmcGenre.mf,
     this.date,
+    this.dateStatus,
     this.amc,
+    this.amcStatus,
     this.notes,
   });
 
   final EditTransactionStatus status;
   final int? id;
   final int? accountId;
-  final double? quantity;
+  final String? accountStatus;
+  final double? qnty;
+  final String? qntyStatus;
   final double? rate;
+  final String? rateStatus;
   final double? totalAmount;
+  final String? totalAmountStatus;
   final bool autoAmount;
   final TransactionType type;
   final AmcGenre genre;
   final DateTime? date;
+  final String? dateStatus;
   final InveslyAmc? amc;
+  final String? amcStatus;
   final String? notes;
 
   bool get isNewTransaction => id == null;
 
   // Check if all required fields are filled and valid
-  bool get canSave {
+  bool get isFormValid {
     return accountId != null &&
         amc != null &&
         totalAmount != null &&
@@ -53,47 +65,65 @@ class EditTransactionState extends Equatable {
 
   EditTransactionState copyWith({
     EditTransactionStatus? status,
-    InveslyTransaction? initialTransaction,
+    int? id,
     int? accountId,
-    double? quantity,
+    String? accountStatus,
+    double? qnty,
+    String? qntyStatus,
     double? rate,
+    String? rateStatus,
     double? totalAmount,
+    String? totalAmountStatus,
     bool? autoAmount,
     TransactionType? type,
     AmcGenre? genre,
     DateTime? date,
-    InveslyAmc? Function()? amc,
+    String? dateStatus,
+    InveslyAmc? amc,
+    String? amcStatus,
     String? notes,
   }) {
     return EditTransactionState(
-      id: id,
       status: status ?? this.status,
+      id: id ?? this.id,
       accountId: accountId ?? this.accountId,
-      quantity: quantity ?? this.quantity,
+      accountStatus: accountStatus, // Allows resetting to null
+      qnty: qnty ?? this.qnty,
+      qntyStatus: qntyStatus, // Allows resetting to null
       rate: rate ?? this.rate,
+      rateStatus: rateStatus, // Allows resetting to null
       totalAmount: totalAmount ?? this.totalAmount,
+      totalAmountStatus: totalAmountStatus, // Allows resetting to null
       autoAmount: autoAmount ?? this.autoAmount,
       type: type ?? this.type,
       genre: genre ?? this.genre,
       date: date ?? this.date,
-      amc: amc != null ? amc() : this.amc,
+      dateStatus: dateStatus, // Allows resetting to null
+      amc: amc ?? this.amc,
+      amcStatus: amcStatus, // Allows resetting to null
       notes: notes ?? this.notes,
     );
   }
 
   @override
   List<Object?> get props => [
-    id,
     status,
+    id,
     accountId,
-    quantity,
+    accountStatus,
+    qnty,
+    qntyStatus,
     rate,
+    rateStatus,
     totalAmount,
+    totalAmountStatus,
     autoAmount,
     type,
     genre,
     date,
+    dateStatus,
     amc,
+    amcStatus,
     notes,
   ];
 }

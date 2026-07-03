@@ -26,6 +26,7 @@ class AsyncFormField<T> extends FormField<T> {
   }) : super(
          autovalidateMode: autovalidateMode ?? AutovalidateMode.disabled,
          builder: (FormFieldState<T> fieldState) {
+           $logger.w('Async Form Field is Rebuilding...');
            final state = fieldState as _AsyncFormFieldState;
            final theme = Theme.of(state.context);
 
