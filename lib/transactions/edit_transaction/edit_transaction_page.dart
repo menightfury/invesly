@@ -506,9 +506,9 @@ class _AccountPickerWidget extends StatelessWidget {
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
-      buildWhen: (prev, curr) => prev.accountId != curr.accountId || prev.accountStatus != curr.accountStatus,
+      buildWhen: (prev, curr) => prev.accountId != curr.accountId || prev.accountError != curr.accountError,
       builder: (context, state) {
-        final isError = state.accountStatus != null || state.accountId == null;
+        final isError = state.accountError != null || state.accountId == null;
         final accountsState = context.read<AccountsCubit>().state;
         final accounts = (accountsState is AccountsLoadedState) ? accountsState.accounts : null;
         final account = state.accountId != null && accounts != null && accounts.isNotEmpty
@@ -549,9 +549,9 @@ class _AmcPicker extends StatelessWidget {
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
-      buildWhen: (prev, curr) => prev.amc != curr.amc || prev.amcStatus != curr.amcStatus,
+      buildWhen: (prev, curr) => prev.amc != curr.amc || prev.amcError != curr.amcError,
       builder: (context, state) {
-        final isError = state.amcStatus != null || state.amc == null;
+        final isError = state.amcError != null || state.amc == null;
 
         $logger.i('AMC Picker Rebuilding');
         return Column(
@@ -639,9 +639,9 @@ class _DatePicker extends StatelessWidget {
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
-      buildWhen: (prev, curr) => prev.date != curr.date || prev.dateStatus != curr.dateStatus,
+      buildWhen: (prev, curr) => prev.date != curr.date || prev.dateError != curr.dateError,
       builder: (context, state) {
-        final isError = state.dateStatus != null || state.date == null;
+        final isError = state.dateError != null || state.date == null;
 
         $logger.i('Date Picker Rebuilding');
         return Column(

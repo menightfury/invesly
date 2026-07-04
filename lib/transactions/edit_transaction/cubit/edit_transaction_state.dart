@@ -10,48 +10,60 @@ class EditTransactionState extends Equatable {
     this.status = EditTransactionStatus.initial,
     this.id,
     this.accountId,
-    this.accountStatus,
+    this.accountError,
     this.qnty,
-    this.qntyStatus,
+    this.qntyError,
     this.rate,
-    this.rateStatus,
+    this.rateError,
     required this.totalAmount,
-    this.totalAmountStatus,
+    this.totalAmountError,
     this.autoAmount = true,
     this.type = TransactionType.invested,
     this.genre = AmcGenre.mf,
     this.date,
-    this.dateStatus,
+    this.dateError,
     this.amc,
-    this.amcStatus,
+    this.amcError,
     this.notes,
   });
 
   final EditTransactionStatus status;
   final int? id;
   final int? accountId;
-  final String? accountStatus;
+  final String? accountError;
   final double? qnty;
-  final String? qntyStatus;
+  final String? qntyError;
   final double? rate;
-  final String? rateStatus;
+  final String? rateError;
   final double? totalAmount;
-  final String? totalAmountStatus;
+  final String? totalAmountError;
   final bool autoAmount;
   final TransactionType type;
   final AmcGenre genre;
   final DateTime? date;
-  final String? dateStatus;
+  final String? dateError;
   final InveslyAmc? amc;
-  final String? amcStatus;
+  final String? amcError;
   final String? notes;
 
   bool get isNewTransaction => id == null;
 
+  bool get isAccountValid {
+    if (accountId == null || accountError != null) return false;
+    return !(accountId!.isNegative || accountId!.isInfinite || accountId!.isNaN);
+  }
+
   // Check if all required fields are filled and valid
   bool get isFormValid {
-    return accountId != null &&
+    return isAccountValid &&
+        qnty != null &&
+        qntyError == null &&
+        rate != null &&
+        rateError == null &&
+        date != null &&
+        dateError == null &&
         amc != null &&
+        amcError == null &&
         totalAmount != null &&
         (totalAmount?.isFinite ?? false) &&
         (totalAmount != 0);
@@ -67,40 +79,42 @@ class EditTransactionState extends Equatable {
     EditTransactionStatus? status,
     int? id,
     int? accountId,
-    String? accountStatus,
+    String? Function()? accountError,
     double? qnty,
-    String? qntyStatus,
+    String? Function()? qntyError,
     double? rate,
-    String? rateStatus,
+    String? Function()? rateError,
     double? totalAmount,
-    String? totalAmountStatus,
+    String? Function()? totalAmountError,
     bool? autoAmount,
     TransactionType? type,
     AmcGenre? genre,
     DateTime? date,
-    String? dateStatus,
+    String? Function()? dateError,
     InveslyAmc? amc,
-    String? amcStatus,
+    String? Function()? amcError,
     String? notes,
   }) {
     return EditTransactionState(
       status: status ?? this.status,
       id: id ?? this.id,
       accountId: accountId ?? this.accountId,
-      accountStatus: accountStatus, // Allows resetting to null
+      accountError: accountError != null ? accountError() : this.accountError, // Allows resetting to null
       qnty: qnty ?? this.qnty,
-      qntyStatus: qntyStatus, // Allows resetting to null
+      qntyError: qntyError != null ? qntyError() : this.qntyError, // Allows resetting to null
       rate: rate ?? this.rate,
-      rateStatus: rateStatus, // Allows resetting to null
+      rateError: rateError != null ? rateError() : this.rateError, // Allows resetting to null
       totalAmount: totalAmount ?? this.totalAmount,
-      totalAmountStatus: totalAmountStatus, // Allows resetting to null
+      totalAmountError: totalAmountError != null
+          ? totalAmountError()
+          : this.totalAmountError, // Allows resetting to null
       autoAmount: autoAmount ?? this.autoAmount,
       type: type ?? this.type,
       genre: genre ?? this.genre,
       date: date ?? this.date,
-      dateStatus: dateStatus, // Allows resetting to null
+      dateError: dateError != null ? dateError() : this.dateError, // Allows resetting to null
       amc: amc ?? this.amc,
-      amcStatus: amcStatus, // Allows resetting to null
+      amcError: amcError != null ? amcError() : this.amcError, // Allows resetting to null
       notes: notes ?? this.notes,
     );
   }
@@ -110,20 +124,20 @@ class EditTransactionState extends Equatable {
     status,
     id,
     accountId,
-    accountStatus,
+    accountError,
     qnty,
-    qntyStatus,
+    qntyError,
     rate,
-    rateStatus,
+    rateError,
     totalAmount,
-    totalAmountStatus,
+    totalAmountError,
     autoAmount,
     type,
     genre,
     date,
-    dateStatus,
+    dateError,
     amc,
-    amcStatus,
+    amcError,
     notes,
   ];
 }

@@ -31,7 +31,12 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
   final TransactionRepository _repository;
 
   void updateAccount(int accountId) {
-    emit(state.copyWith(status: EditTransactionStatus.edited, accountId: accountId));
+    if (accountId.isNegative || accountId.isInfinite || accountId.isNaN) {
+      emit(state.copyWith(accountError: () => 'Invalid account'));
+      return;
+    }
+
+    emit(state.copyWith(status: EditTransactionStatus.edited, accountId: accountId, accountError: () => null));
   }
 
   void updateQuantity(double quantity) {
@@ -83,8 +88,10 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
   }
 
   Future<void> save() async {
+    final accountError = state.isAccountValid ? null : state.accountError ?? 'Valid account is required';
+
     if (!state.isFormValid) {
-      emit(state.copyWith(status: EditTransactionStatus.error));
+      emit(state.copyWith(accountError: () => accountError));
       return;
     }
 
