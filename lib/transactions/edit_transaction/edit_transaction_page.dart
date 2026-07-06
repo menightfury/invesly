@@ -553,7 +553,11 @@ class _AmcPicker extends StatelessWidget {
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
-      buildWhen: (prev, curr) => prev.amc != curr.amc || prev.amcError != curr.amcError,
+      buildWhen: (prev, curr) {
+        return prev.amc != curr.amc ||
+            prev.amcError != curr.amcError ||
+            (curr.status == EditTransactionStatus.error && curr.amcError != null);
+      },
       builder: (context, state) {
         final isError = state.amcError != null;
 

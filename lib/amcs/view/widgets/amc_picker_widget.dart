@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/widgets/cubit/amc_search_cubit.dart';
+import 'package:invesly/common/presentations/animations/fade_in.dart';
+import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
 
 class InveslyAmcPickerWidget extends StatelessWidget {
@@ -65,9 +67,7 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final cubit = context.read<AmcSearchCubit>();
-    final searchChipsData = AmcGenre.values;
 
     return Scaffold(
       appBar: AppBar(
@@ -85,38 +85,99 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: iFormFieldLabelSpacing,
             children: <Widget>[
-              // ~ Chips for filtering by genre
-              BlocSelector<AmcSearchCubit, AmcSearchState, AmcGenre?>(
-                selector: (state) => state.searchGenre,
-                builder: (context, amcGenre) {
-                  return InveslyChoiceChips<AmcGenre>(
-                    extended: true,
-                    options: searchChipsData,
-                    labelBuilder: (context, genre) => Text(genre.title, overflow: TextOverflow.fade),
-                    iconBuilder: (context, genre) => Icon(genre.icon),
-                    selected: amcGenre,
-                    onChanged: (value) {
-                      cubit.updateSearchGenre(value);
-                      cubit.search(_searchController.text);
-                    },
-                  );
-                },
-              ),
-              Row(
-                children: <Widget>[
-                  IconButton(onPressed: () {}, icon: Icon(Icons.abc)),
-                  Expanded(
-                    child: TextField(
-                      decoration: const InputDecoration(
-                        hintText: 'Enter keyword to search',
-                        prefixIcon: Icon(Icons.search),
-                        border: OutlineInputBorder(borderRadius: iTileBorderRadius, borderSide: BorderSide.none),
+              // // ~ Chips for filtering by genre
+              // BlocSelector<AmcSearchCubit, AmcSearchState, AmcGenre>(
+              //   selector: (state) => state.searchGenre,
+              //   builder: (context, amcGenre) {
+              //     return InveslyChoiceChips<AmcGenre>(
+              //       extended: true,
+              //       options: AmcGenre.values,
+              //       labelBuilder: (context, genre) => Text(genre.title, overflow: TextOverflow.fade),
+              //       iconBuilder: (context, genre) => Icon(genre.icon),
+              //       selected: amcGenre,
+              //       onChanged: (value) {
+              //         cubit.updateSearchGenre(value);
+              //         cubit.search(_searchController.text);
+              //       },
+              //     );
+              //   },
+              // ),
+              // ~ Genre Selector
+              SizedBox(
+                height: 56.0,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 2.0,
+                  children: <Widget>[
+                    MenuAnchor(
+                      animated: true,
+                      menuChildren: AmcGenre.values.map((genre) {
+                        return MenuItemButton(
+                          leadingIcon: Icon(genre.icon, color: genre.color),
+                          onPressed: () {
+                            cubit.updateSearchGenre(genre);
+                            cubit.search(_searchController.text);
+                          },
+                          child: Text(genre.title, overflow: TextOverflow.ellipsis),
+                        );
+                      }).toList(),
+                      alignmentOffset: Offset(0.0, 4.0),
+                      style: MenuStyle(
+                        shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: iCardBorderRadius)),
+                        backgroundColor: WidgetStatePropertyAll<Color>(context.colors.surface),
+                        elevation: WidgetStatePropertyAll<double>(1.0),
                       ),
-                      controller: _searchController,
-                      autofocus: true,
+                      builder: (context, controller, child) {
+                        return IconButton(
+                          onPressed: () => controller.isOpen ? controller.close() : controller.open(),
+                          style: IconButton.styleFrom(
+                            backgroundColor: context.colors.primaryContainer,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: iCardBorderRadius.copyWith(
+                                topRight: iTileBorderRadius.topRight,
+                                bottomRight: iTileBorderRadius.bottomRight,
+                              ),
+                            ),
+                            fixedSize: const Size.square(56.0),
+                            iconSize: 24.0,
+                          ),
+                          icon: child!,
+                        );
+                      },
+                      child: BlocSelector<AmcSearchCubit, AmcSearchState, AmcGenre>(
+                        selector: (state) => state.searchGenre,
+                        builder: (context, amcGenre) {
+                          return FadeIn(
+                            key: ValueKey<AmcGenre>(amcGenre),
+                            from: Offset(0.0, 0.4),
+                            child: Icon(amcGenre.icon, color: amcGenre.color),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
+
+                    // ~ Search text field
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Enter keyword to search',
+
+                          // prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: iCardBorderRadius.copyWith(
+                              topLeft: iTileBorderRadius.topLeft,
+                              bottomLeft: iTileBorderRadius.bottomLeft,
+                            ),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        controller: _searchController,
+                        autofocus: true,
+                        onTapOutside: (_) => minimizeKeyboard(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               // ~ Result
@@ -148,6 +209,99 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
     );
   }
 }
+
+// /// Alternate to Menu Anchor
+// class PopupMenu extends StatefulWidget {
+//   const PopupMenu({super.key});
+
+//   @override
+//   State<PopupMenu> createState() => _PopupMenuState();
+// }
+
+// class _PopupMenuState extends State<PopupMenu> with SingleTickerProviderStateMixin {
+//   final LayerLink _layerLink = LayerLink();
+//   OverlayEntry? _overlayEntry;
+//   late AnimationController _menuController;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _menuController = AnimationController(duration: const Duration(milliseconds: 350), vsync: this);
+//   }
+
+//   @override
+//   void dispose() {
+//     _hideMenu();
+//     _menuController.dispose();
+//     super.dispose();
+//   }
+
+//   void _toggleMenu() {
+//     if (_overlayEntry == null) {
+//       _showMenu();
+//     } else {
+//       _hideMenu();
+//     }
+//   }
+
+//   void _showMenu() {
+//     _overlayEntry = _createOverlayEntry();
+//     Overlay.of(context).insert(_overlayEntry!);
+//     _menuController.forward();
+//   }
+
+//   void _hideMenu() async {
+//     await _menuController.reverse();
+//     _overlayEntry?.remove();
+//     _overlayEntry = null;
+//   }
+
+//   OverlayEntry _createOverlayEntry() {
+//     return OverlayEntry(
+//       builder: (context) => Stack(
+//         children: [
+//           Positioned.fill(
+//             child: GestureDetector(
+//               onTap: _hideMenu,
+//               behavior: HitTestBehavior.opaque,
+//               child: Container(color: Colors.black45),
+//             ),
+//           ),
+//           CompositedTransformFollower(
+//             link: _layerLink,
+//             showWhenUnlinked: false,
+//             targetAnchor: Alignment.bottomRight,
+//             followerAnchor: Alignment.topRight,
+//             offset: const Offset(0, 4),
+//             child: Container(color: Colors.red, height: 24.0, width: 24.0),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return CompositedTransformTarget(
+//       link: _layerLink,
+//       child: IconButton(
+//         // onPressed: () => controller.isOpen ? controller.close() : controller.open(),
+//         onPressed: _toggleMenu,
+//         style: IconButton.styleFrom(
+//           backgroundColor: context.colors.primaryContainer,
+//           shape: RoundedRectangleBorder(
+//             borderRadius: iCardBorderRadius.copyWith(
+//               topRight: iTileBorderRadius.topRight,
+//               bottomRight: iTileBorderRadius.bottomRight,
+//             ),
+//           ),
+//           fixedSize: const Size.square(56.0),
+//         ),
+//         icon: const Icon(Icons.more_vert, size: 24.0),
+//       ),
+//     );
+//   }
+// }
 
 class _SearchResults extends StatelessWidget {
   const _SearchResults({super.key, required this.amcs, this.onPickup});
