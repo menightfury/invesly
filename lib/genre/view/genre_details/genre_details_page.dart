@@ -333,6 +333,7 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
                                   if (value == null) return;
                                   _isAscending.value = value;
                                 },
+                                padding: EdgeInsets.zero,
                               );
                             },
                           ),
@@ -730,7 +731,7 @@ class _HoldingStatCard extends StatelessWidget {
                                 child: Text('% Returns', style: labelStyle, overflow: TextOverflow.ellipsis),
                               ),
                               value: Text(
-                                perReturn?.toString() ?? 'N/A',
+                                perReturn?.toPrecisionString(2) ?? 'N/A',
                                 style: TextStyle(color: color),
                                 overflow: TextOverflow.ellipsis,
                               ),

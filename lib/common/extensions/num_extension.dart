@@ -26,7 +26,7 @@ extension EMDoubleExtension on num {
   // TODO: Make better name
   /// Converts the number to a string with a specified number of decimal places, removing trailing zeros.
   String toPrecisionString(int decimalPlaces) {
-    if (this == 0) return isNegative ? '-' : '';
+    if (this == 0) return isNegative ? '-0' : '0';
 
     final string = toStringAsFixed(decimalPlaces);
     if (!string.contains('.')) return string;

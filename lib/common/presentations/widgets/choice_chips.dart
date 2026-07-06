@@ -131,7 +131,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
           selected: isSelected,
           onSelected: _enabled ? (selected) => _handleChanged(selected, value) : null,
           label: Center(child: labelBuilder(context, value)),
-          avatar: isSelected ? null : iconBuilder?.call(context, value),
+          avatar: isSelected && showCheckmark ? null : iconBuilder?.call(context, value),
           color: WidgetStateColor.resolveWith((states) {
             if (states.contains(WidgetState.selected)) return colors.primary;
             return colors.primaryContainer;
@@ -151,6 +151,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           padding: padding,
+          avatarBoxConstraints: BoxConstraints(maxWidth: 22.0, maxHeight: 22.0),
           side: WidgetStateBorderSide.resolveWith((states) {
             if (states.contains(WidgetState.selected)) return BorderSide(color: colors.primary);
             return BorderSide(color: colors.primaryContainer.darken(20));
