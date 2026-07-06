@@ -65,6 +65,7 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final cubit = context.read<AmcSearchCubit>();
     final searchChipsData = AmcGenre.values;
 
@@ -101,10 +102,21 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
                   );
                 },
               ),
-              TextField(
-                decoration: const InputDecoration(hintText: 'Enter keyword to search', prefixIcon: Icon(Icons.search)),
-                controller: _searchController,
-                autofocus: true,
+              Row(
+                children: <Widget>[
+                  IconButton(onPressed: () {}, icon: Icon(Icons.abc)),
+                  Expanded(
+                    child: TextField(
+                      decoration: const InputDecoration(
+                        hintText: 'Enter keyword to search',
+                        prefixIcon: Icon(Icons.search),
+                        border: OutlineInputBorder(borderRadius: iTileBorderRadius, borderSide: BorderSide.none),
+                      ),
+                      controller: _searchController,
+                      autofocus: true,
+                    ),
+                  ),
+                ],
               ),
 
               // ~ Result

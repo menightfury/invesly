@@ -1,9 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'edit_transaction_cubit.dart';
 
-enum EditTransactionStatus { initial, edited, saving, saved, error }
-
-// enum EditTransactionFormFieldStatus { initial, success, error }
+enum EditTransactionStatus { initial, edited, error, saving, saved, failed }
 
 class EditTransactionState extends Equatable {
   const EditTransactionState({
@@ -53,6 +51,8 @@ class EditTransactionState extends Equatable {
     return !(accountId!.isNegative || accountId!.isInfinite || accountId!.isNaN);
   }
 
+  bool get isAmcValid => amc != null && amcError == null;
+
   // Check if all required fields are filled and valid
   bool get isFormValid {
     return isAccountValid &&
@@ -62,8 +62,7 @@ class EditTransactionState extends Equatable {
         rateError == null &&
         date != null &&
         dateError == null &&
-        amc != null &&
-        amcError == null &&
+        isAmcValid &&
         totalAmount != null &&
         (totalAmount?.isFinite ?? false) &&
         (totalAmount != 0);
@@ -144,5 +143,5 @@ class EditTransactionState extends Equatable {
 
 extension EditTransactionStateX on EditTransactionState {
   bool get isLoadingOrSuccess => [EditTransactionStatus.saving, EditTransactionStatus.saved].contains(status);
-  bool get isFailureOrSuccess => [EditTransactionStatus.error, EditTransactionStatus.saved].contains(status);
+  bool get isFailureOrSuccess => [EditTransactionStatus.failed, EditTransactionStatus.saved].contains(status);
 }

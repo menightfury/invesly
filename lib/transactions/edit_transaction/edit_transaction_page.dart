@@ -84,7 +84,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
         if (state.status == EditTransactionStatus.saved) {
           message = const SnackBar(content: Text('Investment saved successfully'), backgroundColor: Colors.teal);
           context.canPop ? Navigator.pop(context) : context.go(const DashboardPage());
-        } else if (state.status == EditTransactionStatus.error) {
+        } else if (state.status == EditTransactionStatus.failed) {
           message = const SnackBar(content: Text('Sorry! some error occurred'), backgroundColor: Colors.redAccent);
         }
         ScaffoldMessenger.of(context)
@@ -96,7 +96,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
         onPopInvokedWithResult: (didPop, _) async {
           if (didPop) return;
 
-          if (cubit.state.status == EditTransactionStatus.edited) {
+          if ([EditTransactionStatus.edited, EditTransactionStatus.error].contains(cubit.state.status)) {
             final shouldPop = await showDiscardChangesDialog(context) ?? false;
             if (shouldPop && context.mounted) Navigator.pop(context);
           } else {
@@ -506,9 +506,13 @@ class _AccountPickerWidget extends StatelessWidget {
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
-      buildWhen: (prev, curr) => prev.accountId != curr.accountId || prev.accountError != curr.accountError,
+      buildWhen: (prev, curr) {
+        return prev.accountId != curr.accountId ||
+            prev.accountError != curr.accountError ||
+            (curr.status == EditTransactionStatus.error && curr.accountError != null);
+      },
       builder: (context, state) {
-        final isError = state.accountError != null || state.accountId == null;
+        final isError = state.accountError != null;
         final accountsState = context.read<AccountsCubit>().state;
         final accounts = (accountsState is AccountsLoadedState) ? accountsState.accounts : null;
         final account = state.accountId != null && accounts != null && accounts.isNotEmpty
@@ -551,7 +555,7 @@ class _AmcPicker extends StatelessWidget {
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
       buildWhen: (prev, curr) => prev.amc != curr.amc || prev.amcError != curr.amcError,
       builder: (context, state) {
-        final isError = state.amcError != null || state.amc == null;
+        final isError = state.amcError != null;
 
         $logger.i('AMC Picker Rebuilding');
         return Column(

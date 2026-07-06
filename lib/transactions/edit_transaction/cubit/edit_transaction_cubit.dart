@@ -76,7 +76,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
   }
 
   void updateAmc(InveslyAmc amc) {
-    emit(state.copyWith(status: EditTransactionStatus.edited, amc: amc));
+    emit(state.copyWith(status: EditTransactionStatus.edited, amc: amc, amcError: () => null));
   }
 
   void updateDate(DateTime date) {
@@ -88,10 +88,15 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
   }
 
   Future<void> save() async {
+    emit(state.copyWith(status: EditTransactionStatus.saving));
+    
     final accountError = state.isAccountValid ? null : state.accountError ?? 'Valid account is required';
+    final amcError = state.isAmcValid ? null : state.amcError ?? 'AMC is required';
 
     if (!state.isFormValid) {
-      emit(state.copyWith(accountError: () => accountError));
+      emit(
+        state.copyWith(status: EditTransactionStatus.error, accountError: () => accountError, amcError: () => amcError),
+      );
       return;
     }
 
@@ -107,13 +112,12 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     );
     $logger.i(inv);
 
-    emit(state.copyWith(status: EditTransactionStatus.saving));
     try {
       await _repository.saveTransaction(inv);
       emit(state.copyWith(status: EditTransactionStatus.saved));
     } on Exception catch (e) {
       $logger.e(e);
-      emit(state.copyWith(status: EditTransactionStatus.error));
+      emit(state.copyWith(status: EditTransactionStatus.failed));
     }
   }
 }
