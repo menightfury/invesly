@@ -57,7 +57,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
 
   void updateRate(double rate) {
     if (rate.isNegative || rate.isInfinite || rate.isNaN) {
-      emit(state.copyWith(rateError: () => 'Invalid rate'));
+      emit(state.copyWith(rateError: () => 'Invalid rate', totalAmountError: () => 'Invalid amount'));
       return;
     }
 
@@ -67,13 +67,14 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
         rate: rate,
         totalAmount: state.canEditAmount ? null : rate * (state.qnty ?? 0.0),
         rateError: () => null,
+        totalAmountError: () => null,
       ),
     );
   }
 
   void updateQuantity(double qnty) {
     if (qnty.isNegative || qnty.isInfinite || qnty.isNaN) {
-      emit(state.copyWith(qntyError: () => 'Invalid quantity'));
+      emit(state.copyWith(qntyError: () => 'Invalid quantity', totalAmountError: () => 'Invalid amount'));
       return;
     }
 
@@ -83,6 +84,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
         qnty: qnty,
         totalAmount: state.canEditAmount ? null : qnty * (state.rate ?? 0.0),
         qntyError: () => null,
+        totalAmountError: () => null,
       ),
     );
   }
@@ -114,10 +116,20 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
 
     final accountError = state.isAccountValid ? null : state.accountError ?? 'Valid account is required';
     final amcError = state.isAmcValid ? null : state.amcError ?? 'AMC is required';
+    final rateError = state.isRateValid ? null : state.rateError ?? 'Rate is required';
+    final qntyError = state.isQntyValid ? null : state.qntyError ?? 'Quantity is required';
+    final totalAmountError = state.isTotalAmountValid ? null : state.totalAmountError ?? 'Amount is required';
 
     if (!state.isFormValid) {
       emit(
-        state.copyWith(status: EditTransactionStatus.error, accountError: () => accountError, amcError: () => amcError),
+        state.copyWith(
+          status: EditTransactionStatus.error,
+          accountError: () => accountError,
+          amcError: () => amcError,
+          rateError: () => rateError,
+          qntyError: () => qntyError,
+          totalAmountError: () => totalAmountError,
+        ),
       );
       return;
     }
@@ -135,7 +147,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     $logger.i(inv);
 
     try {
-      await _repository.saveTransaction(inv);
+      await _repository.saveTransaction(inv, state.isNewTransaction);
       emit(state.copyWith(status: EditTransactionStatus.saved));
     } on Exception catch (e) {
       $logger.e(e);

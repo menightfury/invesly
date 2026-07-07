@@ -51,21 +51,19 @@ class EditTransactionState extends Equatable {
     return !(accountId!.isNegative || accountId!.isInfinite || accountId!.isNaN);
   }
 
+  bool get isDateValid => date != null && dateError == null;
+
   bool get isAmcValid => amc != null && amcError == null;
+
+  bool get isRateValid => rate != null && rateError == null;
+
+  bool get isQntyValid => qnty != null && qntyError == null;
+
+  bool get isTotalAmountValid => totalAmount != null && totalAmountError == null;
 
   // Check if all required fields are filled and valid
   bool get isFormValid {
-    return isAccountValid &&
-        qnty != null &&
-        qntyError == null &&
-        rate != null &&
-        rateError == null &&
-        date != null &&
-        dateError == null &&
-        isAmcValid &&
-        totalAmount != null &&
-        (totalAmount?.isFinite ?? false) &&
-        (totalAmount != 0);
+    return isAccountValid && isQntyValid && isRateValid && isDateValid && isAmcValid && isTotalAmountValid;
   }
 
   // check if unit rate and quantity fields can be edited
@@ -142,6 +140,8 @@ class EditTransactionState extends Equatable {
 }
 
 extension EditTransactionStateX on EditTransactionState {
+  bool get isError => status == EditTransactionStatus.error;
+  bool get isEdited => [EditTransactionStatus.edited, EditTransactionStatus.error].contains(status);
   bool get isLoadingOrSuccess => [EditTransactionStatus.saving, EditTransactionStatus.saved].contains(status);
   bool get isFailureOrSuccess => [EditTransactionStatus.failed, EditTransactionStatus.saved].contains(status);
 }

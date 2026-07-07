@@ -252,7 +252,7 @@ class _AmcOverviewSection extends StatelessWidget {
                     // ~ No. of units
                     Skeleton.leaf(
                       child: _SectionWidget(
-                        label: const Text('Available units', overflow: TextOverflow.ellipsis),
+                        label: const Text('Available units', overflow: TextOverflow.ellipsis, maxLines: 1),
                         value: Text('${totalQnty?.toPrecision(4) ?? "N/A"}', overflow: TextOverflow.ellipsis),
                         color: (state.isTrnError && totalQnty == null) ? colors.errorContainer : null,
                         valueColor: (state.isTrnError && totalQnty == null) ? colors.error : null,
@@ -398,9 +398,10 @@ class _AmcOverviewSection extends StatelessWidget {
                           ],
                         ),
                         value: Text(
-                          perReturn?.toString() ?? 'N/A',
+                          perReturn?.toPrecisionString(2) ?? 'N/A',
                           style: TextStyle(color: color),
                           overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                         color: (state.isLtpError && perReturn == null) ? colors.errorContainer : null,
                         valueColor: (state.isLtpError && perReturn == null) ? colors.error : null,
@@ -427,6 +428,7 @@ class _AmcOverviewSection extends StatelessWidget {
                           xirr != null ? '${(xirr * 100).toPrecision(2)}%' : 'N/A',
                           style: TextStyle(color: xirr != null ? color : null),
                           overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                         color: (state.isLtpError && xirr == null) ? colors.errorContainer : null,
                         valueColor: (state.isLtpError && xirr == null) ? colors.error : null,

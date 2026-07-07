@@ -109,7 +109,7 @@ class AmcOverviewCubit extends Cubit<AmcOverviewState> {
     }
 
     await Future.delayed(2.seconds);
-    emit(state_);
+    if (!isClosed) emit(state_);
   }
 
   @override

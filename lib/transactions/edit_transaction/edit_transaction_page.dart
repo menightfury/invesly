@@ -74,7 +74,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
         onPopInvokedWithResult: (didPop, _) async {
           if (didPop) return;
 
-          if ([EditTransactionStatus.edited, EditTransactionStatus.error].contains(cubit.state.status)) {
+          if (cubit.state.isEdited) {
             final shouldPop = await showDiscardChangesDialog(context) ?? false;
             if (shouldPop && context.mounted) Navigator.pop(context);
           } else {
@@ -229,12 +229,13 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                                   buildWhen: (prev, curr) {
                                                     return prev.rate != curr.rate ||
                                                         prev.rateError != curr.rateError ||
-                                                        (curr.status == EditTransactionStatus.error &&
+                                                        (prev.status != curr.status &&
+                                                            curr.isError &&
                                                             curr.rateError != null);
                                                   },
                                                   builder: (context, state) {
                                                     $logger.i('Rate is Rebuilding');
-                                                    return _CustomField(
+                                                    return _FormField(
                                                       onTap: () async {
                                                         final newRate = await InveslyCalculatorWidget.showModal(
                                                           context,
@@ -291,12 +292,13 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                                   buildWhen: (prev, curr) {
                                                     return prev.qnty != curr.qnty ||
                                                         prev.qntyError != curr.qntyError ||
-                                                        (curr.status == EditTransactionStatus.error &&
+                                                        (prev.status != curr.status &&
+                                                            curr.isError &&
                                                             curr.qntyError != null);
                                                   },
                                                   builder: (context, state) {
                                                     $logger.i('Quantity is Rebuilding');
-                                                    return _CustomField(
+                                                    return _FormField(
                                                       onTap: () async {
                                                         final newQnty = await InveslyCalculatorWidget.showModal(
                                                           context,
@@ -388,12 +390,12 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                 buildWhen: (prev, curr) {
                                   return prev.totalAmount != curr.totalAmount ||
                                       prev.totalAmountError != curr.totalAmountError ||
-                                      (curr.status == EditTransactionStatus.error && curr.totalAmountError != null) ||
+                                      (prev.status != curr.status && curr.isError && curr.totalAmountError != null) ||
                                       prev.canEditAmount != curr.canEditAmount;
                                 },
                                 builder: (context, state) {
                                   $logger.i('Total amount section is Rebuilding');
-                                  return _CustomField(
+                                  return _FormField(
                                     enabled: state.canEditAmount,
                                     onTap: () async {
                                       final newAmount = await InveslyCalculatorWidget.showModal(
@@ -455,14 +457,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
 
   Future<void> _handleSavePressed(BuildContext context) async {
     final transactionCubit = context.read<EditTransactionCubit>();
-    // final amcRepository = context.read<AmcRepository>();
-    // if (_formKey.currentState!.validate()) {
     await transactionCubit.save();
-    // if (!context.mounted) return;
-    // const message = SnackBar(content: Text('Investment saved successfully.'), backgroundColor: Colors.teal);
-    // ScaffoldMessenger.of(context).showSnackBar(message);
-    // Navigator.maybePop<bool>(context);
-    // }
   }
 }
 
@@ -477,7 +472,7 @@ class _AccountPickerWidget extends StatelessWidget {
       buildWhen: (prev, curr) {
         return prev.accountId != curr.accountId ||
             prev.accountError != curr.accountError ||
-            (curr.status == EditTransactionStatus.error && curr.accountError != null);
+            (prev.status != curr.status && curr.isError && curr.accountError != null);
       },
       builder: (context, state) {
         final isError = state.accountError != null;
@@ -524,11 +519,11 @@ class _AmcPicker extends StatelessWidget {
       buildWhen: (prev, curr) {
         return prev.amc != curr.amc ||
             prev.amcError != curr.amcError ||
-            (curr.status == EditTransactionStatus.error && curr.amcError != null);
+            (prev.status != curr.status && curr.isError && curr.amcError != null);
       },
       builder: (context, state) {
         $logger.i('AMC Picker Rebuilding');
-        return _CustomField(
+        return _FormField(
           onTap: () async {
             final newAmc = await context.push<InveslyAmc>(
               InveslyAmcPickerWidget(
@@ -590,11 +585,11 @@ class _DatePicker extends StatelessWidget {
       buildWhen: (prev, curr) {
         return prev.date != curr.date ||
             prev.dateError != curr.dateError ||
-            (curr.status == EditTransactionStatus.error && curr.dateError != null);
+            (prev.status != curr.status && curr.isError && curr.dateError != null);
       },
       builder: (context, state) {
         $logger.i('Date Picker Rebuilding');
-        return _CustomField(
+        return _FormField(
           onTap: () async {
             final newDate = await showDatePicker(
               context: context,
@@ -614,8 +609,8 @@ class _DatePicker extends StatelessWidget {
   }
 }
 
-class _CustomField extends StatelessWidget {
-  const _CustomField({
+class _FormField extends StatelessWidget {
+  const _FormField({
     super.key,
     this.enabled = true,
     this.onTap,
