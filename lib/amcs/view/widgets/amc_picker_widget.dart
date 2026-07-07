@@ -101,7 +101,7 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
               //   },
               // ),
               SizedBox(
-                height: 56.0,
+                height: 54.0,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   spacing: 2.0,
@@ -136,7 +136,7 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
                                 bottomRight: iTileBorderRadius.bottomRight,
                               ),
                             ),
-                            fixedSize: const Size.square(56.0),
+                            fixedSize: const Size.square(54.0),
                             iconSize: 24.0,
                           ),
                           icon: child!,

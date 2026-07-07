@@ -39,48 +39,70 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
     emit(state.copyWith(status: EditTransactionStatus.edited, accountId: accountId, accountError: () => null));
   }
 
-  void updateQuantity(double quantity) {
-    emit(
-      state.copyWith(
-        status: EditTransactionStatus.edited,
-        qnty: quantity,
-        totalAmount: state.canEditAmount ? null : quantity * (state.rate ?? 0.0),
-      ),
-    );
-  }
-
-  void updateRate(double rate) {
-    emit(
-      state.copyWith(
-        status: EditTransactionStatus.edited,
-        rate: rate,
-        totalAmount: state.canEditAmount ? null : rate * (state.qnty ?? 0.0),
-      ),
-    );
-  }
-
-  void updateAmount(double value) {
-    emit(state.copyWith(status: EditTransactionStatus.edited, totalAmount: value));
-  }
-
-  void updateAutoAmountMode(bool value) {
-    emit(state.copyWith(autoAmount: value, totalAmount: value ? (state.rate ?? 0.0) * (state.qnty ?? 0.0) : null));
+  void updateAmc(InveslyAmc amc) {
+    emit(state.copyWith(status: EditTransactionStatus.edited, amc: amc, amcError: () => null));
   }
 
   void updateTransactionType(TransactionType type) {
     emit(state.copyWith(type: type));
   }
 
-  void updateGenre(AmcGenre genre) {
-    emit(state.copyWith(genre: genre));
-  }
-
-  void updateAmc(InveslyAmc amc) {
-    emit(state.copyWith(status: EditTransactionStatus.edited, amc: amc, amcError: () => null));
-  }
+  // void updateGenre(AmcGenre genre) {
+  //   emit(state.copyWith(genre: genre));
+  // }
 
   void updateDate(DateTime date) {
     emit(state.copyWith(status: EditTransactionStatus.edited, date: date));
+  }
+
+  void updateRate(double rate) {
+    if (rate.isNegative || rate.isInfinite || rate.isNaN) {
+      emit(state.copyWith(rateError: () => 'Invalid rate'));
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        status: EditTransactionStatus.edited,
+        rate: rate,
+        totalAmount: state.canEditAmount ? null : rate * (state.qnty ?? 0.0),
+        rateError: () => null,
+      ),
+    );
+  }
+
+  void updateQuantity(double qnty) {
+    if (qnty.isNegative || qnty.isInfinite || qnty.isNaN) {
+      emit(state.copyWith(qntyError: () => 'Invalid quantity'));
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        status: EditTransactionStatus.edited,
+        qnty: qnty,
+        totalAmount: state.canEditAmount ? null : qnty * (state.rate ?? 0.0),
+        qntyError: () => null,
+      ),
+    );
+  }
+
+  void updateAmount(double amount) {
+    if (amount.isNegative || amount.isInfinite || amount.isNaN) {
+      emit(state.copyWith(totalAmountError: () => 'Invalid amount'));
+      return;
+    }
+
+    if (amount.isZero) {
+      emit(state.copyWith(totalAmountError: () => 'Amount can\'t be zero'));
+      return;
+    }
+
+    emit(state.copyWith(status: EditTransactionStatus.edited, totalAmount: amount, totalAmountError: () => null));
+  }
+
+  void updateAutoAmountMode(bool value) {
+    emit(state.copyWith(autoAmount: value, totalAmount: value ? (state.rate ?? 0.0) * (state.qnty ?? 0.0) : null));
   }
 
   void updateNotes(String notes) {
@@ -89,7 +111,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
 
   Future<void> save() async {
     emit(state.copyWith(status: EditTransactionStatus.saving));
-    
+
     final accountError = state.isAccountValid ? null : state.accountError ?? 'Valid account is required';
     final amcError = state.isAmcValid ? null : state.amcError ?? 'AMC is required';
 
