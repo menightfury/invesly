@@ -71,11 +71,9 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
 
     return Scaffold(
       appBar: AppBar(
-        title: BlocSelector<AmcSearchCubit, AmcSearchState, AmcGenre?>(
+        title: BlocSelector<AmcSearchCubit, AmcSearchState, AmcGenre>(
           selector: (state) => state.searchGenre,
-          builder: (context, genre) {
-            return Text('Search ${genre?.title ?? 'Companies / Service providers'}');
-          },
+          builder: (context, genre) => Text('Search ${genre.title}'),
         ),
       ),
       body: SafeArea(
@@ -102,13 +100,13 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
               //     );
               //   },
               // ),
-              // ~ Genre Selector
               SizedBox(
                 height: 56.0,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   spacing: 2.0,
                   children: <Widget>[
+                    // ~ Genre Selector
                     MenuAnchor(
                       animated: true,
                       menuChildren: AmcGenre.values.map((genre) {
@@ -124,8 +122,8 @@ class _InveslyAmcPickerWidgetState extends State<_InveslyAmcPickerWidget> {
                       alignmentOffset: Offset(0.0, 4.0),
                       style: MenuStyle(
                         shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: iCardBorderRadius)),
-                        backgroundColor: WidgetStatePropertyAll<Color>(context.colors.surface),
-                        elevation: WidgetStatePropertyAll<double>(1.0),
+                        backgroundColor: WidgetStatePropertyAll<Color>(context.colors.primaryContainer),
+                        elevation: WidgetStatePropertyAll<double>(5.0),
                       ),
                       builder: (context, controller, child) {
                         return IconButton(

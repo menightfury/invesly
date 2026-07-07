@@ -233,8 +233,8 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: <Widget>[
-                                                  BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
-                                                    selector: (state) => state.genre,
+                                                  BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre?>(
+                                                    selector: (state) => state.amc?.genre,
                                                     builder: (context, genre) {
                                                       final label = switch (genre) {
                                                         AmcGenre.mf => 'NAV (Rs.)',
@@ -295,8 +295,8 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: <Widget>[
-                                                  BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
-                                                    selector: (state) => state.genre,
+                                                  BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre?>(
+                                                    selector: (state) => state.amc?.genre,
                                                     builder: (context, genre) {
                                                       final label = switch (genre) {
                                                         AmcGenre.stock => 'No. of shares',
@@ -313,7 +313,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                                   ),
                                                   BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
                                                     selector: (state) =>
-                                                        [AmcGenre.insurance, AmcGenre.misc].contains(state.genre),
+                                                        [AmcGenre.insurance, AmcGenre.misc].contains(state.amc?.genre),
                                                     builder: (context, disabled) {
                                                       return AsyncFormField<num>(
                                                         initialValue: cubit.state.qnty,
@@ -378,7 +378,8 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                     children: <Widget>[
                                       const Text('Total amount (Rs.)', overflow: TextOverflow.ellipsis),
                                       BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
-                                        selector: (state) => [AmcGenre.insurance, AmcGenre.misc].contains(state.genre),
+                                        selector: (state) =>
+                                            [AmcGenre.insurance, AmcGenre.misc].contains(state.amc?.genre),
                                         builder: (context, disabled) {
                                           if (disabled) {
                                             return SizedBox.shrink();
@@ -463,7 +464,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                             ),
 
                             // ~~~ Note ~~~
-                            TextFormField(
+                            TextField(
                               maxLines: 3,
                               decoration: const InputDecoration(hintText: 'Notes'),
                               onChanged: (value) => cubit.updateNotes(value),
@@ -609,7 +610,7 @@ class _AmcPicker extends StatelessWidget {
                 child: FadeIn(
                   from: Offset(0.0, -0.25),
                   child: Text(
-                    'Can\'t be empty',
+                    state.amcError!,
                     overflow: TextOverflow.ellipsis,
                     style: context.textTheme.bodySmall?.copyWith(color: context.colors.error),
                   ),
@@ -647,9 +648,13 @@ class _DatePicker extends StatelessWidget {
     final cubit = context.read<EditTransactionCubit>();
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
-      buildWhen: (prev, curr) => prev.date != curr.date || prev.dateError != curr.dateError,
+      buildWhen: (prev, curr) {
+        return prev.date != curr.date ||
+            prev.dateError != curr.dateError ||
+            (curr.status == EditTransactionStatus.error && curr.dateError != null);
+      },
       builder: (context, state) {
-        final isError = state.dateError != null || state.date == null;
+        final isError = state.dateError != null;
 
         $logger.i('Date Picker Rebuilding');
         return Column(
@@ -661,12 +666,6 @@ class _DatePicker extends StatelessWidget {
               shake: isError,
               child: InveslyDatePicker(
                 initialDate: state.date,
-                // validator: (value) {
-                //   if (value == null) {
-                //     return 'Can\'t be empty';
-                //   }
-                //   return null;
-                // },
                 color: isError ? context.colors.errorContainer : null,
                 onPickup: (value) => cubit.updateDate(value),
                 child: _buildChild(context, state.date),
@@ -680,7 +679,7 @@ class _DatePicker extends StatelessWidget {
                 child: FadeIn(
                   from: Offset(0.0, -0.25),
                   child: Text(
-                    'Can\'t be empty',
+                    state.dateError!,
                     overflow: TextOverflow.ellipsis,
                     style: context.textTheme.bodySmall?.copyWith(color: context.colors.error),
                   ),
