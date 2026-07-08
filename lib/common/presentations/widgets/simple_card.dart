@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:invesly/constants.dart';
 
 class SimpleCard extends StatelessWidget {
   const SimpleCard({
     super.key,
     this.color,
     this.shadowColor,
-    this.elevation,
+    this.elevation = 0.0,
     this.shape,
-    this.borderRadius,
+    this.borderRadius = iTileBorderRadius,
     this.margin,
     this.padding,
     this.clipBehavior,
+    this.label,
     this.child,
   }) : assert(elevation == null || elevation >= 0.0);
 
@@ -22,6 +24,7 @@ class SimpleCard extends StatelessWidget {
   final Clip? clipBehavior;
   final EdgeInsetsGeometry? margin;
   final EdgeInsetsGeometry? padding;
+  final Widget? label;
   final Widget? child;
 
   @override
@@ -30,7 +33,42 @@ class SimpleCard extends StatelessWidget {
     final cardTheme = CardTheme.of(context);
     final effectiveShape = shape ?? RoundedRectangleBorder(borderRadius: borderRadius ?? BorderRadius.zero);
 
-    Widget? content = child;
+    Widget? labelText, childText;
+
+    if (label != null) {
+      labelText = DefaultTextStyle(
+        style: theme.textTheme.bodyMedium!,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        child: label!,
+      );
+    }
+
+    if (child != null) {
+      childText = DefaultTextStyle(
+        style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.w600),
+        textAlign: TextAlign.end,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        child: child!,
+      );
+    }
+
+    Widget? content = childText;
+
+    if (labelText != null) {
+      content = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // spacing: contentSpacing ?? 0.0,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          labelText,
+          Align(alignment: Alignment.bottomRight, child: content),
+        ],
+      );
+    }
+
     if (padding != null) {
       content = Padding(padding: padding!, child: content);
     }

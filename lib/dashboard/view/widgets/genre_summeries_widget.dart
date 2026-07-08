@@ -48,8 +48,8 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
     final textTheme = Theme.of(context).textTheme;
 
     return Section(
-      title: const Text('Investment Summary'),
-      icon: const Icon(Icons.pie_chart_rounded),
+      title: const Text('Net worth'),
+      icon: const Icon(Icons.trending_up),
       tiles: <Widget>[
         SectionTile(
           title: BlocBuilder<AccountsCubit, AccountsState>(
@@ -66,6 +66,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                   return Skeletonizer(
                     enabled: isLoading,
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         // ~ Total amount
                         BlocSelector<AppCubit, AppState, bool>(
@@ -73,9 +74,9 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                           builder: (context, isPrivateMode) {
                             return CurrencyView(
                               amount: totalAmount ?? 0.0,
-                              style: textTheme.headlineLarge,
+                              style: textTheme.displayMedium,
                               decimalsStyle: textTheme.headlineSmall,
-                              currencyStyle: textTheme.bodyMedium,
+                              currencyStyle: textTheme.displaySmall,
                               privateMode: isPrivateMode,
                               // compactView: snapshot.data! >= 1_00_00_000
                             );
@@ -99,10 +100,57 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                         ValueListenableBuilder(
                           valueListenable: _selectedGenre,
                           builder: (context, _, _) {
-                            return Section(
-                              margin: EdgeInsets.zero,
-                              tiles: List.generate(AmcGenre.values.length, (i) {
+                            final numRows = (AmcGenre.values.length / 2).ceil();
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: List.generate(numRows, (i) {
                                 final genre = AmcGenre.fromIndex(i);
+
+                                // final stat = stats?.singleWhereOrNull((stat) => stat.amc == genre);
+                                final filteredStats = stats?.where((stat) => stat.amc.genre == genre);
+                                final totalAmount = filteredStats?.fold<double>(0, (v, el) => v + el.totalInvested);
+                                final numTransactions = filteredStats?.fold<int>(0, (v, el) => v + el.numTrns);
+                                final holdingCount = filteredStats?.length;
+
+                                return Row(
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: _buildGenreTile(
+                                        genre: genre,
+                                        state: isError
+                                            ? _DashboardState.error
+                                            : isLoading
+                                            ? _DashboardState.loading
+                                            : _DashboardState.loaded,
+                                        numTransactions: numTransactions,
+                                        holdingCount: holdingCount,
+                                        totalAmount: totalAmount,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: _buildGenreTile(
+                                        genre: genre,
+                                        state: isError
+                                            ? _DashboardState.error
+                                            : isLoading
+                                            ? _DashboardState.loading
+                                            : _DashboardState.loaded,
+                                        numTransactions: numTransactions,
+                                        holdingCount: holdingCount,
+                                        totalAmount: totalAmount,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }),
+                            );
+
+                            return GridView.builder(
+                              // TODO: Remove GridView and Convert to Multi column Builder
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemBuilder: (context, index) {
+                                final genre = AmcGenre.fromIndex(index);
 
                                 // final stat = stats?.singleWhereOrNull((stat) => stat.amc == genre);
                                 final filteredStats = stats?.where((stat) => stat.amc.genre == genre);
@@ -121,8 +169,34 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                                   holdingCount: holdingCount,
                                   totalAmount: totalAmount,
                                 );
-                              }),
+                              },
+                              itemCount: AmcGenre.values.length,
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
                             );
+                            // return Section(
+                            //   margin: EdgeInsets.zero,
+                            //   tiles: List.generate(AmcGenre.values.length, (i) {
+                            //     final genre = AmcGenre.fromIndex(i);
+
+                            //     // final stat = stats?.singleWhereOrNull((stat) => stat.amc == genre);
+                            //     final filteredStats = stats?.where((stat) => stat.amc.genre == genre);
+                            //     final totalAmount = filteredStats?.fold<double>(0, (v, el) => v + el.totalInvested);
+                            //     final numTransactions = filteredStats?.fold<int>(0, (v, el) => v + el.numTrns);
+                            //     final holdingCount = filteredStats?.length;
+
+                            //     return _buildGenreTile(
+                            //       genre: genre,
+                            //       state: isError
+                            //           ? _DashboardState.error
+                            //           : isLoading
+                            //           ? _DashboardState.loading
+                            //           : _DashboardState.loaded,
+                            //       numTransactions: numTransactions,
+                            //       holdingCount: holdingCount,
+                            //       totalAmount: totalAmount,
+                            //     );
+                            //   }),
+                            // );
                           },
                         ),
                       ],
@@ -137,7 +211,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
     );
   }
 
-  SectionTile _buildGenreTile({
+  Widget _buildGenreTile({
     required AmcGenre genre,
     required _DashboardState state,
     int? numTransactions,
@@ -167,27 +241,33 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
       );
     }
 
-    return SectionTile(
-      tileColor: isSelected ? genre.color : Colors.white.withAlpha(100),
-      icon: Skeleton.keep(
-        child: PhysicalModel(
-          color: genre.color.lighten(60),
-          shape: BoxShape.circle,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(genre.icon, color: genre.color),
-          ),
+    return SimpleCard(
+      color: isSelected ? genre.color : Colors.white.withAlpha(100),
+      label: Skeleton.keep(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 4.0,
+          children: <Widget>[
+            PhysicalModel(
+              color: genre.color.lighten(60),
+              shape: BoxShape.circle,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(genre.icon, color: genre.color),
+              ),
+            ),
+            Skeleton.keep(
+              child: Text(
+                genre.title,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: isSelected ? Colors.white : null),
+              ),
+            ),
+          ],
         ),
       ),
-      title: Skeleton.keep(
-        child: Text(
-          genre.title,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: isSelected ? Colors.white : null),
-        ),
-      ),
-      subtitle: subtitle,
-      secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
+      // subtitle: subtitle,
+      child: BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
           return CurrencyView(
@@ -212,13 +292,13 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
           );
         },
       ),
-      onTap: () {
-        if (_selectedGenre.value == genre) {
-          context.push(GenreDetailsPage(genre));
-        } else {
-          _selectedGenre.value = genre;
-        }
-      },
+      // onTap: () {
+      //   if (_selectedGenre.value == genre) {
+      //     context.push(GenreDetailsPage(genre));
+      //   } else {
+      //     _selectedGenre.value = genre;
+      //   }
+      // },
     );
   }
 }
