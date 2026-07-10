@@ -6,7 +6,6 @@ import 'dart:math' as math;
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
 import 'package:invesly/accounts/model/account_model.dart';
-import 'package:invesly/common/presentations/widgets/animated_physical_shape.dart';
 import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
@@ -146,11 +145,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
                 const Gap(16.0),
 
-                // ~~~ Accounts ~~~
-                _AccountsList(),
-                const Gap(16.0),
-
-                // ~~~ Stats, Recent transactions etc. ~~~
+                // ~~~ Accounts, Stats, Recent transactions etc. ~~~
                 BlocProvider(
                   create: (context) => TransactionsCubit(repository: trnRepository),
                   child: BlocSelector<AppCubit, AppState, int?>(
@@ -212,6 +207,7 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
+        _AccountsList(),
         _GenreSummariesWidget(),
         ...AmcGenre.values.map((genre) => _IndividualGenreWidget(genre)),
         _RecentTransactions(),

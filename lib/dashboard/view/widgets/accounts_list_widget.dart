@@ -38,10 +38,10 @@ class _AccountsListState extends State<_AccountsList> {
           child: BlocBuilder<AccountsCubit, AccountsState>(
             builder: (context, accountState) {
               if (accountState.isError) {
-                return Chip(
+                return SimpleCard(
                   label: Text('Failed to load accounts', style: TextStyle(color: context.colors.error)),
-                  labelPadding: chipPadding,
-                  backgroundColor: context.colors.errorContainer,
+                  padding: chipPadding,
+                  color: context.colors.errorContainer,
                 );
               }
 
@@ -93,48 +93,37 @@ class _AccountsListState extends State<_AccountsList> {
                             return GestureDetector(
                               onTap: isSelected ? null : () => appCubit.updatePrimaryAccount(account.id),
                               behavior: HitTestBehavior.opaque,
-                              child: SimpleCard(
-                                // clipBehavior: Clip.antiAlias,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: iCardBorderRadius,
-                                  side: isSelected
-                                      ? BorderSide(width: 2.0, color: context.colors.primary)
-                                      : BorderSide.none,
-                                ),
-                                elevation: isSelected ? 2.0 : 0.0,
-                                child: ConstrainedBox(
+                              child: IntrinsicWidth(
+                                child: SimpleCard(
+                                  padding: chipPadding,
                                   constraints: constraint,
-                                  child: Padding(
-                                    padding: chipPadding,
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: <Widget>[
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          spacing: 16.0,
-                                          children: <Widget>[
-                                            SizedBox.square(
-                                              dimension: 40.0,
-                                              child: PhysicalModel(
-                                                color: Colors.white,
-                                                shape: BoxShape.circle,
-                                                child: Image.asset(account.avatarSrc),
-                                              ),
-                                            ),
-                                            Text(
-                                              account.name,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: context.textTheme.titleMedium?.copyWith(
-                                                color: context.colors.primary,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        CurrencyView(amount: 5_000.00, style: context.textTheme.headlineLarge),
-                                      ],
-                                    ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: iCardBorderRadius,
+                                    side: isSelected
+                                        ? BorderSide(width: 2.0, color: context.colors.primary)
+                                        : BorderSide.none,
                                   ),
+                                  elevation: isSelected ? 2.0 : 0.0,
+                                  label: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    spacing: 12.0,
+                                    children: <Widget>[
+                                      SizedBox.square(
+                                        dimension: 40.0,
+                                        child: PhysicalModel(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                          child: Image.asset(account.avatarSrc),
+                                        ),
+                                      ),
+                                      Text(
+                                        account.name,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: context.textTheme.headlineSmall?.copyWith(color: context.colors.primary),
+                                      ),
+                                    ],
+                                  ),
+                                  child: CurrencyView(amount: 5_000.00, style: context.textTheme.headlineLarge),
                                 ),
                               ),
                             );
@@ -154,45 +143,38 @@ class _AccountsListState extends State<_AccountsList> {
                         //   labelPadding: chipPadding,
                         //   label: Text('Add account', style: TextStyle(color: context.colors.onSecondaryContainer)),
                         // ),
-                        Material(
-                          clipBehavior: Clip.antiAlias,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: iCardBorderRadius,
-                            side: BorderSide(width: 2.0, color: context.theme.disabledColor.lighten(50)),
-                          ),
-                          color: context.colors.surface,
-                          child: InkWell(
-                            onTap: () => context.push(const EditAccountPage()),
-                            child: ConstrainedBox(
-                              constraints: constraint,
-                              child: Padding(
-                                padding: chipPadding,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  spacing: 4.0,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    SizedBox.square(
+                        GestureDetector(
+                          onTap: () => context.push(const EditAccountPage()),
+                          child: SimpleCard(
+                            constraints: constraint,
+                            padding: chipPadding,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: iCardBorderRadius,
+                              side: BorderSide(width: 2.0, color: context.theme.disabledColor.lighten(80)),
+                            ),
+                            color: context.colors.surface,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 4.0,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                SizedBox.square(
+                                  dimension: 40.0,
+                                  child: PhysicalModel(
+                                    color: context.theme.disabledColor.lighten(50),
+                                    shape: BoxShape.circle,
+                                    child: SizedBox.square(
                                       dimension: 40.0,
-                                      child: PhysicalModel(
-                                        color: context.theme.disabledColor.lighten(50),
-                                        shape: BoxShape.circle,
-                                        child: SizedBox.square(
-                                          dimension: 40.0,
-                                          child: Icon(Icons.add_rounded, color: Colors.white),
-                                        ),
-                                      ),
+                                      child: Icon(Icons.add_rounded, color: Colors.white),
                                     ),
-                                    Text(
-                                      'Add account',
-                                      overflow: TextOverflow.ellipsis,
-                                      style: context.textTheme.titleMedium?.copyWith(
-                                        color: context.theme.disabledColor,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                                Text(
+                                  'Add account',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.textTheme.bodyMedium?.copyWith(color: context.theme.disabledColor),
+                                ),
+                              ],
                             ),
                           ),
                         ),

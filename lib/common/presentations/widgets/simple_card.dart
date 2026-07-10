@@ -16,6 +16,7 @@ class SimpleCard extends StatelessWidget {
     this.label,
     this.child,
     this.contentSpacing = 8.0,
+    this.constraints,
   }) : assert(elevation == null || elevation >= 0.0);
 
   final Color? color;
@@ -29,6 +30,7 @@ class SimpleCard extends StatelessWidget {
   final Widget? label;
   final Widget? child;
   final double? contentSpacing;
+  final BoxConstraints? constraints;
 
   @override
   Widget build(BuildContext context) {
@@ -72,13 +74,17 @@ class SimpleCard extends StatelessWidget {
       );
     }
 
+    if (constraints != null) {
+      content = Container(constraints: constraints!, child: content);
+    }
+
     if (padding != null) {
       content = Padding(padding: padding!, child: content);
     }
 
     Widget card = AnimatedPhysicalShape(
       curve: Curves.fastOutSlowIn,
-      duration: kThemeChangeDuration,
+      duration: iThemeChangeDuration,
       clipBehavior: clipBehavior ?? cardTheme.clipBehavior ?? Clip.antiAlias,
       shape: effectiveShape,
       // clipper: ShapeBorderClipper(shape: effectiveShape, textDirection: Directionality.maybeOf(context)),
