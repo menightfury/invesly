@@ -3,6 +3,8 @@ import 'package:invesly/common_libs.dart';
 
 enum _SectionVariant { scrollable, fixed }
 
+const _defaultPadding = EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
+
 class Section extends StatelessWidget {
   const Section({
     super.key,
@@ -67,10 +69,7 @@ class Section extends StatelessWidget {
     assert(margin.isNonNegative);
 
     final theme = Theme.of(context);
-    final titleText = DefaultTextStyle(
-      style: theme.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
-      child: title ?? const SizedBox.shrink(),
-    );
+    final titleText = DefaultTextStyle(style: theme.textTheme.headlineMedium!, child: title ?? const SizedBox.shrink());
 
     final subtitleText = DefaultTextStyle(
       style: theme.textTheme.bodySmall!.copyWith(color: theme.colorScheme.secondary),
@@ -125,6 +124,7 @@ class Section extends StatelessWidget {
               icon: icon,
               secondaryIcon: trailingIcon,
               tileColor: theme.colorScheme.primaryContainer.darken(10),
+              padding: _defaultPadding.add(EdgeInsetsGeometry.symmetric(vertical: 4.0)),
               borderRadius: hasTiles
                   ? iCardBorderRadius.copyWith(
                       bottomLeft: iTileBorderRadius.bottomLeft,
@@ -161,8 +161,6 @@ class SectionTile extends StatelessWidget {
   final bool _value; // for switch tile only
   final _SectionTileVariant _variant;
   final ListTileControlAffinity controlAffinity;
-
-  static const _defaultPadding = EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
 
   const SectionTile({
     super.key,
@@ -279,6 +277,15 @@ class SectionTile extends StatelessWidget {
       );
     }
 
+    Widget content = titleText;
+    if (subtitleText != null) {
+      content = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: contentSpacing ?? 0.0,
+        children: <Widget>[titleText, subtitleText],
+      );
+    }
+
     final leadingIcon = switch (_variant) {
       _SectionTileVariant.check => Checkbox(
         value: _value,
@@ -323,18 +330,11 @@ class SectionTile extends StatelessWidget {
               padding: padding ?? EdgeInsets.zero,
               child: Row(
                 spacing: 16.0,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   if (leading != null)
                     ConstrainedBox(constraints: const BoxConstraints(maxHeight: 48.0), child: leading),
 
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: contentSpacing ?? 0.0,
-                      children: <Widget>[titleText, ?subtitleText],
-                    ),
-                  ),
+                  Expanded(child: content),
 
                   if (trailing != null)
                     ConstrainedBox(constraints: const BoxConstraints(maxHeight: 48.0), child: trailing),

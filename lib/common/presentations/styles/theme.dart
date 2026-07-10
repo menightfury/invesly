@@ -25,7 +25,7 @@ class AppStyle {
       canvasColor: colorScheme.secondaryContainer,
       cardColor: colorScheme.secondaryContainer,
       colorScheme: colorScheme,
-      fontFamily: GoogleFonts.portLligatSlab().fontFamily,
+      fontFamily: GoogleFonts.gabarito().fontFamily,
       // fontFamily: _primaryFont,
       dividerColor: colorScheme.primary.withAlpha(50),
       textTheme: TextTheme(
@@ -123,6 +123,7 @@ class AppStyle {
           shape: const WidgetStatePropertyAll<OutlinedBorder>(
             RoundedRectangleBorder(borderRadius: iButtonBorderRadius),
           ),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -138,6 +139,7 @@ class AppStyle {
           shape: const WidgetStatePropertyAll<OutlinedBorder>(
             RoundedRectangleBorder(borderRadius: iButtonBorderRadius),
           ),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -160,6 +162,7 @@ class AppStyle {
 
             return RoundedRectangleBorder(borderRadius: iButtonBorderRadius);
           }),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -170,6 +173,7 @@ class AppStyle {
             RoundedRectangleBorder(borderRadius: iButtonBorderRadius),
           ),
           side: WidgetStatePropertyAll(BorderSide(width: 1.0, color: colorScheme.outlineVariant)),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(

@@ -90,18 +90,18 @@ class _AccountsListState extends State<_AccountsList> {
                             //   }),
                             //   side: BorderSide(color: context.colors.primary, width: 1.0),
                             // );
-                            return Material(
-                              clipBehavior: Clip.antiAlias,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: iCardBorderRadius,
-                                side: isSelected
-                                    ? BorderSide(width: 2.0, color: context.colors.primary)
-                                    : BorderSide.none,
-                              ),
-                              animationDuration: 400.ms,
-                              elevation: isSelected ? 2.0 : 0.0,
-                              child: InkWell(
-                                onTap: isSelected ? null : () => appCubit.updatePrimaryAccount(account.id),
+                            return GestureDetector(
+                              onTap: isSelected ? null : () => appCubit.updatePrimaryAccount(account.id),
+                              behavior: HitTestBehavior.opaque,
+                              child: SimpleCard(
+                                // clipBehavior: Clip.antiAlias,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: iCardBorderRadius,
+                                  side: isSelected
+                                      ? BorderSide(width: 2.0, color: context.colors.primary)
+                                      : BorderSide.none,
+                                ),
+                                elevation: isSelected ? 2.0 : 0.0,
                                 child: ConstrainedBox(
                                   constraints: constraint,
                                   child: Padding(

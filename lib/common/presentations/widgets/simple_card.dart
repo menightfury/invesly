@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:invesly/common/presentations/widgets/animated_physical_shape.dart';
 import 'package:invesly/constants.dart';
 
 class SimpleCard extends StatelessWidget {
@@ -75,7 +76,7 @@ class SimpleCard extends StatelessWidget {
       content = Padding(padding: padding!, child: content);
     }
 
-    Widget card = _MaterialInterior(
+    Widget card = AnimatedPhysicalShape(
       curve: Curves.fastOutSlowIn,
       duration: kThemeChangeDuration,
       clipBehavior: clipBehavior ?? cardTheme.clipBehavior ?? Clip.antiAlias,
@@ -84,10 +85,7 @@ class SimpleCard extends StatelessWidget {
       elevation: elevation ?? cardTheme.elevation ?? 0.0,
       color: color ?? cardTheme.color ?? theme.cardTheme.color ?? theme.colorScheme.surfaceContainerLow,
       shadowColor: shadowColor ?? cardTheme.shadowColor ?? theme.colorScheme.shadow,
-      child: CustomPaint(
-        foregroundPainter: _ShapeBorderPainter(effectiveShape, Directionality.maybeOf(context)),
-        child: content,
-      ),
+      child: content,
     );
 
     if (margin != null) {
@@ -95,93 +93,5 @@ class SimpleCard extends StatelessWidget {
     }
 
     return card;
-  }
-}
-
-class _MaterialInterior extends ImplicitlyAnimatedWidget {
-  const _MaterialInterior({
-    required this.child,
-    required this.shape,
-    this.borderOnForeground = true,
-    this.clipBehavior = Clip.none,
-    required this.elevation,
-    required this.color,
-    required this.shadowColor,
-    this.surfaceTintColor,
-    super.curve,
-    required super.duration,
-  }) : assert(elevation >= 0.0);
-
-  final Widget child;
-  final ShapeBorder shape;
-  final bool borderOnForeground;
-  final Clip clipBehavior;
-  final double elevation;
-  final Color color;
-  final Color shadowColor;
-  final Color? surfaceTintColor;
-
-  @override
-  _MaterialInteriorState createState() => _MaterialInteriorState();
-}
-
-class _MaterialInteriorState extends ImplicitlyAnimatedWidgetState<_MaterialInterior> {
-  Tween<double>? _elevation;
-  ColorTween? _surfaceTintColor;
-  ColorTween? _shadowColor;
-  ShapeBorderTween? _border;
-
-  @override
-  void forEachTween(TweenVisitor<dynamic> visitor) {
-    _elevation =
-        visitor(_elevation, widget.elevation, (dynamic value) => Tween<double>(begin: value as double))
-            as Tween<double>?;
-    _shadowColor =
-        visitor(_shadowColor, widget.shadowColor, (dynamic value) => ColorTween(begin: value as Color)) as ColorTween?;
-    _surfaceTintColor = widget.surfaceTintColor != null
-        ? visitor(_surfaceTintColor, widget.surfaceTintColor, (dynamic value) => ColorTween(begin: value as Color))
-              as ColorTween?
-        : null;
-    _border =
-        visitor(_border, widget.shape, (dynamic value) => ShapeBorderTween(begin: value as ShapeBorder))
-            as ShapeBorderTween?;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final ShapeBorder shape = _border!.evaluate(animation)!;
-    final double elevation = _elevation!.evaluate(animation);
-    final Color color = Theme.of(context).useMaterial3
-        ? ElevationOverlay.applySurfaceTint(widget.color, _surfaceTintColor?.evaluate(animation), elevation)
-        : ElevationOverlay.applyOverlay(context, widget.color, elevation);
-    final Color shadowColor = _shadowColor!.evaluate(animation)!;
-
-    return PhysicalShape(
-      clipBehavior: widget.clipBehavior,
-      clipper: ShapeBorderClipper(shape: shape, textDirection: Directionality.maybeOf(context)),
-      elevation: elevation,
-      color: color,
-      shadowColor: shadowColor,
-      child: CustomPaint(
-        foregroundPainter: _ShapeBorderPainter(shape, Directionality.maybeOf(context)),
-        child: widget.child,
-      ),
-    );
-  }
-}
-
-class _ShapeBorderPainter extends CustomPainter {
-  _ShapeBorderPainter(this.border, this.textDirection);
-  final ShapeBorder border;
-  final TextDirection? textDirection;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    border.paint(canvas, Offset.zero & size, textDirection: textDirection);
-  }
-
-  @override
-  bool shouldRepaint(_ShapeBorderPainter oldDelegate) {
-    return oldDelegate.border != border;
   }
 }

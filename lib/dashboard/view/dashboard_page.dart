@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
 import 'package:invesly/accounts/model/account_model.dart';
+import 'package:invesly/common/presentations/widgets/animated_physical_shape.dart';
 import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';

@@ -179,9 +179,9 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           child: SimpleCard(
-            color: isSelected ? genre.color : Colors.white.withAlpha(100),
+            color: isSelected ? genre.color : context.theme.canvasColor.lighten(30),
             padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-            elevation: isSelected ? 4.0 : 0.0,
+            elevation: isSelected ? 2.0 : 0.0,
             contentSpacing: 16.0,
             label: Skeleton.keep(
               child: Stack(
