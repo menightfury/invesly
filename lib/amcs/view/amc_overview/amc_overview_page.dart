@@ -36,10 +36,6 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    // final statCubit = context.read<StatCubit>();
-    // if (!statCubit.state.isLoaded) {
-    //   statCubit.fetchAllStats();
-    // }
     final statState = context.read<StatCubit>().state;
     if (statState.isLoaded) {
       stat = statState.getStat(accountId: widget.accountId, amcId: widget.amcId);

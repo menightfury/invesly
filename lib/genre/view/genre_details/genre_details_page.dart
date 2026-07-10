@@ -26,6 +26,7 @@ class GenreDetailsPage extends StatefulWidget {
 
 class _GenreDetailsPageState extends State<GenreDetailsPage> {
   final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();

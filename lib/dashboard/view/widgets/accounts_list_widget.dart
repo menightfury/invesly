@@ -23,13 +23,13 @@ class _AccountsListState extends State<_AccountsList> {
   @override
   Widget build(BuildContext context) {
     final appCubit = context.read<AppCubit>();
-    const chipPadding = EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 12.0);
-    const constraint = BoxConstraints(minWidth: 184.0, minHeight: 120.0);
+    const cardPadding = EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 12.0);
+    const cardConstraint = BoxConstraints(minWidth: 184.0, minHeight: 120.0);
 
     return Align(
       alignment: Alignment.centerLeft,
       child: SizedBox(
-        height: constraint.minHeight,
+        height: cardConstraint.minHeight,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           clipBehavior: Clip.none,
@@ -40,7 +40,7 @@ class _AccountsListState extends State<_AccountsList> {
               if (accountState.isError) {
                 return SimpleCard(
                   label: Text('Failed to load accounts', style: TextStyle(color: context.colors.error)),
-                  padding: chipPadding,
+                  padding: cardPadding,
                   color: context.colors.errorContainer,
                 );
               }
@@ -69,34 +69,13 @@ class _AccountsListState extends State<_AccountsList> {
                         if (accounts.isNotEmpty)
                           ...accounts.map((account) {
                             final isSelected = primaryAccountId == account.id;
-                            // return ChoiceChip(
-                            //   showCheckmark: false,
-                            //   onSelected: (selected) {
-                            //     // update primary account
-                            //     selected ? appCubit.updatePrimaryAccount(account.id) : null;
-                            //   },
-                            //   labelPadding: chipPadding,
-                            //   selected: isSelected,
-                            //   avatar: CircleAvatar(backgroundImage: AssetImage(account.avatarSrc)),
-                            //   label: Text(
-                            //     account.name,
-                            //     overflow: TextOverflow.ellipsis,
-                            //     style: TextStyle(color: isSelected ? context.colors.onPrimary : context.colors.primary),
-                            //   ),
-                            //   color: WidgetStateProperty.resolveWith<Color?>((state) {
-                            //     if (state.contains(WidgetState.selected)) return context.colors.primary;
-
-                            //     return null;
-                            //   }),
-                            //   side: BorderSide(color: context.colors.primary, width: 1.0),
-                            // );
                             return GestureDetector(
                               onTap: isSelected ? null : () => appCubit.updatePrimaryAccount(account.id),
                               behavior: HitTestBehavior.opaque,
                               child: IntrinsicWidth(
                                 child: SimpleCard(
-                                  padding: chipPadding,
-                                  constraints: constraint,
+                                  padding: cardPadding,
+                                  constraints: cardConstraint,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: iCardBorderRadius,
                                     side: isSelected
@@ -130,24 +109,11 @@ class _AccountsListState extends State<_AccountsList> {
                           }),
 
                         // ~~~ Add account ~~~
-                        // ActionChip(
-                        //   onPressed: () => context.push(const EditAccountPage()),
-                        //   avatar: PhysicalModel(
-                        //     color: context.colors.primary,
-                        //     shape: BoxShape.circle,
-                        //     child: SizedBox.square(
-                        //       dimension: 40.0,
-                        //       child: Icon(Icons.add_rounded, color: context.colors.onPrimary),
-                        //     ),
-                        //   ),
-                        //   labelPadding: chipPadding,
-                        //   label: Text('Add account', style: TextStyle(color: context.colors.onSecondaryContainer)),
-                        // ),
                         GestureDetector(
                           onTap: () => context.push(const EditAccountPage()),
                           child: SimpleCard(
-                            constraints: constraint,
-                            padding: chipPadding,
+                            constraints: cardConstraint,
+                            padding: cardPadding,
                             shape: RoundedRectangleBorder(
                               borderRadius: iCardBorderRadius,
                               side: BorderSide(width: 2.0, color: context.theme.disabledColor.lighten(80)),
@@ -187,8 +153,12 @@ class _AccountsListState extends State<_AccountsList> {
               return Skeletonizer(
                 child: Section(
                   tiles: List.generate(2, (_) {
-                    return Skeleton.leaf(
-                      child: Chip(label: const Text('Loading accounts...'), labelPadding: chipPadding),
+                    return const Skeleton.leaf(
+                      child: SimpleCard(
+                        label: Text('Loading accounts...'),
+                        padding: cardPadding,
+                        constraints: cardConstraint,
+                      ),
                     );
                   }),
                 ),
