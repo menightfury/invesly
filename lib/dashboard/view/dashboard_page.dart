@@ -148,12 +148,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 // ~~~ Accounts, Stats, Recent transactions etc. ~~~
                 BlocProvider(
                   create: (context) => TransactionsCubit(repository: trnRepository),
-                  child: BlocSelector<AppCubit, AppState, int?>(
-                    selector: (state) => state.primaryAccountId,
-                    builder: (context, accountId) {
-                      return _DashboardScreenContent(accountId: accountId);
-                    },
-                  ),
+                  child: _DashboardScreenContent(),
                 ),
 
                 const Gap(80.0),
@@ -184,19 +179,10 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
     _getStats();
   }
 
-  @override
-  void didUpdateWidget(covariant _DashboardScreenContent oldWidget) {
-    if (widget.accountId != oldWidget.accountId) {
-      _getStats();
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
   void _getStats() {
     if (widget.accountId == null) {
       return;
     }
-    // context.read<AmcStatCubit>().fetchStats(widget.accountId!);
     context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, limit: 5);
   }
 
