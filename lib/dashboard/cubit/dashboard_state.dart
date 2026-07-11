@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'dashboard_cubit.dart';
 
-enum DashboardStatus { initial, loading, success, failure }
+enum DashboardStatus { initial, loading, success, error }
 
 class DashboardState extends Equatable {
   const DashboardState({this.status = DashboardStatus.initial, this.selectedGenre});

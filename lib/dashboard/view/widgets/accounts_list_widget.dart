@@ -37,6 +37,7 @@ class _AccountsListState extends State<_AccountsList> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: BlocBuilder<AccountsCubit, AccountsState>(
             builder: (context, accountState) {
+              // ~ Error state
               if (accountState.isError) {
                 return SimpleCard(
                   label: Text('Failed to load accounts', style: TextStyle(color: context.colors.error)),
@@ -45,6 +46,7 @@ class _AccountsListState extends State<_AccountsList> {
                 );
               }
 
+              // ~ Loaded state
               if (accountState is AccountsLoadedState) {
                 final accounts = accountState.accounts;
                 if (accounts.isNotEmpty) {
@@ -63,7 +65,7 @@ class _AccountsListState extends State<_AccountsList> {
                   builder: (context, primaryAccountId) {
                     return Row(
                       spacing: 8.0,
-                      // crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         // ~~~ Accounts ~~~
                         if (accounts.isNotEmpty)
@@ -102,7 +104,26 @@ class _AccountsListState extends State<_AccountsList> {
                                       ),
                                     ],
                                   ),
-                                  child: CurrencyView(amount: 5_000.00, style: context.textTheme.headlineLarge),
+                                  child: BlocBuilder<StatCubit, StatState>(
+                                    builder: (context, statState) {
+                                      if (statState.isError) {
+                                        return Text(
+                                          'Error loading amount',
+                                          style: TextStyle(color: context.colors.error),
+                                        );
+                                      }
+
+                                      if (statState.isLoaded) {
+                                        final amount = statState.getTotalInvested(accountId: account.id);
+                                        return CurrencyView(amount: amount, style: context.textTheme.headlineLarge);
+                                      }
+
+                                      return LoadingAnimationWidget.newtonCradle(
+                                        color: context.colors.primary,
+                                        size: 56.0,
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             );
@@ -110,6 +131,7 @@ class _AccountsListState extends State<_AccountsList> {
 
                         // ~~~ Add account ~~~
                         GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: () => context.push(const EditAccountPage()),
                           child: SimpleCard(
                             constraints: cardConstraint,
@@ -151,8 +173,10 @@ class _AccountsListState extends State<_AccountsList> {
               }
 
               return Skeletonizer(
-                child: Section(
-                  tiles: List.generate(2, (_) {
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 8.0,
+                  children: List.generate(2, (_) {
                     return const Skeleton.leaf(
                       child: SimpleCard(
                         label: Text('Loading accounts...'),

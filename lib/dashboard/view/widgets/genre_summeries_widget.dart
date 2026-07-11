@@ -20,40 +20,51 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
         SectionTile(
           title: BlocBuilder<StatCubit, StatState>(
             builder: (context, statState) {
+              // ~ Error state
               if (statState.isError) {
-                return Center(
-                  child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),
+                return SizedBox(
+                  height: 250.0, // TODO: Redesign
+                  child: Center(
+                    child: Text('Error fetching data', style: TextStyle(color: context.colors.error)),
+                  ),
                 );
               }
 
-              if (statState.isLoaded) {
-                final stats = statState.stats.isNotEmpty
-                    ? statState.stats.where((stat) => stat.totalQnty > 0).toList()
-                    : <InveslyStat>[];
-                final totalAmount = stats.fold<double>(0.0, (v, el) => v + el.totalInvested);
+              // final isLoading = statState.isInitial || statState.isLoading;
+              final isLoading = true;
+              final stats = statState.isLoaded && statState.stats.isNotEmpty
+                  ? statState.stats.where((stat) => stat.totalQnty > 0).toList()
+                  : null;
+              final totalAmount = stats?.fold<double>(0.0, (v, el) => v + el.totalInvested);
 
-                return Column(
+              return Skeletonizer(
+                enabled: isLoading,
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     // ~ Total amount
-                    BlocSelector<AppCubit, AppState, bool>(
-                      selector: (state) => state.isPrivateMode,
-                      builder: (context, isPrivateMode) {
-                        return CurrencyView(
-                          amount: totalAmount,
-                          style: textTheme.displayMedium,
-                          decimalsStyle: textTheme.headlineSmall,
-                          currencyStyle: textTheme.displaySmall,
-                          privateMode: isPrivateMode,
-                          // compactView: snapshot.data! >= 1_00_00_000
-                        );
-                      },
-                    ),
+                    isLoading
+                        ? Text('Loading...', style: textTheme.displayMedium)
+                        : BlocSelector<AppCubit, AppState, bool>(
+                            selector: (state) => state.isPrivateMode,
+                            builder: (context, isPrivateMode) {
+                              return CurrencyView(
+                                amount: totalAmount ?? 0.0,
+                                style: textTheme.displayMedium,
+                                decimalsStyle: textTheme.headlineSmall,
+                                currencyStyle: textTheme.displaySmall,
+                                privateMode: isPrivateMode,
+                                // compactView: snapshot.data! >= 1_00_00_000
+                              );
+                            },
+                          ),
 
                     // ~ Pie chart
                     SizedBox(
                       height: 224.0,
-                      child: _buildPieChartSection(context: context, stats: stats),
+                      child: isLoading
+                          ? Bone.circle(size: 176.0)
+                          : _buildPieChartSection(context: context, stats: stats),
                     ),
 
                     // ~ Genres - Two column layout
@@ -66,17 +77,17 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                           children: List.generate(2, (j) {
                             final genre = AmcGenre.fromIndex(2 * i + j);
                             return Expanded(
-                              child: _buildGenreTile(context: context, genre: genre, stats: stats),
+                              child: isLoading
+                                  ? Bone(height: 100.0)
+                                  : _buildGenreTile(context: context, genre: genre, stats: stats),
                             );
                           }),
                         );
                       }),
                     ),
                   ],
-                );
-              }
-
-              return Skeletonizer(child: SizedBox(height: 150.0));
+                ),
+              );
             },
           ),
         ),

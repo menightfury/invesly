@@ -194,16 +194,16 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
   Widget build(BuildContext context) {
     return SliverList(
       delegate: SliverChildListDelegate.fixed([
-        _AccountsList(),
+        _AccountsList(), // Depends on Accounts State & Stat State
         const Gap(16.0),
 
-        _GenreSummariesWidget(),
+        _GenreSummariesWidget(), // Depends on Stat State
         const Gap(16.0),
 
-        ...AmcGenre.values.map((genre) => _IndividualGenreWidget(genre)),
+        ...AmcGenre.values.map((genre) => _IndividualGenreWidget(genre)), // Depends on Stat State
         const Gap(16.0),
 
-        _RecentTransactions(),
+        _RecentTransactions(), // Depends on Transactions State
       ]),
     );
   }

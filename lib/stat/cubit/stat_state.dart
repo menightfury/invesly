@@ -4,7 +4,7 @@ part of 'stat_cubit.dart';
 enum StatStatus { initial, loading, loaded, error }
 
 class StatState extends Equatable {
-  const StatState({this.status = StatStatus.initial, this.stats = const []});
+  const StatState({this.status = StatStatus.initial, this.stats = const <InveslyStat>[]});
 
   final StatStatus status;
   final List<InveslyStat> stats;
