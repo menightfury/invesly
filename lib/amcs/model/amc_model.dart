@@ -526,8 +526,8 @@ class AmcTable extends TableSchema<AmcInDb> {
 
   @override
   Map<String, dynamic> fromModel(AmcInDb data) {
-    return {
-      idColumn.title: data.id,
+    return <String, dynamic>{
+      if (!idColumn.isAutoIncrement) idColumn.title: data.id,
       nameColumn.title: data.name,
       codeColumn.title: data.code,
       genreColumn.title: data.genreCode,

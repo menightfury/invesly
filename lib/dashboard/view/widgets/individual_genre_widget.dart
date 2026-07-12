@@ -92,10 +92,10 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
 
       return Section(
         margin: EdgeInsets.zero,
-        tiles: List.generate(stats.length, (i) {
+        tiles: List.generate(math.min(stats.length, 5), (i) {
           final stat = stats.elementAt(i);
           return SectionTile(
-            tileColor: Colors.white.withAlpha(100),
+            tileColor: context.theme.canvasColor.lighten(30),
             title: Text(stat.amc.name, overflow: TextOverflow.ellipsis),
             subtitle: Text('${stat.numTrns} transactions', overflow: TextOverflow.ellipsis),
             secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
@@ -116,8 +116,16 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
       );
     }
 
-    return Skeleton.leaf(
-      child: SectionTile(title: Text('Loading...'), subtitle: Text('Loading...')),
+    return Section(
+      margin: EdgeInsets.zero,
+
+      tiles: List.generate(3, (_) {
+        return SectionTile(
+          tileColor: context.theme.canvasColor.lighten(30),
+          title: Text('Loading...'),
+          subtitle: Text('Loading...'),
+        );
+      }),
     );
   }
 }

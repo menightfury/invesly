@@ -1,57 +1,55 @@
 part of 'edit_account_cubit.dart';
 
-enum EditAccountFormStatus {
-  initial,
-  loading,
-  success,
-  failure;
-
-  bool get isLoadingOrSuccess => [EditAccountFormStatus.loading, EditAccountFormStatus.success].contains(this);
-
-  bool get isFailureOrSuccess => [EditAccountFormStatus.failure, EditAccountFormStatus.success].contains(this);
-}
+enum EditAccountStatus { initial, edited, error, saving, success, failure }
 
 class EditAccountState extends Equatable {
   const EditAccountState({
-    this.status = EditAccountFormStatus.initial,
-    this.initialAccount,
-    required this.name,
-    // this.isNameValid = false,
+    this.status = EditAccountStatus.initial,
+    this.id,
+    this.name,
+    this.nameError,
     required this.avatarIndex,
-    this.panNumber,
-    this.aadhaarNumber,
   });
 
-  final EditAccountFormStatus status;
-  final InveslyAccount? initialAccount;
-  final String name;
-  // final bool isNameValid;
+  final EditAccountStatus status;
+  final int? id;
+  final String? name;
+  final String? nameError;
   final int avatarIndex;
-  final String? panNumber;
-  final String? aadhaarNumber;
 
-  bool get isNewAccount => initialAccount == null;
+  bool get isNewAccount => id == null;
+
+  bool get isNameValid => name != null && name!.trim().isNotEmpty;
+
+  // Check if all required fields are filled and valid
+  bool get isFormValid {
+    return isNameValid;
+  }
 
   EditAccountState copyWith({
-    EditAccountFormStatus? status,
-    InveslyAccount? initialAccount,
+    EditAccountStatus? status,
     String? name,
-    // bool? isNameValid,
+    String? Function()? nameError,
     int? avatarIndex,
-    String? panNumber,
-    String? aadhaarNumber,
   }) {
     return EditAccountState(
       status: status ?? this.status,
-      initialAccount: initialAccount ?? this.initialAccount,
+      id: id,
       name: name ?? this.name,
-      // isNameValid: isNameValid ?? this.isNameValid,
+      nameError: nameError != null ? nameError.call() : this.nameError,
       avatarIndex: avatarIndex ?? this.avatarIndex,
-      panNumber: panNumber ?? this.panNumber,
-      aadhaarNumber: aadhaarNumber ?? this.aadhaarNumber,
     );
   }
 
   @override
-  List<Object?> get props => [status, initialAccount, name, avatarIndex, panNumber, aadhaarNumber];
+  List<Object?> get props => [status, id, name, nameError, avatarIndex];
+}
+
+extension EditAccountStateX on EditAccountState {
+  bool get isError => status == EditAccountStatus.error;
+  bool get isEdited => [EditAccountStatus.edited, EditAccountStatus.error].contains(status);
+
+  bool get isLoadingOrSuccess => [EditAccountStatus.saving, EditAccountStatus.success].contains(status);
+
+  bool get isFailureOrSuccess => [EditAccountStatus.failure, EditAccountStatus.success].contains(status);
 }

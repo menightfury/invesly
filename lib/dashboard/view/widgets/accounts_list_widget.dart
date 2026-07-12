@@ -118,9 +118,9 @@ class _AccountsListState extends State<_AccountsList> {
                                         return CurrencyView(amount: amount, style: context.textTheme.headlineLarge);
                                       }
 
-                                      return LoadingAnimationWidget.newtonCradle(
+                                      return LoadingAnimationWidget.staggeredDotsWave(
                                         color: context.colors.primary,
-                                        size: 56.0,
+                                        size: 48.0,
                                       );
                                     },
                                   ),

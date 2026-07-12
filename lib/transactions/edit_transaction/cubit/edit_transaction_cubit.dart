@@ -134,7 +134,7 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       return;
     }
 
-    final inv = TransactionInDb(
+    final trn = TransactionInDb(
       id: state.id ?? 0,
       accountId: state.accountId!,
       amcId: state.amc!.id,
@@ -144,10 +144,9 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
       date: (state.date ?? DateTime.now().startOfDay).millisecondsSinceEpoch,
       note: state.notes,
     );
-    $logger.i(inv);
 
     try {
-      await _repository.saveTransaction(inv, state.isNewTransaction);
+      await _repository.saveTransaction(trn, state.isNewTransaction);
       emit(state.copyWith(status: EditTransactionStatus.saved));
     } on Exception catch (e) {
       $logger.e(e);

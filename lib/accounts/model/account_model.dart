@@ -69,7 +69,7 @@ class AccountTable extends TableSchema<AccountInDb> {
   @override
   Map<String, dynamic> fromModel(AccountInDb data) {
     return <String, dynamic>{
-      idColumn.title: data.id,
+      if (!idColumn.isAutoIncrement) idColumn.title: data.id,
       nameColumn.title: data.name,
       avatarColumn.title: data.avatarIndex,
     };

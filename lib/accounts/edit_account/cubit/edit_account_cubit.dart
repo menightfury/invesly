@@ -5,17 +5,9 @@ import 'package:invesly/accounts/model/account_repository.dart';
 part 'edit_account_state.dart';
 
 class EditAccountCubit extends Cubit<EditAccountState> {
-  EditAccountCubit({required AccountRepository repository, InveslyAccount? initialAccount})
+  EditAccountCubit({required AccountRepository repository, InveslyAccount? initial})
     : _repository = repository,
-      super(
-        EditAccountState(
-          initialAccount: initialAccount,
-          name: initialAccount?.name ?? '',
-          avatarIndex: initialAccount?.avatarIndex ?? 2,
-          // panNumber: initialAccount?.panNumber,
-          // aadhaarNumber: initialAccount?.aadhaarNumber,
-        ),
-      );
+      super(EditAccountState(id: initial?.id, name: initial?.name, avatarIndex: initial?.avatarIndex ?? 2));
 
   final AccountRepository _repository;
 
@@ -24,42 +16,26 @@ class EditAccountCubit extends Cubit<EditAccountState> {
   }
 
   void updateName(String value) {
-    emit(state.copyWith(name: value));
+    emit(state.copyWith(status: EditAccountStatus.edited, name: value, nameError: () => null));
   }
 
-  // void updateNameValidStatus(bool value) {
-  //   emit(state.copyWith(isNameValid: value));
-  // }
+  Future<void> save() async {
+    emit(state.copyWith(status: EditAccountStatus.saving));
 
-  // void updatePanNumber(String value) {
-  //   emit(state.copyWith(panNumber: value));
-  // }
+    final nameError = state.isNameValid ? null : state.nameError ?? 'Name can\'t be empty';
 
-  // void updateAadhaarNumber(String value) {
-  //   emit(state.copyWith(aadhaarNumber: value));
-  // }
-
-  void save() async {
-    emit(state.copyWith(status: EditAccountFormStatus.loading));
-    final name = state.name.trim();
-    if (name.isEmpty) {
-      emit(state.copyWith(status: EditAccountFormStatus.failure));
+    if (!state.isFormValid) {
+      emit(state.copyWith(status: EditAccountStatus.error, nameError: () => nameError));
       return;
     }
 
-    final account = AccountInDb(
-      id: state.initialAccount?.id ?? 0,
-      name: name,
-      avatarIndex: state.avatarIndex,
-      // panNumber: state.panNumber,
-      // aadhaarNumber: state.aadhaarNumber,
-    );
+    final account = AccountInDb(id: state.id ?? 0, name: state.name!, avatarIndex: state.avatarIndex);
     try {
       await _repository.saveAccount(account, state.isNewAccount);
-      emit(state.copyWith(status: EditAccountFormStatus.success));
+      emit(state.copyWith(status: EditAccountStatus.success));
     } on Exception catch (err) {
       $logger.e(err);
-      emit(state.copyWith(status: EditAccountFormStatus.failure));
+      emit(state.copyWith(status: EditAccountStatus.failure));
     }
   }
 }

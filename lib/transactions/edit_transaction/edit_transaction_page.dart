@@ -54,9 +54,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
     $logger.i('Rebuilding edit transaction screen');
 
     return BlocListener<EditTransactionCubit, EditTransactionState>(
-      listenWhen: (prev, curr) {
-        return (prev.status != curr.status && curr.isFailureOrSuccess);
-      },
+      listenWhen: (prev, curr) => (prev.status != curr.status && curr.isFailureOrSuccess),
       listener: (context, state) async {
         late final SnackBar message;
         if (state.status == EditTransactionStatus.saved) {
@@ -108,6 +106,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                     ),
                     const Gap(12.0),
 
+                    // ~ Form
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Column(
@@ -425,7 +424,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                           TextField(
                             maxLines: 3,
                             decoration: const InputDecoration(hintText: 'Notes'),
-                            onChanged: (value) => cubit.updateNotes(value),
+                            onChanged: cubit.updateNotes,
                             onTapOutside: (_) => minimizeKeyboard(),
                           ).withLabel('Note'),
                         ],

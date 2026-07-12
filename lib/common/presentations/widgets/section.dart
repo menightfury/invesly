@@ -83,7 +83,7 @@ class Section extends StatelessWidget {
           itemBuilder: (context, index) {
             final tileRadius = effectiveTileRadius(index);
             return ClipRRect(
-              // clipBehavior: Clip.hardEdge,
+              clipBehavior: Clip.antiAlias,
               borderRadius: tileRadius,
               child: _tileBuilder!(context, index),
             );
@@ -97,11 +97,7 @@ class Section extends StatelessWidget {
         spacing: 2.0,
         children: List.generate(tileCount, (index) {
           final tileRadius = effectiveTileRadius(index);
-          return ClipRRect(
-            // clipBehavior: Clip.hardEdge,
-            borderRadius: tileRadius,
-            child: _tiles![index],
-          );
+          return ClipRRect(clipBehavior: Clip.antiAlias, borderRadius: tileRadius, child: _tiles![index]);
         }),
       );
     } else {
@@ -109,9 +105,8 @@ class Section extends StatelessWidget {
     }
 
     child = ClipRRect(
-      // type: MaterialType.transparency,
       borderRadius: iTileBorderRadius,
-      // clipBehavior: Clip.antiAlias,
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 2.0,

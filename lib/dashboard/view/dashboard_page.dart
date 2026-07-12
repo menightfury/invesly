@@ -184,27 +184,33 @@ class _DashboardScreenContentState extends State<_DashboardScreenContent> {
   }
 
   void _getTransactions() {
-    if (widget.accountId == null) {
-      return;
-    }
+    // if (widget.accountId == null) {
+    //   return;
+    // }
     context.read<TransactionsCubit>().fetchTransactions(accountId: widget.accountId, limit: 5);
   }
 
   @override
   Widget build(BuildContext context) {
-    return SliverList(
-      delegate: SliverChildListDelegate.fixed([
-        _AccountsList(), // Depends on Accounts State & Stat State
-        const Gap(16.0),
+    return SliverMainAxisGroup(
+      slivers: <Widget>[
+        SliverToBoxAdapter(child: _AccountsList()), // Depends on Accounts State & Stat State
+        const SliverGap(16.0),
 
-        _GenreSummariesWidget(), // Depends on Stat State
-        const Gap(16.0),
+        SliverToBoxAdapter(child: _GenreSummariesWidget()), // Depends on Stat State
+        const SliverGap(16.0),
 
-        ...AmcGenre.values.map((genre) => _IndividualGenreWidget(genre)), // Depends on Stat State
-        const Gap(16.0),
+        SliverToBoxAdapter(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 16.0,
+            children: AmcGenre.values.map((genre) => _IndividualGenreWidget(genre)).toList(),
+          ),
+        ), // Depends on Stat State
+        const SliverGap(16.0),
 
-        _RecentTransactions(), // Depends on Transactions State
-      ]),
+        SliverToBoxAdapter(child: _RecentTransactions()), // Depends on Transactions State
+      ],
     );
   }
 }

@@ -74,7 +74,6 @@ class EditTransactionState extends Equatable {
 
   EditTransactionState copyWith({
     EditTransactionStatus? status,
-    int? id,
     int? accountId,
     String? Function()? accountError,
     double? qnty,
@@ -94,7 +93,7 @@ class EditTransactionState extends Equatable {
   }) {
     return EditTransactionState(
       status: status ?? this.status,
-      id: id ?? this.id,
+      id: id,
       accountId: accountId ?? this.accountId,
       accountError: accountError != null ? accountError() : this.accountError, // Allows resetting to null
       qnty: qnty ?? this.qnty,

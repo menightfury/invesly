@@ -30,8 +30,8 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                 );
               }
 
-              // final isLoading = statState.isInitial || statState.isLoading;
-              final isLoading = true;
+              final isLoading = statState.isInitial || statState.isLoading;
+              // final isLoading = true;
               final stats = statState.isLoaded && statState.stats.isNotEmpty
                   ? statState.stats.where((stat) => stat.totalQnty > 0).toList()
                   : null;
@@ -78,7 +78,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                             final genre = AmcGenre.fromIndex(2 * i + j);
                             return Expanded(
                               child: isLoading
-                                  ? Bone(height: 100.0)
+                                  ? Bone(height: 120.0, borderRadius: iCardBorderRadius)
                                   : _buildGenreTile(context: context, genre: genre, stats: stats),
                             );
                           }),

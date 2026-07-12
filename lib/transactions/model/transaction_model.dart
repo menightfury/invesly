@@ -11,7 +11,7 @@ enum TransactionType {
 
   const TransactionType(this.title);
 
-    final String title;
+  final String title;
 
   IconData get icon {
     return switch (this) {
@@ -158,8 +158,8 @@ class TransactionTable extends TableSchema<TransactionInDb> {
 
   @override
   Map<String, dynamic> fromModel(TransactionInDb data) {
-    final map = <String, dynamic>{
-      idColumn.title: data.id,
+    return <String, dynamic>{
+      if (!idColumn.isAutoIncrement) idColumn.title: data.id,
       accountIdColumn.title: data.accountId,
       amcIdColumn.title: data.amcId,
       quantityColumn.title: data.quantity,
@@ -168,8 +168,6 @@ class TransactionTable extends TableSchema<TransactionInDb> {
       dateColumn.title: data.date,
       noteColumn.title: data.note,
     };
-
-    return map;
   }
 
   @override
