@@ -5,6 +5,7 @@ import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/invesly_api.dart';
 import 'package:invesly/database/table_schema.dart';
+import 'package:invesly/transactions/model/transaction_model.dart';
 
 class StatRepository {
   // singleton api instance
@@ -24,11 +25,10 @@ class StatRepository {
 
   StatTable get _statTable => _api.statTable;
   AmcTable get _amcTable => _api.amcTable;
-  // TransactionTable get _trnTable => _api.trnTable;
-  // AccountTable get _accountTable => _api.accountTable;
+  TransactionTable get _trnTable => _api.trnTable;
 
   Stream<TableEvent> get onDataChanged {
-    return _api.onTableChange.where((event) => event.table == _statTable);
+    return _api.onTableChange.where((e) => e.table == _statTable || e.table == _trnTable);
   }
 
   /// Fetch statistics of all AMCs, including initial data and updates on table changes.
@@ -69,6 +69,7 @@ class StatRepository {
           _amcTable.fromMap(map[_amcTable.type.toString().toCamelCase()] as Map<String, dynamic>),
         );
       }).toList();
+      $logger.d(stats);
       return stats;
     } on Exception catch (err) {
       $logger.e(err);

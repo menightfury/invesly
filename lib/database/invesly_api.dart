@@ -145,6 +145,7 @@ class InveslyApi {
     List<TableColumn>? groupBy,
     TableFilter? filter,
     int? limit,
+    Map<TableColumn, bool>? orderBy,
   }) async {
     final List<Map<String, dynamic>> data = [];
 
@@ -171,6 +172,13 @@ class InveslyApi {
 
     final whereClause = filter?.toSql();
 
+    // print query for debugging
+    $logger.d('''SELECT ${defaultTableColumns.map((col) => col.fullTitleWithAggregateAndAlias).join(', ')}
+       FROM $effectiveTableName
+       ${whereClause != null ? 'WHERE ${whereClause.$1}' : ''}
+       ${groupBy != null ? 'GROUP BY ${groupBy.map((col) => col.fullTitle).join(', ')}' : ''}
+       ${limit != null ? 'LIMIT $limit' : ''}''');
+
     try {
       final list = await db.query(
         effectiveTableName.toString(),
@@ -179,6 +187,7 @@ class InveslyApi {
         whereArgs: whereClause?.$2,
         limit: limit,
         groupBy: groupBy?.map<String>((col) => col.fullTitle).join(', '),
+        orderBy: orderBy?.entries.map<String>((col) => '${col.key.fullTitle} ${col.value ? 'DESC' : 'ASC'}').join(', '),
       );
 
       if (list.isEmpty) return List<Map<String, dynamic>>.empty();

@@ -39,6 +39,7 @@ class TransactionRepository {
     String? amcId,
     DateTimeRange? dateRange,
     int? limit,
+    bool descendingOrder = true,
   }) async {
     final filters = <TableFilter>[];
     if (accountId != null) {
@@ -68,11 +69,10 @@ class TransactionRepository {
       final result = await _api.select(
         _trnTable,
         join: [_accountTable, _amcTable],
-        filter: TableFilterGroup(filters),
+        filter: filters.isEmpty ? null : TableFilterGroup(filters),
         limit: limit,
+        orderBy: {_trnTable.dateColumn: true},
       );
-      // orderBy: '${_trnTable.dateColumn.title} DESC',
-      // limit: showItems,
 
       if (result.isEmpty) return List<InveslyTransaction>.empty();
 
