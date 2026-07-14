@@ -69,6 +69,7 @@ class Section extends StatelessWidget {
     assert(margin.isNonNegative);
 
     final theme = Theme.of(context);
+    final tileTheme = ListTileTheme.of(context);
     final titleText = DefaultTextStyle(style: theme.textTheme.headlineMedium!, child: title ?? const SizedBox.shrink());
 
     final subtitleText = DefaultTextStyle(
@@ -118,7 +119,7 @@ class Section extends StatelessWidget {
               subtitle: subtitleText,
               icon: icon,
               secondaryIcon: trailingIcon,
-              tileColor: theme.colorScheme.primaryContainer.darken(10),
+              tileColor: (tileTheme.tileColor ?? theme.listTileTheme.tileColor ?? theme.canvasColor).darken(10),
               padding: _defaultPadding.add(EdgeInsetsGeometry.symmetric(vertical: 4.0)),
               borderRadius: hasTiles
                   ? iCardBorderRadius.copyWith(
