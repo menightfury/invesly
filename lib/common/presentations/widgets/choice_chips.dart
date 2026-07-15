@@ -151,7 +151,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           padding: padding,
-          avatarBoxConstraints: BoxConstraints(maxWidth: 22.0, maxHeight: 22.0),
+          avatarBoxConstraints: BoxConstraints.tightFor(width: 20.0, height: 20.0),
           side: WidgetStateBorderSide.resolveWith((states) {
             if (states.contains(WidgetState.selected)) return BorderSide(color: colors.primary);
             return BorderSide(color: colors.primaryContainer.darken(20));

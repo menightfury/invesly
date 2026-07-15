@@ -52,7 +52,6 @@ class SimpleCard extends StatelessWidget {
     if (child != null) {
       childText = DefaultTextStyle(
         style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.w600),
-        textAlign: TextAlign.end,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         child: child!,
