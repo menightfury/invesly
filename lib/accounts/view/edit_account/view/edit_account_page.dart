@@ -1,4 +1,4 @@
-import 'package:invesly/accounts/edit_account/cubit/edit_account_cubit.dart';
+import 'package:invesly/accounts/view/edit_account/cubit/edit_account_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/model/account_repository.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
+import 'package:invesly/accounts/view/edit_account/view/edit_account_page.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/view/account_details/account_details_page.dart';
 import 'package:invesly/common/presentations/widgets/simple_card.dart';

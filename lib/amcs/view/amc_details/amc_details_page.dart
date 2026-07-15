@@ -5,7 +5,7 @@ import 'package:xirr_flutter/xirr_flutter.dart' as xf;
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
-import 'package:invesly/amcs/view/amc_overview/cubit/amc_overview_cubit.dart';
+import 'package:invesly/amcs/view/amc_details/cubit/amc_details_cubit.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';

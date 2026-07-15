@@ -8,7 +8,7 @@ import 'package:invesly/database/table_schema.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
-part 'amc_overview_state.dart';
+part 'amc_details_state.dart';
 
 class AmcOverviewCubit extends Cubit<AmcOverviewState> {
   AmcOverviewCubit({
