@@ -22,6 +22,7 @@ import 'package:invesly/common_libs.dart';
 import 'package:invesly/settings/settings_page.dart';
 import 'package:invesly/genre/view/genre_details/genre_details_page.dart';
 import 'package:invesly/stat/cubit/stat_cubit.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_page.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'package:invesly/transactions/transactions/cubit/transactions_cubit.dart';
 import 'package:invesly/transactions/transactions/transactions_page.dart';
@@ -163,7 +164,12 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
       // ~~~ Add transaction button ~~~
-      floatingActionButton: AddTransactionButton(scrollController: _scrollController),
+      floatingActionButton: AddTransactionButton(
+        scrollController: _scrollController,
+        onPressed: () {
+          context.push(EditTransactionPage(initialAccountId: context.read<AppCubit>().state.primaryAccountId));
+        },
+      ),
     );
   }
 }

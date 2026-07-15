@@ -5,23 +5,23 @@ import 'package:invesly/accounts/edit_account/view/edit_account_page.dart';
 import 'package:invesly/common/extensions/buildcontext_extension.dart';
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
-import 'package:invesly/transactions/edit_transaction/edit_transaction_page.dart';
 
 class AddTransactionButton extends StatelessWidget {
-  const AddTransactionButton({this.scrollController, super.key});
+  const AddTransactionButton({super.key, this.scrollController, this.onPressed});
 
   final ScrollController? scrollController;
+  final VoidCallback? onPressed;
 
   void _handlePressed(BuildContext context) async {
     final accountsState = context.read<AccountsCubit>().state;
 
     // Load accounts if not loaded
-    if (accountsState is AccountsInitialState) {
+    if (accountsState is! AccountsLoadedState) {
       await context.read<AccountsCubit>().fetchAccounts();
     }
     if (!context.mounted) return;
     if (accountsState is AccountsErrorState) {
-      // showErrorDialog(context);
+      // showErrorDialog(context); // TODO: Show error dialog
       return;
     }
     if (accountsState is AccountsLoadedState) {
@@ -43,7 +43,13 @@ class AddTransactionButton extends StatelessWidget {
         return;
       }
 
-      context.push(const EditTransactionPage());
+      // context.push(
+      //   EditTransactionPage(
+      //     initialAccountId: initialAccountId,
+      //     initialAmc: initialAmc,
+      //   ),
+      // );
+      onPressed?.call();
     }
   }
 

@@ -44,58 +44,62 @@ class _AmcOverviewPageState extends State<AmcOverviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: <Widget>[
-            const SliverAppBar(
-              title: Text('Holding details', overflow: TextOverflow.ellipsis),
-              floating: true,
-              snap: true,
-            ),
-
-            // ~ Content
-            BlocProvider(
-              create: (_) {
-                return AmcOverviewCubit(
-                  amcRepository: AmcRepository.instance,
-                  trnRepository: TransactionRepository.instance,
-                  accountId: widget.accountId,
-                  amcId: widget.amcId,
-                )..fetchOverview();
-              },
-
-              child: SliverMainAxisGroup(
-                slivers: <Widget>[
-                  // ~ AMC Details & Stats
-                  SliverToBoxAdapter(child: _AmcOverviewSection(stat: stat)),
-
-                  // ~ Transactions title
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
-                      child: Text('Transactions', style: context.textTheme.titleLarge, overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-
-                  // ~ Transactions list
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-                    sliver: _Transactions(stat: stat),
-                  ),
-
-                  // ~ Space in bottom
-                  const SliverToBoxAdapter(child: SizedBox(height: 64.0)),
-                ],
+    return BlocProvider(
+      create: (_) {
+        return AmcOverviewCubit(
+          amcRepository: AmcRepository.instance,
+          trnRepository: TransactionRepository.instance,
+          accountId: widget.accountId,
+          amcId: widget.amcId,
+        )..fetchOverview();
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: CustomScrollView(
+            controller: _scrollController,
+            slivers: <Widget>[
+              const SliverAppBar(
+                title: Text('Holding details', overflow: TextOverflow.ellipsis),
+                floating: true,
+                snap: true,
               ),
-            ),
-          ],
+
+              // ~ AMC Details & Stats
+              SliverToBoxAdapter(child: _AmcOverviewSection(stat: stat)),
+
+              // ~ Transactions title
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 4.0),
+                  child: Text('Transactions', style: context.textTheme.titleLarge, overflow: TextOverflow.ellipsis),
+                ),
+              ),
+
+              // ~ Transactions list
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+                sliver: _Transactions(stat: stat),
+              ),
+
+              // ~ Space in bottom
+              const SliverGap(64.0),
+            ],
+          ),
+        ),
+
+        // ~~~ Add transaction button ~~~
+        floatingActionButton: Builder(
+          builder: (context) {
+            return AddTransactionButton(
+              scrollController: _scrollController,
+              onPressed: () {
+                final state = context.read<AmcOverviewCubit>().state;
+                context.push(EditTransactionPage(initialAccountId: state.accountId, initialAmc: state.amc));
+              },
+            );
+          },
         ),
       ),
-
-      // ~~~ Add transaction button ~~~
-      floatingActionButton: AddTransactionButton(scrollController: _scrollController),
     );
   }
 

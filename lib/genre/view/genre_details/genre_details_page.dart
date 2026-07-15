@@ -14,6 +14,7 @@ import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/genre/view/genre_details/cubit/genre_details_cubit.dart';
+import 'package:invesly/transactions/edit_transaction/edit_transaction_page.dart';
 
 class GenreDetailsPage extends StatefulWidget {
   const GenreDetailsPage(this.genre, {super.key});
@@ -112,7 +113,18 @@ class _GenreDetailsPageState extends State<GenreDetailsPage> {
         ),
 
         // ~~~ Add transaction button ~~~
-        floatingActionButton: AddTransactionButton(scrollController: _scrollController),
+        floatingActionButton: Builder(
+          builder: (context) {
+            return AddTransactionButton(
+              scrollController: _scrollController,
+              onPressed: () {
+                context.push(
+                  EditTransactionPage(initialAccountId: context.read<GenreDetailsCubit>().state.activeAccountId),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

@@ -101,7 +101,7 @@ class _AccountsListState extends State<_AccountsList> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: 32.0),
       child: Column(
         // crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

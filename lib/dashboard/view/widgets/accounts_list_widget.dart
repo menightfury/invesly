@@ -73,22 +73,23 @@ class _AccountsListState extends State<_AccountsList> {
                             final isSelected = primaryAccountId == account.id;
                             return GestureDetector(
                               onTap: () {
-                                if (!isSelected) {
+                                if (isSelected) {
+                                  context.push(AccountDetailsPage(account: account));
+                                } else {
                                   appCubit.updatePrimaryAccount(account.id);
                                 }
-                                context.push(AccountDetailsPage(account: account));
                               },
                               behavior: HitTestBehavior.opaque,
                               child: IntrinsicWidth(
                                 child: SimpleCard(
                                   padding: cardPadding,
                                   constraints: cardConstraint,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: iCardBorderRadius,
-                                    side: isSelected
-                                        ? BorderSide(width: 2.0, color: context.colors.primary)
-                                        : BorderSide.none,
-                                  ),
+                                  color: isSelected ? context.colors.primary : null,
+                                  // shape: RoundedRectangleBorder(
+                                  //   borderRadius: iCardBorderRadius,
+                                  //   side: isSelected ? BorderSide(width: 2.0, color: context.colors.primary)
+                                  //       : BorderSide.none,
+                                  // ),
                                   elevation: isSelected ? 2.0 : 0.0,
                                   label: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -105,7 +106,9 @@ class _AccountsListState extends State<_AccountsList> {
                                       Text(
                                         account.name,
                                         overflow: TextOverflow.ellipsis,
-                                        style: context.textTheme.headlineSmall?.copyWith(color: context.colors.primary),
+                                        style: context.textTheme.headlineSmall?.copyWith(
+                                          color: isSelected ? context.colors.onPrimary : context.colors.onSurface,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -120,7 +123,18 @@ class _AccountsListState extends State<_AccountsList> {
 
                                       if (statState.isLoaded) {
                                         final amount = statState.getTotalInvested(accountId: account.id);
-                                        return CurrencyView(amount: amount, style: context.textTheme.headlineLarge);
+                                        return BlocSelector<AppCubit, AppState, bool>(
+                                          selector: (state) => state.isPrivateMode,
+                                          builder: (context, privateMode) {
+                                            return CurrencyView(
+                                              amount: amount,
+                                              style: context.textTheme.headlineLarge?.copyWith(
+                                                color: isSelected ? context.colors.onPrimary : context.colors.primary,
+                                              ),
+                                              privateMode: privateMode,
+                                            );
+                                          },
+                                        );
                                       }
 
                                       return LoadingAnimationWidget.staggeredDotsWave(

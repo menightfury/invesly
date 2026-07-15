@@ -22,15 +22,22 @@ import 'package:invesly/transactions/model/transaction_repository.dart';
 import 'cubit/edit_transaction_cubit.dart';
 
 class EditTransactionPage extends StatelessWidget {
-  const EditTransactionPage({super.key, this.initialTransaction});
+  const EditTransactionPage({super.key, this.initialTransaction, this.initialAccountId, this.initialAmc});
 
   final InveslyTransaction? initialTransaction;
+  final int? initialAccountId;
+  final InveslyAmc? initialAmc;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) {
-        return EditTransactionCubit(repository: TransactionRepository.instance, initial: initialTransaction);
+        return EditTransactionCubit(
+          repository: TransactionRepository.instance,
+          initialTransaction: initialTransaction,
+          initialAccountId: initialAccountId,
+          initialAmc: initialAmc,
+        );
       },
       child: const _EditTransactionPageContent(),
     );

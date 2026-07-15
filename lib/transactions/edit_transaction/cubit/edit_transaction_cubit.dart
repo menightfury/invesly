@@ -6,27 +6,31 @@ import 'package:invesly/common_libs.dart';
 part 'edit_transaction_state.dart';
 
 class EditTransactionCubit extends Cubit<EditTransactionState> {
-  EditTransactionCubit({required TransactionRepository repository, InveslyTransaction? initial})
-    : _repository = repository,
-      super(
-        EditTransactionState(
-          id: initial?.id,
-          accountId: initial?.accountId,
-          qnty: initial?.quantity,
-          rate: initial?.rate,
-          totalAmount: initial?.totalAmount,
-          autoAmount: [AmcGenre.mf, AmcGenre.stock].contains(initial?.amc.genre ?? AmcGenre.mf),
-          type: (initial?.totalAmount.isNegative ?? false)
-              ? (initial?.quantity?.isZero ?? true)
-                    ? TransactionType.dividend
-                    : TransactionType.redeemed
-              : TransactionType.invested,
-          genre: initial?.amc.genre ?? AmcGenre.mf,
-          date: initial?.investedOn ?? DateTime.now().startOfDay,
-          amc: initial?.amc,
-          notes: initial?.note,
-        ),
-      );
+  EditTransactionCubit({
+    required TransactionRepository repository,
+    InveslyTransaction? initialTransaction,
+    int? initialAccountId,
+    InveslyAmc? initialAmc,
+  }) : _repository = repository,
+       super(
+         EditTransactionState(
+           id: initialTransaction?.id,
+           accountId: initialTransaction?.accountId ?? initialAccountId,
+           qnty: initialTransaction?.quantity,
+           rate: initialTransaction?.rate,
+           totalAmount: initialTransaction?.totalAmount,
+           autoAmount: [AmcGenre.mf, AmcGenre.stock].contains(initialTransaction?.amc.genre ?? AmcGenre.mf),
+           type: (initialTransaction?.totalAmount.isNegative ?? false)
+               ? (initialTransaction?.quantity?.isZero ?? true)
+                     ? TransactionType.dividend
+                     : TransactionType.redeemed
+               : TransactionType.invested,
+           genre: initialTransaction?.amc.genre ?? AmcGenre.mf,
+           date: initialTransaction?.investedOn ?? DateTime.now().startOfDay,
+           amc: initialTransaction?.amc ?? initialAmc,
+           notes: initialTransaction?.note,
+         ),
+       );
 
   final TransactionRepository _repository;
 

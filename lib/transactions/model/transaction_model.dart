@@ -63,7 +63,6 @@ class TransactionInDb extends TableDataModel {
   const TransactionInDb({
     required this.id,
     required this.accountId,
-    // this.typeIndex = 0, // 0: invested, 1: redeemed
     required this.amcId,
     this.quantity,
     this.rate,
@@ -74,7 +73,6 @@ class TransactionInDb extends TableDataModel {
 
   final int id;
   final int accountId;
-  // final int typeIndex;
   final String amcId;
   final double? quantity;
   final double? rate;
@@ -90,15 +88,12 @@ class InveslyTransaction extends TransactionInDb {
   InveslyTransaction({
     required super.id,
     required this.account,
-    // required super.accountId,
-    // this.transactionType = TransactionType.invested,
     required this.amc,
     super.quantity,
     super.rate,
     super.totalAmount,
     required this.investedOn,
     super.note,
-    // }) : super(typeIndex: transactionType.index, amcId: amc?.id, date: investedOn.millisecondsSinceEpoch);
   }) : transactionType = totalAmount > 0
            ? TransactionType.invested
            : quantity == 0
@@ -112,14 +107,9 @@ class InveslyTransaction extends TransactionInDb {
   final DateTime investedOn;
 
   factory InveslyTransaction.fromDb(TransactionInDb trn, AccountInDb account, AmcInDb amc) {
-    // int typeIndex = trn.typeIndex;
-    // if (typeIndex < 0 || typeIndex > TransactionType.values.length - 1) {
-    //   typeIndex = 0;
-    // }
     return InveslyTransaction(
       id: trn.id,
       account: InveslyAccount.fromDb(account),
-      // transactionType: TransactionType.values.elementAt(typeIndex),
       amc: InveslyAmc.fromDb(amc),
       quantity: trn.quantity,
       rate: trn.rate,
