@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/view/edit_account/view/edit_account_page.dart';
+import 'package:invesly/accounts/view/edit_account/edit_account_page.dart';
 import 'package:invesly/common/extensions/buildcontext_extension.dart';
 import 'package:invesly/common/presentations/animations/scroll_to_hide.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';

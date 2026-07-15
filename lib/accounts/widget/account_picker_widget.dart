@@ -1,6 +1,6 @@
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/common_libs.dart';
-import 'package:invesly/accounts/view/edit_account/view/edit_account_page.dart';
+import 'package:invesly/accounts/view/edit_account/edit_account_page.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 
 class AccountPickerWidget extends StatelessWidget {

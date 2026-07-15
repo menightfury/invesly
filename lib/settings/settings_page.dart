@@ -9,7 +9,7 @@ import 'package:invesly/main.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/view/edit_account/view/edit_account_page.dart';
+import 'package:invesly/accounts/view/edit_account/edit_account_page.dart';
 import 'package:invesly/amcs/view/all_amcs_page.dart';
 import 'package:invesly/amcs/view/edit_amc/edit_amc_page.dart';
 import 'package:invesly/authentication/auth_repository.dart';
