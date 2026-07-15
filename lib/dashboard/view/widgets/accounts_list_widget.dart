@@ -74,7 +74,7 @@ class _AccountsListState extends State<_AccountsList> {
                             return GestureDetector(
                               onTap: () {
                                 if (isSelected) {
-                                  context.push(AccountDetailsPage(account: account));
+                                  context.push(AccountDetailsPage(account));
                                 } else {
                                   appCubit.updatePrimaryAccount(account.id);
                                 }

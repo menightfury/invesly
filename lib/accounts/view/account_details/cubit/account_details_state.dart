@@ -6,12 +6,14 @@ enum AccountDetailsStatus { initial, loading, loaded, error }
 class AccountDetailsState extends Equatable {
   const AccountDetailsState({
     this.status = AccountDetailsStatus.initial,
+    this.activeAccountId,
     this.stats = const <InveslyStat>[],
     this.totalInvested = 0.0,
     this.selectedGenre,
   });
 
   final AccountDetailsStatus status;
+  final int? activeAccountId;
   final List<InveslyStat> stats;
   final double totalInvested;
   final AmcGenre? selectedGenre;
@@ -21,16 +23,18 @@ class AccountDetailsState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, stats, totalInvested, selectedGenre];
+  List<Object?> get props => [status, activeAccountId, stats, totalInvested, selectedGenre];
 
   AccountDetailsState copyWith({
     AccountDetailsStatus? status,
+    int? activeAccountId,
     List<InveslyStat>? stats,
     double? totalInvested,
     AmcGenre? selectedGenre,
   }) {
     return AccountDetailsState(
       status: status ?? this.status,
+      activeAccountId: activeAccountId ?? this.activeAccountId,
       stats: stats ?? this.stats,
       totalInvested: totalInvested ?? this.totalInvested,
       selectedGenre: selectedGenre ?? this.selectedGenre,

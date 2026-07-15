@@ -1,15 +1,18 @@
+import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/view/account_details/cubit/account_details_cubit.dart';
 import 'package:invesly/accounts/view/account_details/widgets/account_net_worth_widget.dart';
 import 'package:invesly/accounts/view/account_details/widgets/genre_investment_breakdown_widget.dart';
 import 'package:invesly/accounts/view/account_details/widgets/genre_pie_chart_widget.dart';
+import 'package:invesly/accounts/view/widgets/account_picker_widget.dart';
+import 'package:invesly/stat/cubit/stat_cubit.dart';
 import 'package:invesly/stat/model/stat_repository.dart';
 import 'package:invesly/common_libs.dart';
 
 part 'widgets/account_details_header.dart';
 
 class AccountDetailsPage extends StatefulWidget {
-  const AccountDetailsPage({super.key, required this.account});
+  const AccountDetailsPage(this.account, {super.key});
 
   final InveslyAccount account;
 
@@ -24,6 +27,10 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    final statCubit = context.read<StatCubit>();
+    if (!statCubit.state.isLoaded) {
+      statCubit.fetchAllStats();
+    }
   }
 
   @override
@@ -38,52 +45,81 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
       create: (context) =>
           AccountDetailsCubit(repository: StatRepository.instance)..fetchAccountStats(widget.account.id),
       child: Scaffold(
-        body: CustomScrollView(
-          controller: _scrollController,
-          slivers: <Widget>[
-            // ~~~ Header with back button and account info ~~~
-            SliverAppBar(
-              pinned: true,
-              leading: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: Align(child: Icon(Icons.arrow_back_rounded)),
+        body: SafeArea(
+          child: CustomScrollView(
+            controller: _scrollController,
+            slivers: <Widget>[
+              SliverAppBar(
+                floating: true,
+                snap: true,
+                title: Text(widget.account.name),
+                actions: <Widget>[_AccountPickerWidget()],
+                actionsPadding: const EdgeInsets.only(right: 16.0),
               ),
-              title: Text(widget.account.name, style: context.textTheme.headlineSmall),
-              centerTitle: false,
-            ),
+              // const SliverGap(16.0),
 
-            const SliverGap(16.0),
+              // ~~~ Account Details Content ~~~
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                sliver: SliverMainAxisGroup(
+                  slivers: <Widget>[
+                    // ~~~ Net Worth Section ~~~
+                    SliverToBoxAdapter(child: _AccountDetailsHeader(account: widget.account)),
 
-            // ~~~ Account Details Content ~~~
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              sliver: SliverMainAxisGroup(
-                slivers: <Widget>[
-                  // ~~~ Net Worth Section ~~~
-                  SliverToBoxAdapter(child: _AccountDetailsHeader(account: widget.account)),
+                    const SliverGap(24.0),
 
-                  const SliverGap(24.0),
+                    // ~~~ Net Worth Display ~~~
+                    SliverToBoxAdapter(child: AccountNetWorthWidget()),
 
-                  // ~~~ Net Worth Display ~~~
-                  SliverToBoxAdapter(child: AccountNetWorthWidget()),
+                    const SliverGap(24.0),
 
-                  const SliverGap(24.0),
+                    // ~~~ Pie Chart ~~~
+                    SliverToBoxAdapter(child: GenrePieChartWidget()),
 
-                  // ~~~ Pie Chart ~~~
-                  SliverToBoxAdapter(child: GenrePieChartWidget()),
+                    const SliverGap(24.0),
 
-                  const SliverGap(24.0),
+                    // ~~~ Genre-wise Investment Breakdown ~~~
+                    SliverToBoxAdapter(child: GenreInvestmentBreakdownWidget()),
 
-                  // ~~~ Genre-wise Investment Breakdown ~~~
-                  SliverToBoxAdapter(child: GenreInvestmentBreakdownWidget()),
-
-                  const SliverGap(80.0),
-                ],
+                    const SliverGap(80.0),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _AccountPickerWidget extends StatelessWidget {
+  const _AccountPickerWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<AccountDetailsCubit, AccountDetailsState, int?>(
+      selector: (state) => state.activeAccountId,
+      builder: (context, activeAccountId) {
+        final accountsState = context.read<AccountsCubit>().state;
+        final accounts = (accountsState is AccountsLoadedState) ? accountsState.accounts : null;
+        final account = activeAccountId != null && accounts != null && accounts.isNotEmpty
+            ? accounts.firstWhereOrNull((a) => a.id == activeAccountId)
+            : null;
+
+        return AccountPickerWidget(
+          accountId: activeAccountId,
+          onPickup: (value) => context.read<AccountDetailsCubit>().updateActiveAccountId(value.id),
+          avatar: PhysicalModel(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            child: account != null
+                ? Image.asset(account.avatarSrc, height: 22.0, width: 22.0)
+                : Icon(Icons.supervised_user_circle_rounded, size: 22.0),
+          ),
+          child: Text(account?.name ?? activeAccountId?.toString() ?? 'Select account'),
+        );
+      },
     );
   }
 }

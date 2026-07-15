@@ -29,4 +29,8 @@ class AccountDetailsCubit extends Cubit<AccountDetailsState> {
   void selectGenre(AmcGenre? genre) {
     emit(state.copyWith(selectedGenre: genre));
   }
+
+  void updateActiveAccountId(int id) {
+    emit(state.copyWith(activeAccountId: id));
+  }
 }

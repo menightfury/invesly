@@ -26,15 +26,22 @@ class GenreDetailsPage extends StatefulWidget {
 }
 
 class _GenreDetailsPageState extends State<GenreDetailsPage> {
-  final ScrollController _scrollController = ScrollController();
+  late final ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     final statCubit = context.read<StatCubit>();
     if (!statCubit.state.isLoaded) {
       statCubit.fetchAllStats();
     }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
