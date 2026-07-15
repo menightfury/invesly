@@ -72,7 +72,12 @@ class _AccountsListState extends State<_AccountsList> {
                           ...accounts.map((account) {
                             final isSelected = primaryAccountId == account.id;
                             return GestureDetector(
-                              onTap: isSelected ? null : () => appCubit.updatePrimaryAccount(account.id),
+                              onTap: () {
+                                if (!isSelected) {
+                                  appCubit.updatePrimaryAccount(account.id);
+                                }
+                                context.push(AccountDetailsPage(account: account));
+                              },
                               behavior: HitTestBehavior.opaque,
                               child: IntrinsicWidth(
                                 child: SimpleCard(
