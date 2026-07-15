@@ -97,6 +97,30 @@ class TransactionRepository {
       await _api.insert(_trnTable, transaction);
     } else {
       await _api.update(_trnTable, transaction);
+
+      // TableEventType.insert =>
+      //   '''
+      //     INSERT OR IGNORE INTO ${stat.tableName} ($accId, $amcId, $numTx, $qty, $invested, $redeemed)
+      //     VALUES (NEW.$trnAccId, NEW.$trnAmcId, 1, NEW.$trnQty, IIF(NEW.$trnAmt > 0, NEW.$trnAmt, 0), IIF(NEW.$trnAmt < 0, NEW.$trnAmt, 0))
+      //     ON CONFLICT($accId, $amcId) DO
+      //     UPDATE SET
+      //       $numTx = $numTx + 1,
+      //       $qty = $qty + COALESCE(NEW.$trnQty, 0),
+      //       $invested = $invested + IIF(NEW.$trnAmt > 0, NEW.$trnAmt, 0),
+      //       $redeemed = $redeemed + IIF(NEW.$trnAmt < 0, NEW.$trnAmt, 0),
+      //       $xirr = NULL; -- reset xirr to be recalculated later
+      //   ''',
+
+      // TableEventType.update =>
+      //   '''
+      //     UPDATE ${stat.tableName} SET
+      //       $qty = $qty - COALESCE(OLD.$trnQty, 0) + COALESCE(NEW.$trnQty, 0),
+      //       $invested = $invested - IIF(OLD.$trnAmt > 0, OLD.$trnAmt, 0) + IIF(NEW.$trnAmt > 0, NEW.$trnAmt, 0),
+      //       $redeemed = $redeemed - IIF(OLD.$trnAmt < 0, OLD.$trnAmt, 0) + IIF(NEW.$trnAmt < 0, NEW.$trnAmt, 0),
+      //       $xirr = NULL -- reset xirr to be recalculated later
+      //     WHERE $accId = NEW.$trnAccId AND $amcId = NEW.$trnAmcId;
+      //   ''',
+      // await _api.update(_api.statTable, StatInDb.fromTransaction(transaction));
     }
   }
 

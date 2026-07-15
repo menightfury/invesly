@@ -70,7 +70,7 @@ class ImportTransactionsState extends Equatable {
       csvHeaders: csvHeaders ?? this.csvHeaders,
       csvData: csvData ?? this.csvData,
       fields: fields ?? this.fields,
-      defaultAccount: defaultAccount?.call() ?? this.defaultAccount,
+      defaultAccount: defaultAccount != null ? defaultAccount() : this.defaultAccount,
       defaultType: defaultType ?? this.defaultType,
       defaultDateFormat: defaultDateFormat ?? this.defaultDateFormat,
       errorMsg: errorMsg ?? this.errorMsg,

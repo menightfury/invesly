@@ -18,7 +18,7 @@ class DashboardState extends Equatable {
   }) {
     return DashboardState(
       // status: status ?? this.status,
-      selectedGenre: selectedGenre?.call() ?? this.selectedGenre,
+      selectedGenre: selectedGenre != null ? selectedGenre() : this.selectedGenre,
     );
   }
 }

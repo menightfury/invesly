@@ -8,6 +8,87 @@ abstract class TableDataModel extends Equatable {
   bool get stringify => true;
 }
 
+// class TableSchema2<D extends TableDataModel> extends Equatable {
+//   const TableSchema2({required this.tableName, required this.columns, required this.fromModel, required this.fromMap});
+
+//   final String tableName;
+
+//   /// All columns
+//   final Map<Enum, TableColumn> columns;
+
+//   final Map<String, dynamic> Function(D data) fromModel;
+
+//   final D Function(Map<String, dynamic> map) fromMap;
+
+//   /// Get primary keys
+//   Set<TableColumn> get primaryKeys => columns.values.where((col) => col.isPrimary).toSet();
+
+//   /// Get foreign keys
+//   Set<TableColumn> get foreignKeys => columns.values.where((col) => col.foreignReference != null).toSet();
+
+//   Type get type => D;
+
+//   /// Convert the data model to a map acceptable by the table
+//   // Map<String, dynamic> fromModel(D data);
+
+//   // /// Convert the map from a table to a data model
+//   // D fromMap(Map<String, dynamic> map);
+
+//   @override
+//   List<Object?> get props => [tableName];
+
+//   /// Create table SQL statement
+//   String createTable() {
+//     final sql = StringBuffer('CREATE TABLE IF NOT EXISTS $tableName (');
+//     final columnDefs = columns.map<String>((col) {
+//       final buffer = StringBuffer('${col.title} ${col.sqlType}');
+
+//       if (primaryKeys.length == 1 && col.isPrimary) {
+//         buffer.write(' PRIMARY KEY');
+//         if (col.isAutoIncrement && col.runtimeType == int) {
+//           buffer.write(' AUTOINCREMENT');
+//         }
+//       }
+//       if (col.isUnique) {
+//         buffer.write(' UNIQUE');
+//       }
+//       if (!col.isNullable) {
+//         buffer.write(' NOT NULL');
+//       }
+//       if (col.defaultValue != null) {
+//         buffer.write(' DEFAULT ${col.defaultValue}');
+//       }
+//       if (col.foreignReference != null) {
+//         buffer.write(' REFERENCES ${col.foreignReference!.tableName}(${col.foreignReference!.columnName})');
+//       }
+
+//       return buffer.toString();
+//     });
+
+//     sql.write(columnDefs.join(', '));
+
+//     if (primaryKeys.length > 1) {
+//       final pkColumns = primaryKeys.map((col) => col.title).join(', ');
+//       sql.write(', PRIMARY KEY ($pkColumns)');
+//     }
+//     sql.write(');');
+
+//     return sql.toString();
+//   }
+
+//   // Create trigger for table
+//   String createTrigger({required TableEventType eventType, required String operation}) {
+//     return '''
+//       CREATE TRIGGER IF NOT EXISTS ${tableName}_${eventType.name}_trigger
+//       AFTER ${eventType.sqlType} ON $tableName
+//       FOR EACH ROW
+//       BEGIN
+//         $operation
+//       END;
+//     ''';
+//   }
+// }
+
 abstract class TableSchema<D extends TableDataModel> extends Equatable {
   const TableSchema(this.tableName);
 

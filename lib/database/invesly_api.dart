@@ -42,16 +42,17 @@ class InveslyApi {
   StatTable get statTable => _statTable;
 
   Future<void> initializeDatabase() async {
+    final tables = <TableSchema>[_accountTable, _amcTable, _trnTable, _statTable];
     _db = await openDatabase(
       dbPath,
       version: 1,
       onCreate: (db, version) async {
         final batch = db.batch();
+
         // initialize all necessary tables in database
-        batch.execute(_accountTable.createTable());
-        batch.execute(_amcTable.createTable());
-        batch.execute(_trnTable.createTable());
-        batch.execute(_statTable.createTable());
+        for (final table in tables) {
+          batch.execute(table.createTable());
+        }
 
         // create triggers for automatic stats updates (dynamically generated)
         batch.execute(
@@ -78,7 +79,7 @@ class InveslyApi {
     );
 
     // ?? Close database at the end ??
-    _tables.addAll([_accountTable, _amcTable, _trnTable, _statTable]);
+    _tables.addAll(tables);
   }
 
   // Build trigger operation SQL dynamically using schema column names
