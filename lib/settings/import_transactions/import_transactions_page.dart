@@ -1,6 +1,6 @@
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/model/account_repository.dart';
-import 'package:invesly/accounts/widget/account_picker_widget.dart';
+import 'package:invesly/accounts/view/widgets/account_picker_widget.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/animated_expanded.dart';

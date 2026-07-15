@@ -1,5 +1,5 @@
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
-import 'package:invesly/accounts/widget/account_picker_widget.dart';
+import 'package:invesly/accounts/view/widgets/account_picker_widget.dart';
 import 'package:invesly/stat/cubit/stat_cubit.dart';
 import 'package:invesly/stat/model/stat_model.dart';
 import 'package:invesly/amcs/model/amc_model.dart';

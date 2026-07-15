@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 
-import 'package:invesly/accounts/widget/account_picker_widget.dart';
+import 'package:invesly/accounts/view/widgets/account_picker_widget.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
