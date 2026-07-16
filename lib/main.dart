@@ -19,6 +19,12 @@ import 'transactions/model/transaction_repository.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  // SystemChrome.setSystemUIOverlayStyle(
+  //   const SystemUiOverlayStyle(
+  //     systemNavigationBarColor: Colors.transparent, // Make bar transparent
+  //     systemNavigationBarDividerColor: Colors.transparent,
+  //   ),
+  // );
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   Bloc.observer = InveslyBlocObserver();
   await Bootstrap.initialize();

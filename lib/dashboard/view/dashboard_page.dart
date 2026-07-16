@@ -100,7 +100,10 @@ class _DashboardPageState extends State<DashboardPage> {
     final trnRepository = TransactionRepository.instance;
 
     return Scaffold(
+      // extendBody: true,
+      // resizeToAvoidBottomInset: false,
       body: SafeArea(
+        // bottom: false,
         child: CustomScrollView(
           controller: _scrollController,
           slivers: <Widget>[
