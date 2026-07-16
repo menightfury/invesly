@@ -8,20 +8,25 @@ class EditAccountState extends Equatable {
     this.id,
     this.name,
     this.nameError,
-    required this.avatarIndex,
+    this.iconName = 'wallet',
+    this.colorValue = 0xFF1976D2,
+    this.description,
+    this.initialBalance,
   });
 
   final EditAccountStatus status;
   final int? id;
   final String? name;
   final String? nameError;
-  final int avatarIndex;
+  final String iconName;
+  final int colorValue;
+  final String? description;
+  final double? initialBalance;
 
   bool get isNewAccount => id == null;
 
   bool get isNameValid => name != null && name!.trim().isNotEmpty;
 
-  // Check if all required fields are filled and valid
   bool get isFormValid {
     return isNameValid;
   }
@@ -30,19 +35,25 @@ class EditAccountState extends Equatable {
     EditAccountStatus? status,
     String? name,
     String? Function()? nameError,
-    int? avatarIndex,
+    String? iconName,
+    int? colorValue,
+    String? description,
+    double? initialBalance,
   }) {
     return EditAccountState(
       status: status ?? this.status,
       id: id,
       name: name ?? this.name,
       nameError: nameError != null ? nameError.call() : this.nameError,
-      avatarIndex: avatarIndex ?? this.avatarIndex,
+      iconName: iconName ?? this.iconName,
+      colorValue: colorValue ?? this.colorValue,
+      description: description ?? this.description,
+      initialBalance: initialBalance ?? this.initialBalance,
     );
   }
 
   @override
-  List<Object?> get props => [status, id, name, nameError, avatarIndex];
+  List<Object?> get props => [status, id, name, nameError, iconName, colorValue, description, initialBalance];
 }
 
 extension EditAccountStateX on EditAccountState {

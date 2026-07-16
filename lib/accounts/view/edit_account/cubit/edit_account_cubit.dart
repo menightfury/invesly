@@ -7,16 +7,38 @@ part 'edit_account_state.dart';
 class EditAccountCubit extends Cubit<EditAccountState> {
   EditAccountCubit({required AccountRepository repository, InveslyAccount? initial})
     : _repository = repository,
-      super(EditAccountState(id: initial?.id, name: initial?.name, avatarIndex: initial?.avatarIndex ?? 2));
+      super(
+        EditAccountState(
+          id: initial?.id,
+          name: initial?.name,
+          iconName: initial?.iconName ?? InveslyAccountIcon.wallet.name,
+          colorValue: initial?.colorValue ?? Colors.blueAccent.toARGB32(),
+          description: initial?.description,
+          initialBalance: initial?.initialBalance,
+        ),
+      );
 
   final AccountRepository _repository;
 
-  void updateAvatar(int value) {
-    emit(state.copyWith(avatarIndex: value));
+  void updateIcon(String value) {
+    emit(state.copyWith(iconName: value));
+  }
+
+  void updateColor(int value) {
+    emit(state.copyWith(colorValue: value));
   }
 
   void updateName(String value) {
     emit(state.copyWith(status: EditAccountStatus.edited, name: value, nameError: () => null));
+  }
+
+  void updateDescription(String value) {
+    emit(state.copyWith(status: EditAccountStatus.edited, description: value));
+  }
+
+  void updateInitialBalance(String value) {
+    final parsed = double.tryParse(value);
+    emit(state.copyWith(status: EditAccountStatus.edited, initialBalance: parsed));
   }
 
   Future<void> save() async {
@@ -29,7 +51,14 @@ class EditAccountCubit extends Cubit<EditAccountState> {
       return;
     }
 
-    final account = AccountInDb(id: state.id ?? 0, name: state.name!, avatarIndex: state.avatarIndex);
+    final account = AccountInDb(
+      id: state.id ?? 0,
+      name: state.name!,
+      iconName: state.iconName,
+      colorValue: state.colorValue,
+      description: state.description?.trim().isEmpty == true ? null : state.description?.trim(),
+      initialBalance: state.initialBalance ?? 0.0,
+    );
     try {
       await _repository.saveAccount(account, state.isNewAccount);
       emit(state.copyWith(status: EditAccountStatus.success));

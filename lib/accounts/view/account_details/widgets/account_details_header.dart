@@ -10,9 +10,11 @@ class _AccountDetailsHeader extends StatelessWidget {
     return Row(
       spacing: 16.0,
       children: <Widget>[
-        SizedBox.square(
-          dimension: 60.0,
-          child: PhysicalModel(color: Colors.white, shape: BoxShape.circle, child: Image.asset(account.avatarSrc)),
+        account.buildIconWidget(
+          size: 60.0,
+          backgroundColor: account.color.withAlpha(0x33),
+          foregroundColor: account.color,
+          iconSize: 28.0,
         ),
         Expanded(
           child: Column(

@@ -185,12 +185,16 @@ class _SettingsPageState extends State<SettingsPage> {
                                           builder: (context, isCurrentAccount) {
                                             return SectionTile(
                                               // onTap: () => context.read<AppCubit>().saveCurrentAccount(account.id),
-                                              icon: CircleAvatar(
-                                                backgroundColor: isError
-                                                    ? context.colors.error
-                                                    : context.theme.canvasColor,
-                                                backgroundImage: account != null ? AssetImage(account.avatarSrc) : null,
-                                              ),
+                                              icon: account != null
+                                                  ? CircleAvatar(
+                                                      backgroundColor: account.color.withAlpha(0x33),
+                                                      child: Icon(account.iconData, color: account.color),
+                                                    )
+                                                  : CircleAvatar(
+                                                      backgroundColor: isError
+                                                          ? context.colors.error
+                                                          : context.theme.canvasColor,
+                                                    ),
                                               title: Text(
                                                 account?.name.toSentenceCase() ?? 'Loading...',
                                                 overflow: TextOverflow.ellipsis,

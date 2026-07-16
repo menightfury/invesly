@@ -45,7 +45,7 @@ class InveslyApi {
     final tables = <TableSchema>[_accountTable, _amcTable, _trnTable, _statTable];
     _db = await openDatabase(
       dbPath,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         final batch = db.batch();
 
@@ -76,10 +76,46 @@ class InveslyApi {
 
         await batch.commit(noResult: true, continueOnError: true);
       },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await _migrateAccountsToNewModel(db);
+        }
+      },
     );
 
     // ?? Close database at the end ??
     _tables.addAll(tables);
+  }
+
+  Future<void> _migrateAccountsToNewModel(Database db) async {
+    final accountTable = _accountTable;
+    final columns = await db.rawQuery('PRAGMA table_info(${accountTable.tableName})');
+    final existingColumns = columns.map((column) => column['name'] as String).toSet();
+
+    final batch = db.batch();
+
+    if (!existingColumns.contains(accountTable.iconColumn.title)) {
+      batch.execute('ALTER TABLE ${accountTable.tableName} ADD COLUMN ${accountTable.iconColumn.title} TEXT');
+    }
+    if (!existingColumns.contains(accountTable.colorColumn.title)) {
+      batch.execute('ALTER TABLE ${accountTable.tableName} ADD COLUMN ${accountTable.colorColumn.title} INTEGER');
+    }
+    if (!existingColumns.contains(accountTable.descriptionColumn.title)) {
+      batch.execute('ALTER TABLE ${accountTable.tableName} ADD COLUMN ${accountTable.descriptionColumn.title} TEXT');
+    }
+    if (!existingColumns.contains(accountTable.initialBalanceColumn.title)) {
+      batch.execute('ALTER TABLE ${accountTable.tableName} ADD COLUMN ${accountTable.initialBalanceColumn.title} REAL');
+    }
+
+    batch.execute('''
+      UPDATE ${accountTable.tableName}
+      SET ${accountTable.iconColumn.title} = COALESCE(${accountTable.iconColumn.title}, 'wallet'),
+          ${accountTable.colorColumn.title} = COALESCE(${accountTable.colorColumn.title}, 4278190335),
+          ${accountTable.descriptionColumn.title} = COALESCE(${accountTable.descriptionColumn.title}, NULL),
+          ${accountTable.initialBalanceColumn.title} = COALESCE(${accountTable.initialBalanceColumn.title}, 0.0)
+    ''');
+
+    await batch.commit(noResult: true, continueOnError: true);
   }
 
   // Build trigger operation SQL dynamically using schema column names

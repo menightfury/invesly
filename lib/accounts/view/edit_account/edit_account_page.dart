@@ -3,6 +3,7 @@ import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/model/account_repository.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
+import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
@@ -30,19 +31,26 @@ class _EditAccountPageContent extends StatefulWidget {
 }
 
 class _EditAccountPageContentState extends State<_EditAccountPageContent> {
-  // final _nameShakeKey = GlobalKey<ShakeState>();
   late final TextEditingController _nameController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _initialBalanceController;
 
   @override
   void initState() {
     super.initState();
     final cubit = context.read<EditAccountCubit>();
     _nameController = TextEditingController(text: cubit.state.name);
+    _descriptionController = TextEditingController(text: cubit.state.description);
+    _initialBalanceController = TextEditingController(
+      text: cubit.state.initialBalance == null ? '' : cubit.state.initialBalance!.toString(),
+    );
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _descriptionController.dispose();
+    _initialBalanceController.dispose();
     super.dispose();
   }
 
@@ -50,6 +58,8 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
   Widget build(BuildContext context) {
     $logger.i('Rebuilding edit account screen');
     final cubit = context.read<EditAccountCubit>();
+    final theme = Theme.of(context);
+    final selectedColor = Color(cubit.state.colorValue);
 
     return BlocListener<EditAccountCubit, EditAccountState>(
       listenWhen: (prev, curr) => prev.status != curr.status && curr.isFailureOrSuccess,
@@ -67,7 +77,7 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
           ..showSnackBar(message);
       },
       child: PopScope(
-        canPop: false, // prevents default
+        canPop: false,
         onPopInvokedWithResult: (didPop, _) async {
           if (didPop) return;
 
@@ -82,22 +92,9 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
           body: SafeArea(
             child: CustomScrollView(
               slivers: <Widget>[
-                SliverAppBar(
-                  //   title: ScrollBasedSliverAppBarContentBuilder(
-                  //     // Not working properly, fix this
-                  //     builder: (context, opacity) {
-                  //       return Text(
-                  //         cubit.state.isNewAccount ? 'Add account' : 'Edit account',
-                  //         style: TextStyle(color: Colors.black.withOpacity(opacity)),
-                  //       );
-                  //     },
-                  //   ),
-                  snap: true,
-                  floating: true,
-                ),
+                SliverAppBar(snap: true, floating: true),
                 SliverList(
                   delegate: SliverChildListDelegate.fixed(<Widget>[
-                    // ~ Title
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Column(
@@ -119,15 +116,41 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                     ),
                     const Gap(12.0),
 
-                    // ~ Form
                     Column(
-                      spacing: 32.0,
+                      spacing: 24.0,
                       children: <Widget>[
-                        // ~~~ Avatar picker ~~~
-                        _AvatarPickerWidget(
-                          avatars: InveslyAccountAvatar.values.map((e) => e.imgSrc).toList(),
-                          onChanged: cubit.updateAvatar,
-                          initialValue: cubit.state.avatarIndex,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
+                            children: <Widget>[
+                              Container(
+                                width: 72.0,
+                                height: 72.0,
+                                decoration: BoxDecoration(color: selectedColor.withAlpha(0x33), shape: BoxShape.circle),
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  InveslyAccountIcon.fromName(cubit.state.iconName).iconData,
+                                  size: 32.0,
+                                  color: selectedColor,
+                                ),
+                              ),
+                              const Gap(16.0),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text('Preview', style: context.textTheme.labelLarge),
+                                    Text(
+                                      cubit.state.name?.trim().isEmpty == true
+                                          ? 'Account title'
+                                          : cubit.state.name ?? 'Account title',
+                                      style: context.textTheme.titleMedium,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
 
                         Padding(
@@ -136,14 +159,12 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             spacing: 12.0,
                             children: <Widget>[
-                              // ~ Name
                               BlocBuilder<EditAccountCubit, EditAccountState>(
                                 buildWhen: (prev, curr) {
                                   return prev.nameError != curr.nameError ||
                                       (prev.status != curr.status && curr.isError);
                                 },
                                 builder: (context, state) {
-                                  $logger.w('Name field re-builds');
                                   final isError = state.nameError != null;
                                   return Shake(
                                     shake: isError,
@@ -161,6 +182,105 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                                   );
                                 },
                               ).withLabel('Title'),
+
+                              TextField(
+                                controller: _descriptionController,
+                                decoration: const InputDecoration(hintText: 'e.g. Savings for long-term goals'),
+                                maxLines: 3,
+                                onChanged: cubit.updateDescription,
+                                onTapOutside: (_) => minimizeKeyboard(),
+                              ).withLabel('Description'),
+
+                              TextField(
+                                controller: _initialBalanceController,
+                                decoration: const InputDecoration(hintText: '0.0'),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+                                onChanged: cubit.updateInitialBalance,
+                                onTapOutside: (_) => minimizeKeyboard(),
+                              ).withLabel('Initial balance'),
+                            ],
+                          ),
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 12.0,
+                            children: <Widget>[
+                              Text('Icon', style: theme.textTheme.labelLarge),
+                              Wrap(
+                                spacing: 12.0,
+                                runSpacing: 12.0,
+                                children: InveslyAccountIcon.values.map((iconOption) {
+                                  final isSelected = cubit.state.iconName == iconOption.name;
+                                  return InkWell(
+                                    borderRadius: BorderRadius.circular(999.0),
+                                    onTap: () => cubit.updateIcon(iconOption.name),
+                                    child: Container(
+                                      width: 48.0,
+                                      height: 48.0,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? selectedColor.withAlpha(0x33)
+                                            : theme.colorScheme.surfaceContainerHighest,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: isSelected ? selectedColor : theme.colorScheme.outlineVariant,
+                                        ),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Icon(
+                                        iconOption.iconData,
+                                        color: isSelected ? selectedColor : theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 12.0,
+                            children: <Widget>[
+                              Text('Color', style: theme.textTheme.labelLarge),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(16.0),
+                                onTap: () async {
+                                  final color = await InveslyColorPickerWidget.showModal(
+                                    context,
+                                    selectedColor: selectedColor,
+                                  );
+                                  if (color != null && context.mounted) {
+                                    cubit.updateColor(color.toARGB32());
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                                  decoration: BoxDecoration(
+                                    color: selectedColor.withAlpha(0x33),
+                                    borderRadius: BorderRadius.circular(16.0),
+                                    border: Border.all(color: selectedColor),
+                                  ),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Container(
+                                        width: 24.0,
+                                        height: 24.0,
+                                        decoration: BoxDecoration(color: selectedColor, shape: BoxShape.circle),
+                                      ),
+                                      const Gap(12.0),
+                                      Text('Tap to choose a color', style: theme.textTheme.bodyMedium),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -171,7 +291,6 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
               ],
             ),
           ),
-
           persistentFooterButtons: <Widget>[
             BlocSelector<EditAccountCubit, EditAccountState, bool>(
               selector: (state) => state.isLoadingOrSuccess,
@@ -186,7 +305,6 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                       icon: isLoadingOrSuccess
                           ? CircularProgressIndicator(
                               strokeWidth: 2.0,
-                              // color: Colors.white,
                               constraints: BoxConstraints.tightForFinite(width: 16.0, height: 16.0),
                             )
                           : Icon(Icons.save_alt_rounded),
@@ -202,7 +320,6 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
     );
   }
 
-  // ~ Save account
   Future<void> _handleSavePressed(BuildContext context) async {
     context.read<EditAccountCubit>().save();
   }
@@ -283,59 +400,59 @@ class __AvatarPickerWidgetState extends FormFieldState<int> {
   }
 }
 
-class ScrollBasedSliverAppBarContentBuilder extends StatefulWidget {
-  const ScrollBasedSliverAppBarContentBuilder({super.key, required this.builder});
+// class ScrollBasedSliverAppBarContentBuilder extends StatefulWidget {
+//   const ScrollBasedSliverAppBarContentBuilder({super.key, required this.builder});
 
-  final Widget Function(BuildContext context, double opacity) builder;
+//   final Widget Function(BuildContext context, double opacity) builder;
 
-  @override
-  State<ScrollBasedSliverAppBarContentBuilder> createState() => _ScrollBasedSliverAppBarContentBuilderState();
-}
+//   @override
+//   State<ScrollBasedSliverAppBarContentBuilder> createState() => _ScrollBasedSliverAppBarContentBuilderState();
+// }
 
-class _ScrollBasedSliverAppBarContentBuilderState extends State<ScrollBasedSliverAppBarContentBuilder> {
-  ScrollPosition? _position;
-  late final FlexibleSpaceBarSettings settings;
-  late final ValueNotifier<double> _opacityNotifier;
+// class _ScrollBasedSliverAppBarContentBuilderState extends State<ScrollBasedSliverAppBarContentBuilder> {
+//   ScrollPosition? _position;
+//   late final FlexibleSpaceBarSettings settings;
+//   late final ValueNotifier<double> _opacityNotifier;
 
-  @override
-  void initState() {
-    super.initState();
-    _opacityNotifier = ValueNotifier(0);
-    settings = context.getInheritedWidgetOfExactType<FlexibleSpaceBarSettings>()!;
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     _opacityNotifier = ValueNotifier(0);
+//     settings = context.getInheritedWidgetOfExactType<FlexibleSpaceBarSettings>()!;
+//   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+//   @override
+//   void didChangeDependencies() {
+//     super.didChangeDependencies();
 
-    if (_position != null) {
-      _position!.removeListener(_positionListener);
-    }
-    _position = Scrollable.maybeOf(context)?.position;
-    if (_position != null) {
-      _position!.addListener(_positionListener);
-    }
-  }
+//     if (_position != null) {
+//       _position!.removeListener(_positionListener);
+//     }
+//     _position = Scrollable.maybeOf(context)?.position;
+//     if (_position != null) {
+//       _position!.addListener(_positionListener);
+//     }
+//   }
 
-  @override
-  void dispose() {
-    if (_position != null) {
-      _position!.removeListener(_positionListener);
-    }
-    super.dispose();
-  }
+//   @override
+//   void dispose() {
+//     if (_position != null) {
+//       _position!.removeListener(_positionListener);
+//     }
+//     super.dispose();
+//   }
 
-  void _positionListener() {
-    _opacityNotifier.value = ((_position!.extentBefore - settings.minExtent) / 100).clamp(0.0, 1.0);
-  }
+//   void _positionListener() {
+//     _opacityNotifier.value = ((_position!.extentBefore - settings.minExtent) / 100).clamp(0.0, 1.0);
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<double>(
-      valueListenable: _opacityNotifier,
-      builder: (context, value, _) {
-        return widget.builder(context, value);
-      },
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return ValueListenableBuilder<double>(
+//       valueListenable: _opacityNotifier,
+//       builder: (context, value, _) {
+//         return widget.builder(context, value);
+//       },
+//     );
+//   }
+// }
