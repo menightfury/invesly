@@ -2,16 +2,18 @@ import 'dart:async';
 
 import 'package:intl/intl.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/accounts/view/edit_account/edit_account_page.dart';
 
-import 'package:invesly/accounts/view/widgets/account_picker_widget.dart';
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
+import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common/presentations/widgets/rolling_through_options.dart';
+import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/dashboard/view/dashboard_page.dart';
@@ -91,27 +93,28 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
             child: CustomScrollView(
               slivers: <Widget>[
                 SliverAppBar(
-                  pinned: true,
+                  snap: true,
                   floating: true,
-                  actions: <Widget>[_AccountPickerWidget()],
-                  actionsPadding: const EdgeInsets.only(right: 16.0),
+                  title: Text('${cubit.state.isNewTransaction ? 'Add' : 'Edit'} Investment'),
+                  // actions: <Widget>[_AccountPickerWidget()],
+                  // actionsPadding: const EdgeInsets.only(right: 16.0),
                 ),
 
                 SliverList(
                   delegate: SliverChildListDelegate.fixed(<Widget>[
-                    // ~ Title
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(cubit.state.isNewTransaction ? 'Add' : 'Edit', style: context.textTheme.headlineSmall),
-                          Text('Investment', style: context.textTheme.headlineMedium),
-                        ],
-                      ),
-                    ),
-                    const Gap(12.0),
+                    // // ~ Title
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    //   child: Column(
+                    //     mainAxisSize: MainAxisSize.min,
+                    //     crossAxisAlignment: CrossAxisAlignment.start,
+                    //     children: <Widget>[
+                    //       Text(cubit.state.isNewTransaction ? 'Add' : 'Edit', style: context.textTheme.headlineSmall),
+                    //       Text('Investment', style: context.textTheme.headlineMedium),
+                    //     ],
+                    //   ),
+                    // ),
+                    // const Gap(12.0),
 
                     // ~ Form
                     Padding(
@@ -168,6 +171,9 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                           // ),
                           _AmcPicker().withLabel('Asset management company (AMC)'),
 
+                          // ~ Account picker
+                          _AccountPickerWidget().withLabel('Account'),
+
                           // ~~~ Type and Date ~~~
                           Row(
                             spacing: 12.0,
@@ -183,6 +189,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                       options: types,
                                       builder: (value) => Text(value.title, overflow: TextOverflow.ellipsis),
                                       onChanged: (value) => cubit.updateTransactionType(value),
+                                      color: context.theme.inputDecorationTheme.fillColor,
                                     );
                                   },
                                 ).withLabel('Transaction type'),
@@ -467,47 +474,197 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
   }
 }
 
-class _AccountPickerWidget extends StatelessWidget {
+class _AccountPickerWidget extends StatefulWidget {
   const _AccountPickerWidget({super.key});
+
+  @override
+  State<_AccountPickerWidget> createState() => _AccountPickerWidgetState();
+}
+
+class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch accounts, if not already fetched
+    final cubit = context.read<AccountsCubit>();
+    if (!cubit.state.isLoaded) {
+      cubit.fetchAccounts();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
+    const cardPadding = EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 12.0);
 
-    return BlocBuilder<EditTransactionCubit, EditTransactionState>(
-      buildWhen: (prev, curr) {
-        return prev.accountId != curr.accountId ||
-            prev.accountError != curr.accountError ||
-            (prev.status != curr.status && curr.isError && curr.accountError != null);
-      },
-      builder: (context, state) {
-        final isError = state.accountError != null;
-        final accountsState = context.read<AccountsCubit>().state;
-        final accounts = (accountsState is AccountsLoadedState) ? accountsState.accounts : null;
-        final account = state.accountId != null && accounts != null && accounts.isNotEmpty
-            ? accounts.firstWhereOrNull((a) => a.id == state.accountId)
-            : null;
+    return BlocBuilder<AccountsCubit, AccountsState>(
+      builder: (context, accountsState) {
+        // ~ Error state
+        if (accountsState.isError) {
+          return SimpleCard(
+            label: Text('Failed to load accounts', style: TextStyle(color: context.colors.error)),
+            padding: cardPadding,
+            color: context.colors.errorContainer,
+          );
+        }
 
-        $logger.i('Account Picker Rebuilding');
-        return Shake(
-          shake: isError,
-          child: AccountPickerWidget(
-            accountId: state.accountId,
-            onPickup: (value) => cubit.updateAccount(value.id),
-            side: BorderSide.none,
-            color: isError ? context.colors.errorContainer : context.colors.primaryContainer,
-            avatar: account != null
-                ? account.buildIconWidget(
-                    size: 28.0,
-                    backgroundColor: account.color.withAlpha(0x33),
-                    foregroundColor: account.color,
-                    iconSize: 18.0,
-                  )
-                : Icon(Icons.supervised_user_circle_rounded, size: 22.0, color: Colors.grey),
-            child: Text(
-              account?.name ?? state.accountId?.toString() ?? 'Select account',
-              style: TextStyle(color: state.accountId == null ? Colors.grey : null),
+        // ~ Loaded state
+        if (accountsState is AccountsLoadedState) {
+          final accounts = accountsState.accounts;
+          return BlocBuilder<EditTransactionCubit, EditTransactionState>(
+            buildWhen: (prev, curr) {
+              return prev.accountId != curr.accountId ||
+                  prev.accountError != curr.accountError ||
+                  (prev.status != curr.status && curr.isError && curr.accountError != null);
+            },
+            builder: (context, editTrnState) {
+              // final isError = state.accountError != null;
+              // final account = state.accountId != null && accounts.isNotEmpty
+              //     ? accounts.firstWhereOrNull((a) => a.id == state.accountId)
+              //     : null;
+
+              $logger.i('Account Picker Rebuilding');
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
+                child: Row(
+                  spacing: 8.0,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    // ~~~ Accounts ~~~
+                    if (accounts.isNotEmpty)
+                      ...accounts.map((account) {
+                        final isSelected = account.id == editTrnState.accountId;
+                        return Column(
+                            mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            GestureDetector(
+                              onTap: () => cubit.updateAccount(account.id),
+                              behavior: HitTestBehavior.opaque,
+                              child: SimpleCard(
+                                padding: cardPadding,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: iCardBorderRadius,
+                                  side: isSelected
+                                      ? BorderSide(width: 2.0, color: context.colors.primary)
+                                      : BorderSide.none,
+                                ),
+                                elevation: isSelected ? 2.0 : 0.0,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: 12.0,
+                                  children: <Widget>[
+                                    account.buildIconWidget(
+                                      size: 40.0,
+                                      backgroundColor: account.color.withAlpha(0x33),
+                                      foregroundColor: account.color,
+                                      iconSize: 22.0,
+                                    ),
+                                    Text(
+                                      account.name,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: context.textTheme.headlineSmall?.copyWith(
+                                        color: isSelected ? context.colors.primary : null,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            if (hasError)
+          Padding(
+            padding: padding.copyWith(top: 4.0, bottom: 0.0),
+            child: FadeIn(
+              from: Offset(0.0, -0.25),
+              child: DefaultTextStyle(
+                style: context.textTheme.bodySmall!
+                    .copyWith(color: context.colors.error)
+                    .merge(context.theme.inputDecorationTheme.errorStyle),
+                child:
+                    errorBuilder?.call(context, errorText!) ??
+                    Text(errorText!, overflow: TextOverflow.ellipsis, maxLines: 1),
+              ),
             ),
+          ),
+                          ],
+                        );
+                      }),
+
+                    // ~~~ Add account ~~~
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => context.push(const EditAccountPage()),
+                      child: SimpleCard(
+                        padding: cardPadding,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: iCardBorderRadius,
+                          side: BorderSide(width: 2.0, color: context.theme.disabledColor.lighten(80)),
+                        ),
+                        color: context.colors.surface,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 12.0,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            SizedBox.square(
+                              dimension: 40.0,
+                              child: PhysicalModel(
+                                color: context.theme.disabledColor.lighten(50),
+                                shape: BoxShape.circle,
+                                child: SizedBox.square(
+                                  dimension: 40.0,
+                                  child: Icon(Icons.add_rounded, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                            Text(
+                              'Add account',
+                              overflow: TextOverflow.ellipsis,
+                              style: context.textTheme.bodyMedium?.copyWith(color: context.theme.disabledColor),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+
+              // return Shake(
+              //   shake: isError,
+              //   child: AccountPickerWidget(
+              //     accountId: state.accountId,
+              //     onPickup: (value) => cubit.updateAccount(value.id),
+              //     side: BorderSide.none,
+              //     color: context.theme.inputDecorationTheme.fillColor,
+              //     avatar: account != null
+              //         ? account.buildIconWidget(
+              //             size: 28.0,
+              //             backgroundColor: account.color.withAlpha(0x33),
+              //             foregroundColor: account.color,
+              //             iconSize: 18.0,
+              //           )
+              //         : Icon(Icons.supervised_user_circle_rounded, size: 22.0, color: Colors.grey),
+              //     child: Text(
+              //       account?.name ?? state.accountId?.toString() ?? 'Select account',
+              //       style: TextStyle(color: state.accountId == null ? Colors.grey : null),
+              //     ),
+              //   ),
+              // );
+            },
+          );
+        }
+
+        return Skeletonizer(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 8.0,
+            children: List.generate(2, (_) {
+              return const Skeleton.leaf(
+                child: SimpleCard(label: Text('Loading accounts...'), padding: cardPadding),
+              );
+            }),
           ),
         );
       },
@@ -651,17 +808,16 @@ class _FormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final defaultColor = WidgetStateColor.resolveWith((Set<WidgetState> states) {
-      if (states.contains(WidgetState.disabled)) {
-        return Colors.black12;
-      }
-
-      if (states.contains(WidgetState.error)) {
-        return context.colors.errorContainer;
-      }
-
-      return context.colors.primaryContainer;
-    });
+    // final defaultColor = WidgetStateColor.resolveWith((Set<WidgetState> states) {
+    //   if (states.contains(WidgetState.disabled)) {
+    //     return Colors.black12;
+    //   }
+    //   if (states.contains(WidgetState.error)) {
+    //     return context.colors.errorContainer;
+    //   }
+    //   return context.colors.secondaryContainer;
+    // });
+    final defaultColor = InputDecorationTheme.of(context).fillColor ?? context.colors.secondaryContainer;
 
     return Column(
       mainAxisSize: MainAxisSize.min,

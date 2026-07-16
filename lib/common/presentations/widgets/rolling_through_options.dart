@@ -12,6 +12,7 @@ class RollingThroughOptions<T extends Object> extends StatelessWidget {
     this.onChanged,
     this.padding = iFormFieldContentPadding,
     this.leading,
+    this.color,
   });
 
   final T? value;
@@ -20,6 +21,7 @@ class RollingThroughOptions<T extends Object> extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final List<T> options;
   final Widget Function(T value) builder;
+  final Color? color;
 
   int get index {
     // int index = 0;
@@ -47,6 +49,7 @@ class RollingThroughOptions<T extends Object> extends StatelessWidget {
       padding: padding,
       leading: leading,
       trailing: const Icon(Icons.unfold_more_rounded),
+      color: color,
       child: FadeIn(key: ValueKey(effectiveValue), from: Offset(0.0, 0.4), child: builder(effectiveValue)),
     );
   }

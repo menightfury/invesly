@@ -81,7 +81,7 @@ class AppStyle {
           if (state.contains(WidgetState.disabled)) {
             return Colors.black12;
           }
-          return colorScheme.primaryContainer;
+          return colorScheme.secondaryContainer;
         }),
         contentPadding: iFormFieldContentPadding,
         isCollapsed: true,
