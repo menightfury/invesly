@@ -92,7 +92,21 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
           body: SafeArea(
             child: CustomScrollView(
               slivers: <Widget>[
-                SliverAppBar(snap: true, floating: true),
+                SliverAppBar(
+                  snap: true,
+                  floating: true,
+                  title: Text('${cubit.state.isNewAccount ? 'Add' : 'Edit'} Account'),
+                  // Text('Welcome,', style: context.textTheme.headlineSmall),
+                  // BlocSelector<EditAccountCubit, EditAccountState, String?>(
+                  //   selector: (state) => state.name,
+                  //   builder: (context, name) {
+                  //     return Text(
+                  //       name == null || name.trim().isEmpty ? 'Investor' : name,
+                  //       style: context.textTheme.headlineMedium,
+                  //     );
+                  //   },
+                  // ),
+                ),
                 SliverList(
                   delegate: SliverChildListDelegate.fixed(<Widget>[
                     Padding(
@@ -100,18 +114,7 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text('Welcome,', style: context.textTheme.headlineSmall),
-                          BlocSelector<EditAccountCubit, EditAccountState, String?>(
-                            selector: (state) => state.name,
-                            builder: (context, name) {
-                              return Text(
-                                name == null || name.trim().isEmpty ? 'Investor' : name,
-                                style: context.textTheme.headlineMedium,
-                              );
-                            },
-                          ),
-                        ],
+                        children: <Widget>[],
                       ),
                     ),
                     const Gap(12.0),

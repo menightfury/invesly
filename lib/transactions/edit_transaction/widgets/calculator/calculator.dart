@@ -368,13 +368,13 @@ class _CalculatorButton extends StatelessWidget {
             if (states.contains(WidgetState.disabled)) {
               return bgColor?.withAlpha(100) ?? theme.disabledColor;
             }
-            return bgColor ?? theme.colorScheme.primaryContainer;
+            return bgColor ?? theme.colorScheme.secondaryContainer;
           }),
           foregroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
             if (states.contains(WidgetState.disabled)) {
               return textColor?.withAlpha(200) ?? Colors.black38;
             }
-            return textColor ?? theme.colorScheme.onPrimaryContainer;
+            return textColor ?? theme.colorScheme.onSecondaryContainer;
           }),
           padding: WidgetStateProperty.all(EdgeInsets.zero),
           shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: borderRadius)),
