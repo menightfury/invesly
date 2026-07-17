@@ -45,13 +45,13 @@ class InveslyApi {
     final tables = <TableSchema>[_accountTable, _amcTable, _trnTable, _statTable];
     _db = await openDatabase(
       dbPath,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         final batch = db.batch();
 
         // initialize all necessary tables in database
         for (final table in tables) {
-          batch.execute(table.createTable());
+          batch.execute(table.createTableSql);
         }
 
         // create triggers for automatic stats updates (dynamically generated)
@@ -77,7 +77,7 @@ class InveslyApi {
         await batch.commit(noResult: true, continueOnError: true);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
+        if (oldVersion < 3) {
           await _migrateAccountsToNewModel(db);
         }
       },
@@ -89,30 +89,22 @@ class InveslyApi {
 
   Future<void> _migrateAccountsToNewModel(Database db) async {
     final accountTable = _accountTable;
-    final columns = await db.rawQuery('PRAGMA table_info(${accountTable.tableName})');
+    final columns = await db.rawQuery('PRAGMA table_info(${accountTable.title})');
     final existingColumns = columns.map((column) => column['name'] as String).toSet();
+    final newColumns = _accountTable.columns.map((column) => column.title).toSet();
+    final commonColumns = existingColumns.intersection(newColumns).join(', ');
 
     final batch = db.batch();
+    db.execute('''
+      PRAGMA foreign_keys = 0; -- setting foreign_keys off temporarily
+      CREATE TABLE sqliteinvesly_temp_table AS SELECT * FROM ${accountTable.title};
+      DROP TABLE ${accountTable.title};
 
-    if (!existingColumns.contains(accountTable.iconColumn.title)) {
-      batch.execute('ALTER TABLE ${accountTable.tableName} ADD COLUMN ${accountTable.iconColumn.title} TEXT');
-    }
-    if (!existingColumns.contains(accountTable.colorColumn.title)) {
-      batch.execute('ALTER TABLE ${accountTable.tableName} ADD COLUMN ${accountTable.colorColumn.title} INTEGER');
-    }
-    if (!existingColumns.contains(accountTable.descriptionColumn.title)) {
-      batch.execute('ALTER TABLE ${accountTable.tableName} ADD COLUMN ${accountTable.descriptionColumn.title} TEXT');
-    }
-    if (!existingColumns.contains(accountTable.initialBalanceColumn.title)) {
-      batch.execute('ALTER TABLE ${accountTable.tableName} ADD COLUMN ${accountTable.initialBalanceColumn.title} REAL');
-    }
+      ${accountTable.createTableSql};
+      INSERT INTO ${accountTable.title} ($commonColumns) SELECT $commonColumns FROM sqliteinvesly_temp_table;
 
-    batch.execute('''
-      UPDATE ${accountTable.tableName}
-      SET ${accountTable.iconColumn.title} = COALESCE(${accountTable.iconColumn.title}, 'wallet'),
-          ${accountTable.colorColumn.title} = COALESCE(${accountTable.colorColumn.title}, 4278190335),
-          ${accountTable.descriptionColumn.title} = COALESCE(${accountTable.descriptionColumn.title}, NULL),
-          ${accountTable.initialBalanceColumn.title} = COALESCE(${accountTable.initialBalanceColumn.title}, 0.0)
+      DROP TABLE sqliteinvesly_temp_table;
+      PRAGMA foreign_keys = 1;
     ''');
 
     await batch.commit(noResult: true, continueOnError: true);
@@ -138,7 +130,7 @@ class InveslyApi {
     return switch (eventType) {
       TableEventType.insert =>
         '''
-          INSERT OR IGNORE INTO ${stat.tableName} ($accId, $amcId, $numTx, $qty, $invested, $redeemed)
+          INSERT OR IGNORE INTO ${stat.title} ($accId, $amcId, $numTx, $qty, $invested, $redeemed)
           VALUES (NEW.$trnAccId, NEW.$trnAmcId, 1, NEW.$trnQty, IIF(NEW.$trnAmt > 0, NEW.$trnAmt, 0), IIF(NEW.$trnAmt < 0, NEW.$trnAmt, 0))
           ON CONFLICT($accId, $amcId) DO
           UPDATE SET
@@ -151,7 +143,7 @@ class InveslyApi {
 
       TableEventType.update =>
         '''
-          UPDATE ${stat.tableName} SET
+          UPDATE ${stat.title} SET
             $qty = $qty - COALESCE(OLD.$trnQty, 0) + COALESCE(NEW.$trnQty, 0),
             $invested = $invested - IIF(OLD.$trnAmt > 0, OLD.$trnAmt, 0) + IIF(NEW.$trnAmt > 0, NEW.$trnAmt, 0),
             $redeemed = $redeemed - IIF(OLD.$trnAmt < 0, OLD.$trnAmt, 0) + IIF(NEW.$trnAmt < 0, NEW.$trnAmt, 0),
@@ -161,7 +153,7 @@ class InveslyApi {
 
       TableEventType.delete =>
         '''
-          UPDATE ${stat.tableName} SET
+          UPDATE ${stat.title} SET
             $numTx = MAX(0, $numTx - 1),
             $qty = $qty - COALESCE(OLD.$trnQty, 0),
             $invested = $invested - IIF(OLD.$trnAmt > 0, OLD.$trnAmt, 0),
@@ -187,17 +179,17 @@ class InveslyApi {
     final List<Map<String, dynamic>> data = [];
 
     // SELECT table1.*, table2.id as table2_id FROM table1 JOIN table2 ON table1.amc_id = table2.id
-    final effectiveTableName = StringBuffer(table.tableName);
+    final effectiveTableName = StringBuffer(table.title);
     final defaultTableColumns = List<TableColumnBase>.from(table.columns);
 
     if (join.isNotEmpty && table.foreignKeys.isNotEmpty) {
       for (final j in join) {
         // get foreignKey
-        final fkc = table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == j.tableName);
+        final fkc = table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == j.title);
         if (fkc == null) continue;
         // Write table name
-        effectiveTableName.write(' JOIN ${j.tableName} ');
-        effectiveTableName.write('ON ${fkc.fullTitle} = ${j.tableName}.${fkc.foreignReference!.columnName}');
+        effectiveTableName.write(' JOIN ${j.title} ');
+        effectiveTableName.write('ON ${fkc.fullTitle} = ${j.title}.${fkc.foreignReference!.columnName}');
 
         // Write default table columns
         final jColumns = j.columns.map<TableColumnBase>((col) {
@@ -233,7 +225,7 @@ class InveslyApi {
         final map = Map<String, dynamic>.from(el);
         if (join.isNotEmpty && table.foreignKeys.isNotEmpty) {
           for (final j in join) {
-            final fkc = table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == j.tableName);
+            final fkc = table.foreignKeys.firstWhereOrNull((c) => c.foreignReference!.tableName == j.title);
             if (fkc == null) continue;
             map.nest(j.type.toString().toCamelCase());
           }
@@ -248,7 +240,13 @@ class InveslyApi {
   }
 
   Future<int> insert(TableSchema table, TableDataModel data) async {
-    final r = await db.insert(table.tableName, table.fromModel(data));
+    final values = table.fromModel(data);
+    for (final pkc in table.primaryKeys) {
+      if (pkc.isAutoIncrement) {
+        values.remove(pkc.title);
+      }
+    }
+    final r = await db.insert(table.title, values);
     _tableEventController.add(TableEvent(table, TableEventType.insert, data));
     return r;
   }
@@ -262,7 +260,7 @@ class InveslyApi {
       whereArgs.add(values.remove(pkc.title));
     }
 
-    final r = await db.update(table.tableName, values, where: where.join(' AND '), whereArgs: whereArgs);
+    final r = await db.update(table.title, values, where: where.join(' AND '), whereArgs: whereArgs);
     _tableEventController.add(TableEvent(table, TableEventType.update, data));
     return r;
   }
@@ -275,7 +273,7 @@ class InveslyApi {
       where.add('${pkc.fullTitle} = ?');
       whereArgs.add(values.remove(pkc.title));
     }
-    final r = await db.delete(table.tableName, where: where.join(' AND '), whereArgs: whereArgs);
+    final r = await db.delete(table.title, where: where.join(' AND '), whereArgs: whereArgs);
     _tableEventController.add(TableEvent(table, TableEventType.delete, data));
     return r;
   }

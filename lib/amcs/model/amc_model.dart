@@ -17,19 +17,19 @@ enum AmcGenre {
   final String title;
 
   static AmcGenre? fromName(String name) {
-    return AmcGenre.values.firstWhereOrNull((e) => e.name == name);
+    return values.firstWhereOrNull((e) => e.name == name);
   }
 
   static AmcGenre fromTitle(String title) {
-    return AmcGenre.values.firstWhere((e) => e.title == title, orElse: () => AmcGenre.misc);
+    return values.firstWhere((e) => e.title == title, orElse: () => AmcGenre.misc);
   }
 
   static AmcGenre fromIndex(int index) {
     if (index < 0 || index > AmcGenre.values.length - 1) {
-      return AmcGenre.values.last; // set default genre to misc
+      return values.last; // set default genre to misc
     }
 
-    return AmcGenre.values[index];
+    return values[index];
   }
 
   IconData get icon {
@@ -514,12 +514,12 @@ class AmcTable extends TableSchema<AmcInDb> {
   static const instance = AmcTable._();
   factory AmcTable() => instance;
 
-  TableColumn<String> get idColumn => TableColumn('id', tableName, isPrimary: true);
-  TableColumn<String> get nameColumn => TableColumn('name', tableName, isUnique: true);
-  TableColumn<String> get codeColumn => TableColumn('scheme_code', tableName, isUnique: true);
-  TableColumn<String> get genreColumn => TableColumn('genre', tableName, isNullable: true);
-  TableColumn<String> get tagColumn => TableColumn('tag', tableName, isNullable: true);
-  TableColumn<String> get ltpColumn => TableColumn('ltp', tableName, isNullable: true);
+  TableColumn<String> get idColumn => TableColumn('id', title, isPrimary: true);
+  TableColumn<String> get nameColumn => TableColumn('name', title, isUnique: true);
+  TableColumn<String> get codeColumn => TableColumn('scheme_code', title, isUnique: true);
+  TableColumn<String> get genreColumn => TableColumn('genre', title, isNullable: true);
+  TableColumn<String> get tagColumn => TableColumn('tag', title, isNullable: true);
+  TableColumn<String> get ltpColumn => TableColumn('ltp', title, isNullable: true);
 
   @override
   Set<TableColumn> get columns => {idColumn, nameColumn, codeColumn, genreColumn, tagColumn, ltpColumn};
@@ -527,7 +527,7 @@ class AmcTable extends TableSchema<AmcInDb> {
   @override
   Map<String, dynamic> fromModel(AmcInDb data) {
     return <String, dynamic>{
-      if (!idColumn.isAutoIncrement) idColumn.title: data.id,
+      idColumn.title: data.id,
       nameColumn.title: data.name,
       codeColumn.title: data.code,
       genreColumn.title: data.genreCode,

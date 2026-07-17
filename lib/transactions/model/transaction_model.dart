@@ -130,16 +130,15 @@ class TransactionTable extends TableSchema<TransactionInDb> {
   static const instance = TransactionTable._();
   factory TransactionTable() => instance;
 
-  TableColumn<int> get idColumn => TableColumn('id', tableName, isPrimary: true, isAutoIncrement: true);
+  TableColumn<int> get idColumn => TableColumn('id', title, isPrimary: true, isAutoIncrement: true);
   TableColumn<int> get accountIdColumn =>
-      TableColumn('account_id', tableName, foreignReference: ForeignReference('accounts', 'id'));
-  TableColumn<String> get amcIdColumn =>
-      TableColumn('amc_id', tableName, foreignReference: ForeignReference('amcs', 'id'));
-  TableColumn<double> get quantityColumn => TableColumn('quantity', tableName, isNullable: true);
-  TableColumn<double> get rateColumn => TableColumn('rate', tableName, isNullable: true);
-  TableColumn<double> get amountColumn => TableColumn('total_amount', tableName);
-  TableColumn<int> get dateColumn => TableColumn('date', tableName);
-  TableColumn<String> get noteColumn => TableColumn('note', tableName, isNullable: true);
+      TableColumn('account_id', title, foreignReference: ForeignReference('accounts', 'id'));
+  TableColumn<String> get amcIdColumn => TableColumn('amc_id', title, foreignReference: ForeignReference('amcs', 'id'));
+  TableColumn<double> get quantityColumn => TableColumn('quantity', title, isNullable: true);
+  TableColumn<double> get rateColumn => TableColumn('rate', title, isNullable: true);
+  TableColumn<double> get amountColumn => TableColumn('total_amount', title);
+  TableColumn<int> get dateColumn => TableColumn('date', title);
+  TableColumn<String> get noteColumn => TableColumn('note', title, isNullable: true);
 
   @override
   Set<TableColumn> get columns {
@@ -149,7 +148,7 @@ class TransactionTable extends TableSchema<TransactionInDb> {
   @override
   Map<String, dynamic> fromModel(TransactionInDb data) {
     return <String, dynamic>{
-      if (!idColumn.isAutoIncrement) idColumn.title: data.id,
+      idColumn.title: data.id,
       accountIdColumn.title: data.accountId,
       amcIdColumn.title: data.amcId,
       quantityColumn.title: data.quantity,

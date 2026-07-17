@@ -128,7 +128,7 @@ class TransactionRepository {
   Future<void> insertTransactions(List<TransactionInDb> transactions) async {
     final batch = _api.db.batch();
     // ignore: avoid_function_literals_in_foreach_calls
-    transactions.forEach((trn) => batch.insert(_trnTable.tableName, _trnTable.fromModel(trn)));
+    transactions.forEach((trn) => batch.insert(_trnTable.title, _trnTable.fromModel(trn)));
 
     await batch.commit(noResult: true, continueOnError: true);
   }

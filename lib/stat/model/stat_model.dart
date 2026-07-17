@@ -92,14 +92,14 @@ class StatTable extends TableSchema<StatInDb> {
   factory StatTable() => instance;
 
   TableColumn<int> get accountIdColumn =>
-      TableColumn('account_id', tableName, isPrimary: true, foreignReference: ForeignReference('accounts', 'id'));
+      TableColumn('account_id', title, isPrimary: true, foreignReference: ForeignReference('accounts', 'id'));
   TableColumn<String> get amcIdColumn =>
-      TableColumn('amc_id', tableName, isPrimary: true, foreignReference: ForeignReference('amcs', 'id'));
-  TableColumn<int> get numTrnsColumn => TableColumn('num_transactions', tableName);
-  TableColumn<double> get totalQntyColumn => TableColumn('total_quantity', tableName);
-  TableColumn<double> get totalInvestedColumn => TableColumn('total_invested', tableName);
-  TableColumn<double> get totalRedeemedColumn => TableColumn('total_redeemed', tableName);
-  TableColumn<String> get xirrColumn => TableColumn('xirr', tableName, isNullable: true);
+      TableColumn('amc_id', title, isPrimary: true, foreignReference: ForeignReference('amcs', 'id'));
+  TableColumn<int> get numTrnsColumn => TableColumn('num_transactions', title);
+  TableColumn<double> get totalQntyColumn => TableColumn('total_quantity', title);
+  TableColumn<double> get totalInvestedColumn => TableColumn('total_invested', title);
+  TableColumn<double> get totalRedeemedColumn => TableColumn('total_redeemed', title);
+  TableColumn<String> get xirrColumn => TableColumn('xirr', title, isNullable: true);
 
   @override
   Set<TableColumn> get columns => {

@@ -11,10 +11,9 @@ class EditAccountCubit extends Cubit<EditAccountState> {
         EditAccountState(
           id: initial?.id,
           name: initial?.name,
+          description: initial?.description,
           iconName: initial?.iconName ?? InveslyAccountIcon.wallet.name,
           colorValue: initial?.colorValue ?? Colors.blueAccent.toARGB32(),
-          description: initial?.description,
-          initialBalance: initial?.initialBalance,
         ),
       );
 

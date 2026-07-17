@@ -187,8 +187,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                               // onTap: () => context.read<AppCubit>().saveCurrentAccount(account.id),
                                               icon: account != null
                                                   ? CircleAvatar(
-                                                      backgroundColor: account.color.withAlpha(0x33),
-                                                      child: Icon(account.iconData, color: account.color),
+                                                      backgroundColor: account.color?.withAlpha(0x33),
+                                                      child: Icon(account.icon, color: account.color),
                                                     )
                                                   : CircleAvatar(
                                                       backgroundColor: isError

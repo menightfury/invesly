@@ -107,190 +107,175 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                   //   },
                   // ),
                 ),
-                SliverList(
-                  delegate: SliverChildListDelegate.fixed(<Widget>[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[],
-                      ),
-                    ),
-                    const Gap(12.0),
 
-                    Column(
-                      spacing: 24.0,
+                // ~ Preview
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
                       children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Row(
-                            children: <Widget>[
-                              Container(
-                                width: 72.0,
-                                height: 72.0,
-                                decoration: BoxDecoration(color: selectedColor.withAlpha(0x33), shape: BoxShape.circle),
-                                alignment: Alignment.center,
-                                child: Icon(
-                                  InveslyAccountIcon.fromName(cubit.state.iconName).iconData,
-                                  size: 32.0,
-                                  color: selectedColor,
-                                ),
-                              ),
-                              const Gap(16.0),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text('Preview', style: context.textTheme.labelLarge),
-                                    Text(
-                                      cubit.state.name?.trim().isEmpty == true
-                                          ? 'Account title'
-                                          : cubit.state.name ?? 'Account title',
-                                      style: context.textTheme.titleMedium,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                        Container(
+                          width: 72.0,
+                          height: 72.0,
+                          decoration: BoxDecoration(color: selectedColor.withAlpha(0x33), shape: BoxShape.circle),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            InveslyAccountIcon.fromName(cubit.state.iconName).iconData,
+                            size: 32.0,
+                            color: selectedColor,
                           ),
                         ),
-
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        const Gap(16.0),
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 12.0,
                             children: <Widget>[
-                              BlocBuilder<EditAccountCubit, EditAccountState>(
-                                buildWhen: (prev, curr) {
-                                  return prev.nameError != curr.nameError ||
-                                      (prev.status != curr.status && curr.isError);
-                                },
-                                builder: (context, state) {
-                                  final isError = state.nameError != null;
-                                  return Shake(
-                                    shake: isError,
-                                    child: TextField(
-                                      decoration: InputDecoration(
-                                        hintText: 'e.g. John Doe',
-                                        helperText: cubit.state.isNewAccount ? 'Title can\'t be changed later' : null,
-                                        errorText: state.nameError,
-                                      ),
-                                      controller: _nameController,
-                                      onChanged: cubit.updateName,
-                                      enabled: cubit.state.isNewAccount,
-                                      onTapOutside: (_) => minimizeKeyboard(),
-                                    ),
-                                  );
-                                },
-                              ).withLabel('Title'),
-
-                              TextField(
-                                controller: _descriptionController,
-                                decoration: const InputDecoration(hintText: 'e.g. Savings for long-term goals'),
-                                maxLines: 3,
-                                onChanged: cubit.updateDescription,
-                                onTapOutside: (_) => minimizeKeyboard(),
-                              ).withLabel('Description'),
-
-                              TextField(
-                                controller: _initialBalanceController,
-                                decoration: const InputDecoration(hintText: '0.0'),
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
-                                onChanged: cubit.updateInitialBalance,
-                                onTapOutside: (_) => minimizeKeyboard(),
-                              ).withLabel('Initial balance'),
-                            ],
-                          ),
-                        ),
-
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 12.0,
-                            children: <Widget>[
-                              Text('Icon', style: theme.textTheme.labelLarge),
-                              Wrap(
-                                spacing: 12.0,
-                                runSpacing: 12.0,
-                                children: InveslyAccountIcon.values.map((iconOption) {
-                                  final isSelected = cubit.state.iconName == iconOption.name;
-                                  return InkWell(
-                                    borderRadius: BorderRadius.circular(999.0),
-                                    onTap: () => cubit.updateIcon(iconOption.name),
-                                    child: Container(
-                                      width: 48.0,
-                                      height: 48.0,
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? selectedColor.withAlpha(0x33)
-                                            : theme.colorScheme.surfaceContainerHighest,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: isSelected ? selectedColor : theme.colorScheme.outlineVariant,
-                                        ),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Icon(
-                                        iconOption.iconData,
-                                        color: isSelected ? selectedColor : theme.colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 12.0,
-                            children: <Widget>[
-                              Text('Color', style: theme.textTheme.labelLarge),
-                              InkWell(
-                                borderRadius: BorderRadius.circular(16.0),
-                                onTap: () async {
-                                  final color = await InveslyColorPickerWidget.showModal(
-                                    context,
-                                    selectedColor: selectedColor,
-                                  );
-                                  if (color != null && context.mounted) {
-                                    cubit.updateColor(color.toARGB32());
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                                  decoration: BoxDecoration(
-                                    color: selectedColor.withAlpha(0x33),
-                                    borderRadius: BorderRadius.circular(16.0),
-                                    border: Border.all(color: selectedColor),
-                                  ),
-                                  child: Row(
-                                    children: <Widget>[
-                                      Container(
-                                        width: 24.0,
-                                        height: 24.0,
-                                        decoration: BoxDecoration(color: selectedColor, shape: BoxShape.circle),
-                                      ),
-                                      const Gap(12.0),
-                                      Text('Tap to choose a color', style: theme.textTheme.bodyMedium),
-                                    ],
-                                  ),
-                                ),
+                              Text('Preview', style: context.textTheme.labelLarge),
+                              Text(
+                                cubit.state.name?.trim().isEmpty == true
+                                    ? 'Account title'
+                                    : cubit.state.name ?? 'Account title',
+                                style: context.textTheme.titleMedium,
                               ),
                             ],
                           ),
                         ),
                       ],
                     ),
-                  ]),
+                  ),
                 ),
+
+                const SliverGap(12.0),
+
+                // ~ Name
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: BlocBuilder<EditAccountCubit, EditAccountState>(
+                      buildWhen: (prev, curr) {
+                        return prev.nameError != curr.nameError || (prev.status != curr.status && curr.isError);
+                      },
+                      builder: (context, state) {
+                        final isError = state.nameError != null;
+                        return Shake(
+                          shake: isError,
+                          child: TextField(
+                            decoration: InputDecoration(
+                              hintText: 'e.g. John Doe',
+                              helperText: cubit.state.isNewAccount ? 'Title can\'t be changed later' : null,
+                              errorText: state.nameError,
+                            ),
+                            controller: _nameController,
+                            onChanged: cubit.updateName,
+                            enabled: cubit.state.isNewAccount,
+                            onTapOutside: (_) => minimizeKeyboard(),
+                          ),
+                        );
+                      },
+                    ).withLabel('Name'),
+                  ),
+                ),
+
+                const SliverGap(12.0),
+
+                // ~ Description
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: TextField(
+                      maxLines: 3,
+                      controller: _descriptionController,
+                      decoration: const InputDecoration(hintText: 'e.g. My savings account'),
+                      onChanged: cubit.updateDescription,
+                      onTapOutside: (_) => minimizeKeyboard(),
+                    ).withLabel('Description'),
+                  ),
+                ),
+
+                const SliverGap(12.0),
+
+                // ~ Icon Picker
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Wrap(
+                      spacing: 12.0,
+                      runSpacing: 12.0,
+                      children: InveslyAccountIcon.values.map((iconOption) {
+                        final isSelected = cubit.state.iconName == iconOption.name;
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(999.0),
+                          onTap: () => cubit.updateIcon(iconOption.name),
+                          child: Container(
+                            width: 48.0,
+                            height: 48.0,
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? selectedColor.withAlpha(0x33)
+                                  : theme.colorScheme.surfaceContainerHighest,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: isSelected ? selectedColor : theme.colorScheme.outlineVariant),
+                            ),
+                            alignment: Alignment.center,
+                            child: Icon(
+                              iconOption.iconData,
+                              color: isSelected ? selectedColor : theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ).withLabel('Icon'),
+                  ),
+                ),
+
+                const SliverGap(12.0),
+
+                // ~ Color Picker
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 12.0,
+                      children: <Widget>[
+                        Text('Color', style: theme.textTheme.labelLarge),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(16.0),
+                          onTap: () async {
+                            final color = await InveslyColorPickerWidget.showModal(
+                              context,
+                              selectedColor: selectedColor,
+                            );
+                            if (color != null && context.mounted) {
+                              cubit.updateColor(color.toARGB32());
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                            decoration: BoxDecoration(
+                              color: selectedColor.withAlpha(0x33),
+                              borderRadius: BorderRadius.circular(16.0),
+                              border: Border.all(color: selectedColor),
+                            ),
+                            child: Row(
+                              children: <Widget>[
+                                Container(
+                                  width: 24.0,
+                                  height: 24.0,
+                                  decoration: BoxDecoration(color: selectedColor, shape: BoxShape.circle),
+                                ),
+                                const Gap(12.0),
+                                Text('Tap to choose a color', style: theme.textTheme.bodyMedium),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SliverGap(12.0),
               ],
             ),
           ),

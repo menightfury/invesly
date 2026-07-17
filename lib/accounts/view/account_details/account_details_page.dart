@@ -113,7 +113,7 @@ class _AccountPickerWidget extends StatelessWidget {
           avatar: account != null
               ? account.buildIconWidget(
                   size: 28.0,
-                  backgroundColor: account.color.withAlpha(0x33),
+                  backgroundColor: account.color?.withAlpha(0x33),
                   foregroundColor: account.color,
                   iconSize: 18.0,
                 )

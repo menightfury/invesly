@@ -98,7 +98,7 @@ class AmcRepository {
   Future<void> saveAmcs(List<AmcInDb> amcs) async {
     final batch = _api.db.batch();
     for (var amc in amcs) {
-      batch.insert(_amcTable.tableName, _amcTable.fromModel(amc), conflictAlgorithm: ConflictAlgorithm.replace);
+      batch.insert(_amcTable.title, _amcTable.fromModel(amc), conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true, continueOnError: true);
   }

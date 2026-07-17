@@ -598,7 +598,7 @@ class _HoldingStatCard extends StatelessWidget {
               onTap: () => context.push(AmcOverviewPage(accountId: st.accountId, amcId: st.amc.id)),
               child: SimpleCard(
                 elevation: 0.0,
-                color: colors.primaryContainer.darken(10),
+                color: colors.secondaryContainer.darken(10),
                 borderRadius: iCardBorderRadius.copyWith(
                   bottomLeft: iTileBorderRadius.bottomLeft,
                   bottomRight: iTileBorderRadius.bottomRight,

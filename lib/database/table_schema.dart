@@ -90,9 +90,9 @@ abstract class TableDataModel extends Equatable {
 // }
 
 abstract class TableSchema<D extends TableDataModel> extends Equatable {
-  const TableSchema(this.tableName);
+  const TableSchema(this.title);
 
-  final String tableName;
+  final String title;
 
   /// Get all columns
   Set<TableColumn> get columns;
@@ -112,11 +112,11 @@ abstract class TableSchema<D extends TableDataModel> extends Equatable {
   D fromMap(Map<String, dynamic> map);
 
   @override
-  List<Object?> get props => [tableName];
+  List<Object?> get props => [title];
 
   /// Create table SQL statement
-  String createTable() {
-    final sql = StringBuffer('CREATE TABLE IF NOT EXISTS $tableName (');
+  String get createTableSql {
+    final sql = StringBuffer('CREATE TABLE IF NOT EXISTS $title (');
     final columnDefs = columns.map<String>((col) {
       final buffer = StringBuffer('${col.title} ${col.sqlType}');
 
@@ -156,8 +156,8 @@ abstract class TableSchema<D extends TableDataModel> extends Equatable {
   // Create trigger for table
   String createTrigger({required TableEventType eventType, required String operation}) {
     return '''
-      CREATE TRIGGER IF NOT EXISTS ${tableName}_${eventType.name}_trigger 
-      AFTER ${eventType.sqlType} ON $tableName
+      CREATE TRIGGER IF NOT EXISTS ${title}_${eventType.name}_trigger 
+      AFTER ${eventType.sqlType} ON $title
       FOR EACH ROW
       BEGIN
         $operation

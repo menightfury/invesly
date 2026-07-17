@@ -141,9 +141,11 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 //     _AmcPicker(),
                 //   ],
                 // ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  sliver: SliverToBoxAdapter(child: _AmcPicker().withLabel('Asset management company (AMC)')),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: _AmcPicker().withLabel('Asset management company (AMC)'),
+                  ),
                 ),
 
                 const SliverGap(12.0),
@@ -167,17 +169,19 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 // ).withLabel('Genre'),
 
                 // ~ Account picker
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  sliver: SliverToBoxAdapter(child: _AccountPickerWidget().withLabel('Account')),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: _AccountPickerWidget().withLabel('Account'),
+                  ),
                 ),
 
                 const SliverGap(12.0),
 
                 // ~~~ Type and Date ~~~
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  sliver: SliverToBoxAdapter(
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
                       spacing: 12.0,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,9 +212,9 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 const SliverGap(12.0),
 
                 // ~~~ Units and Amount ~~~
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  sliver: SliverToBoxAdapter(
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
                       selector: (state) => state.canEditRateAndQnty,
                       builder: (context, isVisible) {
@@ -356,9 +360,9 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 const SliverGap(16.0),
 
                 // ~~~ Total amount ~~~
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  sliver: SliverToBoxAdapter(
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       spacing: iFormFieldLabelSpacing,
                       crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
@@ -448,9 +452,9 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 const SliverGap(16.0),
 
                 // ~~~ Note ~~~
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  sliver: SliverToBoxAdapter(
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: TextField(
                       maxLines: 3,
                       decoration: const InputDecoration(hintText: 'Notes'),

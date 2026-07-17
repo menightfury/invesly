@@ -9,8 +9,8 @@ void main() {
   final trnTable = TransactionTable();
   final statTable = StatTable();
 
-  print(statTable.createTable());
-  print(trnTable.createTable());
+  print(statTable.createTableSql);
+  print(trnTable.createTableSql);
   print(update(trnTable, trn));
   print(delete(trnTable, trn));
 }
@@ -25,7 +25,7 @@ String update(TableSchema table, TableDataModel data) {
   }
 
   return '''
-      UPDATE ${table.tableName}
+      UPDATE ${table.title}
       SET $values
       WHERE ${where.join(' AND ')};
       -- with args: $whereArgs
@@ -42,7 +42,7 @@ String delete(TableSchema table, TableDataModel data) {
   }
 
   return '''
-      DELETE FROM ${table.tableName}
+      DELETE FROM ${table.title}
       WHERE ${where.join(' AND ')};
       -- with args: $whereArgs
     ''';

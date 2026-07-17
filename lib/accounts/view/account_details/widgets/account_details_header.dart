@@ -12,7 +12,7 @@ class _AccountDetailsHeader extends StatelessWidget {
       children: <Widget>[
         account.buildIconWidget(
           size: 60.0,
-          backgroundColor: account.color.withAlpha(0x33),
+          backgroundColor: account.color?.withAlpha(0x33),
           foregroundColor: account.color,
           iconSize: 28.0,
         ),
