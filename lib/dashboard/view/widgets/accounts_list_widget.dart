@@ -95,10 +95,11 @@ class _AccountsListState extends State<_AccountsList> {
                                     mainAxisSize: MainAxisSize.min,
                                     spacing: 12.0,
                                     children: <Widget>[
-                                      account.buildIconWidget(
-                                        size: 40.0,
+                                      account.icon.buildWidget(
+                                        context,
+                                        radius: 40.0,
                                         backgroundColor: account.color?.withAlpha(0x33),
-                                        foregroundColor: account.color,
+                                        color: account.color,
                                         iconSize: 22.0,
                                       ),
                                       Text(

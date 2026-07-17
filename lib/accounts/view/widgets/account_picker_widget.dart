@@ -140,11 +140,12 @@ class _AccountsListState extends State<_AccountsList> {
                 }
 
                 if (state is AccountsLoadedState) {
-                  if (state.accounts.isEmpty) {
+                  final accounts = state.accounts;
+
+                  if (accounts.isEmpty) {
                     return const EmptyWidget(label: Text('No accounts found. Please add an account.'));
                   }
 
-                  final accounts = state.accounts;
                   return RadioGroup<int>(
                     groupValue: widget.accountId,
                     onChanged: (value) {
@@ -160,10 +161,11 @@ class _AccountsListState extends State<_AccountsList> {
                         final account = accounts.elementAt(index);
                         return RadioSectionTile<int>(
                           value: account.id,
-                          icon: account.buildIconWidget(
-                            size: 36.0,
+                          icon: account.icon.buildWidget(
+                            context,
+                            radius: 36.0,
                             backgroundColor: account.color?.withAlpha(0x33),
-                            foregroundColor: account.color,
+                            color: account.color,
                             iconSize: 18.0,
                           ),
                           title: Text(account.name, overflow: TextOverflow.ellipsis),

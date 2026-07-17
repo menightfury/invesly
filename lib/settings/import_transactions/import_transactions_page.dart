@@ -268,10 +268,12 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                     return Row(
                       spacing: 16.0,
                       children: <Widget>[
-                        CircleAvatar(
+                        value.icon.buildWidget(
+                          context,
+                          color: value.color,
+                          iconSize: 14.0,
                           radius: 10.0,
-                          backgroundColor: value.color.withAlpha(0x33),
-                          child: Icon(value.iconData, color: value.color, size: 14.0),
+                          backgroundColor: value.color?.withAlpha(0x33),
                         ),
                         Text(value.name, textAlign: TextAlign.right, overflow: TextOverflow.ellipsis),
                       ],

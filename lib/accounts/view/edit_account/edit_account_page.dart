@@ -109,43 +109,43 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                 ),
 
                 // ~ Preview
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      children: <Widget>[
-                        Container(
-                          width: 72.0,
-                          height: 72.0,
-                          decoration: BoxDecoration(color: selectedColor.withAlpha(0x33), shape: BoxShape.circle),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            InveslyAccountIcon.fromName(cubit.state.iconName).iconData,
-                            size: 32.0,
-                            color: selectedColor,
-                          ),
-                        ),
-                        const Gap(16.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text('Preview', style: context.textTheme.labelLarge),
-                              Text(
-                                cubit.state.name?.trim().isEmpty == true
-                                    ? 'Account title'
-                                    : cubit.state.name ?? 'Account title',
-                                style: context.textTheme.titleMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                // SliverToBoxAdapter(
+                //   child: Padding(
+                //     padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                //     child: Row(
+                //       children: <Widget>[
+                //         Container(
+                //           width: 72.0,
+                //           height: 72.0,
+                //           decoration: BoxDecoration(color: selectedColor.withAlpha(0x33), shape: BoxShape.circle),
+                //           alignment: Alignment.center,
+                //           child: Icon(
+                //             InveslyAccountIcon.fromName(cubit.state.iconName).data,
+                //             size: 32.0,
+                //             color: selectedColor,
+                //           ),
+                //         ),
+                //         const Gap(16.0),
+                //         Expanded(
+                //           child: Column(
+                //             crossAxisAlignment: CrossAxisAlignment.start,
+                //             children: <Widget>[
+                //               Text('Preview', style: context.textTheme.labelLarge),
+                //               Text(
+                //                 cubit.state.name?.trim().isEmpty == true
+                //                     ? 'Account title'
+                //                     : cubit.state.name ?? 'Account title',
+                //                 style: context.textTheme.titleMedium,
+                //               ),
+                //             ],
+                //           ),
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                // ),
 
-                const SliverGap(12.0),
+                // const SliverGap(12.0),
 
                 // ~ Name
                 SliverToBoxAdapter(
@@ -218,7 +218,7 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                             ),
                             alignment: Alignment.center,
                             child: Icon(
-                              iconOption.iconData,
+                              iconOption.data,
                               color: isSelected ? selectedColor : theme.colorScheme.onSurfaceVariant,
                             ),
                           ),

@@ -11,7 +11,6 @@ void main() {
         iconName: InveslyAccountIcon.wallet.name,
         colorValue: Colors.green.toARGB32(),
         description: 'Primary account',
-        initialBalance: 1500.0,
       );
 
       final table = AccountTable();
@@ -23,7 +22,6 @@ void main() {
       expect(restored.iconName, account.iconName);
       expect(restored.colorValue, account.colorValue);
       expect(restored.description, account.description);
-      expect(restored.initialBalance, account.initialBalance);
     });
   });
 }

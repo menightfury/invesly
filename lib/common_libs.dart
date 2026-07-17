@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 export 'common/extensions/buildcontext_extension.dart';
 export 'common/extensions/datetime_extension.dart';
+export 'common/extensions/icon_extension.dart';
 export 'common/extensions/map_extension.dart';
 export 'common/extensions/num_extension.dart';
 export 'common/extensions/string_extension.dart';

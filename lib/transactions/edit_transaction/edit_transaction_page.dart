@@ -574,11 +574,12 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
                                   mainAxisSize: MainAxisSize.min,
                                   spacing: 12.0,
                                   children: <Widget>[
-                                    account.buildIconWidget(
-                                      size: 40.0,
-                                      backgroundColor: account.color.withAlpha(0x33),
-                                      foregroundColor: account.color,
+                                    account.icon.buildWidget(
+                                      context,
                                       iconSize: 22.0,
+                                      radius: 40.0,
+                                      backgroundColor: account.color?.withAlpha(0x33),
+                                      color: account.color,
                                     ),
                                     Text(
                                       account.name,

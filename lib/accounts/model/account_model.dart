@@ -11,9 +11,9 @@ enum InveslyAccountIcon {
   currency(Icons.currency_exchange_rounded),
   receipt(Icons.receipt_long_rounded);
 
-  const InveslyAccountIcon(this.iconData);
+  const InveslyAccountIcon(this.data);
 
-  final IconData iconData;
+  final IconData data;
 
   static InveslyAccountIcon? fromName(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -22,24 +22,34 @@ enum InveslyAccountIcon {
 
     return values.firstWhereOrNull((icon) => icon.name == value);
   }
+
+  Widget buildWidget(BuildContext context, {Color? color, Color? backgroundColor, double? iconSize, double? radius}) {
+    return Icon(
+      data,
+      color: color,
+      size: iconSize,
+    ).inContainer(context, backgroundColor: backgroundColor, radius: radius);
+  }
 }
 
 class InveslyAccount extends AccountInDb {
-  InveslyAccount({required super.id, required super.name, super.description, this.icon, this.color})
-    : super(iconName: icon?.name, colorValue: color?.toARGB32());
+  InveslyAccount({required super.id, required super.name, super.description, this.icon = _defaultIcon, this.color})
+    : super(iconName: icon.name, colorValue: color?.toARGB32());
 
-  InveslyAccount.empty({int? id, String? name, super.description, this.icon, this.color})
-    : super(id: id ?? 0, name: name ?? 'Default', iconName: icon?.name, colorValue: color?.toARGB32());
+  InveslyAccount.empty({int? id, super.name = 'Default', super.description, this.icon = _defaultIcon, this.color})
+    : super(id: id ?? 0, iconName: icon.name, colorValue: color?.toARGB32());
 
-  final InveslyAccountIcon? icon;
+  final InveslyAccountIcon icon;
   final Color? color;
+
+  static const InveslyAccountIcon _defaultIcon = InveslyAccountIcon.wallet;
 
   factory InveslyAccount.fromDb(AccountInDb account) {
     return InveslyAccount(
       id: account.id,
       name: account.name,
       description: account.description,
-      icon: InveslyAccountIcon.fromName(account.iconName),
+      icon: InveslyAccountIcon.fromName(account.iconName) ?? _defaultIcon,
       color: account.colorValue != null ? Color(account.colorValue!) : null,
     );
   }

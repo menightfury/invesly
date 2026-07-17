@@ -56,7 +56,6 @@ class EditAccountCubit extends Cubit<EditAccountState> {
       iconName: state.iconName,
       colorValue: state.colorValue,
       description: state.description?.trim().isEmpty == true ? null : state.description?.trim(),
-      initialBalance: state.initialBalance ?? 0.0,
     );
     try {
       await _repository.saveAccount(account, state.isNewAccount);

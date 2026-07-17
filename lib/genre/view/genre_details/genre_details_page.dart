@@ -823,14 +823,13 @@ class _AccountPickerWidget extends StatelessWidget {
           accountId: activeAccountId,
           onPickup: (value) => context.read<GenreDetailsCubit>().updateActiveAccountId(value.id),
           side: BorderSide.none,
-          avatar: account != null
-              ? account.buildIconWidget(
-                  size: 28.0,
-                  backgroundColor: account.color.withAlpha(0x33),
-                  foregroundColor: account.color,
-                  iconSize: 18.0,
-                )
-              : Icon(Icons.supervised_user_circle_rounded, size: 22.0),
+          avatar: account?.icon.buildWidget(
+            context,
+            radius: 28.0,
+            backgroundColor: account.color?.withAlpha(0x33),
+            color: account.color,
+            iconSize: 18.0,
+          ),
           child: Text(account?.name ?? activeAccountId?.toString() ?? 'Select account'),
         );
       },
