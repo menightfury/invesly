@@ -10,13 +10,7 @@ class _AccountDetailsHeader extends StatelessWidget {
     return Row(
       spacing: 16.0,
       children: <Widget>[
-        account.icon.buildWidget(
-          context,
-          radius: 60.0,
-          backgroundColor: account.color?.withAlpha(0x33),
-          color: account.color,
-          iconSize: 28.0,
-        ),
+        account.icon.buildWidget(context, backgroundColor: account.color?.withAlpha(0x33), color: account.color),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

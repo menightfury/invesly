@@ -23,12 +23,19 @@ enum InveslyAccountIcon {
     return values.firstWhereOrNull((icon) => icon.name == value);
   }
 
-  Widget buildWidget(BuildContext context, {Color? color, Color? backgroundColor, double? iconSize, double? radius}) {
+  Widget buildWidget(
+    BuildContext context, {
+    Color? color,
+    Color? backgroundColor,
+    double? iconSize,
+    double? radius,
+    double? padding = 8.0,
+  }) {
     return Icon(
       data,
       color: color,
       size: iconSize,
-    ).inContainer(context, backgroundColor: backgroundColor, radius: radius);
+    ).inContainer(context, backgroundColor: backgroundColor, radius: radius, padding: padding);
   }
 }
 

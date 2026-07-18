@@ -45,7 +45,7 @@ class InveslyApi {
     final tables = <TableSchema>[_accountTable, _amcTable, _trnTable, _statTable];
     _db = await openDatabase(
       dbPath,
-      version: 3,
+      version: 4,
       onCreate: (db, version) async {
         final batch = db.batch();
 
@@ -77,7 +77,7 @@ class InveslyApi {
         await batch.commit(noResult: true, continueOnError: true);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 3) {
+        if (oldVersion < 4) {
           await _migrateAccountsToNewModel(db);
         }
       },

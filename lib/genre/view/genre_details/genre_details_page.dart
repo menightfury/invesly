@@ -825,10 +825,8 @@ class _AccountPickerWidget extends StatelessWidget {
           side: BorderSide.none,
           avatar: account?.icon.buildWidget(
             context,
-            radius: 28.0,
             backgroundColor: account.color?.withAlpha(0x33),
             color: account.color,
-            iconSize: 18.0,
           ),
           child: Text(account?.name ?? activeAccountId?.toString() ?? 'Select account'),
         );

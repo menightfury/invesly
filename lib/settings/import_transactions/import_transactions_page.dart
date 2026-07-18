@@ -271,8 +271,6 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                         value.icon.buildWidget(
                           context,
                           color: value.color,
-                          iconSize: 14.0,
-                          radius: 10.0,
                           backgroundColor: value.color?.withAlpha(0x33),
                         ),
                         Text(value.name, textAlign: TextAlign.right, overflow: TextOverflow.ellipsis),

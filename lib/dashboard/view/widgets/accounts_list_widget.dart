@@ -97,10 +97,8 @@ class _AccountsListState extends State<_AccountsList> {
                                     children: <Widget>[
                                       account.icon.buildWidget(
                                         context,
-                                        radius: 40.0,
                                         backgroundColor: account.color?.withAlpha(0x33),
                                         color: account.color,
-                                        iconSize: 22.0,
                                       ),
                                       Text(
                                         account.name,

@@ -576,8 +576,6 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
                                   children: <Widget>[
                                     account.icon.buildWidget(
                                       context,
-                                      iconSize: 22.0,
-                                      radius: 40.0,
                                       backgroundColor: account.color?.withAlpha(0x33),
                                       color: account.color,
                                     ),
