@@ -161,8 +161,8 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                           shake: isError,
                           child: TextField(
                             decoration: InputDecoration(
-                              hintText: 'e.g. John Doe',
-                              helperText: cubit.state.isNewAccount ? 'Title can\'t be changed later' : null,
+                              hintText: 'e.g. Savings account',
+                              helperText: cubit.state.isNewAccount ? 'Name can\'t be changed later' : null,
                               errorText: state.nameError,
                             ),
                             controller: _nameController,
@@ -176,7 +176,7 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                   ),
                 ),
 
-                const SliverGap(12.0),
+                const SliverGap(iFormFieldsInterSpacing),
 
                 // ~ Description
                 SliverToBoxAdapter(
@@ -185,14 +185,14 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                     child: TextField(
                       maxLines: 3,
                       controller: _descriptionController,
-                      decoration: const InputDecoration(hintText: 'e.g. My savings account'),
+                      decoration: const InputDecoration(hintText: 'Optional, e.g. My savings account'),
                       onChanged: cubit.updateDescription,
                       onTapOutside: (_) => minimizeKeyboard(),
                     ).withLabel('Description'),
                   ),
                 ),
 
-                const SliverGap(12.0),
+                const SliverGap(iFormFieldsInterSpacing),
 
                 // ~ Icon Picker
                 SliverToBoxAdapter(
@@ -206,21 +206,13 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                         return InkWell(
                           borderRadius: BorderRadius.circular(999.0),
                           onTap: () => cubit.updateIcon(iconOption.name),
-                          child: Container(
-                            width: 48.0,
-                            height: 48.0,
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? selectedColor.withAlpha(0x33)
-                                  : theme.colorScheme.surfaceContainerHighest,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: isSelected ? selectedColor : theme.colorScheme.outlineVariant),
-                            ),
-                            alignment: Alignment.center,
-                            child: Icon(
-                              iconOption.data,
-                              color: isSelected ? selectedColor : theme.colorScheme.onSurfaceVariant,
-                            ),
+                          child: iconOption.buildWidget(
+                            context,
+                            padding: 12.0,
+                            color: isSelected ? selectedColor : theme.colorScheme.onSurfaceVariant,
+                            backgroundColor: isSelected
+                                ? selectedColor.withAlpha(0x33)
+                                : theme.colorScheme.surfaceContainerHighest,
                           ),
                         );
                       }).toList(),
@@ -228,7 +220,7 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                   ),
                 ),
 
-                const SliverGap(12.0),
+                const SliverGap(iFormFieldsInterSpacing),
 
                 // ~ Color Picker
                 SliverToBoxAdapter(
@@ -275,7 +267,7 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                   ),
                 ),
 
-                const SliverGap(12.0),
+                const SliverGap(iFormFieldsInterSpacing),
               ],
             ),
           ),

@@ -148,7 +148,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                   ),
                 ),
 
-                const SliverGap(12.0),
+                const SliverGap(iFormFieldsInterSpacing),
 
                 // // ~ Genre ~
                 // BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
@@ -176,7 +176,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                   ),
                 ),
 
-                const SliverGap(12.0),
+                const SliverGap(iFormFieldsInterSpacing),
 
                 // ~~~ Type and Date ~~~
                 SliverToBoxAdapter(
@@ -209,7 +209,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                   ),
                 ),
 
-                const SliverGap(12.0),
+                const SliverGap(iFormFieldsInterSpacing),
 
                 // ~~~ Units and Amount ~~~
                 SliverToBoxAdapter(
@@ -357,7 +357,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                   ),
                 ),
 
-                const SliverGap(16.0),
+                const SliverGap(iFormFieldsInterSpacing),
 
                 // ~~~ Total amount ~~~
                 SliverToBoxAdapter(
@@ -449,7 +449,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                   ),
                 ),
 
-                const SliverGap(16.0),
+                const SliverGap(iFormFieldsInterSpacing),
 
                 // ~~~ Note ~~~
                 SliverToBoxAdapter(
