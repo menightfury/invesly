@@ -50,7 +50,7 @@ class _SplashPageState extends State<SplashPage> {
       body: SafeArea(
         child: Column(
           children: <Widget>[
-            // Branding
+            // ~ Branding
             Expanded(
               child: Center(
                 child: Column(

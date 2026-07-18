@@ -622,14 +622,10 @@ class _Transactions extends StatelessWidget {
         '${trn.quantity?.toPrecision(2) ?? ''} units | ₹${trn.rate?.toPrecision(2)}',
         overflow: TextOverflow.ellipsis,
       ),
-      icon: PhysicalModel(
-        shape: BoxShape.circle,
-        color: color.lighten(75),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Icon(trn.totalAmount.isNegative ? Icons.south_east_rounded : Icons.north_east_rounded, color: color),
-        ),
-      ),
+      icon: Icon(
+        trn.totalAmount.isNegative ? Icons.south_east_rounded : Icons.north_east_rounded,
+        color: color,
+      ).inContainer(context, color: color.lighten(75)),
       secondaryIcon: BlocSelector<AppCubit, AppState, bool>(
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {

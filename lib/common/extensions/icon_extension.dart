@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 extension IconX on Icon {
   // static const double _defaultRadius = 20.0;
 
-  Widget inContainer(BuildContext context, {Color? backgroundColor, double? radius, double? padding = 8.0}) {
+  Widget inContainer(BuildContext context, {Color? color, double? radius, double? padding = 8.0}) {
     final theme = Theme.of(context);
     final iconTheme = IconTheme.of(context);
 
@@ -14,9 +14,11 @@ extension IconX on Icon {
 
     return SizedBox.square(
       dimension: effectiveSize,
-      child: PhysicalModel(
-        color: backgroundColor ?? theme.colorScheme.secondaryContainer,
-        shape: BoxShape.circle,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: color ?? theme.colorScheme.secondaryContainer,
+          shape: BoxShape.circle,
+        ),
         child: Center(child: this),
       ),
     );

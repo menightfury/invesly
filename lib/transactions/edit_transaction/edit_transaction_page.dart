@@ -628,17 +628,10 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
                           spacing: 12.0,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                            SizedBox.square(
-                              dimension: 40.0,
-                              child: PhysicalModel(
-                                color: context.theme.disabledColor.lighten(50),
-                                shape: BoxShape.circle,
-                                child: SizedBox.square(
-                                  dimension: 40.0,
-                                  child: Icon(Icons.add_rounded, color: Colors.white),
-                                ),
-                              ),
-                            ),
+                            Icon(
+                              Icons.add_rounded,
+                              color: Colors.white,
+                            ).inContainer(context, color: context.theme.disabledColor.lighten(50)),
                             Text(
                               'Add account',
                               overflow: TextOverflow.ellipsis,

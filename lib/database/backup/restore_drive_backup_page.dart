@@ -192,14 +192,11 @@ class _DriveFilesState extends State<_DriveFiles> {
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  PhysicalModel(
-                    shape: BoxShape.circle,
-                    color: context.colors.primaryContainer,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Icon(Icons.cloud_done_rounded, size: 32.0, color: context.colors.onPrimaryContainer),
-                    ),
-                  ),
+                  Icon(
+                    Icons.cloud_done_rounded,
+                    size: 32.0,
+                    color: context.colors.onPrimaryContainer,
+                  ).inContainer(context, color: context.colors.primaryContainer),
                   const Gap(16.0),
 
                   Text('Backup Found', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),

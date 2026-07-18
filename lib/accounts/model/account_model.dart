@@ -35,7 +35,7 @@ enum InveslyAccountIcon {
       data,
       color: color,
       size: iconSize,
-    ).inContainer(context, backgroundColor: backgroundColor, radius: radius, padding: padding);
+    ).inContainer(context, color: backgroundColor, radius: radius, padding: padding);
   }
 }
 

@@ -137,14 +137,10 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                 // ~ Icon
                 Align(
                   alignment: Alignment.topRight,
-                  child: PhysicalModel(
-                    color: genre.color.lighten(80),
-                    shape: BoxShape.circle,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Icon(genre.icon, color: genre.color.lighten(40)),
-                    ),
-                  ),
+                  child: Icon(
+                    genre.icon,
+                    color: genre.color.lighten(40),
+                  ).inContainer(context, color: genre.color.lighten(80)),
                 ),
 
                 // ~ Label
