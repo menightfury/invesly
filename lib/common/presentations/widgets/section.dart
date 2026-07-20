@@ -309,17 +309,10 @@ class SectionTile extends StatelessWidget {
                 ? () => _onChanged.call(!_value)
                 : _onTap
           : null,
-      child: PhysicalShape(
-        // curve: Curves.fastOutSlowIn,
-        // duration: 600.ms,
-        clipBehavior: Clip.antiAlias,
-        elevation: 0.0,
-        color: _tileColor(theme, tileTheme),
-        shadowColor: theme.colorScheme.shadow,
-        // borderRadius: borderRadius,
+      child: ClipPath(
         clipper: ShapeBorderClipper(shape: effectiveShape, textDirection: Directionality.maybeOf(context)),
-        child: CustomPaint(
-          foregroundPainter: _ShapeBorderPainter(effectiveShape, Directionality.maybeOf(context)),
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: _tileColor(theme, tileTheme)),
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 52.0),
             child: Padding(
@@ -344,21 +337,21 @@ class SectionTile extends StatelessWidget {
   }
 }
 
-class _ShapeBorderPainter extends CustomPainter {
-  _ShapeBorderPainter(this.border, this.textDirection);
-  final ShapeBorder border;
-  final TextDirection? textDirection;
+// class _ShapeBorderPainter extends CustomPainter {
+//   _ShapeBorderPainter(this.border, this.textDirection);
+//   final ShapeBorder border;
+//   final TextDirection? textDirection;
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    border.paint(canvas, Offset.zero & size, textDirection: textDirection);
-  }
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     border.paint(canvas, Offset.zero & size, textDirection: textDirection);
+//   }
 
-  @override
-  bool shouldRepaint(_ShapeBorderPainter oldDelegate) {
-    return oldDelegate.border != border;
-  }
-}
+//   @override
+//   bool shouldRepaint(_ShapeBorderPainter oldDelegate) {
+//     return oldDelegate.border != border;
+//   }
+// }
 
 class RadioSectionTile<T> extends StatelessWidget {
   final Widget title;

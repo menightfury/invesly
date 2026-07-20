@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:google_fonts/google_fonts.dart';
+import 'package:invesly/common/extensions/color_extension.dart';
 
 import 'package:invesly/constants.dart';
 
@@ -81,13 +81,22 @@ class AppStyle {
           if (state.contains(WidgetState.disabled)) {
             return Colors.black12;
           }
-          return colorScheme.secondaryContainer;
+          return colorScheme.secondaryContainer.lighten(50);
         }),
         contentPadding: iFormFieldContentPadding,
         isCollapsed: true,
         // isDense: true,
         hintStyle: const TextStyle(color: Colors.black38),
-        border: const OutlineInputBorder(borderRadius: iTextFieldBorderRadius, borderSide: BorderSide.none),
+        border: WidgetStateInputBorder.resolveWith((states) {
+          late final BorderSide side;
+          if (states.contains(WidgetState.focused)) {
+            side = BorderSide(color: colorScheme.primary);
+          } else {
+            side = BorderSide.none;
+          }
+          return OutlineInputBorder(borderRadius: iTextFieldBorderRadius, borderSide: side);
+        }),
+
         // enabledBorder: OutlineInputBorder(
         //   borderRadius: iTextFieldBorderRadius,
         //   borderSide: BorderSide(width: 1.0, color: colorScheme.primary.withOpacity(0.38)),

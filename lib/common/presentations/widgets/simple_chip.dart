@@ -31,10 +31,12 @@ class SimpleChip extends StatelessWidget {
       content = Row(mainAxisSize: MainAxisSize.min, spacing: 4.0, children: <Widget>[icon!, content]);
     }
 
-    return PhysicalShape(
+    return ClipPath(
       clipper: ShapeBorderClipper(shape: const StadiumBorder()),
-      color: color ?? colorScheme.primaryContainer,
-      child: Padding(padding: padding, child: content),
+      child: ColoredBox(
+        color: color ?? colorScheme.primaryContainer,
+        child: Padding(padding: padding, child: content),
+      ),
     );
   }
 }
