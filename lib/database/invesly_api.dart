@@ -45,7 +45,7 @@ class InveslyApi {
     final tables = <TableSchema>[_accountTable, _amcTable, _trnTable, _statTable];
     _db = await openDatabase(
       dbPath,
-      version: 4,
+      version: 6,
       onCreate: (db, version) async {
         final batch = db.batch();
 
@@ -77,11 +77,16 @@ class InveslyApi {
         await batch.commit(noResult: true, continueOnError: true);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 4) {
+        $logger.w('===== upgrading database ======');
+        if (oldVersion < 6) {
           await _migrateAccountsToNewModel(db);
         }
       },
     );
+    // if (_db != null) {
+    //   final version = await _db!.rawQuery('PRAGMA user_version');
+    //   $logger.w(version);
+    // }
 
     // ?? Close database at the end ??
     _tables.addAll(tables);
@@ -93,10 +98,12 @@ class InveslyApi {
     final existingColumns = columns.map((column) => column['name'] as String).toSet();
     final newColumns = _accountTable.columns.map((column) => column.title).toSet();
     final commonColumns = existingColumns.intersection(newColumns).join(', ');
+    $logger.w(commonColumns);
+    $logger.w(accountTable.createTableSql);
 
-    final batch = db.batch();
-    db.execute('''
-      PRAGMA foreign_keys = 0; -- setting foreign_keys off temporarily
+    // final batch = db.batch();
+    await db.execute('''
+      PRAGMA foreign_keys = 0;
       CREATE TABLE sqliteinvesly_temp_table AS SELECT * FROM ${accountTable.title};
       DROP TABLE ${accountTable.title};
 
@@ -107,7 +114,7 @@ class InveslyApi {
       PRAGMA foreign_keys = 1;
     ''');
 
-    await batch.commit(noResult: true, continueOnError: true);
+    // await batch.commit(noResult: true, continueOnError: true);
   }
 
   // Build trigger operation SQL dynamically using schema column names

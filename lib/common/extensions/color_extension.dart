@@ -20,7 +20,7 @@ extension ColorX on Color {
     // );
 
     // Method #2
-    return Color.lerp(this, Color(0xFF000000), percent / 100)!;
+    return Color.lerp(this, Color(0xFF1F1F1F), percent / 100)!;
   }
 
   Color lighten([double percent = 10]) {

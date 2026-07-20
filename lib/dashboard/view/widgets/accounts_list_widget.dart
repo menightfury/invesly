@@ -40,9 +40,20 @@ class _AccountsListState extends State<_AccountsList> {
               // ~ Error state
               if (accountState.isError) {
                 return SimpleCard(
-                  label: Text('Failed to load accounts', style: TextStyle(color: context.colors.error)),
                   padding: cardPadding,
                   color: context.colors.errorContainer,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 8.0,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(
+                        Icons.error_rounded,
+                        color: context.colors.error,
+                      ).inContainer(context, color: context.colors.errorContainer.darken(10)),
+                      Text('Failed to load accounts', style: TextStyle(color: context.colors.onErrorContainer)),
+                    ],
+                  ),
                 );
               }
 
