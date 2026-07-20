@@ -121,29 +121,9 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                       crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.only(left: 12.0),
-                              child: Text('Select account', overflow: TextOverflow.ellipsis),
-                            ),
-                            // ~ Add new account button
-                            FilledButton.tonalIcon(
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                                minimumSize: const Size.square(0.0),
-                                backgroundColor: context.colors.primary,
-                                foregroundColor: context.colors.onPrimary,
-                              ),
-                              onPressed: () => context.push(const EditAccountPage()),
-                              label: Text(
-                                'Add new account',
-                                style: context.textTheme.bodySmall?.copyWith(color: context.colors.onPrimary),
-                              ),
-                              icon: Icon(Icons.add_rounded, color: context.colors.onPrimary),
-                            ),
-                          ],
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12.0),
+                          child: Text('Select account', overflow: TextOverflow.ellipsis),
                         ),
                         _AccountPickerWidget(),
                       ],
@@ -530,8 +510,6 @@ class _AccountPickerWidget extends StatefulWidget {
 }
 
 class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
-  late final PageController _avatarController;
-
   @override
   void initState() {
     super.initState();
@@ -540,13 +518,6 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
     if (!cubit.state.isLoaded) {
       cubit.fetchAccounts();
     }
-    _avatarController = PageController(initialPage: 0, viewportFraction: 0.35);
-  }
-
-  @override
-  void dispose() {
-    _avatarController.dispose();
-    super.dispose();
   }
 
   @override
@@ -554,236 +525,173 @@ class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
     final cubit = context.read<EditTransactionCubit>();
     const cardPadding = EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0);
 
-    return SizedBox(
-      height: 150.0,
-      child: BlocBuilder<AccountsCubit, AccountsState>(
-        builder: (context, accountsState) {
-          // ~ Error state
-          if (accountsState.isError) {
-            return SimpleCard(
-              label: Text('Failed to load accounts', style: TextStyle(color: context.colors.error)),
-              padding: cardPadding,
-              color: context.colors.errorContainer,
-            );
+    return BlocBuilder<AccountsCubit, AccountsState>(
+      builder: (context, accountsState) {
+        // ~ Error state
+        if (accountsState.isError) {
+          return SimpleCard(
+            label: Text('Failed to load accounts', style: TextStyle(color: context.colors.error)),
+            padding: cardPadding,
+            color: context.colors.errorContainer,
+          );
+        }
+
+        // ~ Loaded state
+        if (accountsState is AccountsLoadedState) {
+          final accounts = accountsState.accounts;
+
+          if (accounts.isEmpty) {
+            return Text('No accounts found');
           }
 
-          // ~ Loaded state
-          if (accountsState is AccountsLoadedState) {
-            final accounts = accountsState.accounts;
+          return BlocBuilder<EditTransactionCubit, EditTransactionState>(
+            buildWhen: (prev, curr) {
+              return prev.accountId != curr.accountId ||
+                  prev.accountError != curr.accountError ||
+                  (prev.status != curr.status && curr.isError && curr.accountError != null);
+            },
+            builder: (context, editTrnState) {
+              final isError = editTrnState.accountError != null;
+              // final account = state.accountId != null && accounts.isNotEmpty
+              //     ? accounts.firstWhereOrNull((a) => a.id == state.accountId)
+              //     : null;
 
-            if (accounts.isEmpty) {
-              return Text('No accounts found');
-            }
-
-            return PageView.builder(
-              controller: _avatarController,
-              itemCount: accounts.length,
-              itemBuilder: (context, index) {
-                final account = accounts[index];
-                return AnimatedBuilder(
-                  animation: _avatarController,
-                  builder: (context, child) {
-                    double scale = 1.0;
-                    double itemOffset = 0.0;
-                    double page = _avatarController.initialPage.toDouble();
-                    final position = _avatarController.position;
-                    if (position.hasPixels && position.hasContentDimensions) {
-                      page = _avatarController.page ?? page;
-                    }
-                    itemOffset = page - index;
-
-                    final num t = (1 - (itemOffset.abs() * 0.6)).clamp(0.3, 1.0);
-                    scale = Curves.easeOut.transform(t as double);
-
-                    return Transform.scale(
-                      scale: scale,
-                      child: GestureDetector(
-                        onTap: () => cubit.updateAccount(account.id),
-                        behavior: HitTestBehavior.opaque,
-                        child: SimpleCard(
-                          padding: cardPadding,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: iCardBorderRadius,
-                            // side: isSelected ? BorderSide(width: 2.0, color: context.colors.primary) : BorderSide.none,
-                          ),
-                          // elevation: isSelected ? 2.0 : 0.0,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 12.0,
-                            children: <Widget>[
-                              account.icon.buildWidget(
-                                context,
-                                backgroundColor: account.color?.withAlpha(0x33),
-                                color: account.color,
-                              ),
-                              Text(
-                                account.name,
-                                overflow: TextOverflow.ellipsis,
-                                style: context.textTheme.headlineSmall?.copyWith(
-                                  // color: isSelected ? context.colors.primary : null,
+              $logger.i('Account Picker Rebuilding');
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
+                child: Row(
+                  spacing: 8.0,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    // ~~~ Accounts ~~~
+                    if (accounts.isNotEmpty)
+                      ...accounts.map((account) {
+                        final isSelected = account.id == editTrnState.accountId;
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            GestureDetector(
+                              onTap: () => cubit.updateAccount(account.id),
+                              behavior: HitTestBehavior.opaque,
+                              child: SimpleCard(
+                                padding: cardPadding,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: iCardBorderRadius,
+                                  side: isSelected
+                                      ? BorderSide(width: 2.0, color: context.colors.primary)
+                                      : BorderSide.none,
+                                ),
+                                elevation: isSelected ? 2.0 : 0.0,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: 12.0,
+                                  children: <Widget>[
+                                    account.icon.buildWidget(
+                                      context,
+                                      backgroundColor: account.color?.withAlpha(0x33),
+                                      color: account.color,
+                                    ),
+                                    Text(
+                                      account.name,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: context.textTheme.headlineSmall?.copyWith(
+                                        color: isSelected ? context.colors.primary : null,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            );
+                            ),
 
-            return BlocBuilder<EditTransactionCubit, EditTransactionState>(
-              buildWhen: (prev, curr) {
-                return prev.accountId != curr.accountId ||
-                    prev.accountError != curr.accountError ||
-                    (prev.status != curr.status && curr.isError && curr.accountError != null);
-              },
-              builder: (context, editTrnState) {
-                final isError = editTrnState.accountError != null;
-                // final account = state.accountId != null && accounts.isNotEmpty
-                //     ? accounts.firstWhereOrNull((a) => a.id == state.accountId)
-                //     : null;
-
-                $logger.i('Account Picker Rebuilding');
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  clipBehavior: Clip.none,
-                  child: Row(
-                    spacing: 8.0,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      // ~~~ Accounts ~~~
-                      if (accounts.isNotEmpty)
-                        ...accounts.map((account) {
-                          final isSelected = account.id == editTrnState.accountId;
-                          return Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              GestureDetector(
-                                onTap: () => cubit.updateAccount(account.id),
-                                behavior: HitTestBehavior.opaque,
-                                child: SimpleCard(
-                                  padding: cardPadding,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: iCardBorderRadius,
-                                    side: isSelected
-                                        ? BorderSide(width: 2.0, color: context.colors.primary)
-                                        : BorderSide.none,
-                                  ),
-                                  elevation: isSelected ? 2.0 : 0.0,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    spacing: 12.0,
-                                    children: <Widget>[
-                                      account.icon.buildWidget(
-                                        context,
-                                        backgroundColor: account.color?.withAlpha(0x33),
-                                        color: account.color,
-                                      ),
-                                      Text(
-                                        account.name,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: context.textTheme.headlineSmall?.copyWith(
-                                          color: isSelected ? context.colors.primary : null,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-
-                              if (isError)
-                                Padding(
-                                  padding: cardPadding.copyWith(top: 4.0, bottom: 0.0),
-                                  child: FadeIn(
-                                    from: Offset(0.0, -0.25),
-                                    child: DefaultTextStyle(
-                                      style: context.textTheme.bodySmall!
-                                          .copyWith(color: context.colors.error)
-                                          .merge(context.theme.inputDecorationTheme.errorStyle),
-                                      child: Text(
-                                        editTrnState.accountError!,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                      ),
+                            if (isError)
+                              Padding(
+                                padding: cardPadding.copyWith(top: 4.0, bottom: 0.0),
+                                child: FadeIn(
+                                  from: Offset(0.0, -0.25),
+                                  child: DefaultTextStyle(
+                                    style: context.textTheme.bodySmall!
+                                        .copyWith(color: context.colors.error)
+                                        .merge(context.theme.inputDecorationTheme.errorStyle),
+                                    child: Text(
+                                      editTrnState.accountError!,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
                                     ),
                                   ),
                                 ),
-                            ],
-                          );
-                        }),
-
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => context.push(const EditAccountPage()),
-                        child: SimpleCard(
-                          padding: cardPadding,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: iCardBorderRadius,
-                            side: BorderSide(width: 2.0, color: context.theme.disabledColor.lighten(80)),
-                          ),
-                          color: context.colors.surface,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 12.0,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(
-                                Icons.add_rounded,
-                                color: Colors.white,
-                              ).inContainer(context, color: context.theme.disabledColor.lighten(50)),
-                              Text(
-                                'Add account',
-                                overflow: TextOverflow.ellipsis,
-                                style: context.textTheme.bodyMedium?.copyWith(color: context.theme.disabledColor),
                               ),
-                            ],
-                          ),
+                          ],
+                        );
+                      }),
+
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => context.push(const EditAccountPage()),
+                      child: SimpleCard(
+                        padding: cardPadding,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: iCardBorderRadius,
+                          side: BorderSide(width: 2.0, color: context.theme.disabledColor.lighten(80)),
+                        ),
+                        color: context.colors.surface,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 12.0,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Icon(
+                              Icons.add_rounded,
+                              color: Colors.white,
+                            ).inContainer(context, color: context.theme.disabledColor.lighten(50)),
+                            Text(
+                              'Add account',
+                              overflow: TextOverflow.ellipsis,
+                              style: context.textTheme.bodyMedium?.copyWith(color: context.theme.disabledColor),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                );
+                    ),
+                  ],
+                ),
+              );
 
-                // return Shake(
-                //   shake: isError,
-                //   child: AccountPickerWidget(
-                //     accountId: state.accountId,
-                //     onPickup: (value) => cubit.updateAccount(value.id),
-                //     side: BorderSide.none,
-                //     color: context.theme.inputDecorationTheme.fillColor,
-                //     avatar: account != null
-                //         ? account.buildIconWidget(
-                //             size: 28.0,
-                //             backgroundColor: account.color.withAlpha(0x33),
-                //             foregroundColor: account.color,
-                //             iconSize: 18.0,
-                //           )
-                //         : Icon(Icons.supervised_user_circle_rounded, size: 22.0, color: Colors.grey),
-                //     child: Text(
-                //       account?.name ?? state.accountId?.toString() ?? 'Select account',
-                //       style: TextStyle(color: state.accountId == null ? Colors.grey : null),
-                //     ),
-                //   ),
-                // );
-              },
-            );
-          }
-
-          return Skeletonizer(
-            child: PageView.builder(
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: 2,
-              itemBuilder: (_, _) {
-                return const Skeleton.leaf(
-                  child: SimpleCard(label: Text('Loading accounts...'), padding: cardPadding),
-                );
-              },
-            ),
+              // return Shake(
+              //   shake: isError,
+              //   child: AccountPickerWidget(
+              //     accountId: state.accountId,
+              //     onPickup: (value) => cubit.updateAccount(value.id),
+              //     side: BorderSide.none,
+              //     color: context.theme.inputDecorationTheme.fillColor,
+              //     avatar: account != null
+              //         ? account.buildIconWidget(
+              //             size: 28.0,
+              //             backgroundColor: account.color.withAlpha(0x33),
+              //             foregroundColor: account.color,
+              //             iconSize: 18.0,
+              //           )
+              //         : Icon(Icons.supervised_user_circle_rounded, size: 22.0, color: Colors.grey),
+              //     child: Text(
+              //       account?.name ?? state.accountId?.toString() ?? 'Select account',
+              //       style: TextStyle(color: state.accountId == null ? Colors.grey : null),
+              //     ),
+              //   ),
+              // );
+            },
           );
-        },
-      ),
+        }
+
+        return Skeletonizer(
+          child: Row(
+            children: List.generate(2, (_) {
+              return const Skeleton.leaf(
+                child: SimpleCard(label: Text('Loading accounts...'), padding: cardPadding),
+              );
+            }),
+          ),
+        );
+      },
     );
   }
 }

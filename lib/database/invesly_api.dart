@@ -45,7 +45,7 @@ class InveslyApi {
     final tables = <TableSchema>[_accountTable, _amcTable, _trnTable, _statTable];
     _db = await openDatabase(
       dbPath,
-      version: 6,
+      version: 7,
       onCreate: (db, version) async {
         final batch = db.batch();
 
@@ -78,7 +78,7 @@ class InveslyApi {
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         $logger.w('===== upgrading database ======');
-        if (oldVersion < 6) {
+        if (oldVersion < 7) {
           await _migrateAccountsToNewModel(db);
         }
       },
@@ -97,24 +97,38 @@ class InveslyApi {
     final columns = await db.rawQuery('PRAGMA table_info(${accountTable.title})');
     final existingColumns = columns.map((column) => column['name'] as String).toSet();
     final newColumns = _accountTable.columns.map((column) => column.title).toSet();
-    final commonColumns = existingColumns.intersection(newColumns).join(', ');
-    $logger.w(commonColumns);
-    $logger.w(accountTable.createTableSql);
+    final commonColumns = existingColumns.intersection(newColumns);
 
-    // final batch = db.batch();
-    await db.execute('''
-      PRAGMA foreign_keys = 0;
-      CREATE TABLE sqliteinvesly_temp_table AS SELECT * FROM ${accountTable.title};
-      DROP TABLE ${accountTable.title};
+    if (commonColumns.isEmpty) {
+      await db.execute(accountTable.createTableSql);
+      return;
+    }
 
-      ${accountTable.createTableSql};
-      INSERT INTO ${accountTable.title} ($commonColumns) SELECT $commonColumns FROM sqliteinvesly_temp_table;
+    final batch = db.batch();
+    batch.execute('PRAGMA foreign_keys = OFF');
+    batch.execute('ALTER TABLE ${accountTable.title} RENAME TO sqliteinvesly_temp_table');
+    batch.execute(accountTable.createTableSql);
 
-      DROP TABLE sqliteinvesly_temp_table;
-      PRAGMA foreign_keys = 1;
-    ''');
+    final columnList = commonColumns.join(', ');
+    batch.execute('INSERT INTO ${accountTable.title} ($columnList) SELECT $columnList FROM sqliteinvesly_temp_table');
 
-    // await batch.commit(noResult: true, continueOnError: true);
+    batch.execute('DROP TABLE sqliteinvesly_temp_table');
+    batch.execute('PRAGMA foreign_keys = ON');
+
+    await batch.commit(noResult: true, continueOnError: true);
+    // await db.transaction((txn) async {
+    //   await txn.execute('PRAGMA foreign_keys = OFF');
+    //   await txn.execute('ALTER TABLE ${accountTable.title} RENAME TO sqliteinvesly_temp_table');
+    //   await txn.execute(accountTable.createTableSql);
+
+    //   final columnList = commonColumns.join(', ');
+    //   await txn.execute(
+    //     'INSERT INTO ${accountTable.title} ($columnList) SELECT $columnList FROM sqliteinvesly_temp_table',
+    //   );
+
+    //   await txn.execute('DROP TABLE sqliteinvesly_temp_table');
+    //   await txn.execute('PRAGMA foreign_keys = ON');
+    // });
   }
 
   // Build trigger operation SQL dynamically using schema column names
