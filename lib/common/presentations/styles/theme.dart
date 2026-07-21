@@ -92,7 +92,7 @@ class AppStyle {
           if (states.contains(WidgetState.focused)) {
             side = BorderSide(color: colorScheme.primary);
           } else {
-            side = BorderSide.none;
+            side = BorderSide(color: colorScheme.secondaryContainer);
           }
           return OutlineInputBorder(borderRadius: iTextFieldBorderRadius, borderSide: side);
         }),

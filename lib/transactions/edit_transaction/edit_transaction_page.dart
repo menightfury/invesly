@@ -226,144 +226,249 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
-                      selector: (state) => state.canEditRateAndQnty,
-                      builder: (context, isVisible) {
-                        return AnimatedSize(
-                          alignment: Alignment.topCenter,
-                          duration: 250.ms,
-                          curve: Curves.easeInOut,
-                          child: isVisible
-                              ? Row(
-                                  spacing: 12.0,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    // ~ Rate (Unit price)
-                                    Expanded(
-                                      child: Column(
-                                        spacing: iFormFieldLabelSpacing,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: <Widget>[
-                                          // ~ Label
-                                          BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre?>(
-                                            selector: (state) => state.amc?.genre,
-                                            builder: (context, genre) {
-                                              final label = switch (genre) {
-                                                AmcGenre.mf => 'NAV (Rs.)',
-                                                _ => 'Unit price (Rs.)',
-                                              };
-                                              return Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                                child: FadeIn(
-                                                  from: Offset(0.0, 0.4),
-                                                  child: Text(label, overflow: TextOverflow.ellipsis),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                          // ~ Rate field
-                                          BlocBuilder<EditTransactionCubit, EditTransactionState>(
-                                            buildWhen: (prev, curr) {
-                                              return prev.rate != curr.rate ||
-                                                  prev.rateError != curr.rateError ||
-                                                  (prev.status != curr.status &&
-                                                      curr.isError &&
-                                                      curr.rateError != null);
-                                            },
-                                            builder: (context, state) {
-                                              $logger.i('Rate is Rebuilding');
-                                              return _FormField(
-                                                onTap: () async {
-                                                  final newRate = await InveslyCalculatorWidget.showModal(
-                                                    context,
-                                                    state.rate,
-                                                  );
-                                                  if (newRate == null) return;
-                                                  cubit.updateRate(newRate.toDouble());
-                                                },
-                                                errorText: state.rateError,
-                                                contentAlignment: AlignmentGeometry.centerRight,
-                                                child: Text(
-                                                  state.rate == null
-                                                      ? 'e.g. 1,500'
-                                                      : NumberFormat.decimalPattern('en_IN').format(state.rate),
-                                                  style: state.rate == null ? TextStyle(color: Colors.grey) : null,
-                                                  textAlign: TextAlign.right,
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                    child: ColoredBox(
+                      color: context.colors.secondaryContainer.lighten(50),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                        child: Column(
+                          spacing: 16.0,
+                          children: <Widget>[
+                            BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
+                              selector: (state) => state.canEditRateAndQnty,
+                              builder: (context, isVisible) {
+                                return AnimatedSize(
+                                  alignment: Alignment.topCenter,
+                                  duration: 250.ms,
+                                  curve: Curves.easeInOut,
+                                  child: isVisible
+                                      ? Row(
+                                          spacing: 12.0,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: <Widget>[
+                                            // ~ Rate (Unit price)
+                                            Expanded(
+                                              child: Column(
+                                                spacing: iFormFieldLabelSpacing,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: <Widget>[
+                                                  // ~ Label
+                                                  BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre?>(
+                                                    selector: (state) => state.amc?.genre,
+                                                    builder: (context, genre) {
+                                                      final label = switch (genre) {
+                                                        AmcGenre.mf => 'NAV (Rs.)',
+                                                        _ => 'Unit price (Rs.)',
+                                                      };
+                                                      return Padding(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                                        child: FadeIn(
+                                                          from: Offset(0.0, 0.4),
+                                                          child: Text(label, overflow: TextOverflow.ellipsis),
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                                  // ~ Rate field
+                                                  BlocBuilder<EditTransactionCubit, EditTransactionState>(
+                                                    buildWhen: (prev, curr) {
+                                                      return prev.rate != curr.rate ||
+                                                          prev.rateError != curr.rateError ||
+                                                          (prev.status != curr.status &&
+                                                              curr.isError &&
+                                                              curr.rateError != null);
+                                                    },
+                                                    builder: (context, state) {
+                                                      $logger.i('Rate is Rebuilding');
+                                                      return _FormField(
+                                                        onTap: () async {
+                                                          final newRate = await InveslyCalculatorWidget.showModal(
+                                                            context,
+                                                            state.rate,
+                                                          );
+                                                          if (newRate == null) return;
+                                                          cubit.updateRate(newRate.toDouble());
+                                                        },
+                                                        errorText: state.rateError,
+                                                        contentAlignment: AlignmentGeometry.centerRight,
+                                                        child: Text(
+                                                          state.rate == null
+                                                              ? 'e.g. 1,500'
+                                                              : NumberFormat.decimalPattern('en_IN').format(state.rate),
+                                                          style: state.rate == null
+                                                              ? TextStyle(color: Colors.grey)
+                                                              : null,
+                                                          textAlign: TextAlign.right,
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
 
-                                    // ~ No. of Units (Quantity)
-                                    Expanded(
-                                      child: Column(
-                                        spacing: iFormFieldLabelSpacing,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: <Widget>[
-                                          // ~ Label
-                                          BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre?>(
-                                            selector: (state) => state.amc?.genre,
-                                            builder: (context, genre) {
-                                              final label = switch (genre) {
-                                                AmcGenre.stock => 'No. of shares',
-                                                _ => 'No. of units',
-                                              };
-                                              return Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                                child: FadeIn(
-                                                  from: Offset(0.0, 0.4),
-                                                  child: Text(label, overflow: TextOverflow.ellipsis),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                          // ~ Quantity field
-                                          BlocBuilder<EditTransactionCubit, EditTransactionState>(
-                                            buildWhen: (prev, curr) {
-                                              return prev.qnty != curr.qnty ||
-                                                  prev.qntyError != curr.qntyError ||
-                                                  (prev.status != curr.status &&
-                                                      curr.isError &&
-                                                      curr.qntyError != null);
-                                            },
-                                            builder: (context, state) {
-                                              $logger.i('Quantity is Rebuilding');
-                                              return _FormField(
-                                                onTap: () async {
-                                                  final newQnty = await InveslyCalculatorWidget.showModal(
-                                                    context,
-                                                    state.qnty,
-                                                  );
-                                                  if (newQnty == null) return;
-                                                  cubit.updateQuantity(newQnty.toDouble());
-                                                },
-                                                errorText: state.qntyError,
-                                                contentAlignment: AlignmentGeometry.centerRight,
-                                                child: Text(
-                                                  state.qnty == null
-                                                      ? 'e.g. 15'
-                                                      : NumberFormat.decimalPattern('en_IN').format(state.qnty),
-                                                  style: state.qnty == null ? TextStyle(color: Colors.grey) : null,
-                                                  textAlign: TextAlign.right,
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ],
+                                            // ~ No. of Units (Quantity)
+                                            Expanded(
+                                              child: Column(
+                                                spacing: iFormFieldLabelSpacing,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: <Widget>[
+                                                  // ~ Label
+                                                  BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre?>(
+                                                    selector: (state) => state.amc?.genre,
+                                                    builder: (context, genre) {
+                                                      final label = switch (genre) {
+                                                        AmcGenre.stock => 'No. of shares',
+                                                        _ => 'No. of units',
+                                                      };
+                                                      return Padding(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                                        child: FadeIn(
+                                                          from: Offset(0.0, 0.4),
+                                                          child: Text(label, overflow: TextOverflow.ellipsis),
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                                  // ~ Quantity field
+                                                  BlocBuilder<EditTransactionCubit, EditTransactionState>(
+                                                    buildWhen: (prev, curr) {
+                                                      return prev.qnty != curr.qnty ||
+                                                          prev.qntyError != curr.qntyError ||
+                                                          (prev.status != curr.status &&
+                                                              curr.isError &&
+                                                              curr.qntyError != null);
+                                                    },
+                                                    builder: (context, state) {
+                                                      $logger.i('Quantity is Rebuilding');
+                                                      return _FormField(
+                                                        onTap: () async {
+                                                          final newQnty = await InveslyCalculatorWidget.showModal(
+                                                            context,
+                                                            state.qnty,
+                                                          );
+                                                          if (newQnty == null) return;
+                                                          cubit.updateQuantity(newQnty.toDouble());
+                                                        },
+                                                        errorText: state.qntyError,
+                                                        contentAlignment: AlignmentGeometry.centerRight,
+                                                        child: Text(
+                                                          state.qnty == null
+                                                              ? 'e.g. 15'
+                                                              : NumberFormat.decimalPattern('en_IN').format(state.qnty),
+                                                          style: state.qnty == null
+                                                              ? TextStyle(color: Colors.grey)
+                                                              : null,
+                                                          textAlign: TextAlign.right,
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : SizedBox(width: double.infinity),
+                                );
+                              },
+                            ),
+
+                            // ~ Total amount
+                            Column(
+                              spacing: iFormFieldLabelSpacing,
+                              crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      const Text('Total amount', overflow: TextOverflow.ellipsis),
+
+                                      // ~ Auto calculate
+                                      BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
+                                        selector: (state) =>
+                                            [AmcGenre.insurance, AmcGenre.misc].contains(state.amc?.genre),
+                                        builder: (context, disabled) {
+                                          if (disabled) {
+                                            return SizedBox.shrink();
+                                          }
+                                          return FadeIn(
+                                            from: Offset(0.0, 0.4),
+                                            child: BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
+                                              selector: (state) => state.autoAmount,
+                                              builder: (context, autoAmount) {
+                                                return Row(
+                                                  children: <Widget>[
+                                                    Text('Auto calculate', style: context.textTheme.labelSmall),
+                                                    SizedBox(
+                                                      height: 20.0,
+                                                      child: FittedBox(
+                                                        fit: BoxFit.fill,
+                                                        child: Switch(
+                                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                          value: autoAmount,
+                                                          onChanged: disabled
+                                                              ? null
+                                                              : (value) => cubit.updateAutoAmountMode(value),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        },
                                       ),
-                                    ),
-                                  ],
-                                )
-                              : SizedBox(width: double.infinity),
-                        );
-                      },
+                                    ],
+                                  ),
+                                ),
+
+                                // ~ Total amount field
+                              ],
+                            ),
+
+                            BlocBuilder<EditTransactionCubit, EditTransactionState>(
+                              buildWhen: (prev, curr) {
+                                return prev.totalAmount != curr.totalAmount ||
+                                    prev.totalAmountError != curr.totalAmountError ||
+                                    (prev.status != curr.status && curr.isError && curr.totalAmountError != null) ||
+                                    prev.canEditAmount != curr.canEditAmount;
+                              },
+                              builder: (context, state) {
+                                $logger.i('Total amount section is Rebuilding');
+                                return _FormField(
+                                  enabled: state.canEditAmount,
+                                  onTap: () async {
+                                    final newAmount = await InveslyCalculatorWidget.showModal(
+                                      context,
+                                      state.totalAmount,
+                                    );
+                                    if (newAmount == null) return;
+                                    cubit.updateAmount(newAmount.toDouble());
+                                  },
+                                  errorText: state.totalAmountError,
+                                  contentAlignment: AlignmentGeometry.centerRight,
+                                  child: Text(
+                                    state.totalAmount == null
+                                        ? 'e.g. 1,500'
+                                        : NumberFormat.decimalPattern('en_IN').format(state.totalAmount),
+                                    style: state.totalAmount == null ? TextStyle(color: Colors.grey) : null,
+                                    textAlign: TextAlign.right,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              },
+                            ).withLabel('Total amount'),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -371,95 +476,12 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 const SliverGap(iFormFieldsInterSpacing),
 
                 // ~~~ Total amount ~~~
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      spacing: iFormFieldLabelSpacing,
-                      crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              const Text('Total amount', overflow: TextOverflow.ellipsis),
-
-                              // ~ Auto calculate
-                              BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
-                                selector: (state) => [AmcGenre.insurance, AmcGenre.misc].contains(state.amc?.genre),
-                                builder: (context, disabled) {
-                                  if (disabled) {
-                                    return SizedBox.shrink();
-                                  }
-                                  return FadeIn(
-                                    from: Offset(0.0, 0.4),
-                                    child: BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
-                                      selector: (state) => state.autoAmount,
-                                      builder: (context, autoAmount) {
-                                        return Row(
-                                          children: <Widget>[
-                                            Text('Auto calculate', style: context.textTheme.labelSmall),
-                                            SizedBox(
-                                              height: 20.0,
-                                              child: FittedBox(
-                                                fit: BoxFit.fill,
-                                                child: Switch(
-                                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                                  value: autoAmount,
-                                                  onChanged: disabled
-                                                      ? null
-                                                      : (value) => cubit.updateAutoAmountMode(value),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // ~ Total amount field
-                        BlocBuilder<EditTransactionCubit, EditTransactionState>(
-                          buildWhen: (prev, curr) {
-                            return prev.totalAmount != curr.totalAmount ||
-                                prev.totalAmountError != curr.totalAmountError ||
-                                (prev.status != curr.status && curr.isError && curr.totalAmountError != null) ||
-                                prev.canEditAmount != curr.canEditAmount;
-                          },
-                          builder: (context, state) {
-                            $logger.i('Total amount section is Rebuilding');
-                            return _FormField(
-                              enabled: state.canEditAmount,
-                              onTap: () async {
-                                final newAmount = await InveslyCalculatorWidget.showModal(context, state.totalAmount);
-                                if (newAmount == null) return;
-                                cubit.updateAmount(newAmount.toDouble());
-                              },
-                              errorText: state.totalAmountError,
-                              contentAlignment: AlignmentGeometry.centerRight,
-                              child: Text(
-                                state.totalAmount == null
-                                    ? 'e.g. 1,500'
-                                    : NumberFormat.decimalPattern('en_IN').format(state.totalAmount),
-                                style: state.totalAmount == null ? TextStyle(color: Colors.grey) : null,
-                                textAlign: TextAlign.right,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
+                // SliverToBoxAdapter(
+                //   child: Padding(
+                //     padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                //     child:
+                //   ),
+                // ),
                 const SliverGap(iFormFieldsInterSpacing),
 
                 // ~~~ Note ~~~
@@ -746,80 +768,80 @@ class _AccountPickerWidget2State extends State<_AccountPickerWidget2> {
   }
 }
 
-class _AvatarPickerWidget extends FormField<int> {
-  _AvatarPickerWidget({
-    super.key,
-    required List<String> avatars,
-    super.initialValue,
-    ValueChanged<int>? onChanged,
-    super.validator,
-    super.onSaved,
-  }) : super(
-         builder: (FormFieldState<int> field) {
-           final __AvatarPickerWidgetState state = field as __AvatarPickerWidgetState;
-           void onChangedHandler(int idx) {
-             onChanged?.call(idx);
-           }
+// class _AvatarPickerWidget extends FormField<int> {
+//   _AvatarPickerWidget({
+//     super.key,
+//     required List<String> avatars,
+//     super.initialValue,
+//     ValueChanged<int>? onChanged,
+//     super.validator,
+//     super.onSaved,
+//   }) : super(
+//          builder: (FormFieldState<int> field) {
+//            final __AvatarPickerWidgetState state = field as __AvatarPickerWidgetState;
+//            void onChangedHandler(int idx) {
+//              onChanged?.call(idx);
+//            }
 
-           return SizedBox(
-             height: 150.0,
-             child: PageView.builder(
-               controller: state.controller,
-               itemBuilder: (context, index) {
-                 return AnimatedBuilder(
-                   animation: state.controller,
-                   builder: (context, _) {
-                     double scale = 1.0;
-                     double itemOffset = 0.0;
-                     double page = state.controller.initialPage.toDouble();
-                     final position = state.controller.position;
-                     if (position.hasPixels && position.hasContentDimensions) {
-                       page = state.controller.page ?? page;
-                     }
-                     itemOffset = page - index;
+//            return SizedBox(
+//              height: 150.0,
+//              child: PageView.builder(
+//                controller: state.controller,
+//                itemBuilder: (context, index) {
+//                  return AnimatedBuilder(
+//                    animation: state.controller,
+//                    builder: (context, _) {
+//                      double scale = 1.0;
+//                      double itemOffset = 0.0;
+//                      double page = state.controller.initialPage.toDouble();
+//                      final position = state.controller.position;
+//                      if (position.hasPixels && position.hasContentDimensions) {
+//                        page = state.controller.page ?? page;
+//                      }
+//                      itemOffset = page - index;
 
-                     final num t = (1 - (itemOffset.abs() * 0.6)).clamp(0.3, 1.0);
-                     scale = Curves.easeOut.transform(t as double);
+//                      final num t = (1 - (itemOffset.abs() * 0.6)).clamp(0.3, 1.0);
+//                      scale = Curves.easeOut.transform(t as double);
 
-                     return Transform.scale(
-                       scale: scale,
-                       child: Image.asset(
-                         avatars[index],
-                         color: Color.fromRGBO(255, 255, 255, scale),
-                         colorBlendMode: BlendMode.modulate,
-                       ),
-                     );
-                   },
-                 );
-               },
-               itemCount: avatars.length,
-               onPageChanged: onChangedHandler,
-             ),
-           );
-         },
-       );
+//                      return Transform.scale(
+//                        scale: scale,
+//                        child: Image.asset(
+//                          avatars[index],
+//                          color: Color.fromRGBO(255, 255, 255, scale),
+//                          colorBlendMode: BlendMode.modulate,
+//                        ),
+//                      );
+//                    },
+//                  );
+//                },
+//                itemCount: avatars.length,
+//                onPageChanged: onChangedHandler,
+//              ),
+//            );
+//          },
+//        );
 
-  @override
-  FormFieldState<int> createState() => __AvatarPickerWidgetState();
-}
+//   @override
+//   FormFieldState<int> createState() => __AvatarPickerWidgetState();
+// }
 
-class __AvatarPickerWidgetState extends FormFieldState<int> {
-  late final PageController _avatarController;
+// class __AvatarPickerWidgetState extends FormFieldState<int> {
+//   late final PageController _avatarController;
 
-  PageController get controller => _avatarController;
+//   PageController get controller => _avatarController;
 
-  @override
-  void initState() {
-    _avatarController = PageController(initialPage: widget.initialValue ?? 0, viewportFraction: 0.35);
-    super.initState();
-  }
+//   @override
+//   void initState() {
+//     _avatarController = PageController(initialPage: widget.initialValue ?? 0, viewportFraction: 0.35);
+//     super.initState();
+//   }
 
-  @override
-  void dispose() {
-    _avatarController.dispose();
-    super.dispose();
-  }
-}
+//   @override
+//   void dispose() {
+//     _avatarController.dispose();
+//     super.dispose();
+//   }
+// }
 
 class _AmcPicker extends StatelessWidget {
   const _AmcPicker({super.key});
