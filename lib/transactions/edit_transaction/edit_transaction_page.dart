@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/view/edit_account/edit_account_page.dart';
+import 'package:invesly/accounts/view/widgets/account_picker_widget.dart';
 
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
@@ -14,6 +15,7 @@ import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
 import 'package:invesly/common/presentations/widgets/rolling_through_options.dart';
 import 'package:invesly/common/presentations/widgets/simple_card.dart';
+import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/dashboard/view/dashboard_page.dart';
@@ -96,8 +98,8 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                   snap: true,
                   floating: true,
                   title: Text('${cubit.state.isNewTransaction ? 'Add' : 'Edit'} Investment'),
-                  // actions: <Widget>[_AccountPickerWidget()],
-                  // actionsPadding: const EdgeInsets.only(right: 16.0),
+                  actions: <Widget>[_AccountPickerWidget()],
+                  actionsPadding: const EdgeInsets.only(right: 16.0),
                 ),
 
                 // // ~ Title
@@ -125,7 +127,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                           padding: const EdgeInsets.only(left: 12.0),
                           child: Text('Select account', overflow: TextOverflow.ellipsis),
                         ),
-                        _AccountPickerWidget(),
+                        _AccountPickerWidget2(),
                       ],
                     ),
                   ),
@@ -502,14 +504,62 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
   }
 }
 
-class _AccountPickerWidget extends StatefulWidget {
+class _AccountPickerWidget extends StatelessWidget {
   const _AccountPickerWidget({super.key});
 
   @override
-  State<_AccountPickerWidget> createState() => _AccountPickerWidgetState();
+  Widget build(BuildContext context) {
+    final cubit = context.read<EditTransactionCubit>();
+
+    return BlocBuilder<EditTransactionCubit, EditTransactionState>(
+      buildWhen: (prev, curr) {
+        return prev.accountId != curr.accountId ||
+            prev.accountError != curr.accountError ||
+            (prev.status != curr.status && curr.isError && curr.accountError != null);
+      },
+      builder: (context, state) {
+        final isError = state.accountError != null;
+        final accountsState = context.read<AccountsCubit>().state;
+        final accounts = (accountsState is AccountsLoadedState) ? accountsState.accounts : null;
+        final account = state.accountId != null && accounts != null && accounts.isNotEmpty
+            ? accounts.firstWhereOrNull((a) => a.id == state.accountId)
+            : null;
+
+        $logger.i('Account Picker Rebuilding');
+        return LimitedBox(
+          maxWidth: 176,
+          child: Shake(
+            shake: isError,
+            child: AccountPickerWidget(
+              accountId: state.accountId,
+              onPickup: (value) => cubit.updateAccount(value.id),
+              side: BorderSide.none,
+              color: isError ? context.colors.errorContainer : null,
+              avatar: account?.icon.buildWidget(
+                context,
+                backgroundColor: account.color?.withAlpha(0x33),
+                color: account.color,
+              ),
+              child: Text(
+                account?.name ?? state.accountId?.toString() ?? 'Select account',
+                style: TextStyle(color: state.accountId == null ? Colors.grey : null),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
-class _AccountPickerWidgetState extends State<_AccountPickerWidget> {
+class _AccountPickerWidget2 extends StatefulWidget {
+  const _AccountPickerWidget2({super.key});
+
+  @override
+  State<_AccountPickerWidget2> createState() => _AccountPickerWidget2State();
+}
+
+class _AccountPickerWidget2State extends State<_AccountPickerWidget2> {
   @override
   void initState() {
     super.initState();
@@ -812,7 +862,15 @@ class _AmcPicker extends StatelessWidget {
                     ),
                   ],
                 )
-              : const Text('Select AMC', style: TextStyle(color: Colors.grey)),
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8.0,
+                  children: <Widget>[
+                    const Text('Search AMC', style: TextStyle(color: Colors.grey)),
+                    SimpleChip(child: Text('Suggestion')),
+                  ],
+                ),
         );
       },
     );

@@ -48,7 +48,7 @@ class AppStyle {
           return colorScheme.surface;
         }),
         // selectedColor: colorScheme.primaryContainer,
-        shape: StadiumBorder(),
+        shape: RoundedRectangleBorder(borderRadius: iCardBorderRadius),
         // side: const WidgetStateBorderSide.fromMap(<WidgetStatesConstraint, BorderSide?>{
         //   WidgetState.selected: BorderSide(color: Colors.red),
         //   // Resolves to null if no keys match, deferring to the default value

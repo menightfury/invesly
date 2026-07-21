@@ -1,4 +1,5 @@
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
+import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/accounts/view/edit_account/edit_account_page.dart';
 import 'package:invesly/accounts/model/account_model.dart';
@@ -62,16 +63,21 @@ class AccountPickerWidget extends StatelessWidget {
       maxLines: 1,
       child: child,
     );
-    return ActionChip(
-      label: label,
-      avatar: avatar,
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-      onPressed: enabled ? () => _handlePressed(context) : null,
-      side: side,
-      color: WidgetStateProperty.resolveWith<Color?>((states) {
-        if (states.contains(WidgetState.disabled)) return theme.disabledColor;
-        return color;
-      }),
+
+    return FadeIn(
+      key: ValueKey(accountId),
+      duration: 300.ms,
+      child: ActionChip(
+        label: label,
+        avatar: avatar,
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        onPressed: enabled ? () => _handlePressed(context) : null,
+        side: side,
+        color: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.disabled)) return theme.disabledColor;
+          return color;
+        }),
+      ),
     );
   }
 }
