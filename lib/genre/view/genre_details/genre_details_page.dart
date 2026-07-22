@@ -296,7 +296,7 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
               return InveslyChoiceChips<HoldingFilter>(
                 options: HoldingFilter.values,
                 labelBuilder: (context, filter) => Text(filter.label, overflow: TextOverflow.ellipsis),
-                selected: filter,
+                value: filter,
                 onChanged: (filter) {
                   if (filter == null) return;
                   _holdingFilter.value = filter;
@@ -348,7 +348,7 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
                                     overflow: TextOverflow.ellipsis,
                                   );
                                 },
-                                selected: isAscending,
+                                value: isAscending,
                                 onChanged: (value) {
                                   if (value == null) return;
                                   _isAscending.value = value;

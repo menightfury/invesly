@@ -43,12 +43,24 @@ class AppStyle {
       ),
       iconTheme: IconThemeData(color: colorScheme.onSurface),
       chipTheme: ChipThemeData(
-        color: WidgetStateProperty.resolveWith<Color?>((state) {
-          if (state.contains(WidgetState.selected)) return colorScheme.primaryContainer;
-          return colorScheme.surface;
+        color: WidgetStateColor.resolveWith((state) {
+          if (state.contains(WidgetState.error)) {
+            return colorScheme.errorContainer;
+          }
+          if (state.contains(WidgetState.disabled)) {
+            return Colors.black12;
+          }
+          if (state.contains(WidgetState.selected)) {
+            return colorScheme.primary;
+          }
+          return colorScheme.secondaryContainer.lighten(50);
         }),
         // selectedColor: colorScheme.primaryContainer,
         shape: RoundedRectangleBorder(borderRadius: iCardBorderRadius),
+        side: WidgetStateBorderSide.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return BorderSide(color: colorScheme.primary);
+          return BorderSide(color: colorScheme.secondaryContainer);
+        }),
         // side: const WidgetStateBorderSide.fromMap(<WidgetStatesConstraint, BorderSide?>{
         //   WidgetState.selected: BorderSide(color: Colors.red),
         //   // Resolves to null if no keys match, deferring to the default value
@@ -96,7 +108,6 @@ class AppStyle {
           }
           return OutlineInputBorder(borderRadius: iTextFieldBorderRadius, borderSide: side);
         }),
-
         // enabledBorder: OutlineInputBorder(
         //   borderRadius: iTextFieldBorderRadius,
         //   borderSide: BorderSide(width: 1.0, color: colorScheme.primary.withOpacity(0.38)),

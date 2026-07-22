@@ -153,7 +153,7 @@ class __EditViewState extends State<_EditView> {
                                 return InveslyChoiceChips<AmcGenre>(
                                   options: _allGenres,
                                   labelBuilder: (context, genre) => Text(genre.title),
-                                  selected: genre,
+                                  value: genre,
                                   onChanged: (value) {
                                     if (value == null) return;
                                     editAmcCubit.updateGenre(value);

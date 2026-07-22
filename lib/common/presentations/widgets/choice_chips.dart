@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
-// import 'dart:math' as math;
-
 import 'package:invesly/common_libs.dart';
 
 class InveslyChoiceChips<T> extends StatelessWidget {
@@ -9,7 +7,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
   InveslyChoiceChips({
     super.key,
     required this.options,
-    T? selected,
+    T? value,
     ValueChanged<T?>? onChanged,
     this.clearable = false,
     this.color,
@@ -23,10 +21,10 @@ class InveslyChoiceChips<T> extends StatelessWidget {
     required this.labelBuilder,
     this.iconBuilder,
   }) : multiselect = false,
-       _selected = selected == null ? const {} : {selected},
+       _selected = value == null ? const {} : {value},
        onChanged = onChanged != null ? ((Set<T> values) => onChanged.call(values.firstOrNull)) : null,
        assert(options.isNotEmpty),
-       assert(selected != null || clearable);
+       assert(value != null || clearable);
 
   /// Multi-select choice chips
   const InveslyChoiceChips.multi({
@@ -97,6 +95,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final chipTheme = ChipTheme.of(context);
     final colors = Theme.of(context).colorScheme;
     final childCount = options.length;
 
@@ -132,10 +131,7 @@ class InveslyChoiceChips<T> extends StatelessWidget {
           onSelected: _enabled ? (selected) => _handleChanged(selected, value) : null,
           label: Center(child: labelBuilder(context, value)),
           avatar: isSelected && showCheckmark ? null : iconBuilder?.call(context, value),
-          color: WidgetStateColor.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) return colors.primary;
-            return colors.primaryContainer;
-          }),
+          color: color ?? chipTheme.color,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           // onDeleted: onDeleted != null ? () => onDeleted!(option.value) : null,
           // deleteIcon: deleteIcon,
@@ -152,10 +148,10 @@ class InveslyChoiceChips<T> extends StatelessWidget {
           ),
           padding: padding,
           avatarBoxConstraints: BoxConstraints.tightFor(width: 20.0, height: 20.0),
-          side: WidgetStateBorderSide.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) return BorderSide(color: colors.primary);
-            return BorderSide(color: colors.primaryContainer.darken(20));
-          }),
+          // side: WidgetStateBorderSide.resolveWith((states) {
+          //   if (states.contains(WidgetState.selected)) return BorderSide(color: colors.primary);
+          //   return BorderSide(color: colors.primaryContainer.darken(20));
+          // }),
           shape: RoundedRectangleBorder(borderRadius: chipRadius),
         );
 
