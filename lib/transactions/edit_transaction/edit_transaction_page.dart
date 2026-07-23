@@ -156,6 +156,8 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                       onTap: () {
                         showModalBottomSheet(
                           context: context,
+                          useSafeArea: true,
+                          isScrollControlled: true,
                           builder: (context) => BlocProvider.value(value: cubit, child: _AmountPickerWidget()),
                         );
                       },
@@ -844,8 +846,8 @@ class _AmountPickerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Column(
         spacing: iFormFieldsInterSpacing,
         mainAxisSize: MainAxisSize.min,
@@ -1069,6 +1071,8 @@ class _AmountPickerWidget extends StatelessWidget {
           ),
 
           InveslyCalculatorWidget(),
+
+          // ElevatedButton(onPressed: () {}, child: Text('Confirm')),
         ],
       ),
     );

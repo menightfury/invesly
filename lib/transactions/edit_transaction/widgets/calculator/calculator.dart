@@ -5,6 +5,31 @@ import 'cubit/calculator_cubit.dart';
 
 const _kButtonBorderRadius = BorderRadius.all(Radius.circular(4.0));
 
+class CalculatorModel {
+  final num? leftOperand;
+  final num? rightOperand;
+  final CalculatorOperator? operator;
+
+  const CalculatorModel({this.leftOperand, this.rightOperand, this.operator});
+
+  num get result {
+    if (leftOperand == null || rightOperand == null || operator == null) {
+      return 0;
+    }
+
+    switch (operator!) {
+      case CalculatorOperator.add:
+        return leftOperand! + rightOperand!;
+      case CalculatorOperator.subtract:
+        return leftOperand! - rightOperand!;
+      case CalculatorOperator.multiply:
+        return leftOperand! * rightOperand!;
+      case CalculatorOperator.divide:
+        return leftOperand! / rightOperand!;
+    }
+  }
+}
+
 class InveslyCalculatorWidget extends StatelessWidget {
   const InveslyCalculatorWidget({super.key, this.initialAmount, this.onSubmit});
 
@@ -18,9 +43,12 @@ class InveslyCalculatorWidget extends StatelessWidget {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (context) {
-        return InveslyCalculatorWidget(
-          initialAmount: initialAmount,
-          onSubmit: (value) => Navigator.maybePop<num>(context, value),
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: InveslyCalculatorWidget(
+            initialAmount: initialAmount,
+            onSubmit: (value) => Navigator.maybePop<num>(context, value),
+          ),
         );
       },
     );
@@ -47,6 +75,8 @@ class _InveslyCalculatorWidget extends StatefulWidget {
 class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
   final FocusNode _focusNode = FocusNode();
   late FocusAttachment _focusAttachment;
+
+  static const _buttonSpacing = 2.0;
 
   @override
   void initState() {
@@ -136,197 +166,197 @@ class __InveslyCalculatorWidgetState extends State<_InveslyCalculatorWidget> {
     _focusAttachment.reparent();
     final cubit = context.read<CalculatorCubit>();
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Column(
-              spacing: 4.0,
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: <Widget>[
-                // ~ Left operand and operator
-                SizedBox(
-                  height: 30.0, // To avoid layout shift when left operand is empty
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    spacing: 4.0,
-                    children: <Widget>[
-                      BlocSelector<CalculatorCubit, CalculatorState, String>(
-                        selector: (state) => state.leftOperand,
-                        builder: (_, data) {
-                          return Text(
-                            data,
-                            textAlign: TextAlign.right,
-                            style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
-                          );
-                        },
-                      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        // ~ Display
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: Column(
+            spacing: 4.0,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              // ~ Left operand and operator
+              SizedBox(
+                height: 30.0, // To avoid layout shift when left operand is empty
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  spacing: 4.0,
+                  children: <Widget>[
+                    // ~ Left operand
+                    BlocSelector<CalculatorCubit, CalculatorState, String>(
+                      selector: (state) => state.leftOperand,
+                      builder: (_, data) {
+                        return Text(
+                          data,
+                          textAlign: TextAlign.right,
+                          style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
+                        );
+                      },
+                    ),
 
-                      BlocSelector<CalculatorCubit, CalculatorState, CalculatorOperator?>(
-                        selector: (state) => state.operator,
-                        builder: (_, data) {
-                          return Text(
-                            data?.symbol ?? '',
-                            textAlign: TextAlign.right,
-                            style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                    // ~ Operator
+                    BlocSelector<CalculatorCubit, CalculatorState, CalculatorOperator?>(
+                      selector: (state) => state.operator,
+                      builder: (_, data) {
+                        return Text(
+                          data?.symbol ?? '',
+                          textAlign: TextAlign.right,
+                          style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
+                        );
+                      },
+                    ),
+                  ],
                 ),
+              ),
 
-                // ~ Right operand
-                BlocSelector<CalculatorCubit, CalculatorState, String>(
-                  selector: (state) => state.rightOperand,
-                  builder: (_, rightOperand) {
-                    return _NumberDisplayer(rightOperand);
+              // ~ Right operand
+              BlocSelector<CalculatorCubit, CalculatorState, String>(
+                selector: (state) => state.rightOperand,
+                builder: (_, rightOperand) {
+                  return _NumberDisplayer(rightOperand);
+                },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12.0),
+        const Divider(),
+
+        // ~ Buttons
+        Column(
+          spacing: _buttonSpacing,
+          children: <Widget>[
+            Row(
+              spacing: _buttonSpacing,
+              children: <Widget>[
+                _CalculatorButton(
+                  onPressed: cubit.handleToggleSignPressed,
+                  icon: const Icon(Icons.exposure_rounded),
+                  bgColor: themeColor.primary,
+                  textColor: themeColor.onPrimary,
+                  borderRadius: _kButtonBorderRadius.copyWith(topLeft: iButtonBorderRadius.topLeft),
+                ),
+                _CalculatorButton(
+                  onPressed: cubit.handleBackspacePressed,
+                  icon: const Icon(Icons.backspace_rounded),
+                  textColor: themeColor.onErrorContainer,
+                  bgColor: themeColor.errorContainer,
+                ),
+                _CalculatorButton(
+                  onPressed: cubit.handleClearPressed,
+                  label: 'AC',
+                  textColor: themeColor.onErrorContainer,
+                  bgColor: themeColor.errorContainer,
+                ),
+                _CalculatorButton(
+                  onPressed: () => cubit.handleOperatorPressed(CalculatorOperator.divide),
+                  label: CalculatorOperator.divide.symbol,
+                  textColor: themeColor.onPrimary,
+                  bgColor: themeColor.primary,
+                  borderRadius: _kButtonBorderRadius.copyWith(topRight: iButtonBorderRadius.topRight),
+                ),
+              ],
+            ),
+            Row(
+              spacing: _buttonSpacing,
+              children: <Widget>[
+                _CalculatorButton(onPressed: () => cubit.handleNumberPressed(1), label: '1'),
+                _CalculatorButton(onPressed: () => cubit.handleNumberPressed(2), label: '2'),
+                _CalculatorButton(onPressed: () => cubit.handleNumberPressed(3), label: '3'),
+                _CalculatorButton(
+                  onPressed: () => cubit.handleOperatorPressed(CalculatorOperator.multiply),
+                  label: CalculatorOperator.multiply.symbol,
+                  textColor: themeColor.onPrimary,
+                  bgColor: themeColor.primary,
+                ),
+              ],
+            ),
+            Row(
+              spacing: _buttonSpacing,
+              children: <Widget>[
+                _CalculatorButton(onPressed: () => cubit.handleNumberPressed(4), label: '4'),
+                _CalculatorButton(onPressed: () => cubit.handleNumberPressed(5), label: '5'),
+                _CalculatorButton(onPressed: () => cubit.handleNumberPressed(6), label: '6'),
+                _CalculatorButton(
+                  onPressed: () => cubit.handleOperatorPressed(CalculatorOperator.subtract),
+                  label: CalculatorOperator.subtract.symbol,
+                  textColor: themeColor.onPrimary,
+                  bgColor: themeColor.primary,
+                ),
+              ],
+            ),
+            Row(
+              spacing: _buttonSpacing,
+              children: <Widget>[
+                _CalculatorButton(onPressed: () => cubit.handleNumberPressed(7), label: '7'),
+                _CalculatorButton(onPressed: () => cubit.handleNumberPressed(8), label: '8'),
+                _CalculatorButton(onPressed: () => cubit.handleNumberPressed(9), label: '9'),
+                _CalculatorButton(
+                  onPressed: () => cubit.handleOperatorPressed(CalculatorOperator.add),
+                  label: CalculatorOperator.add.symbol,
+                  bgColor: themeColor.primary,
+                  textColor: themeColor.onPrimary,
+                ),
+              ],
+            ),
+            Row(
+              spacing: _buttonSpacing,
+              children: <Widget>[
+                BlocSelector<CalculatorCubit, CalculatorState, bool>(
+                  selector: (state) => state.rightOperand.hasDecimal,
+                  builder: (context, hasDecimal) {
+                    return _CalculatorButton(
+                      disabled: hasDecimal,
+                      onPressed: () => cubit.handleDecimalPressed(),
+                      label: '.',
+                      borderRadius: _kButtonBorderRadius.copyWith(bottomLeft: iButtonBorderRadius.bottomLeft),
+                    );
+                  },
+                ),
+                _CalculatorButton(onPressed: () => cubit.handleNumberPressed(0), label: '0'),
+                BlocBuilder<CalculatorCubit, CalculatorState>(
+                  // buildWhen: (previous, current) {
+                  //   return (previous.leftOperand != current.leftOperand &&
+                  //           (current.leftOperand.isZeroOrEmpty || previous.leftOperand.isZeroOrEmpty)) ||
+                  //       (previous.rightOperand != current.rightOperand &&
+                  //           (current.rightOperand.isZeroOrEmpty || previous.rightOperand.isZeroOrEmpty));
+                  // },
+                  builder: (context, state) {
+                    debugPrint('Rebuilding submit button');
+                    return _CalculatorButton(
+                      disabled: state.leftOperand.isZeroOrEmpty && state.rightOperand.isZeroOrEmpty,
+                      onPressed: () {
+                        if (state.leftOperand.isNotZeroOrEmpty && state.operator != null) {
+                          cubit.calculate();
+                        }
+
+                        // final currentState = cubit.state;
+
+                        // XOR operation
+                        if (state.leftOperand.isZeroOrEmpty ^ state.rightOperand.isZeroOrEmpty) {
+                          $logger.w(state.rightOperand);
+                          widget.onSubmit?.call(double.tryParse(state.rightOperand) ?? 0.0);
+                        }
+                      },
+                      label: (state.leftOperand.isZeroOrEmpty || state.rightOperand.isZeroOrEmpty) ? null : '=',
+                      icon: (state.leftOperand.isZeroOrEmpty || state.rightOperand.isZeroOrEmpty)
+                          ? Icon(Icons.check_rounded)
+                          : null,
+                      flex: 2,
+                      textColor: themeColor.onPrimary,
+                      bgColor: themeColor.primary,
+                      borderRadius: _kButtonBorderRadius.copyWith(bottomRight: iButtonBorderRadius.bottomRight),
+                    );
                   },
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 12.0),
-          const Divider(),
-
-          // ~ Buttons
-          Column(
-            spacing: 2.0,
-            children: <Widget>[
-              Row(
-                spacing: 2.0,
-                children: <Widget>[
-                  _CalculatorButton(
-                    onPressed: cubit.handleToggleSignPressed,
-                    icon: const Icon(Icons.exposure_rounded),
-                    bgColor: themeColor.primary,
-                    textColor: themeColor.onPrimary,
-                    borderRadius: _kButtonBorderRadius.copyWith(topLeft: iButtonBorderRadius.topLeft),
-                  ),
-                  _CalculatorButton(
-                    onPressed: cubit.handleBackspacePressed,
-                    icon: const Icon(Icons.backspace_rounded),
-                    textColor: themeColor.onErrorContainer,
-                    bgColor: themeColor.errorContainer,
-                  ),
-                  _CalculatorButton(
-                    onPressed: cubit.handleClearPressed,
-                    label: 'AC',
-                    textColor: themeColor.onErrorContainer,
-                    bgColor: themeColor.errorContainer,
-                  ),
-                  _CalculatorButton(
-                    onPressed: () => cubit.handleOperatorPressed(CalculatorOperator.divide),
-                    label: CalculatorOperator.divide.symbol,
-                    textColor: themeColor.onPrimary,
-                    bgColor: themeColor.primary,
-                    borderRadius: _kButtonBorderRadius.copyWith(topRight: iButtonBorderRadius.topRight),
-                  ),
-                ],
-              ),
-              Row(
-                spacing: 2.0,
-                children: <Widget>[
-                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(1), label: '1'),
-                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(2), label: '2'),
-                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(3), label: '3'),
-                  _CalculatorButton(
-                    onPressed: () => cubit.handleOperatorPressed(CalculatorOperator.multiply),
-                    label: CalculatorOperator.multiply.symbol,
-                    textColor: themeColor.onPrimary,
-                    bgColor: themeColor.primary,
-                  ),
-                ],
-              ),
-              Row(
-                spacing: 2.0,
-                children: <Widget>[
-                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(4), label: '4'),
-                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(5), label: '5'),
-                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(6), label: '6'),
-                  _CalculatorButton(
-                    onPressed: () => cubit.handleOperatorPressed(CalculatorOperator.subtract),
-                    label: CalculatorOperator.subtract.symbol,
-                    textColor: themeColor.onPrimary,
-                    bgColor: themeColor.primary,
-                  ),
-                ],
-              ),
-              Row(
-                spacing: 2.0,
-                children: <Widget>[
-                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(7), label: '7'),
-                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(8), label: '8'),
-                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(9), label: '9'),
-                  _CalculatorButton(
-                    onPressed: () => cubit.handleOperatorPressed(CalculatorOperator.add),
-                    label: CalculatorOperator.add.symbol,
-                    bgColor: themeColor.primary,
-                    textColor: themeColor.onPrimary,
-                  ),
-                ],
-              ),
-              Row(
-                spacing: 2.0,
-                children: <Widget>[
-                  BlocSelector<CalculatorCubit, CalculatorState, bool>(
-                    selector: (state) => state.rightOperand.hasDecimal,
-                    builder: (context, hasDecimal) {
-                      return _CalculatorButton(
-                        disabled: hasDecimal,
-                        onPressed: () => cubit.handleDecimalPressed(),
-                        label: '.',
-                        borderRadius: _kButtonBorderRadius.copyWith(bottomLeft: iButtonBorderRadius.bottomLeft),
-                      );
-                    },
-                  ),
-                  _CalculatorButton(onPressed: () => cubit.handleNumberPressed(0), label: '0'),
-                  BlocBuilder<CalculatorCubit, CalculatorState>(
-                    // buildWhen: (previous, current) {
-                    //   return (previous.leftOperand != current.leftOperand &&
-                    //           (current.leftOperand.isZeroOrEmpty || previous.leftOperand.isZeroOrEmpty)) ||
-                    //       (previous.rightOperand != current.rightOperand &&
-                    //           (current.rightOperand.isZeroOrEmpty || previous.rightOperand.isZeroOrEmpty));
-                    // },
-                    builder: (context, state) {
-                      debugPrint('Rebuilding submit button');
-                      return _CalculatorButton(
-                        disabled: state.leftOperand.isZeroOrEmpty && state.rightOperand.isZeroOrEmpty,
-                        onPressed: () {
-                          if (state.leftOperand.isNotZeroOrEmpty && state.operator != null) {
-                            cubit.calculate();
-                          }
-
-                          // final currentState = cubit.state;
-
-                          // XOR operation
-                          if (state.leftOperand.isZeroOrEmpty ^ state.rightOperand.isZeroOrEmpty) {
-                            $logger.w(state.rightOperand);
-                            widget.onSubmit?.call(double.tryParse(state.rightOperand) ?? 0.0);
-                          }
-                        },
-                        label: (state.leftOperand.isZeroOrEmpty || state.rightOperand.isZeroOrEmpty) ? null : '=',
-                        icon: (state.leftOperand.isZeroOrEmpty || state.rightOperand.isZeroOrEmpty)
-                            ? Icon(Icons.check_rounded)
-                            : null,
-                        flex: 2,
-                        textColor: themeColor.onPrimary,
-                        bgColor: themeColor.primary,
-                        borderRadius: _kButtonBorderRadius.copyWith(bottomRight: iButtonBorderRadius.bottomRight),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 }
