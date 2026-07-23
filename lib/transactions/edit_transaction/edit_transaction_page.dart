@@ -899,14 +899,11 @@ class _AmountPickerWidget extends StatelessWidget {
                           builder: (context, state) {
                             $logger.i('Rate is Rebuilding');
                             return _FormField(
-                              // onTap: () async {
-                              //   final newRate = await InveslyCalculatorWidget.showModal(
-                              //     context,
-                              //     state.rate,
-                              //   );
-                              //   if (newRate == null) return;
-                              //   cubit.updateRate(newRate.toDouble());
-                              // },
+                              onTap: () async {
+                                final newRate = await InveslyCalculatorWidget.showModal(context, state.rate);
+                                if (newRate == null) return;
+                                cubit.updateRate(newRate.toDouble());
+                              },
                               errorText: state.rateError,
                               contentAlignment: AlignmentGeometry.centerRight,
                               child: Text(
@@ -1070,6 +1067,8 @@ class _AmountPickerWidget extends StatelessWidget {
               );
             },
           ),
+
+          InveslyCalculatorWidget(),
         ],
       ),
     );
