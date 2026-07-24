@@ -18,7 +18,7 @@ import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/dashboard/view/dashboard_page.dart';
-import 'package:invesly/transactions/edit_transaction/widgets/calculator/calculator.dart';
+import 'package:invesly/common/presentations/widgets/calculator.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
