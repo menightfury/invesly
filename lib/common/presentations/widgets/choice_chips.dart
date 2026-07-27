@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common_libs.dart';
 
 class InveslyChoiceChips<T> extends StatelessWidget {

@@ -48,11 +48,12 @@ extension CalculatorExtensions on String {
 }
 
 class InveslyCalculatorWidget extends StatefulWidget {
-  const InveslyCalculatorWidget({super.key, this.initialAmount, this.onPressed, this.onSubmit});
+  const InveslyCalculatorWidget({super.key, this.initialAmount, this.onPressed, this.onSubmit, this.visible = true});
 
   final num? initialAmount;
   final void Function()? onPressed;
   final ValueChanged<num>? onSubmit;
+  final bool visible;
 
   static Future<num?> showModal(BuildContext context, [num? initialAmount]) async {
     return await showModalBottomSheet<num>(
@@ -180,191 +181,200 @@ class _InveslyCalculatorWidgetState extends State<InveslyCalculatorWidget> {
   @override
   Widget build(BuildContext context) {
     final themeColor = Theme.of(context).colorScheme;
-    // _focusAttachment.reparent();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        // ~ Display
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-          child: Column(
-            spacing: 4.0,
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: <Widget>[
-              // ~ Left operand and operator
-              SizedBox(
-                height: 30.0, // To avoid layout shift when left operand is empty
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  spacing: 4.0,
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.topCenter,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 180),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        child: widget.visible
+            ? SizedBox(
+                key: const ValueKey('calculator-visible'),
+                width: double.infinity,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    // ~ Left operand
-                    ValueListenableBuilder<String>(
-                      valueListenable: _leftOperand,
-                      builder: (_, leftOperandValue, _) {
-                        return Text(
-                          leftOperandValue,
-                          textAlign: TextAlign.right,
-                          style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
-                        );
-                      },
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Column(
+                        spacing: 4.0,
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          SizedBox(
+                            height: 30.0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              spacing: 4.0,
+                              children: <Widget>[
+                                ValueListenableBuilder<String>(
+                                  valueListenable: _leftOperand,
+                                  builder: (_, leftOperandValue, _) {
+                                    return Text(
+                                      leftOperandValue,
+                                      textAlign: TextAlign.right,
+                                      style: const TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
+                                    );
+                                  },
+                                ),
+                                ValueListenableBuilder<CalculatorOperator?>(
+                                  valueListenable: _operator,
+                                  builder: (_, operatorValue, _) {
+                                    return Text(
+                                      operatorValue?.symbol ?? '',
+                                      textAlign: TextAlign.right,
+                                      style: const TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          ValueListenableBuilder<String>(
+                            valueListenable: _rightOperand,
+                            builder: (_, rightOperandValue, _) {
+                              return _NumberDisplayer(rightOperandValue);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: 12.0),
+                    const Divider(),
+                    Column(
+                      spacing: _buttonSpacing,
+                      children: <Widget>[
+                        Row(
+                          spacing: _buttonSpacing,
+                          children: <Widget>[
+                            _CalculatorButton(
+                              onPressed: _handleToggleSignPressed,
+                              icon: const Icon(Icons.exposure_rounded),
+                              bgColor: themeColor.primary,
+                              textColor: themeColor.onPrimary,
+                              borderRadius: _kButtonBorderRadius.copyWith(topLeft: iButtonBorderRadius.topLeft),
+                            ),
+                            _CalculatorButton(
+                              onPressed: handleBackspacePressed,
+                              icon: const Icon(Icons.backspace_rounded),
+                              textColor: themeColor.onErrorContainer,
+                              bgColor: themeColor.errorContainer,
+                            ),
+                            _CalculatorButton(
+                              onPressed: _handleClearPressed,
+                              label: 'AC',
+                              textColor: themeColor.onErrorContainer,
+                              bgColor: themeColor.errorContainer,
+                            ),
+                            _CalculatorButton(
+                              onPressed: () => _handleOperatorPressed(CalculatorOperator.divide),
+                              label: CalculatorOperator.divide.symbol,
+                              textColor: themeColor.onPrimary,
+                              bgColor: themeColor.primary,
+                              borderRadius: _kButtonBorderRadius.copyWith(topRight: iButtonBorderRadius.topRight),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          spacing: _buttonSpacing,
+                          children: <Widget>[
+                            _CalculatorButton(onPressed: () => _handleNumberPressed(1), label: '1'),
+                            _CalculatorButton(onPressed: () => _handleNumberPressed(2), label: '2'),
+                            _CalculatorButton(onPressed: () => _handleNumberPressed(3), label: '3'),
+                            _CalculatorButton(
+                              onPressed: () => _handleOperatorPressed(CalculatorOperator.multiply),
+                              label: CalculatorOperator.multiply.symbol,
+                              textColor: themeColor.onPrimary,
+                              bgColor: themeColor.primary,
+                            ),
+                          ],
+                        ),
+                        Row(
+                          spacing: _buttonSpacing,
+                          children: <Widget>[
+                            _CalculatorButton(onPressed: () => _handleNumberPressed(4), label: '4'),
+                            _CalculatorButton(onPressed: () => _handleNumberPressed(5), label: '5'),
+                            _CalculatorButton(onPressed: () => _handleNumberPressed(6), label: '6'),
+                            _CalculatorButton(
+                              onPressed: () => _handleOperatorPressed(CalculatorOperator.subtract),
+                              label: CalculatorOperator.subtract.symbol,
+                              textColor: themeColor.onPrimary,
+                              bgColor: themeColor.primary,
+                            ),
+                          ],
+                        ),
+                        Row(
+                          spacing: _buttonSpacing,
+                          children: <Widget>[
+                            _CalculatorButton(onPressed: () => _handleNumberPressed(7), label: '7'),
+                            _CalculatorButton(onPressed: () => _handleNumberPressed(8), label: '8'),
+                            _CalculatorButton(onPressed: () => _handleNumberPressed(9), label: '9'),
+                            _CalculatorButton(
+                              onPressed: () => _handleOperatorPressed(CalculatorOperator.add),
+                              label: CalculatorOperator.add.symbol,
+                              bgColor: themeColor.primary,
+                              textColor: themeColor.onPrimary,
+                            ),
+                          ],
+                        ),
+                        Row(
+                          spacing: _buttonSpacing,
+                          children: <Widget>[
+                            ValueListenableBuilder<String>(
+                              valueListenable: _rightOperand,
+                              builder: (context, rightOperandValue, _) {
+                                return _CalculatorButton(
+                                  disabled: rightOperandValue.hasDecimal,
+                                  onPressed: () => _handleDecimalPressed(),
+                                  label: '.',
+                                  borderRadius: _kButtonBorderRadius.copyWith(
+                                    bottomLeft: iButtonBorderRadius.bottomLeft,
+                                  ),
+                                );
+                              },
+                            ),
+                            _CalculatorButton(onPressed: () => _handleNumberPressed(0), label: '0'),
+                            ListenableBuilder(
+                              listenable: Listenable.merge([_leftOperand, _rightOperand, _operator]),
+                              builder: (context, _) {
+                                final left = _left;
+                                final right = _right;
+                                return _CalculatorButton(
+                                  disabled: left.isZeroOrEmpty && right.isZeroOrEmpty,
+                                  onPressed: () {
+                                    if (left.isNotZeroOrEmpty && _operator.value != null) {
+                                      _calculate();
+                                    }
 
-                    // ~ Operator
-                    ValueListenableBuilder<CalculatorOperator?>(
-                      valueListenable: _operator,
-                      builder: (_, operatorValue, _) {
-                        return Text(
-                          operatorValue?.symbol ?? '',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
-                        );
-                      },
+                                    if (left.isZeroOrEmpty ^ right.isZeroOrEmpty) {
+                                      $logger.w(right);
+                                      widget.onSubmit?.call(double.tryParse(right) ?? 0.0);
+                                    }
+                                  },
+                                  label: (left.isZeroOrEmpty || right.isZeroOrEmpty) ? null : '=',
+                                  icon: (left.isZeroOrEmpty || right.isZeroOrEmpty) ? Icon(Icons.check_rounded) : null,
+                                  flex: 2,
+                                  textColor: themeColor.onPrimary,
+                                  bgColor: themeColor.primary,
+                                  borderRadius: _kButtonBorderRadius.copyWith(
+                                    bottomRight: iButtonBorderRadius.bottomRight,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-
-              // ~ Right operand
-              ValueListenableBuilder<String>(
-                valueListenable: _rightOperand,
-                builder: (_, rightOperandValue, _) {
-                  return _NumberDisplayer(rightOperandValue);
-                },
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12.0),
-        const Divider(),
-
-        // ~ Buttons
-        Column(
-          spacing: _buttonSpacing,
-          children: <Widget>[
-            Row(
-              spacing: _buttonSpacing,
-              children: <Widget>[
-                _CalculatorButton(
-                  onPressed: _handleToggleSignPressed,
-                  icon: const Icon(Icons.exposure_rounded),
-                  bgColor: themeColor.primary,
-                  textColor: themeColor.onPrimary,
-                  borderRadius: _kButtonBorderRadius.copyWith(topLeft: iButtonBorderRadius.topLeft),
-                ),
-                _CalculatorButton(
-                  onPressed: handleBackspacePressed,
-                  icon: const Icon(Icons.backspace_rounded),
-                  textColor: themeColor.onErrorContainer,
-                  bgColor: themeColor.errorContainer,
-                ),
-                _CalculatorButton(
-                  onPressed: _handleClearPressed,
-                  label: 'AC',
-                  textColor: themeColor.onErrorContainer,
-                  bgColor: themeColor.errorContainer,
-                ),
-                _CalculatorButton(
-                  onPressed: () => _handleOperatorPressed(CalculatorOperator.divide),
-                  label: CalculatorOperator.divide.symbol,
-                  textColor: themeColor.onPrimary,
-                  bgColor: themeColor.primary,
-                  borderRadius: _kButtonBorderRadius.copyWith(topRight: iButtonBorderRadius.topRight),
-                ),
-              ],
-            ),
-            Row(
-              spacing: _buttonSpacing,
-              children: <Widget>[
-                _CalculatorButton(onPressed: () => _handleNumberPressed(1), label: '1'),
-                _CalculatorButton(onPressed: () => _handleNumberPressed(2), label: '2'),
-                _CalculatorButton(onPressed: () => _handleNumberPressed(3), label: '3'),
-                _CalculatorButton(
-                  onPressed: () => _handleOperatorPressed(CalculatorOperator.multiply),
-                  label: CalculatorOperator.multiply.symbol,
-                  textColor: themeColor.onPrimary,
-                  bgColor: themeColor.primary,
-                ),
-              ],
-            ),
-            Row(
-              spacing: _buttonSpacing,
-              children: <Widget>[
-                _CalculatorButton(onPressed: () => _handleNumberPressed(4), label: '4'),
-                _CalculatorButton(onPressed: () => _handleNumberPressed(5), label: '5'),
-                _CalculatorButton(onPressed: () => _handleNumberPressed(6), label: '6'),
-                _CalculatorButton(
-                  onPressed: () => _handleOperatorPressed(CalculatorOperator.subtract),
-                  label: CalculatorOperator.subtract.symbol,
-                  textColor: themeColor.onPrimary,
-                  bgColor: themeColor.primary,
-                ),
-              ],
-            ),
-            Row(
-              spacing: _buttonSpacing,
-              children: <Widget>[
-                _CalculatorButton(onPressed: () => _handleNumberPressed(7), label: '7'),
-                _CalculatorButton(onPressed: () => _handleNumberPressed(8), label: '8'),
-                _CalculatorButton(onPressed: () => _handleNumberPressed(9), label: '9'),
-                _CalculatorButton(
-                  onPressed: () => _handleOperatorPressed(CalculatorOperator.add),
-                  label: CalculatorOperator.add.symbol,
-                  bgColor: themeColor.primary,
-                  textColor: themeColor.onPrimary,
-                ),
-              ],
-            ),
-            Row(
-              spacing: _buttonSpacing,
-              children: <Widget>[
-                ValueListenableBuilder<String>(
-                  valueListenable: _rightOperand,
-                  builder: (context, rightOperandValue, _) {
-                    return _CalculatorButton(
-                      disabled: rightOperandValue.hasDecimal,
-                      onPressed: () => _handleDecimalPressed(),
-                      label: '.',
-                      borderRadius: _kButtonBorderRadius.copyWith(bottomLeft: iButtonBorderRadius.bottomLeft),
-                    );
-                  },
-                ),
-                _CalculatorButton(onPressed: () => _handleNumberPressed(0), label: '0'),
-                ListenableBuilder(
-                  listenable: Listenable.merge([_leftOperand, _rightOperand, _operator]),
-                  builder: (context, _) {
-                    debugPrint('Rebuilding submit button');
-                    final left = _left, right = _right;
-                    return _CalculatorButton(
-                      disabled: left.isZeroOrEmpty && right.isZeroOrEmpty,
-                      onPressed: () {
-                        if (left.isNotZeroOrEmpty && _operator.value != null) {
-                          _calculate();
-                        }
-
-                        // XOR operation
-                        if (left.isZeroOrEmpty ^ right.isZeroOrEmpty) {
-                          $logger.w(right);
-                          widget.onSubmit?.call(double.tryParse(right) ?? 0.0);
-                        }
-                      },
-                      label: (left.isZeroOrEmpty || right.isZeroOrEmpty) ? null : '=',
-                      icon: (left.isZeroOrEmpty || right.isZeroOrEmpty) ? Icon(Icons.check_rounded) : null,
-                      flex: 2,
-                      textColor: themeColor.onPrimary,
-                      bgColor: themeColor.primary,
-                      borderRadius: _kButtonBorderRadius.copyWith(bottomRight: iButtonBorderRadius.bottomRight),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
+              )
+            : const SizedBox.shrink(key: ValueKey('calculator-hidden')),
+      ),
     );
   }
 
