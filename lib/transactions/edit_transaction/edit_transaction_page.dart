@@ -789,6 +789,8 @@ class _FormField extends StatelessWidget {
     if (hasError) WidgetState.error,
   };
 
+  bool get _hasFocus => focusNode.hasFocus;
+
   @override
   Widget build(BuildContext context) {
     final inputTheme = InputDecorationTheme.of(context);
@@ -809,25 +811,35 @@ class _FormField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       // spacing: 4.0,
       children: <Widget>[
-        Focus(
-          focusNode: focusNode,
-          onFocusChange: onFocusChanged,
-          child: Shake(
-            shake: hasError,
-            child: Tappable(
-              onTap: enabled
-                  ? () {
-                      onTap?.call();
-                      focusNode?.requestFocus();
-                    }
-                  : null,
-              childAlignment: contentAlignment,
-              padding: padding,
-              leading: leading,
-              trailing: trailing,
-              color: WidgetStateProperty.resolveAs<Color?>(defaultColor, widgetState),
-              shape: WidgetStateProperty.resolveAs<InputBorder?>(defaultBorder, widgetState),
-              child: child,
+        TapRegion(
+          onTapOutside: (_) {
+            if (!mounted) return;
+            FocusScope.of(context).unfocus();
+            setState(() => _showCalculator = false);
+          },
+          // onTapOutside: _hasFocus
+          //             ? (PointerDownEvent event) => _onTapOutside(context, event)
+          //             : null,
+          child: Focus(
+            focusNode: focusNode,
+            onFocusChange: onFocusChanged,
+            child: Shake(
+              shake: hasError,
+              child: Tappable(
+                onTap: enabled
+                    ? () {
+                        onTap?.call();
+                        focusNode?.requestFocus();
+                      }
+                    : null,
+                childAlignment: contentAlignment,
+                padding: padding,
+                leading: leading,
+                trailing: trailing,
+                color: WidgetStateProperty.resolveAs<Color?>(defaultColor, widgetState),
+                shape: WidgetStateProperty.resolveAs<InputBorder?>(defaultBorder, widgetState),
+                child: child,
+              ),
             ),
           ),
         ),
@@ -894,17 +906,13 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
     final cubit = context.read<EditTransactionCubit>();
 
     return TapRegion(
-      onTapOutside: (_) {
-        if (!mounted) return;
-        FocusScope.of(context).unfocus();
-        setState(() => _showCalculator = false);
-      },
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Column(
           spacing: iFormFieldsInterSpacing,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            TextField(),
             BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
               selector: (state) => state.canEditRateAndQnty,
               builder: (context, isVisible) {
