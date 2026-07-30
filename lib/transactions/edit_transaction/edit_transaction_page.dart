@@ -815,7 +815,7 @@ class _FormFieldState extends State<_FormField> {
     //   return context.colors.secondaryContainer;
     // });
     final defaultColor = inputTheme.fillColor ?? context.colors.secondaryContainer;
-    final defaultBorder = inputTheme.border;
+    final defaultBorderSide = inputTheme.border?.borderSide ?? BorderSide.none;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -839,13 +839,15 @@ class _FormFieldState extends State<_FormField> {
                 // padding: widget.padding,
                 // leading: widget.leading,
                 // trailing: widget.trailing,
-
                 // shape: WidgetStateProperty.resolveAs<InputBorder?>(defaultBorder, widgetState),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: WidgetStateProperty.resolveAs<Color?>(defaultColor, widgetState),
-
-                    // border: WidgetStateProperty.resolveAs<BoxBorder?>(defaultBorder, widgetState),
+                    border: WidgetStateProperty.resolveAs<BoxBorder?>(
+                      Border.fromBorderSide(defaultBorderSide),
+                      widgetState,
+                    ),
+                    borderRadius: iTextFieldBorderRadius,
                   ),
                   child: Padding(padding: widget.padding, child: widget.child),
                 ),
