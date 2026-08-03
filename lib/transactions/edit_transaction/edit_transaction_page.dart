@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/view/edit_account/edit_account_page.dart';
@@ -763,8 +764,6 @@ class _TappableFocusableField extends StatefulWidget {
     this.errorBuilder,
     this.padding = iFormFieldContentPadding,
     this.contentAlignment = Alignment.centerLeft,
-    // this.color,
-    this.border,
   });
 
   final bool enabled;
@@ -777,8 +776,6 @@ class _TappableFocusableField extends StatefulWidget {
   final Widget Function(BuildContext, String)? errorBuilder;
   final EdgeInsets padding;
   final AlignmentGeometry contentAlignment;
-  // final WidgetStateColor? color;
-  final WidgetStateInputBorder? border;
 
   @override
   State<_TappableFocusableField> createState() => _TappableFocusableFieldState();
@@ -810,13 +807,12 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
       if (hasError) WidgetState.error,
       if (hasFocus) WidgetState.focused,
     });
-    
+
     statesController.addListener(handleStatesControllerChange);
   }
 
   @override
   void dispose() {
-    // _focusNode?.dispose();
     statesController.dispose();
     super.dispose();
   }
@@ -825,7 +821,7 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
   Widget build(BuildContext context) {
     final inputTheme = InputDecorationTheme.of(context);
     final defaultColor = inputTheme.fillColor ?? context.colors.secondaryContainer;
-    final defaultBorderSide = inputTheme.border?.borderSide ?? BorderSide.none;
+    final resolvedBorder = WidgetStateProperty.resolveAs<InputBorder?>(inputTheme.border, statesController.value);
 
     Widget content = Shake(
       shake: hasError,
@@ -834,7 +830,6 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
             ? () {
                 widget.onTap?.call();
                 widget.focusNode?.requestFocus();
-                $logger.i(statesController.value);
               }
             : null,
         // childAlignment: widget.contentAlignment,
@@ -847,11 +842,8 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: WidgetStateProperty.resolveAs<Color?>(defaultColor, statesController.value),
-              border: WidgetStateProperty.resolveAs<BoxBorder?>(
-                Border.fromBorderSide(defaultBorderSide),
-                statesController.value,
-              ),
-              borderRadius: iTextFieldBorderRadius,
+              border: Border.fromBorderSide(resolvedBorder?.borderSide ?? BorderSide.none),
+              borderRadius: resolvedBorder is OutlineInputBorder ? resolvedBorder.borderRadius : null,
             ),
             child: Padding(padding: widget.padding, child: widget.child),
           ),
@@ -909,7 +901,7 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
   late final FocusNode _rateFocusNode;
   late final FocusNode _quantityFocusNode;
   late final FocusNode _totalAmountFocusNode;
-  bool _showCalculator = false;
+  late final ValueNotifier<bool> _showCalculator = ValueNotifier(false);
 
   @override
   void initState() {
@@ -930,9 +922,7 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
   void _updateCalculatorVisibility() {
     if (!mounted) return;
 
-    setState(() {
-      _showCalculator = _rateFocusNode.hasFocus || _quantityFocusNode.hasFocus || _totalAmountFocusNode.hasFocus;
-    });
+    _showCalculator.value = _rateFocusNode.hasFocus || _quantityFocusNode.hasFocus || _totalAmountFocusNode.hasFocus;
   }
 
   @override
@@ -945,6 +935,7 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
         spacing: iFormFieldsInterSpacing,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
+          // ~ Unit price & No. of units
           BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
             selector: (state) => state.canEditRateAndQnty,
             builder: (context, isVisible) {
@@ -1047,14 +1038,14 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                           builder: (context, state) {
                             $logger.i('Quantity is Rebuilding');
                             return _TappableFocusableField(
-                              // onTap: () async {
-                              //   final newQnty = await InveslyCalculatorWidget.showModal(
-                              //     context,
-                              //     state.qnty,
-                              //   );
-                              //   if (newQnty == null) return;
-                              //   cubit.updateQuantity(newQnty.toDouble());
-                              // },
+                              onTap: () async {
+                                final newQnty = await InveslyCalculatorWidget.showModal(
+                                  context,
+                                  state.qnty,
+                                );
+                                if (newQnty == null) return;
+                                cubit.updateQuantity(newQnty.toDouble());
+                              },
                               focusNode: _quantityFocusNode,
                               errorText: state.qntyError,
                               contentAlignment: AlignmentGeometry.centerRight,
@@ -1077,7 +1068,7 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
             },
           ),
 
-          // ~ Total amount
+          // ~ Total amount title
           Column(
             spacing: iFormFieldLabelSpacing,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1162,8 +1153,24 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
             },
           ),
 
-          InveslyCalculatorWidget(visible: _showCalculator),
+          // ~ Calculator
+          AnimatedSize(
+            duration: 500.ms,
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: ValueListenableBuilder(
+              valueListenable: _showCalculator,
+              builder: (context, showCalculator, calculator) {
+                if (showCalculator) {
+                  return calculator!;
+                }
+                return SizedBox(width: double.infinity);
+              },
+              child: InveslyCalculatorWidget(),
+            ),
+          ),
 
+          // ~ Confirm Button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(onPressed: () {}, child: Text('Confirm')),

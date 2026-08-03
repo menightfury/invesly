@@ -48,12 +48,16 @@ extension CalculatorExtensions on String {
 }
 
 class InveslyCalculatorWidget extends StatefulWidget {
-  const InveslyCalculatorWidget({super.key, this.initialAmount, this.onPressed, this.onSubmit, this.visible = true});
+  const InveslyCalculatorWidget({super.key, this.initialAmount, this.onChange, this.onSubmit});
 
   final num? initialAmount;
-  final void Function()? onPressed;
+
+  /// Callback when the expression changes. It will return the left operand, operator,
+  /// right operand and the result of the calculation.
+  final void Function(String?, CalculatorOperator?, String?, num)? onChange;
+
+  /// Callback when the result is submitted. It will return the result of the calculation.
   final ValueChanged<num>? onSubmit;
-  final bool visible;
 
   static Future<num?> showModal(BuildContext context, [num? initialAmount]) async {
     return await showModalBottomSheet<num>(
@@ -83,20 +87,139 @@ class _InveslyCalculatorWidgetState extends State<InveslyCalculatorWidget> {
 
   static const _buttonSpacing = 2.0;
 
-  late final ValueNotifier<String> _leftOperand;
-  late final ValueNotifier<String> _rightOperand;
+  late final ValueNotifier<String?> _leftOperand;
+  late final ValueNotifier<String?> _rightOperand;
   late final ValueNotifier<CalculatorOperator?> _operator;
 
-  static const String _defaultLeftOperand = '';
-  static const String _defaultRightOperand = '0';
+  static const String? _defaultLeftOperand = null;
+  static const String? _defaultRightOperand = null;
   static const CalculatorOperator? _defaultOperator = null;
+
+  void _setLeftOperand([String? value]) {
+    _leftOperand.value = value;
+  }
+
+  void _resetLeftOperand() {
+    _leftOperand.value = _defaultLeftOperand;
+  }
+
+  void _setRightOperand([String? value]) {
+    _rightOperand.value = value;
+  }
+
+  void _resetRightOperand() {
+    _rightOperand.value = _defaultRightOperand;
+  }
+
+  void _setOperator([CalculatorOperator? value]) {
+    _operator.value = value;
+  }
+
+  void _resetOperator() {
+    _operator.value = _defaultOperator;
+  }
+
+  String? get _left => _leftOperand.value?.trim();
+  String? get _right => _rightOperand.value?.trim();
+
+  /// Right operand prefixed with - sign
+  void _handleToggleSignPressed() {
+    String? right = _right;
+    if (right?.startsWith('-') == true) {
+      _setRightOperand(right!.substring(1));
+      return;
+    }
+    _setRightOperand('-$right');
+  }
+
+  /// Handle number (0-9) pressed
+  /// If the expression has only zero, whole expression will be replaced, (only if the number tapped is not zero)
+  /// For all other cases, the number tapped will be appended
+  void _handleNumberPressed(int number) {
+    String? right = _right;
+    if (right == null || right == '0') {
+      if (number == 0) return;
+
+      right = '';
+    }
+    _setRightOperand('$right$number');
+  }
+
+  /// Handle decimal (.) pressed.
+  /// If the expression has a decimal, nothing will happen.
+  /// If the expression is empty, a '0' will be prefixed
+  void _handleDecimalPressed() {
+    String? right = _right;
+    if (right?.hasDecimal == true) return;
+
+    if (right?.isEmpty == true) {
+      right = '0';
+    }
+    _setRightOperand('$right.');
+  }
+
+  /// Handle operator (+, -, ×, ÷) pressed.
+  /// Existing operator will be replaced with the new one.
+  /// Left operand will be calculated (only if right operand is not empty).
+  /// Right operand be set to empty.
+  void _handleOperatorPressed(CalculatorOperator operator) {
+    String? left = _left;
+    if (_right?.isZeroOrEmpty == true) {
+      if (left?.isZeroOrEmpty == true) left = '0';
+    } else {
+      if (left?.isZeroOrEmpty == true) {
+        left = _right;
+      } else {
+        left = _result.toString();
+      }
+    }
+    _setLeftOperand(left);
+    _resetRightOperand();
+    _setOperator(operator);
+  }
+
+  /// Handle clearing screen
+  void _handleClearPressed() {
+    _resetLeftOperand();
+    _resetRightOperand();
+    _resetOperator();
+  }
+
+  /// Handle backspace (delete last character)
+  void handleBackspacePressed() {
+    String? right = _right;
+    if (right?.isEmpty == true) return;
+    right = right?.substring(0, right.length - 1);
+    _setRightOperand(right?.isEmpty == true ? '0' : right);
+  }
+
+  /// Calculate or Submit result
+  void _calculate() {
+    if (_left?.isEmpty == true || _operator.value == null) return;
+
+    _resetLeftOperand();
+    _setRightOperand('$_result');
+    _resetOperator();
+  }
+
+  double get _result {
+    final right = _right != null ? double.tryParse(_right!) : null;
+    if (_operator.value == null) return right ?? 0.0;
+
+    final left = _left != null ? double.tryParse(_left!) : null;
+    return _operator.value!.apply(left ?? 0.0, right ?? 0.0);
+  }
+
+  void _handleExpressionChanged() {
+    widget.onChange?.call(_left, _operator.value, _right, _result);
+  }
 
   @override
   void initState() {
     super.initState();
-    _leftOperand = ValueNotifier(_defaultLeftOperand);
-    _rightOperand = ValueNotifier(_defaultRightOperand);
-    _operator = ValueNotifier(_defaultOperator);
+    _leftOperand = ValueNotifier(_defaultLeftOperand)..addListener(_handleExpressionChanged);
+    _rightOperand = ValueNotifier(_defaultRightOperand)..addListener(_handleExpressionChanged);
+    _operator = ValueNotifier(_defaultOperator)..addListener(_handleExpressionChanged);
 
     // _focusAttachment = _focusNode.attach(
     //   context,
@@ -182,315 +305,185 @@ class _InveslyCalculatorWidgetState extends State<InveslyCalculatorWidget> {
   Widget build(BuildContext context) {
     final themeColor = Theme.of(context).colorScheme;
 
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-      alignment: Alignment.topCenter,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 180),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        child: widget.visible
-            ? SizedBox(
-                key: const ValueKey('calculator-visible'),
-                width: double.infinity,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Column(
-                        spacing: 4.0,
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          SizedBox(
-                            height: 30.0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              spacing: 4.0,
-                              children: <Widget>[
-                                ValueListenableBuilder<String>(
-                                  valueListenable: _leftOperand,
-                                  builder: (_, leftOperandValue, _) {
-                                    return Text(
-                                      leftOperandValue,
-                                      textAlign: TextAlign.right,
-                                      style: const TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
-                                    );
-                                  },
-                                ),
-                                ValueListenableBuilder<CalculatorOperator?>(
-                                  valueListenable: _operator,
-                                  builder: (_, operatorValue, _) {
-                                    return Text(
-                                      operatorValue?.symbol ?? '',
-                                      textAlign: TextAlign.right,
-                                      style: const TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          ValueListenableBuilder<String>(
-                            valueListenable: _rightOperand,
-                            builder: (_, rightOperandValue, _) {
-                              return _NumberDisplayer(rightOperandValue);
-                            },
-                          ),
-                        ],
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Column(
+              spacing: 4.0,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: <Widget>[
+                SizedBox(
+                  height: 30.0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    spacing: 4.0,
+                    children: <Widget>[
+                      ValueListenableBuilder<String?>(
+                        valueListenable: _leftOperand,
+                        builder: (_, leftOperandValue, _) {
+                          return Text(
+                            leftOperandValue ?? '',
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
+                          );
+                        },
                       ),
-                    ),
-                    const SizedBox(height: 12.0),
-                    const Divider(),
-                    Column(
-                      spacing: _buttonSpacing,
-                      children: <Widget>[
-                        Row(
-                          spacing: _buttonSpacing,
-                          children: <Widget>[
-                            _CalculatorButton(
-                              onPressed: _handleToggleSignPressed,
-                              icon: const Icon(Icons.exposure_rounded),
-                              bgColor: themeColor.primary,
-                              textColor: themeColor.onPrimary,
-                              borderRadius: _kButtonBorderRadius.copyWith(topLeft: iButtonBorderRadius.topLeft),
-                            ),
-                            _CalculatorButton(
-                              onPressed: handleBackspacePressed,
-                              icon: const Icon(Icons.backspace_rounded),
-                              textColor: themeColor.onErrorContainer,
-                              bgColor: themeColor.errorContainer,
-                            ),
-                            _CalculatorButton(
-                              onPressed: _handleClearPressed,
-                              label: 'AC',
-                              textColor: themeColor.onErrorContainer,
-                              bgColor: themeColor.errorContainer,
-                            ),
-                            _CalculatorButton(
-                              onPressed: () => _handleOperatorPressed(CalculatorOperator.divide),
-                              label: CalculatorOperator.divide.symbol,
-                              textColor: themeColor.onPrimary,
-                              bgColor: themeColor.primary,
-                              borderRadius: _kButtonBorderRadius.copyWith(topRight: iButtonBorderRadius.topRight),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          spacing: _buttonSpacing,
-                          children: <Widget>[
-                            _CalculatorButton(onPressed: () => _handleNumberPressed(1), label: '1'),
-                            _CalculatorButton(onPressed: () => _handleNumberPressed(2), label: '2'),
-                            _CalculatorButton(onPressed: () => _handleNumberPressed(3), label: '3'),
-                            _CalculatorButton(
-                              onPressed: () => _handleOperatorPressed(CalculatorOperator.multiply),
-                              label: CalculatorOperator.multiply.symbol,
-                              textColor: themeColor.onPrimary,
-                              bgColor: themeColor.primary,
-                            ),
-                          ],
-                        ),
-                        Row(
-                          spacing: _buttonSpacing,
-                          children: <Widget>[
-                            _CalculatorButton(onPressed: () => _handleNumberPressed(4), label: '4'),
-                            _CalculatorButton(onPressed: () => _handleNumberPressed(5), label: '5'),
-                            _CalculatorButton(onPressed: () => _handleNumberPressed(6), label: '6'),
-                            _CalculatorButton(
-                              onPressed: () => _handleOperatorPressed(CalculatorOperator.subtract),
-                              label: CalculatorOperator.subtract.symbol,
-                              textColor: themeColor.onPrimary,
-                              bgColor: themeColor.primary,
-                            ),
-                          ],
-                        ),
-                        Row(
-                          spacing: _buttonSpacing,
-                          children: <Widget>[
-                            _CalculatorButton(onPressed: () => _handleNumberPressed(7), label: '7'),
-                            _CalculatorButton(onPressed: () => _handleNumberPressed(8), label: '8'),
-                            _CalculatorButton(onPressed: () => _handleNumberPressed(9), label: '9'),
-                            _CalculatorButton(
-                              onPressed: () => _handleOperatorPressed(CalculatorOperator.add),
-                              label: CalculatorOperator.add.symbol,
-                              bgColor: themeColor.primary,
-                              textColor: themeColor.onPrimary,
-                            ),
-                          ],
-                        ),
-                        Row(
-                          spacing: _buttonSpacing,
-                          children: <Widget>[
-                            ValueListenableBuilder<String>(
-                              valueListenable: _rightOperand,
-                              builder: (context, rightOperandValue, _) {
-                                return _CalculatorButton(
-                                  disabled: rightOperandValue.hasDecimal,
-                                  onPressed: () => _handleDecimalPressed(),
-                                  label: '.',
-                                  borderRadius: _kButtonBorderRadius.copyWith(
-                                    bottomLeft: iButtonBorderRadius.bottomLeft,
-                                  ),
-                                );
-                              },
-                            ),
-                            _CalculatorButton(onPressed: () => _handleNumberPressed(0), label: '0'),
-                            ListenableBuilder(
-                              listenable: Listenable.merge([_leftOperand, _rightOperand, _operator]),
-                              builder: (context, _) {
-                                final left = _left;
-                                final right = _right;
-                                return _CalculatorButton(
-                                  disabled: left.isZeroOrEmpty && right.isZeroOrEmpty,
-                                  onPressed: () {
-                                    if (left.isNotZeroOrEmpty && _operator.value != null) {
-                                      _calculate();
-                                    }
-
-                                    if (left.isZeroOrEmpty ^ right.isZeroOrEmpty) {
-                                      $logger.w(right);
-                                      widget.onSubmit?.call(double.tryParse(right) ?? 0.0);
-                                    }
-                                  },
-                                  label: (left.isZeroOrEmpty || right.isZeroOrEmpty) ? null : '=',
-                                  icon: (left.isZeroOrEmpty || right.isZeroOrEmpty) ? Icon(Icons.check_rounded) : null,
-                                  flex: 2,
-                                  textColor: themeColor.onPrimary,
-                                  bgColor: themeColor.primary,
-                                  borderRadius: _kButtonBorderRadius.copyWith(
-                                    bottomRight: iButtonBorderRadius.bottomRight,
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+                      ValueListenableBuilder<CalculatorOperator?>(
+                        valueListenable: _operator,
+                        builder: (_, operatorValue, _) {
+                          return Text(
+                            operatorValue?.symbol ?? '',
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              )
-            : const SizedBox.shrink(key: ValueKey('calculator-hidden')),
+                ValueListenableBuilder<String?>(
+                  valueListenable: _rightOperand,
+                  builder: (_, rightOperandValue, _) {
+                    return _NumberDisplayer(rightOperandValue ?? '0');
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12.0),
+          const Divider(),
+          Column(
+            spacing: _buttonSpacing,
+            children: <Widget>[
+              Row(
+                spacing: _buttonSpacing,
+                children: <Widget>[
+                  _CalculatorButton(
+                    onPressed: _handleToggleSignPressed,
+                    icon: const Icon(Icons.exposure_rounded),
+                    bgColor: themeColor.primary,
+                    textColor: themeColor.onPrimary,
+                    borderRadius: _kButtonBorderRadius.copyWith(topLeft: iButtonBorderRadius.topLeft),
+                  ),
+                  _CalculatorButton(
+                    onPressed: handleBackspacePressed,
+                    icon: const Icon(Icons.backspace_rounded),
+                    textColor: themeColor.onErrorContainer,
+                    bgColor: themeColor.errorContainer,
+                  ),
+                  _CalculatorButton(
+                    onPressed: _handleClearPressed,
+                    label: 'AC',
+                    textColor: themeColor.onErrorContainer,
+                    bgColor: themeColor.errorContainer,
+                  ),
+                  _CalculatorButton(
+                    onPressed: () => _handleOperatorPressed(CalculatorOperator.divide),
+                    label: CalculatorOperator.divide.symbol,
+                    textColor: themeColor.onPrimary,
+                    bgColor: themeColor.primary,
+                    borderRadius: _kButtonBorderRadius.copyWith(topRight: iButtonBorderRadius.topRight),
+                  ),
+                ],
+              ),
+              Row(
+                spacing: _buttonSpacing,
+                children: <Widget>[
+                  _CalculatorButton(onPressed: () => _handleNumberPressed(1), label: '1'),
+                  _CalculatorButton(onPressed: () => _handleNumberPressed(2), label: '2'),
+                  _CalculatorButton(onPressed: () => _handleNumberPressed(3), label: '3'),
+                  _CalculatorButton(
+                    onPressed: () => _handleOperatorPressed(CalculatorOperator.multiply),
+                    label: CalculatorOperator.multiply.symbol,
+                    textColor: themeColor.onPrimary,
+                    bgColor: themeColor.primary,
+                  ),
+                ],
+              ),
+              Row(
+                spacing: _buttonSpacing,
+                children: <Widget>[
+                  _CalculatorButton(onPressed: () => _handleNumberPressed(4), label: '4'),
+                  _CalculatorButton(onPressed: () => _handleNumberPressed(5), label: '5'),
+                  _CalculatorButton(onPressed: () => _handleNumberPressed(6), label: '6'),
+                  _CalculatorButton(
+                    onPressed: () => _handleOperatorPressed(CalculatorOperator.subtract),
+                    label: CalculatorOperator.subtract.symbol,
+                    textColor: themeColor.onPrimary,
+                    bgColor: themeColor.primary,
+                  ),
+                ],
+              ),
+              Row(
+                spacing: _buttonSpacing,
+                children: <Widget>[
+                  _CalculatorButton(onPressed: () => _handleNumberPressed(7), label: '7'),
+                  _CalculatorButton(onPressed: () => _handleNumberPressed(8), label: '8'),
+                  _CalculatorButton(onPressed: () => _handleNumberPressed(9), label: '9'),
+                  _CalculatorButton(
+                    onPressed: () => _handleOperatorPressed(CalculatorOperator.add),
+                    label: CalculatorOperator.add.symbol,
+                    bgColor: themeColor.primary,
+                    textColor: themeColor.onPrimary,
+                  ),
+                ],
+              ),
+              Row(
+                spacing: _buttonSpacing,
+                children: <Widget>[
+                  ValueListenableBuilder<String?>(
+                    valueListenable: _rightOperand,
+                    builder: (context, rightOperandValue, _) {
+                      return _CalculatorButton(
+                        disabled: rightOperandValue?.hasDecimal ?? false,
+                        onPressed: () => _handleDecimalPressed(),
+                        label: '.',
+                        borderRadius: _kButtonBorderRadius.copyWith(bottomLeft: iButtonBorderRadius.bottomLeft),
+                      );
+                    },
+                  ),
+                  _CalculatorButton(onPressed: () => _handleNumberPressed(0), label: '0'),
+                  ListenableBuilder(
+                    listenable: Listenable.merge([_leftOperand, _rightOperand, _operator]),
+                    builder: (context, _) {
+                      // final left = _left;
+                      // final right = _right;
+                      return _CalculatorButton(
+                        // disabled: left.isZeroOrEmpty && right.isZeroOrEmpty,
+                        // onPressed: () {
+                        //   if (left.isNotZeroOrEmpty && _operator.value != null) {
+                        //     _calculate();
+                        //   }
+
+                        //   if (left.isZeroOrEmpty ^ right.isZeroOrEmpty) {
+                        //     $logger.w(right);
+                        //     widget.onSubmit?.call(double.tryParse(right) ?? 0.0);
+                        //   }
+                        // },
+                        // label: (left.isZeroOrEmpty || right.isZeroOrEmpty) ? null : '=',
+                        // icon: (left.isZeroOrEmpty || right.isZeroOrEmpty) ? Icon(Icons.check_rounded) : null,
+                        icon: const Icon(Icons.check_rounded),
+                        onPressed: () {},
+                        flex: 2,
+                        textColor: themeColor.onPrimary,
+                        bgColor: themeColor.primary,
+                        borderRadius: _kButtonBorderRadius.copyWith(bottomRight: iButtonBorderRadius.bottomRight),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
-  }
-
-  void _setLeftOperand(String value) {
-    _leftOperand.value = value;
-  }
-
-  void _resetLeftOperand() {
-    _leftOperand.value = _defaultLeftOperand;
-  }
-
-  void _setRightOperand(String value) {
-    _rightOperand.value = value;
-  }
-
-  void _resetRightOperand() {
-    _rightOperand.value = _defaultRightOperand;
-  }
-
-  void _setOperator(CalculatorOperator value) {
-    _operator.value = value;
-  }
-
-  void _resetOperator() {
-    _operator.value = _defaultOperator;
-  }
-
-  String get _left => _leftOperand.value.trim();
-  String get _right => _rightOperand.value.trim();
-
-  /// Right operand prefixed with - sign
-  void _handleToggleSignPressed() {
-    String right = _right;
-    if (right.startsWith('-')) {
-      _setRightOperand(right.substring(1));
-      return;
-    }
-    _setRightOperand('-$right');
-  }
-
-  /// Handle number (0-9) pressed
-  /// If the expression has only zero, whole expression will be replaced, (only if the number tapped is not zero)
-  /// For all other cases, the number tapped will be appended
-  void _handleNumberPressed(int number) {
-    String right = _right;
-    if (right == '0') {
-      if (number == 0) return;
-
-      right = '';
-    }
-    _setRightOperand('$right$number');
-  }
-
-  /// Handle decimal (.) pressed.
-  /// If the expression has a decimal, nothing will happen.
-  /// If the expression is empty, a '0' will be prefixed
-  void _handleDecimalPressed() {
-    String right = _right;
-    if (right.hasDecimal) return;
-
-    if (right.isEmpty) {
-      right = '0';
-    }
-    _setRightOperand('$right.');
-  }
-
-  /// Handle operator (+, -, ×, ÷) pressed.
-  /// Existing operator will be replaced with the new one.
-  /// Left operand will be calculated (only if right operand is not empty).
-  /// Right operand be set to empty.
-  void _handleOperatorPressed(CalculatorOperator operator) {
-    String left = _left;
-    if (_right.isZeroOrEmpty) {
-      if (_left.isZeroOrEmpty) left = '0';
-    } else {
-      if (_left.isZeroOrEmpty) {
-        left = _right;
-      } else {
-        left = _result.toString();
-      }
-    }
-    _setLeftOperand(left);
-    _resetRightOperand();
-    _setOperator(operator);
-  }
-
-  /// Handle clearing screen
-  void _handleClearPressed() {
-    _resetLeftOperand();
-    _resetRightOperand();
-    _resetOperator();
-  }
-
-  /// Handle backspace (delete last character)
-  void handleBackspacePressed() {
-    String right = _right;
-    if (right.isEmpty) return;
-    right = right.substring(0, right.length - 1);
-    _setRightOperand(right.isEmpty ? '0' : right);
-  }
-
-  /// Calculate or Submit result
-  void _calculate() {
-    if (_left.isEmpty || _operator.value == null) return;
-
-    _resetLeftOperand();
-    _setRightOperand('$_result');
-    _resetOperator();
-  }
-
-  double get _result {
-    final left = double.tryParse(_left) ?? 0.0;
-    final right = double.tryParse(_right) ?? 0.0;
-    if (_operator.value == null) return right;
-
-    return _operator.value!.apply(left, right);
   }
 }
 

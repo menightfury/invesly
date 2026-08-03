@@ -19,12 +19,12 @@ class AppStyle {
 
   ThemeData getTheme(ColorScheme colorScheme) {
     return ThemeData(
-      brightness: colorScheme.brightness,
       useMaterial3: true,
+      colorScheme: colorScheme,
+      brightness: colorScheme.brightness,
       scaffoldBackgroundColor: colorScheme.surface,
       canvasColor: colorScheme.secondaryContainer,
       cardColor: colorScheme.secondaryContainer,
-      colorScheme: colorScheme,
       fontFamily: GoogleFonts.gabarito().fontFamily,
       // fontFamily: _primaryFont,
       dividerColor: colorScheme.primary.withAlpha(50),
@@ -101,7 +101,9 @@ class AppStyle {
         hintStyle: const TextStyle(color: Colors.black38),
         border: WidgetStateInputBorder.resolveWith((states) {
           late final BorderSide side;
-          if (states.contains(WidgetState.focused)) {
+          if (states.contains(WidgetState.disabled)) {
+            side = BorderSide(color: Colors.black38);
+          } else if (states.contains(WidgetState.focused)) {
             side = BorderSide(color: colorScheme.primary);
           } else {
             side = BorderSide(color: colorScheme.secondaryContainer);

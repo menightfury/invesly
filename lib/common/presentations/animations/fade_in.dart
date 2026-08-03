@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 
+// TODO: Rewrite to improve performance (Remove `Opacity` widget & use alternate widgets)
 class FadeIn extends StatefulWidget {
   const FadeIn({
     super.key,
