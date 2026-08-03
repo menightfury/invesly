@@ -150,7 +150,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: _FormField(
+                    child: _TappableFocusableField(
                       contentAlignment: Alignment.center,
                       padding: iFormFieldContentPadding.copyWith(top: 24.0, bottom: 24.0),
                       onTap: () {
@@ -656,7 +656,7 @@ class _AmcPicker extends StatelessWidget {
       },
       builder: (context, state) {
         $logger.i('AMC Picker Rebuilding');
-        return _FormField(
+        return _TappableFocusableField(
           onTap: () async {
             final newAmc = await context.push<InveslyAmc>(
               InveslyAmcPickerWidget(
@@ -730,7 +730,7 @@ class _DatePicker extends StatelessWidget {
       },
       builder: (context, state) {
         $logger.i('Date Picker Rebuilding');
-        return _FormField(
+        return _TappableFocusableField(
           onTap: () async {
             final newDate = await showDatePicker(
               context: context,
@@ -750,8 +750,8 @@ class _DatePicker extends StatelessWidget {
   }
 }
 
-class _FormField extends StatefulWidget {
-  const _FormField({
+class _TappableFocusableField extends StatefulWidget {
+  const _TappableFocusableField({
     super.key,
     this.enabled = true,
     this.onTap,
@@ -781,80 +781,97 @@ class _FormField extends StatefulWidget {
   final WidgetStateInputBorder? border;
 
   @override
-  State<_FormField> createState() => _FormFieldState();
+  State<_TappableFocusableField> createState() => _TappableFocusableFieldState();
 }
 
-class _FormFieldState extends State<_FormField> {
-  FocusNode? _focusNode;
-  FocusNode get _effectiveFocusNode => widget.focusNode ?? (_focusNode ??= FocusNode());
-  bool get _hasFocus => _effectiveFocusNode.hasFocus;
+class _TappableFocusableFieldState extends State<_TappableFocusableField> {
+  late final WidgetStatesController statesController;
+  FocusNode? get _focusNode => widget.focusNode;
+  // FocusNode get _effectiveFocusNode => widget.focusNode ?? (_focusNode ??= FocusNode());
+
+  bool get hasFocus => _focusNode?.hasFocus ?? false;
 
   bool get hasError => widget.errorText != null;
 
-  Set<WidgetState> get widgetState => <WidgetState>{
-    if (!widget.enabled) WidgetState.disabled,
-    if (hasError) WidgetState.error,
-  };
+  void handleStatesControllerChange() {
+    // Force a rebuild to resolve WidgetStateProperty properties
+    setState(() {});
+  }
+
+  void handleFocusUpdate(bool hasFocus) {
+    statesController.update(WidgetState.focused, hasFocus);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    statesController = WidgetStatesController({
+      if (!widget.enabled) WidgetState.disabled,
+      if (hasError) WidgetState.error,
+      if (hasFocus) WidgetState.focused,
+    });
+    
+    statesController.addListener(handleStatesControllerChange);
+  }
 
   @override
   void dispose() {
-    _focusNode?.dispose();
+    // _focusNode?.dispose();
+    statesController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final inputTheme = InputDecorationTheme.of(context);
-    // final defaultColor = WidgetStateColor.resolveWith((Set<WidgetState> states) {
-    //   if (states.contains(WidgetState.disabled)) {
-    //     return Colors.black12;
-    //   }
-    //   if (states.contains(WidgetState.error)) {
-    //     return context.colors.errorContainer;
-    //   }
-    //   return context.colors.secondaryContainer;
-    // });
     final defaultColor = inputTheme.fillColor ?? context.colors.secondaryContainer;
     final defaultBorderSide = inputTheme.border?.borderSide ?? BorderSide.none;
+
+    Widget content = Shake(
+      shake: hasError,
+      child: GestureDetector(
+        onTap: widget.enabled
+            ? () {
+                widget.onTap?.call();
+                widget.focusNode?.requestFocus();
+                $logger.i(statesController.value);
+              }
+            : null,
+        // childAlignment: widget.contentAlignment,
+        // padding: widget.padding,
+        // leading: widget.leading,
+        // trailing: widget.trailing,
+        // shape: WidgetStateProperty.resolveAs<InputBorder?>(defaultBorder, widgetState),
+        child: SizedBox(
+          width: double.infinity,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: WidgetStateProperty.resolveAs<Color?>(defaultColor, statesController.value),
+              border: WidgetStateProperty.resolveAs<BoxBorder?>(
+                Border.fromBorderSide(defaultBorderSide),
+                statesController.value,
+              ),
+              borderRadius: iTextFieldBorderRadius,
+            ),
+            child: Padding(padding: widget.padding, child: widget.child),
+          ),
+        ),
+      ),
+    );
+
+    if (_focusNode != null) {
+      content = TapRegion(
+        onTapOutside: hasFocus ? (event) => _onTapOutside(context, event) : null,
+        child: Focus(focusNode: widget.focusNode, onFocusChange: handleFocusUpdate, child: content),
+      );
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       // spacing: 4.0,
       children: <Widget>[
-        TapRegion(
-          onTapOutside: _hasFocus ? (event) => _onTapOutside(context, event) : null,
-          child: Focus(
-            focusNode: _effectiveFocusNode,
-            child: Shake(
-              shake: hasError,
-              child: GestureDetector(
-                onTap: widget.enabled
-                    ? () {
-                        widget.onTap?.call();
-                        _effectiveFocusNode.requestFocus();
-                      }
-                    : null,
-                // childAlignment: widget.contentAlignment,
-                // padding: widget.padding,
-                // leading: widget.leading,
-                // trailing: widget.trailing,
-                // shape: WidgetStateProperty.resolveAs<InputBorder?>(defaultBorder, widgetState),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: WidgetStateProperty.resolveAs<Color?>(defaultColor, widgetState),
-                    border: WidgetStateProperty.resolveAs<BoxBorder?>(
-                      Border.fromBorderSide(defaultBorderSide),
-                      widgetState,
-                    ),
-                    borderRadius: iTextFieldBorderRadius,
-                  ),
-                  child: Padding(padding: widget.padding, child: widget.child),
-                ),
-              ),
-            ),
-          ),
-        ),
+        content,
 
         if (hasError)
           Padding(
@@ -897,7 +914,7 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
   @override
   void initState() {
     super.initState();
-    _rateFocusNode = FocusNode();
+    _rateFocusNode = FocusNode()..addListener(_updateCalculatorVisibility);
     _quantityFocusNode = FocusNode();
     _totalAmountFocusNode = FocusNode();
   }
@@ -910,7 +927,7 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
     super.dispose();
   }
 
-  void _updateCalculatorVisibility(bool focused) {
+  void _updateCalculatorVisibility() {
     if (!mounted) return;
 
     setState(() {
@@ -977,12 +994,7 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                           },
                           builder: (context, state) {
                             $logger.i('Rate is Rebuilding');
-                            return _FormField(
-                              // onTap: () async {
-                              //   final newRate = await InveslyCalculatorWidget.showModal(context, state.rate);
-                              //   if (newRate == null) return;
-                              //   cubit.updateRate(newRate.toDouble());
-                              // },
+                            return _TappableFocusableField(
                               focusNode: _rateFocusNode,
                               errorText: state.rateError,
                               contentAlignment: AlignmentGeometry.centerRight,
@@ -1034,7 +1046,7 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                           },
                           builder: (context, state) {
                             $logger.i('Quantity is Rebuilding');
-                            return _FormField(
+                            return _TappableFocusableField(
                               // onTap: () async {
                               //   final newQnty = await InveslyCalculatorWidget.showModal(
                               //     context,
@@ -1128,7 +1140,7 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
             },
             builder: (context, state) {
               $logger.i('Total amount section is Rebuilding');
-              return _FormField(
+              return _TappableFocusableField(
                 enabled: state.canEditAmount,
                 onTap: () async {
                   final newAmount = await InveslyCalculatorWidget.showModal(context, state.totalAmount);
