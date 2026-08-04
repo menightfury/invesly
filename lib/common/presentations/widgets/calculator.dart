@@ -54,10 +54,10 @@ class InveslyCalculatorWidget extends StatefulWidget {
 
   /// Callback when the expression changes. It will return the left operand, operator,
   /// right operand and the result of the calculation.
-  final void Function(String?, CalculatorOperator?, String?, num)? onChange;
+  final void Function(String? left, CalculatorOperator? operator, String? right, num? result)? onChange;
 
   /// Callback when the result is confirmed. It will return the result of the calculation.
-  final ValueChanged<num>? onConfirm;
+  final ValueChanged<num?>? onConfirm;
 
   static Future<num?> showModal(BuildContext context, [num? initialAmount]) async {
     return await showModalBottomSheet<num>(
@@ -91,16 +91,12 @@ class _InveslyCalculatorWidgetState extends State<InveslyCalculatorWidget> {
   late final ValueNotifier<String?> _rightOperand;
   late final ValueNotifier<CalculatorOperator?> _operator;
 
-  static const String? _defaultLeftOperand = null;
-  static const String? _defaultRightOperand = null;
-  static const CalculatorOperator? _defaultOperator = null;
-
   @override
   void initState() {
     super.initState();
-    _leftOperand = ValueNotifier(_defaultLeftOperand)..addListener(_handleExpressionChanged);
-    _rightOperand = ValueNotifier(_defaultRightOperand)..addListener(_handleExpressionChanged);
-    _operator = ValueNotifier(_defaultOperator)..addListener(_handleExpressionChanged);
+    _leftOperand = ValueNotifier(null)..addListener(_handleExpressionChanged);
+    _rightOperand = ValueNotifier(widget.initialAmount?.toString())..addListener(_handleExpressionChanged);
+    _operator = ValueNotifier(null)..addListener(_handleExpressionChanged);
 
     // _focusAttachment = _focusNode.attach(
     //   context,
@@ -176,24 +172,12 @@ class _InveslyCalculatorWidgetState extends State<InveslyCalculatorWidget> {
     _leftOperand.value = value;
   }
 
-  void _resetLeftOperand() {
-    _leftOperand.value = _defaultLeftOperand;
-  }
-
   void _setRightOperand([String? value]) {
     _rightOperand.value = value;
   }
 
-  void _resetRightOperand() {
-    _rightOperand.value = _defaultRightOperand;
-  }
-
   void _setOperator([CalculatorOperator? value]) {
     _operator.value = value;
-  }
-
-  void _resetOperator() {
-    _operator.value = _defaultOperator;
   }
 
   String? get _left => _leftOperand.value?.trim();
@@ -251,15 +235,15 @@ class _InveslyCalculatorWidgetState extends State<InveslyCalculatorWidget> {
       }
     }
     _setLeftOperand(left);
-    _resetRightOperand();
+    _setRightOperand();
     _setOperator(operator);
   }
 
   /// Handle clearing screen
   void _handleClearPressed() {
-    _resetLeftOperand();
-    _resetRightOperand();
-    _resetOperator();
+    _setLeftOperand();
+    _setRightOperand();
+    _setOperator();
   }
 
   /// Handle backspace (delete last character)
@@ -274,9 +258,11 @@ class _InveslyCalculatorWidgetState extends State<InveslyCalculatorWidget> {
   void _calculate() {
     if (_left?.isEmpty == true || _operator.value == null) return;
 
-    _resetLeftOperand();
+    _setLeftOperand();
     _setRightOperand('$_result');
-    _resetOperator();
+    _setOperator();
+
+    widget.onConfirm?.call(_result);
   }
 
   double get _result {
@@ -385,11 +371,12 @@ class _InveslyCalculatorWidgetState extends State<InveslyCalculatorWidget> {
           Row(
             spacing: _buttonSpacing,
             children: <Widget>[
+              // ~ Decimal
               ValueListenableBuilder<String?>(
                 valueListenable: _rightOperand,
-                builder: (context, rightOperandValue, _) {
+                builder: (context, right, _) {
                   return _CalculatorButton(
-                    disabled: rightOperandValue?.hasDecimal ?? false,
+                    disabled: right?.hasDecimal ?? false,
                     onPressed: () => _handleDecimalPressed(),
                     label: '.',
                     borderRadius: _kButtonBorderRadius.copyWith(bottomLeft: iButtonBorderRadius.bottomLeft),
@@ -397,27 +384,14 @@ class _InveslyCalculatorWidgetState extends State<InveslyCalculatorWidget> {
                 },
               ),
               _CalculatorButton(onPressed: () => _handleNumberPressed(0), label: '0'),
-              ListenableBuilder(
-                listenable: Listenable.merge([_leftOperand, _rightOperand, _operator]),
-                builder: (context, _) {
-                  // final left = _left;
-                  // final right = _right;
+              // ~ Equal
+              ValueListenableBuilder(
+                valueListenable: _leftOperand,
+                builder: (context, left, _) {
                   return _CalculatorButton(
-                    // disabled: left.isZeroOrEmpty && right.isZeroOrEmpty,
-                    // onPressed: () {
-                    //   if (left.isNotZeroOrEmpty && _operator.value != null) {
-                    //     _calculate();
-                    //   }
-
-                    //   if (left.isZeroOrEmpty ^ right.isZeroOrEmpty) {
-                    //     $logger.w(right);
-                    //     widget.onSubmit?.call(double.tryParse(right) ?? 0.0);
-                    //   }
-                    // },
-                    // label: (left.isZeroOrEmpty || right.isZeroOrEmpty) ? null : '=',
-                    // icon: (left.isZeroOrEmpty || right.isZeroOrEmpty) ? Icon(Icons.check_rounded) : null,
-                    icon: const Icon(Icons.check_rounded),
-                    onPressed: () {},
+                    onPressed: _calculate,
+                    label: left == null ? null : '=',
+                    icon: left == null ? Icon(Icons.check_rounded) : null,
                     flex: 2,
                     textColor: themeColor.onPrimary,
                     bgColor: themeColor.primary,
@@ -517,7 +491,13 @@ class __InveslyCalculatorWidgetWithResultState extends State<_InveslyCalculatorW
           const Divider(),
 
           // ~ Calculator buttons
-          InveslyCalculatorWidget(),
+          InveslyCalculatorWidget(
+            onChange: (left, operator, right, result) {
+              _leftOperand.value = left;
+              _rightOperand.value = right;
+              _operator.value = operator;
+            },
+          ),
         ],
       ),
     );
