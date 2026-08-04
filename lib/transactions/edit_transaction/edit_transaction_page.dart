@@ -852,7 +852,7 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
     );
 
     if (_focusNode != null) {
-      content = TapRegion(
+      content = TextFieldTapRegion(
         onTapOutside: hasFocus ? (event) => _onTapOutside(context, event) : null,
         child: Focus(focusNode: widget.focusNode, onFocusChange: handleFocusUpdate, child: content),
       );
@@ -1039,10 +1039,7 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                             $logger.i('Quantity is Rebuilding');
                             return _TappableFocusableField(
                               onTap: () async {
-                                final newQnty = await InveslyCalculatorWidget.showModal(
-                                  context,
-                                  state.qnty,
-                                );
+                                final newQnty = await InveslyCalculatorWidget.showModal(context, state.qnty);
                                 if (newQnty == null) return;
                                 cubit.updateQuantity(newQnty.toDouble());
                               },
