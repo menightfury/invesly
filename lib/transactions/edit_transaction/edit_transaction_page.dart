@@ -902,11 +902,13 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
   late final FocusNode _quantityFocusNode;
   late final FocusNode _totalAmountFocusNode;
   late final ValueNotifier<bool> _showCalculator = ValueNotifier(false);
+  late final ValueNotifier<String?> _rateExpression;
 
   @override
   void initState() {
     super.initState();
     _rateFocusNode = FocusNode()..addListener(_updateCalculatorVisibility);
+    _rateExpression = ValueNotifier(null);
     _quantityFocusNode = FocusNode();
     _totalAmountFocusNode = FocusNode();
   }
@@ -914,6 +916,7 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
   @override
   void dispose() {
     _rateFocusNode.dispose();
+    _rateExpression.dispose();
     _quantityFocusNode.dispose();
     _totalAmountFocusNode.dispose();
     super.dispose();
@@ -939,11 +942,6 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
           BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
             selector: (state) => state.canEditRateAndQnty,
             builder: (context, isVisible) {
-              // return AnimatedSize(
-              //   alignment: Alignment.topCenter,
-              //   duration: 250.ms,
-              //   curve: Curves.easeInOut,
-              //   child: isVisible ?
               if (!isVisible) {
                 return SizedBox(width: double.infinity);
               }
@@ -969,13 +967,11 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                             };
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                              // child: FadeIn(
-                              //   from: Offset(0.0, 0.4),
                               child: Text(label, overflow: TextOverflow.ellipsis),
-                              // ),
                             );
                           },
                         ),
+
                         // ~ Rate field
                         BlocBuilder<EditTransactionCubit, EditTransactionState>(
                           buildWhen: (prev, curr) {
@@ -1000,6 +996,17 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                             );
                           },
                         ),
+
+                        // ~ Rate expression
+                        ValueListenableBuilder(
+                          valueListenable: _rateExpression,
+                          builder: (context, expression, _) {
+                            if (expression == null) {
+                              return SizedBox(width: double.infinity);
+                            }
+                            return Text(expression, style: context.theme.inputDecorationTheme.helperStyle);
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -1021,10 +1028,8 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                             };
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                              // child: FadeIn(
-                              //   from: Offset(0.0, 0.4),
+
                               child: Text(label, overflow: TextOverflow.ellipsis),
-                              // ),
                             );
                           },
                         ),
@@ -1085,9 +1090,7 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                         if (disabled) {
                           return SizedBox.shrink();
                         }
-                        // return FadeIn(
-                        //   from: Offset(0.0, 0.4),
-                        //   child:
+
                         return BlocSelector<EditTransactionCubit, EditTransactionState, bool>(
                           selector: (state) => state.autoAmount,
                           builder: (context, autoAmount) {
@@ -1163,7 +1166,11 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                 }
                 return SizedBox(width: double.infinity);
               },
-              child: InveslyCalculatorWidget(),
+              child: InveslyCalculatorWidget(
+                onPressed: (expr, result) {
+                  _rateExpression.value = expr.toString();
+                },
+              ),
             ),
           ),
 
