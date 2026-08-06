@@ -663,6 +663,7 @@ class _AmcPicker extends StatelessWidget {
         $logger.i('AMC Picker Rebuilding');
 
         return _TappableFocusableField(
+          padding: iFormFieldContentPadding.copyWith(left: 0, right: 0),
           onTap: () async {
             final newAmc = await context.push<InveslyAmc>(
               InveslyAmcPickerWidget(
@@ -701,9 +702,13 @@ class _AmcPicker extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const Text('Search AMC', style: TextStyle(color: Colors.grey)),
+                    Padding(
+                      padding: iFormFieldContentPadding.copyWith(top: 0, bottom: 0),
+                      child: const Text('Search AMC', style: TextStyle(color: Colors.grey)),
+                    ),
                     BlocBuilder<StatCubit, StatState>(
                       builder: (context, statState) {
+                        // return SizedBox.shrink();
                         if (statState.isInitial || statState.isLoading) {
                           return Padding(
                             padding: const EdgeInsets.only(top: 8.0),
@@ -746,22 +751,37 @@ class _AmcPicker extends StatelessWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 8.0,
+                              spacing: 16.0,
                               children: <Widget>[
                                 const InveslyDivider(),
                                 SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
-                                  child: SizedBox(
-                                    width: screenWidth * 3.0,
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(maxWidth: screenWidth * 3.0),
                                     child: Wrap(
                                       spacing: 6.0,
                                       runSpacing: 6.0,
                                       children: List.generate(amcs.length, (index) {
                                         final amc = amcs.elementAt(index);
-                                        return SimpleChip(
-                                          padding: const EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
-                                          onTap: () => cubit.updateAmc(amc),
-                                          child: Text(amc.name, style: context.textTheme.bodySmall),
+                                        return Row(
+                                          children: [
+                                            SimpleChip(
+                                              padding: const EdgeInsetsGeometry.symmetric(
+                                                horizontal: 16.0,
+                                                vertical: 10.0,
+                                              ),
+                                              onTap: () => cubit.updateAmc(amc),
+                                              child: Text(amc.name, style: context.textTheme.bodySmall),
+                                            ),
+                                            SimpleChip(
+                                              padding: const EdgeInsetsGeometry.symmetric(
+                                                horizontal: 16.0,
+                                                vertical: 10.0,
+                                              ),
+                                              onTap: () => cubit.updateAmc(amc),
+                                              child: Text(amc.name, style: context.textTheme.bodySmall),
+                                            ),
+                                          ],
                                         );
                                       }),
                                     ),
@@ -907,6 +927,9 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
     final inputTheme = InputDecorationTheme.of(context);
     final defaultColor = inputTheme.fillColor ?? context.colors.secondaryContainer;
     final resolvedBorder = WidgetStateProperty.resolveAs<InputBorder?>(inputTheme.border, statesController.value);
+    final effectiveBorderRadius = resolvedBorder is OutlineInputBorder
+        ? resolvedBorder.borderRadius
+        : BorderRadius.zero;
 
     Widget content = Shake(
       shake: hasError,
@@ -924,13 +947,17 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
         // shape: WidgetStateProperty.resolveAs<InputBorder?>(defaultBorder, widgetState),
         child: SizedBox(
           width: double.infinity,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: WidgetStateProperty.resolveAs<Color?>(defaultColor, statesController.value),
-              border: Border.fromBorderSide(resolvedBorder?.borderSide ?? BorderSide.none),
-              borderRadius: resolvedBorder is OutlineInputBorder ? resolvedBorder.borderRadius : null,
+          child: ClipRRect(
+            borderRadius: effectiveBorderRadius,
+            clipBehavior: Clip.antiAlias,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: WidgetStateProperty.resolveAs<Color?>(defaultColor, statesController.value),
+                border: Border.fromBorderSide(resolvedBorder?.borderSide ?? BorderSide.none),
+                borderRadius: effectiveBorderRadius,
+              ),
+              child: Padding(padding: widget.padding, child: widget.child),
             ),
-            child: Padding(padding: widget.padding, child: widget.child),
           ),
         ),
       ),
