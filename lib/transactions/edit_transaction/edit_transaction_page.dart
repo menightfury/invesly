@@ -20,6 +20,7 @@ import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/dashboard/view/dashboard_page.dart';
 import 'package:invesly/common/presentations/widgets/calculator.dart';
+import 'package:invesly/stat/cubit/stat_cubit.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
 
@@ -115,6 +116,43 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 //   ),
                 // ),
 
+                // ~~~ AMC ~~~
+                // Column(
+                //   spacing: iFormFieldLabelSpacing,
+                //   crossAxisAlignment: CrossAxisAlignment.start,
+                //   mainAxisSize: MainAxisSize.min,
+                //   children: <Widget>[
+                //     BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
+                //       selector: (state) => state.genre,
+                //       builder: (context, genre) {
+                //         final label = switch (genre) {
+                //           AmcGenre.mf => 'Asset management company (AMC)',
+                //           AmcGenre.stock => 'Company',
+                //           AmcGenre.insurance => 'Insurance provider',
+                //           _ => 'Company / Service provider',
+                //         };
+                //         return Padding(
+                //           padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                //           child: FadeIn(
+                //             // key: Key(label),
+                //             from: Offset(0.0, 0.4),
+                //             child: Text(label, overflow: TextOverflow.ellipsis),
+                //           ),
+                //         );
+                //       },
+                //     ),
+                //     _AmcPicker(),
+                //   ],
+                // ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: _AmcPicker().withLabel('Asset management company (AMC)'),
+                  ),
+                ),
+
+                const SliverGap(iFormFieldsInterSpacing),
+
                 // ~~~ Type ~~~
                 SliverToBoxAdapter(
                   child: Padding(
@@ -200,41 +238,6 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 ),
 
                 const SliverGap(iFormFieldsInterSpacing),
-
-                // ~~~ AMC ~~~
-                // Column(
-                //   spacing: iFormFieldLabelSpacing,
-                //   crossAxisAlignment: CrossAxisAlignment.start,
-                //   mainAxisSize: MainAxisSize.min,
-                //   children: <Widget>[
-                //     BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
-                //       selector: (state) => state.genre,
-                //       builder: (context, genre) {
-                //         final label = switch (genre) {
-                //           AmcGenre.mf => 'Asset management company (AMC)',
-                //           AmcGenre.stock => 'Company',
-                //           AmcGenre.insurance => 'Insurance provider',
-                //           _ => 'Company / Service provider',
-                //         };
-                //         return Padding(
-                //           padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                //           child: FadeIn(
-                //             // key: Key(label),
-                //             from: Offset(0.0, 0.4),
-                //             child: Text(label, overflow: TextOverflow.ellipsis),
-                //           ),
-                //         );
-                //       },
-                //     ),
-                //     _AmcPicker(),
-                //   ],
-                // ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: _AmcPicker().withLabel('Asset management company (AMC)'),
-                  ),
-                ),
 
                 // // ~ Genre ~
                 // BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
@@ -648,6 +651,7 @@ class _AmcPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
+    final screenWidth = MediaQuery.sizeOf(context).width;
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
       buildWhen: (prev, curr) {
@@ -657,6 +661,7 @@ class _AmcPicker extends StatelessWidget {
       },
       builder: (context, state) {
         $logger.i('AMC Picker Rebuilding');
+
         return _TappableFocusableField(
           onTap: () async {
             final newAmc = await context.push<InveslyAmc>(
@@ -671,25 +676,105 @@ class _AmcPicker extends StatelessWidget {
           },
           errorText: state.amcError,
           child: state.amc != null
-              ? Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              ? Row(
+                  spacing: 8.0,
                   children: <Widget>[
-                    Text(state.amc!.name, overflow: TextOverflow.ellipsis),
-                    Text(
-                      (state.amc!.genre ?? AmcGenre.misc).title,
-                      style: context.textTheme.labelSmall,
-                      overflow: TextOverflow.ellipsis,
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(state.amc!.name, overflow: TextOverflow.ellipsis),
+                          Text(
+                            (state.amc!.genre ?? AmcGenre.misc).title,
+                            style: context.textTheme.labelSmall,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
+
+                    Icon(Icons.cancel),
                   ],
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 8.0,
                   children: <Widget>[
                     const Text('Search AMC', style: TextStyle(color: Colors.grey)),
-                    SimpleChip(child: Text('Suggestion')),
+                    BlocBuilder<StatCubit, StatState>(
+                      builder: (context, statState) {
+                        if (statState.isInitial || statState.isLoading) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              spacing: 8.0,
+                              children: <Widget>[
+                                const InveslyDivider(),
+                                const Skeletonizer(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    spacing: 6.0,
+                                    children: <Widget>[
+                                      Skeleton.leaf(
+                                        child: SimpleChip(
+                                          padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
+                                          child: Text('AMC loading...'),
+                                        ),
+                                      ),
+                                      Skeleton.leaf(
+                                        child: SimpleChip(
+                                          padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
+                                          child: Text('AMC loading...'),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        if (statState.isLoaded && statState.stats.isNotEmpty) {
+                          final amcs = statState.stats.map((stat) => stat.amc);
+
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 12.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              spacing: 8.0,
+                              children: <Widget>[
+                                const InveslyDivider(),
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: SizedBox(
+                                    width: screenWidth * 3.0,
+                                    child: Wrap(
+                                      spacing: 6.0,
+                                      runSpacing: 6.0,
+                                      children: List.generate(amcs.length, (index) {
+                                        final amc = amcs.elementAt(index);
+                                        return SimpleChip(
+                                          padding: const EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
+                                          onTap: () => cubit.updateAmc(amc),
+                                          child: Text(amc.name, style: context.textTheme.bodySmall),
+                                        );
+                                      }),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return SizedBox.shrink();
+                      },
+                    ),
                   ],
                 ),
         );
@@ -890,6 +975,8 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
   }
 }
 
+enum _AmountPickerField { rate, quantity, totalAmount }
+
 class _AmountPickerWidget extends StatefulWidget {
   const _AmountPickerWidget({super.key});
 
@@ -902,30 +989,77 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
   late final FocusNode _quantityFocusNode;
   late final FocusNode _totalAmountFocusNode;
   late final ValueNotifier<bool> _showCalculator = ValueNotifier(false);
-  late final ValueNotifier<String?> _rateExpression;
+  late final ValueNotifier<String?> _calculatorExpression;
+  _AmountPickerField? _focusedField;
 
   @override
   void initState() {
     super.initState();
     _rateFocusNode = FocusNode()..addListener(_updateCalculatorVisibility);
-    _rateExpression = ValueNotifier(null);
-    _quantityFocusNode = FocusNode();
-    _totalAmountFocusNode = FocusNode();
+    _quantityFocusNode = FocusNode()..addListener(_updateCalculatorVisibility);
+    _totalAmountFocusNode = FocusNode()..addListener(_updateCalculatorVisibility);
+    _calculatorExpression = ValueNotifier(null);
   }
 
   @override
   void dispose() {
     _rateFocusNode.dispose();
-    _rateExpression.dispose();
     _quantityFocusNode.dispose();
     _totalAmountFocusNode.dispose();
+    _calculatorExpression.dispose();
     super.dispose();
   }
 
   void _updateCalculatorVisibility() {
     if (!mounted) return;
 
-    _showCalculator.value = _rateFocusNode.hasFocus || _quantityFocusNode.hasFocus || _totalAmountFocusNode.hasFocus;
+    _focusedField = _rateFocusNode.hasFocus
+        ? _AmountPickerField.rate
+        : _quantityFocusNode.hasFocus
+        ? _AmountPickerField.quantity
+        : _totalAmountFocusNode.hasFocus
+        ? _AmountPickerField.totalAmount
+        : null;
+    _showCalculator.value = _focusedField != null;
+  }
+
+  void _handleCalculatorExpression(CalculatorExpression? expression, num? result) {
+    _calculatorExpression.value = expression?.toString();
+    if (_focusedField == null || result == null) return;
+
+    final cubit = context.read<EditTransactionCubit>();
+    switch (_focusedField!) {
+      case _AmountPickerField.rate:
+        cubit.updateRate(result.toDouble());
+        break;
+      case _AmountPickerField.quantity:
+        cubit.updateQuantity(result.toDouble());
+        break;
+      case _AmountPickerField.totalAmount:
+        if (cubit.state.canEditAmount) {
+          cubit.updateAmount(result.toDouble());
+        }
+        break;
+    }
+  }
+
+  void _handleCalculatorConfirm(num? value) {
+    if (_focusedField == null || value == null) return;
+
+    final cubit = context.read<EditTransactionCubit>();
+    switch (_focusedField!) {
+      case _AmountPickerField.rate:
+        cubit.updateRate(value.toDouble());
+        break;
+      case _AmountPickerField.quantity:
+        cubit.updateQuantity(value.toDouble());
+        break;
+      case _AmountPickerField.totalAmount:
+        if (cubit.state.canEditAmount) {
+          cubit.updateAmount(value.toDouble());
+        }
+        break;
+    }
   }
 
   @override
@@ -953,7 +1087,6 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                   // ~ Rate (Unit price)
                   Expanded(
                     child: Column(
-                      spacing: iFormFieldLabelSpacing,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
@@ -971,6 +1104,8 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                             );
                           },
                         ),
+
+                        const Gap(iFormFieldLabelSpacing),
 
                         // ~ Rate field
                         BlocBuilder<EditTransactionCubit, EditTransactionState>(
@@ -997,15 +1132,19 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                           },
                         ),
 
-                        // ~ Rate expression
-                        ValueListenableBuilder(
-                          valueListenable: _rateExpression,
-                          builder: (context, expression, _) {
-                            if (expression == null) {
-                              return SizedBox(width: double.infinity);
-                            }
-                            return Text(expression, style: context.theme.inputDecorationTheme.helperStyle);
-                          },
+                        // ~ Calculator expression preview
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: ValueListenableBuilder(
+                              valueListenable: _calculatorExpression,
+                              builder: (context, expression, _) {
+                                if (expression == null) return const SizedBox.shrink();
+                                return Text(expression, style: TextStyle(fontSize: 13.0), textAlign: TextAlign.right);
+                              },
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -1043,11 +1182,6 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                           builder: (context, state) {
                             $logger.i('Quantity is Rebuilding');
                             return _TappableFocusableField(
-                              onTap: () async {
-                                final newQnty = await InveslyCalculatorWidget.showModal(context, state.qnty);
-                                if (newQnty == null) return;
-                                cubit.updateQuantity(newQnty.toDouble());
-                              },
                               focusNode: _quantityFocusNode,
                               errorText: state.qntyError,
                               contentAlignment: AlignmentGeometry.centerRight,
@@ -1133,11 +1267,6 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
               $logger.i('Total amount section is Rebuilding');
               return _TappableFocusableField(
                 enabled: state.canEditAmount,
-                onTap: () async {
-                  final newAmount = await InveslyCalculatorWidget.showModal(context, state.totalAmount);
-                  if (newAmount == null) return;
-                  cubit.updateAmount(newAmount.toDouble());
-                },
                 focusNode: _totalAmountFocusNode,
                 errorText: state.totalAmountError,
                 contentAlignment: AlignmentGeometry.centerRight,
@@ -1149,6 +1278,18 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                   textAlign: TextAlign.right,
                   overflow: TextOverflow.ellipsis,
                 ),
+              );
+            },
+          ),
+
+          // ~ Calculator expression preview
+          ValueListenableBuilder(
+            valueListenable: _calculatorExpression,
+            builder: (context, expression, _) {
+              if (expression == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Text(expression, style: context.theme.inputDecorationTheme.helperStyle),
               );
             },
           ),
@@ -1167,9 +1308,8 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                 return SizedBox(width: double.infinity);
               },
               child: InveslyCalculatorWidget(
-                onPressed: (expr, result) {
-                  _rateExpression.value = expr.toString();
-                },
+                onPressed: _handleCalculatorExpression,
+                onConfirm: _handleCalculatorConfirm,
               ),
             ),
           ),
