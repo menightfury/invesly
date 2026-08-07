@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+
 extension StringX on String {
   /// Converts to Sentence case.
   /// This means the first letter is capitalized and the rest are in lowercase.
@@ -46,4 +48,23 @@ extension StringX on String {
 
   int? get parseInt => int.tryParse(this);
   double? get parseDouble => double.tryParse(this);
+
+  double calculateTextWidth({TextStyle? style}) {
+    // 1. Create a TextSpan with your text and style
+    final TextSpan textSpan = TextSpan(text: this, style: style);
+
+    // 2. Set up the TextPainter
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+      // Extract the exact text scaling from the current system context
+      // textScaler: MediaQuery.textScalerOf(context),
+    );
+
+    // 3. Layout the painter with constraints
+    textPainter.layout();
+
+    // 4. Return the calculated width
+    return textPainter.width;
+  }
 }

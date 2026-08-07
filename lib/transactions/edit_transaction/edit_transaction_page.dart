@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
@@ -663,7 +664,7 @@ class _AmcPicker extends StatelessWidget {
         $logger.i('AMC Picker Rebuilding');
 
         return _TappableFocusableField(
-          padding: iFormFieldContentPadding.copyWith(left: 0, right: 0),
+          padding: EdgeInsets.zero,
           onTap: () async {
             final newAmc = await context.push<InveslyAmc>(
               InveslyAmcPickerWidget(
@@ -677,114 +678,91 @@ class _AmcPicker extends StatelessWidget {
           },
           errorText: state.amcError,
           child: state.amc != null
-              ? Row(
-                  spacing: 8.0,
-                  children: <Widget>[
-                    Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(state.amc!.name, overflow: TextOverflow.ellipsis),
-                          Text(
-                            (state.amc!.genre ?? AmcGenre.misc).title,
-                            style: context.textTheme.labelSmall,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+              ? Padding(
+                  padding: iFormFieldContentPadding,
+                  child: Row(
+                    spacing: 8.0,
+                    children: <Widget>[
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(state.amc!.name, overflow: TextOverflow.ellipsis),
+                            Text(
+                              (state.amc!.genre ?? AmcGenre.misc).title,
+                              style: context.textTheme.labelSmall,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
 
-                    Icon(Icons.cancel),
-                  ],
+                      Icon(Icons.cancel),
+                    ],
+                  ),
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Padding(
-                      padding: iFormFieldContentPadding.copyWith(top: 0, bottom: 0),
+                      padding: iFormFieldContentPadding,
                       child: const Text('Search AMC', style: TextStyle(color: Colors.grey)),
                     ),
                     BlocBuilder<StatCubit, StatState>(
                       builder: (context, statState) {
-                        // return SizedBox.shrink();
-                        if (statState.isInitial || statState.isLoading) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 8.0,
-                              children: <Widget>[
-                                const InveslyDivider(),
-                                const Skeletonizer(
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    spacing: 6.0,
-                                    children: <Widget>[
-                                      Skeleton.leaf(
-                                        child: SimpleChip(
-                                          padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
-                                          child: Text('AMC loading...'),
-                                        ),
-                                      ),
-                                      Skeleton.leaf(
-                                        child: SimpleChip(
-                                          padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
-                                          child: Text('AMC loading...'),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
+                        if (statState.isError) {
+                          return SizedBox.shrink();
                         }
+
+                        late final Widget content;
 
                         if (statState.isLoaded && statState.stats.isNotEmpty) {
                           final amcs = statState.stats.map((stat) => stat.amc);
 
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 12.0),
-                            child: Column(
+                          // calculate width of first five chips
+                          double totalWidth = 0;
+                          for (int i = 0; i < amcs.length && i < 5; i++) {
+                            final amc = amcs.elementAt(i);
+                            totalWidth += amc.name.length * 8.0 + 32.0; // Approximate width calculation
+                          }
+
+                          content = SingleChildScrollView(
+                            padding: iFormFieldContentPadding.copyWith(top: 0, bottom: 0),
+                            scrollDirection: Axis.horizontal,
+                            child: LimitedBox(
+                              maxWidth: math.max(screenWidth, totalWidth),
+                              child: Wrap(
+                                spacing: 6.0,
+                                runSpacing: 6.0,
+                                children: List.generate(amcs.length, (index) {
+                                  final amc = amcs.elementAt(index);
+                                  return SimpleChip(
+                                    padding: const EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
+                                    onTap: () => cubit.updateAmc(amc),
+                                    child: Text(amc.name, style: context.textTheme.bodySmall),
+                                  );
+                                }),
+                              ),
+                            ),
+                          );
+                        } else {
+                          content = const Skeletonizer(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 16.0,
+                              spacing: 6.0,
                               children: <Widget>[
-                                const InveslyDivider(),
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(maxWidth: screenWidth * 3.0),
-                                    child: Wrap(
-                                      spacing: 6.0,
-                                      runSpacing: 6.0,
-                                      children: List.generate(amcs.length, (index) {
-                                        final amc = amcs.elementAt(index);
-                                        return Row(
-                                          children: [
-                                            SimpleChip(
-                                              padding: const EdgeInsetsGeometry.symmetric(
-                                                horizontal: 16.0,
-                                                vertical: 10.0,
-                                              ),
-                                              onTap: () => cubit.updateAmc(amc),
-                                              child: Text(amc.name, style: context.textTheme.bodySmall),
-                                            ),
-                                            SimpleChip(
-                                              padding: const EdgeInsetsGeometry.symmetric(
-                                                horizontal: 16.0,
-                                                vertical: 10.0,
-                                              ),
-                                              onTap: () => cubit.updateAmc(amc),
-                                              child: Text(amc.name, style: context.textTheme.bodySmall),
-                                            ),
-                                          ],
-                                        );
-                                      }),
-                                    ),
+                                Skeleton.leaf(
+                                  child: SimpleChip(
+                                    padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
+                                    child: Text('AMC loading...'),
+                                  ),
+                                ),
+                                Skeleton.leaf(
+                                  child: SimpleChip(
+                                    padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
+                                    child: Text('AMC loading...'),
                                   ),
                                 ),
                               ],
@@ -792,7 +770,14 @@ class _AmcPicker extends StatelessWidget {
                           );
                         }
 
-                        return SizedBox.shrink();
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            const InveslyDivider(),
+                            Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: content),
+                          ],
+                        );
                       },
                     ),
                   ],
@@ -976,7 +961,10 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
       // spacing: 4.0,
       children: <Widget>[
         content,
-
+        DecoratedBox(
+          decoration: BoxDecoration(color: Colors.amber),
+          child: Text('suggestions are here'),
+        ),
         if (hasError)
           Padding(
             padding: widget.padding.copyWith(top: 4.0, bottom: 0.0),
