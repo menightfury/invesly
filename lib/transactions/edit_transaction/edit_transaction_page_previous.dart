@@ -207,7 +207,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                                 options: types,
                                 builder: (value) => Text(value.title, overflow: TextOverflow.ellipsis),
                                 onChanged: (value) => cubit.updateTransactionType(value),
-                                color: context.theme.inputDecorationTheme.fillColor,
+                                // color: context.theme.inputDecorationTheme.fillColor,
                               );
                             },
                           ).withLabel('Transaction type'),

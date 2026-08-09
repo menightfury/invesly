@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
-import 'package:invesly/common/presentations/widgets/tappable.dart';
 import 'package:invesly/constants.dart';
 
 class RollingThroughOptions<T extends Object> extends StatelessWidget {
@@ -12,16 +11,18 @@ class RollingThroughOptions<T extends Object> extends StatelessWidget {
     this.onChanged,
     this.padding = iFormFieldContentPadding,
     this.leading,
-    this.color,
+    this.trailing,
+    this.decoration,
   });
 
   final T? value;
   final ValueChanged<T>? onChanged;
   final Widget? leading;
-  final EdgeInsetsGeometry padding;
+  final Widget? trailing;
+  final EdgeInsetsGeometry? padding;
   final List<T> options;
   final Widget Function(T value) builder;
-  final Color? color;
+  final BoxDecoration? decoration;
 
   int get index {
     // int index = 0;
@@ -43,14 +44,31 @@ class RollingThroughOptions<T extends Object> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveValue = options.elementAt(index);
-    return Tappable(
-      childAlignment: AlignmentGeometry.centerLeft,
+    Widget content = FadeIn(key: ValueKey(effectiveValue), from: Offset(0.0, 0.4), child: builder(effectiveValue));
+
+    if (leading != null || trailing != null) {
+      content = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          ?leading,
+          Expanded(child: content),
+          ?trailing,
+        ],
+      );
+    }
+
+    if (padding != null) {
+      content = Padding(padding: padding!, child: content);
+    }
+
+    if (decoration != null) {
+      content = DecoratedBox(decoration: decoration!, child: content);
+    }
+
+    return GestureDetector(
       onTap: onChanged != null ? _handleChange : null,
-      padding: padding,
-      leading: leading,
-      trailing: const Icon(Icons.unfold_more_rounded),
-      color: color,
-      child: FadeIn(key: ValueKey(effectiveValue), from: Offset(0.0, 0.4), child: builder(effectiveValue)),
+      behavior: HitTestBehavior.opaque,
+      child: content,
     );
   }
 }

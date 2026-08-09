@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/accounts/view/edit_account/edit_account_page.dart';
 import 'package:invesly/accounts/view/widgets/account_picker_widget.dart';
-
 import 'package:invesly/amcs/model/amc_model.dart';
 import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
@@ -14,13 +13,14 @@ import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
+import 'package:invesly/common/presentations/widgets/calculator.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
+import 'package:invesly/common/presentations/widgets/rolling_through_options.dart';
 import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/common/presentations/widgets/simple_chip.dart';
 import 'package:invesly/common/utils/keyboard.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/dashboard/view/dashboard_page.dart';
-import 'package:invesly/common/presentations/widgets/calculator.dart';
 import 'package:invesly/stat/cubit/stat_cubit.dart';
 import 'package:invesly/transactions/model/transaction_model.dart';
 import 'package:invesly/transactions/model/transaction_repository.dart';
@@ -147,40 +147,8 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 // ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: iPaddingFromScreenEdge,
                     child: _AmcPicker().withLabel('Asset management company (AMC)'),
-                  ),
-                ),
-
-                const SliverGap(iFormFieldsInterSpacing),
-
-                // ~~~ Type ~~~
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: BlocSelector<EditTransactionCubit, EditTransactionState, TransactionType>(
-                      selector: (state) => state.type,
-                      builder: (context, type) {
-                        return InveslyChoiceChips<TransactionType>(
-                          value: type,
-                          options: types,
-                          labelBuilder: (context, value) => Text(value.title, overflow: TextOverflow.ellipsis),
-                          onChanged: (value) {
-                            if (value == null) return;
-                            cubit.updateTransactionType(value);
-                          },
-                          extended: true,
-                          padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                        );
-                        // return RollingThroughOptions<TransactionType>(
-                        //   value: type,
-                        //   options: types,
-                        //   builder: (value) => Text(value.title, overflow: TextOverflow.ellipsis),
-                        //   onChanged: (value) => cubit.updateTransactionType(value),
-                        //   color: context.theme.inputDecorationTheme.fillColor,
-                        // );
-                      },
-                    ),
                   ),
                 ),
 
@@ -189,10 +157,8 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 // ~~~ Amount ~~~
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: iPaddingFromScreenEdge,
                     child: _TappableFocusableField(
-                      contentAlignment: Alignment.center,
-                      padding: iFormFieldContentPadding.copyWith(top: 24.0, bottom: 24.0),
                       onTap: () {
                         showModalBottomSheet(
                           context: context,
@@ -203,17 +169,17 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                       },
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        spacing: 12.0,
+                        spacing: 8.0,
                         children: <Widget>[
                           CurrencyView(
                             amount: 5000,
-                            style: context.textTheme.displayLarge,
-                            decimalsStyle: context.textTheme.displaySmall,
+                            style: context.textTheme.displayMedium,
+                            decimalsStyle: context.textTheme.bodyLarge,
                           ),
                           Text('10 units @ Rs. 500', style: TextStyle(color: context.theme.disabledColor)),
                         ],
                       ),
-                    ),
+                    ).withLabel('Amount'),
                   ),
                 ),
 
@@ -222,7 +188,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 // ~ Account picker
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: iPaddingFromScreenEdge,
                     child: Column(
                       spacing: iFormFieldLabelSpacing,
                       crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
@@ -240,41 +206,58 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
 
                 const SliverGap(iFormFieldsInterSpacing),
 
-                // // ~ Genre ~
-                // BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
-                //   selector: (state) => state.genre,
-                //   builder: (context, genre) {
-                //     return RollingThroughOptions<AmcGenre>(
-                //       value: genre,
-                //       options: genres,
-                //       builder: (value) => Text(value.title, overflow: TextOverflow.ellipsis),
-                //       onChanged: (value) {
-                //         cubit.updateGenre(genre);
-
-                //         // Reset AMC
-                //         cubit.updateAmc(null);
-                //       },
-                //     );
-                //   },
-                // ).withLabel('Genre'),
-                const SliverGap(iFormFieldsInterSpacing),
-
-                // ~~~ Date ~~~
+                // ~~~ Type and Date ~~~
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: iPaddingFromScreenEdge,
                     child: Row(
                       spacing: 12.0,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      // crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
+                        // ~ Type
+                        Expanded(
+                          child: _TappableFocusableField(
+                            padding: EdgeInsets.zero,
+                            child: BlocSelector<EditTransactionCubit, EditTransactionState, TransactionType>(
+                              selector: (state) => state.type,
+                              builder: (context, type) {
+                                return RollingThroughOptions<TransactionType>(
+                                  value: type,
+                                  padding: iFormFieldContentPadding,
+                                  options: types,
+                                  builder: (value) => Text(value.title, overflow: TextOverflow.ellipsis),
+                                  onChanged: (value) => cubit.updateTransactionType(value),
+                                  trailing: const Icon(Icons.unfold_more_rounded),
+                                );
+                              },
+                            ),
+                          ).withLabel('Type'),
+                        ),
+                        // Expanded(
+                        //   child: BlocSelector<EditTransactionCubit, EditTransactionState, TransactionType>(
+                        //     selector: (state) => state.type,
+                        //     builder: (context, type) {
+                        //       return InveslyChoiceChips<TransactionType>(
+                        //         value: type,
+                        //         options: types,
+                        //         labelBuilder: (context, value) => Text(value.title, overflow: TextOverflow.ellipsis),
+                        //         onChanged: (value) {
+                        //           if (value == null) return;
+                        //           cubit.updateTransactionType(value);
+                        //         },
+                        //         extended: true,
+                        //         padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+                        //       );
+                        //     },
+                        //   ).withLabel('Type'),
+                        // ),
+
                         // ~ Date ~
                         Expanded(child: _DatePicker().withLabel('Date')),
                       ],
                     ),
                   ),
                 ),
-
-                const SliverGap(iFormFieldsInterSpacing),
 
                 const SliverGap(iFormFieldsInterSpacing),
 
@@ -290,7 +273,7 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 // ~~~ Note ~~~
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: iPaddingFromScreenEdge,
                     child: TextField(
                       maxLines: 3,
                       decoration: const InputDecoration(hintText: 'Notes'),
@@ -662,6 +645,132 @@ class _AmcPicker extends StatelessWidget {
       },
       builder: (context, state) {
         $logger.i('AMC Picker Rebuilding');
+        late final Widget child;
+
+        if (state.amc != null) {
+          final amc = state.amc!;
+
+          child = Padding(
+            padding: iFormFieldContentPadding,
+            child: Row(
+              spacing: 8.0,
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 6.0,
+                    children: <Widget>[
+                      Text(amc.name, overflow: TextOverflow.ellipsis),
+                      SimpleChip(
+                        color: context.colors.primary,
+                        child: Text(
+                          (amc.genre ?? AmcGenre.misc).title,
+                          style: TextStyle(color: context.colors.onPrimary),
+                        ),
+                      ),
+                      if (amc.tags?.isNotEmpty ?? false)
+                        Wrap(
+                          spacing: 4.0,
+                          runSpacing: 4.0,
+                          children: amc.tags!
+                              .map((tag) => SimpleChip(child: Text(tag, style: context.textTheme.labelSmall)))
+                              .toList(),
+                        ),
+                    ],
+                  ),
+                ),
+
+                Icon(Icons.cancel),
+              ],
+            ),
+          );
+        } else {
+          child = Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: iFormFieldContentPadding,
+                child: const Text('Search AMC', style: TextStyle(color: Colors.grey)),
+              ),
+              BlocBuilder<StatCubit, StatState>(
+                builder: (context, statState) {
+                  if (statState.isError) {
+                    return SizedBox.shrink();
+                  }
+
+                  late final Widget content;
+
+                  if (statState.isLoaded && statState.stats.isNotEmpty) {
+                    final amcs = statState.stats.map((stat) => stat.amc);
+
+                    // calculate width of first five chips
+                    double totalWidth = 0;
+                    for (int i = 0; i < amcs.length && i < 5; i++) {
+                      final amc = amcs.elementAt(i);
+                      totalWidth += amc.name.length * 6.0 + 32.0; // Approximate width calculation
+                    }
+
+                    content = SingleChildScrollView(
+                      padding: iFormFieldContentPadding.copyWith(top: 0, bottom: 0),
+                      scrollDirection: Axis.horizontal,
+                      child: LimitedBox(
+                        maxWidth: math.max(screenWidth, totalWidth),
+                        child: Wrap(
+                          spacing: 6.0,
+                          runSpacing: 6.0,
+                          children: List.generate(amcs.length, (index) {
+                            final amc = amcs.elementAt(index);
+                            return SimpleChip(
+                              padding: const EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
+                              onTap: () => cubit.updateAmc(amc),
+                              child: Text(amc.name, style: context.textTheme.bodySmall),
+                            );
+                          }),
+                        ),
+                      ),
+                    );
+                  } else {
+                    content = const Skeletonizer(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 6.0,
+                        children: <Widget>[
+                          Skeleton.leaf(
+                            child: SimpleChip(
+                              padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
+                              child: Text('AMC loading...'),
+                            ),
+                          ),
+                          Skeleton.leaf(
+                            child: SimpleChip(
+                              padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
+                              child: Text('AMC loading...'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const InveslyDivider(),
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 0.0),
+                        child: Text('Recommended AMCs', style: TextStyle(fontSize: 14.0)),
+                      ),
+                      Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: content),
+                    ],
+                  );
+                },
+              ),
+            ],
+          );
+        }
 
         return _TappableFocusableField(
           padding: EdgeInsets.zero,
@@ -677,111 +786,7 @@ class _AmcPicker extends StatelessWidget {
             cubit.updateAmc(newAmc);
           },
           errorText: state.amcError,
-          child: state.amc != null
-              ? Padding(
-                  padding: iFormFieldContentPadding,
-                  child: Row(
-                    spacing: 8.0,
-                    children: <Widget>[
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(state.amc!.name, overflow: TextOverflow.ellipsis),
-                            Text(
-                              (state.amc!.genre ?? AmcGenre.misc).title,
-                              style: context.textTheme.labelSmall,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      Icon(Icons.cancel),
-                    ],
-                  ),
-                )
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      padding: iFormFieldContentPadding,
-                      child: const Text('Search AMC', style: TextStyle(color: Colors.grey)),
-                    ),
-                    BlocBuilder<StatCubit, StatState>(
-                      builder: (context, statState) {
-                        if (statState.isError) {
-                          return SizedBox.shrink();
-                        }
-
-                        late final Widget content;
-
-                        if (statState.isLoaded && statState.stats.isNotEmpty) {
-                          final amcs = statState.stats.map((stat) => stat.amc);
-
-                          // calculate width of first five chips
-                          double totalWidth = 0;
-                          for (int i = 0; i < amcs.length && i < 5; i++) {
-                            final amc = amcs.elementAt(i);
-                            totalWidth += amc.name.length * 8.0 + 32.0; // Approximate width calculation
-                          }
-
-                          content = SingleChildScrollView(
-                            padding: iFormFieldContentPadding.copyWith(top: 0, bottom: 0),
-                            scrollDirection: Axis.horizontal,
-                            child: LimitedBox(
-                              maxWidth: math.max(screenWidth, totalWidth),
-                              child: Wrap(
-                                spacing: 6.0,
-                                runSpacing: 6.0,
-                                children: List.generate(amcs.length, (index) {
-                                  final amc = amcs.elementAt(index);
-                                  return SimpleChip(
-                                    padding: const EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
-                                    onTap: () => cubit.updateAmc(amc),
-                                    child: Text(amc.name, style: context.textTheme.bodySmall),
-                                  );
-                                }),
-                              ),
-                            ),
-                          );
-                        } else {
-                          content = const Skeletonizer(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              spacing: 6.0,
-                              children: <Widget>[
-                                Skeleton.leaf(
-                                  child: SimpleChip(
-                                    padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
-                                    child: Text('AMC loading...'),
-                                  ),
-                                ),
-                                Skeleton.leaf(
-                                  child: SimpleChip(
-                                    padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
-                                    child: Text('AMC loading...'),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            const InveslyDivider(),
-                            Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: content),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                ),
+          child: child,
         );
       },
     );
@@ -832,7 +837,7 @@ class _DatePicker extends StatelessWidget {
             if (newDate == null) return;
             cubit.updateDate(newDate.startOfDay);
           },
-          leading: const Icon(Icons.edit_calendar_rounded),
+          // leading: const Icon(Icons.edit_calendar_rounded),
           errorText: state.dateError,
           child: _buildChild(context, state.date),
         );
@@ -853,7 +858,7 @@ class _TappableFocusableField extends StatefulWidget {
     this.errorText,
     this.errorBuilder,
     this.padding = iFormFieldContentPadding,
-    this.contentAlignment = Alignment.centerLeft,
+    this.minHeight,
   });
 
   final bool enabled;
@@ -865,7 +870,7 @@ class _TappableFocusableField extends StatefulWidget {
   final String? errorText;
   final Widget Function(BuildContext, String)? errorBuilder;
   final EdgeInsets padding;
-  final AlignmentGeometry contentAlignment;
+  final double? minHeight;
 
   @override
   State<_TappableFocusableField> createState() => _TappableFocusableFieldState();
@@ -916,37 +921,49 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
         ? resolvedBorder.borderRadius
         : BorderRadius.zero;
 
-    Widget content = Shake(
-      shake: hasError,
-      child: GestureDetector(
-        onTap: widget.enabled
-            ? () {
-                widget.onTap?.call();
-                widget.focusNode?.requestFocus();
-              }
-            : null,
-        // childAlignment: widget.contentAlignment,
-        // padding: widget.padding,
-        // leading: widget.leading,
-        // trailing: widget.trailing,
-        // shape: WidgetStateProperty.resolveAs<InputBorder?>(defaultBorder, widgetState),
-        child: SizedBox(
-          width: double.infinity,
-          child: ClipRRect(
-            borderRadius: effectiveBorderRadius,
-            clipBehavior: Clip.antiAlias,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: WidgetStateProperty.resolveAs<Color?>(defaultColor, statesController.value),
-                border: Border.fromBorderSide(resolvedBorder?.borderSide ?? BorderSide.none),
-                borderRadius: effectiveBorderRadius,
-              ),
-              child: Padding(padding: widget.padding, child: widget.child),
+    Widget content = widget.child;
+
+    if (widget.leading != null || widget.trailing != null) {
+      content = Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        // spacing: widget.spacing,
+        children: <Widget>[
+          ?widget.leading,
+          Expanded(child: content),
+          ?widget.trailing,
+        ],
+      );
+    }
+
+    content = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.enabled
+          ? () {
+              widget.onTap?.call();
+              widget.focusNode?.requestFocus();
+            }
+          : null,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: double.infinity, minHeight: widget.minHeight ?? iFormFieldMinimumHeight),
+        child: ClipRRect(
+          borderRadius: effectiveBorderRadius,
+          clipBehavior: Clip.antiAlias,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: WidgetStateProperty.resolveAs<Color?>(defaultColor, statesController.value),
+              border: Border.fromBorderSide(resolvedBorder?.borderSide ?? BorderSide.none),
+              borderRadius: effectiveBorderRadius,
             ),
+            child: Padding(padding: widget.padding, child: content),
           ),
         ),
       ),
     );
+
+    if (hasError) {
+      content = Shake(child: content);
+    }
 
     if (_focusNode != null) {
       content = TextFieldTapRegion(
@@ -955,16 +972,15 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
       );
     }
 
+    // return content;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       // spacing: 4.0,
       children: <Widget>[
         content,
-        DecoratedBox(
-          decoration: BoxDecoration(color: Colors.amber),
-          child: Text('suggestions are here'),
-        ),
+
         if (hasError)
           Padding(
             padding: widget.padding.copyWith(top: 4.0, bottom: 0.0),
@@ -1134,7 +1150,6 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                             return _TappableFocusableField(
                               focusNode: _rateFocusNode,
                               errorText: state.rateError,
-                              contentAlignment: AlignmentGeometry.centerRight,
                               child: Text(
                                 state.rate == null
                                     ? 'e.g. 1,500'
@@ -1199,7 +1214,6 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                             return _TappableFocusableField(
                               focusNode: _quantityFocusNode,
                               errorText: state.qntyError,
-                              contentAlignment: AlignmentGeometry.centerRight,
                               child: Text(
                                 state.qnty == null
                                     ? 'e.g. 15'
@@ -1284,7 +1298,6 @@ class _AmountPickerWidgetState extends State<_AmountPickerWidget> {
                 enabled: state.canEditAmount,
                 focusNode: _totalAmountFocusNode,
                 errorText: state.totalAmountError,
-                contentAlignment: AlignmentGeometry.centerRight,
                 child: Text(
                   state.totalAmount == null
                       ? 'e.g. 1,500'
