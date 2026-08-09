@@ -158,27 +158,84 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: iPaddingFromScreenEdge,
-                    child: _TappableFocusableField(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          useSafeArea: true,
-                          isScrollControlled: true,
-                          builder: (context) => BlocProvider.value(value: cubit, child: _AmountPickerWidget()),
-                        );
-                      },
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 8.0,
-                        children: <Widget>[
-                          CurrencyView(
-                            amount: 5000,
-                            style: context.textTheme.displayMedium,
-                            decimalsStyle: context.textTheme.bodyLarge,
+                    child: Row(
+                      spacing: iFormFieldsInterSpacing,
+                      children: <Widget>[
+                        Expanded(
+                          child: _TappableFocusableField(
+                            minHeight: 2 * iFormFieldMinimumHeight + iFormFieldsInterSpacing,
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                useSafeArea: true,
+                                isScrollControlled: true,
+                                builder: (context) => BlocProvider.value(value: cubit, child: _AmountPickerWidget()),
+                              );
+                            },
+                            child: Center(
+                              child: CurrencyView(
+                                amount: 5000,
+                                style: context.textTheme.displayMedium,
+                                decimalsStyle: context.textTheme.bodyLarge,
+                              ),
+                            ),
                           ),
-                          Text('10 units @ Rs. 500', style: TextStyle(color: context.theme.disabledColor)),
-                        ],
-                      ),
+                        ),
+
+                        SizedBox(
+                          width: 144.0,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: iFormFieldsInterSpacing,
+                            children: <Widget>[
+                              // ~ Rate (Unit price)
+                              BlocBuilder<EditTransactionCubit, EditTransactionState>(
+                                buildWhen: (prev, curr) {
+                                  return prev.rate != curr.rate ||
+                                      prev.rateError != curr.rateError ||
+                                      (prev.status != curr.status && curr.isError && curr.rateError != null);
+                                },
+                                builder: (context, state) {
+                                  return _TappableFocusableField(
+                                    errorText: state.rateError,
+                                    child: Text(
+                                      state.rate == null
+                                          ? 'e.g. 1,500'
+                                          : NumberFormat.decimalPattern('en_IN').format(state.rate),
+                                      style: state.rate == null ? TextStyle(color: Colors.grey) : null,
+                                      textAlign: TextAlign.right,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  );
+                                },
+                              ),
+
+                              // ~ No. of Units (Quantity)
+                              BlocBuilder<EditTransactionCubit, EditTransactionState>(
+                                buildWhen: (prev, curr) {
+                                  return prev.qnty != curr.qnty ||
+                                      prev.qntyError != curr.qntyError ||
+                                      (prev.status != curr.status && curr.isError && curr.qntyError != null);
+                                },
+                                builder: (context, state) {
+                                  $logger.i('Quantity is Rebuilding');
+                                  return _TappableFocusableField(
+                                    errorText: state.qntyError,
+                                    child: Text(
+                                      state.qnty == null
+                                          ? 'e.g. 15'
+                                          : NumberFormat.decimalPattern('en_IN').format(state.qnty),
+                                      style: state.qnty == null ? TextStyle(color: Colors.grey) : null,
+                                      textAlign: TextAlign.right,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ).withLabel('Amount'),
                   ),
                 ),
