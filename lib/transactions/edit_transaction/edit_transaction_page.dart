@@ -64,6 +64,13 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
     // final genres = AmcGenre.values;
     final types = TransactionType.values;
 
+    final inputTheme = InputDecorationTheme.of(context);
+    final defaultInputColor = inputTheme.fillColor ?? context.colors.secondaryContainer;
+    final defaultInputBorder = WidgetStateProperty.resolveAs<InputBorder?>(inputTheme.border, {});
+    final defaultInputBorderRadius = defaultInputBorder is OutlineInputBorder
+        ? defaultInputBorder.borderRadius
+        : BorderRadius.zero;
+
     $logger.i('Rebuilding edit transaction screen');
 
     return BlocListener<EditTransactionCubit, EditTransactionState>(
@@ -158,85 +165,98 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: iPaddingFromScreenEdge,
-                    child: Row(
-                      spacing: iFormFieldsInterSpacing,
-                      children: <Widget>[
-                        Expanded(
-                          child: _TappableFocusableField(
-                            minHeight: 2 * iFormFieldMinimumHeight + iFormFieldsInterSpacing,
-                            onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                useSafeArea: true,
-                                isScrollControlled: true,
-                                builder: (context) => BlocProvider.value(value: cubit, child: _AmountPickerWidget()),
-                              );
-                            },
-                            child: Center(
-                              child: CurrencyView(
-                                amount: 5000,
-                                style: context.textTheme.displayMedium,
-                                decimalsStyle: context.textTheme.bodyLarge,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          useSafeArea: true,
+                          isScrollControlled: true,
+                          builder: (context) => BlocProvider.value(value: cubit, child: _AmountPickerWidget()),
+                        );
+                      },
+                      child: Row(
+                        spacing: 4.0,
+                        children: <Widget>[
+                          Expanded(
+                            child: Container(
+                              constraints: BoxConstraints(minHeight: 2 * iFormFieldMinimumHeight + 4.0),
+                              decoration: BoxDecoration(
+                                color: defaultInputColor,
+                                border: defaultInputBorder != null
+                                    ? Border.fromBorderSide(defaultInputBorder.borderSide)
+                                    : null,
+                                borderRadius: defaultInputBorderRadius.copyWith(
+                                  topRight: iTileBorderRadius.topRight,
+                                  bottomRight: iTileBorderRadius.bottomRight,
+                                ),
+                              ),
+                              child: Center(
+                                child: CurrencyView(
+                                  amount: 5000,
+                                  style: context.textTheme.displayMedium,
+                                  decimalsStyle: context.textTheme.bodyLarge,
+                                ),
                               ),
                             ),
                           ),
-                        ),
 
-                        SizedBox(
-                          width: 144.0,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: iFormFieldsInterSpacing,
-                            children: <Widget>[
-                              // ~ Rate (Unit price)
-                              BlocBuilder<EditTransactionCubit, EditTransactionState>(
-                                buildWhen: (prev, curr) {
-                                  return prev.rate != curr.rate ||
-                                      prev.rateError != curr.rateError ||
-                                      (prev.status != curr.status && curr.isError && curr.rateError != null);
-                                },
-                                builder: (context, state) {
-                                  return _TappableFocusableField(
-                                    errorText: state.rateError,
-                                    child: Text(
-                                      state.rate == null
-                                          ? 'e.g. 1,500'
-                                          : NumberFormat.decimalPattern('en_IN').format(state.rate),
-                                      style: state.rate == null ? TextStyle(color: Colors.grey) : null,
-                                      textAlign: TextAlign.right,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  );
-                                },
-                              ),
+                          SizedBox(
+                            width: 144.0,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 4.0,
+                              children: <Widget>[
+                                // ~ Rate (Unit price)
+                                BlocBuilder<EditTransactionCubit, EditTransactionState>(
+                                  buildWhen: (prev, curr) {
+                                    return prev.rate != curr.rate ||
+                                        prev.rateError != curr.rateError ||
+                                        (prev.status != curr.status && curr.isError && curr.rateError != null);
+                                  },
+                                  builder: (context, state) {
+                                    return _TappableFocusableField(
+                                      errorText: state.rateError,
+                                      child: Text(
+                                        state.rate == null
+                                            ? 'e.g. 1,500'
+                                            : NumberFormat.decimalPattern('en_IN').format(state.rate),
+                                        style: state.rate == null ? TextStyle(color: Colors.grey) : null,
+                                        textAlign: TextAlign.right,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    );
+                                  },
+                                ),
 
-                              // ~ No. of Units (Quantity)
-                              BlocBuilder<EditTransactionCubit, EditTransactionState>(
-                                buildWhen: (prev, curr) {
-                                  return prev.qnty != curr.qnty ||
-                                      prev.qntyError != curr.qntyError ||
-                                      (prev.status != curr.status && curr.isError && curr.qntyError != null);
-                                },
-                                builder: (context, state) {
-                                  $logger.i('Quantity is Rebuilding');
-                                  return _TappableFocusableField(
-                                    errorText: state.qntyError,
-                                    child: Text(
-                                      state.qnty == null
-                                          ? 'e.g. 15'
-                                          : NumberFormat.decimalPattern('en_IN').format(state.qnty),
-                                      style: state.qnty == null ? TextStyle(color: Colors.grey) : null,
-                                      textAlign: TextAlign.right,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                                // ~ No. of Units (Quantity)
+                                BlocBuilder<EditTransactionCubit, EditTransactionState>(
+                                  buildWhen: (prev, curr) {
+                                    return prev.qnty != curr.qnty ||
+                                        prev.qntyError != curr.qntyError ||
+                                        (prev.status != curr.status && curr.isError && curr.qntyError != null);
+                                  },
+                                  builder: (context, state) {
+                                    $logger.i('Quantity is Rebuilding');
+                                    return _TappableFocusableField(
+                                      errorText: state.qntyError,
+                                      child: Text(
+                                        state.qnty == null
+                                            ? 'e.g. 15'
+                                            : NumberFormat.decimalPattern('en_IN').format(state.qnty),
+                                        style: state.qnty == null ? TextStyle(color: Colors.grey) : null,
+                                        textAlign: TextAlign.right,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ).withLabel('Amount'),
+                        ],
+                      ).withLabel('Amount'),
+                    ),
                   ),
                 ),
 
@@ -916,6 +936,7 @@ class _TappableFocusableField extends StatefulWidget {
     this.errorBuilder,
     this.padding = iFormFieldContentPadding,
     this.minHeight,
+    this.borderRadius,
   });
 
   final bool enabled;
@@ -928,6 +949,7 @@ class _TappableFocusableField extends StatefulWidget {
   final Widget Function(BuildContext, String)? errorBuilder;
   final EdgeInsets padding;
   final double? minHeight;
+  final BorderRadius? borderRadius;
 
   @override
   State<_TappableFocusableField> createState() => _TappableFocusableFieldState();
@@ -974,9 +996,8 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
     final inputTheme = InputDecorationTheme.of(context);
     final defaultColor = inputTheme.fillColor ?? context.colors.secondaryContainer;
     final resolvedBorder = WidgetStateProperty.resolveAs<InputBorder?>(inputTheme.border, statesController.value);
-    final effectiveBorderRadius = resolvedBorder is OutlineInputBorder
-        ? resolvedBorder.borderRadius
-        : BorderRadius.zero;
+    final effectiveBorderRadius =
+        widget.borderRadius ?? (resolvedBorder is OutlineInputBorder ? resolvedBorder.borderRadius : BorderRadius.zero);
 
     Widget content = widget.child;
 
@@ -993,31 +1014,29 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
       );
     }
 
-    content = GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.enabled
-          ? () {
-              widget.onTap?.call();
-              widget.focusNode?.requestFocus();
-            }
-          : null,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minWidth: double.infinity, minHeight: widget.minHeight ?? iFormFieldMinimumHeight),
-        child: ClipRRect(
-          borderRadius: effectiveBorderRadius,
-          clipBehavior: Clip.antiAlias,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: WidgetStateProperty.resolveAs<Color?>(defaultColor, statesController.value),
-              border: Border.fromBorderSide(resolvedBorder?.borderSide ?? BorderSide.none),
-              borderRadius: effectiveBorderRadius,
-            ),
-            child: Padding(padding: widget.padding, child: content),
-          ),
-        ),
+    content = Container(
+      decoration: BoxDecoration(
+        color: WidgetStateProperty.resolveAs<Color?>(defaultColor, statesController.value),
+        border: resolvedBorder != null ? Border.fromBorderSide(resolvedBorder.borderSide) : null,
+        borderRadius: effectiveBorderRadius,
       ),
+      padding: widget.padding,
+      constraints: BoxConstraints(minWidth: double.infinity, minHeight: widget.minHeight ?? iFormFieldMinimumHeight),
+      child: content,
     );
 
+    if (widget.onTap != null) {
+      content = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.enabled
+            ? () {
+                widget.onTap?.call();
+                widget.focusNode?.requestFocus();
+              }
+            : null,
+        child: content,
+      );
+    }
     if (hasError) {
       content = Shake(child: content);
     }
@@ -1025,7 +1044,7 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
     if (_focusNode != null) {
       content = TextFieldTapRegion(
         onTapOutside: hasFocus ? (event) => _onTapOutside(context, event) : null,
-        child: Focus(focusNode: widget.focusNode, onFocusChange: handleFocusUpdate, child: content),
+        child: Focus(focusNode: _focusNode, onFocusChange: handleFocusUpdate, child: content),
       );
     }
 
