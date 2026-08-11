@@ -165,8 +165,8 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: iPaddingFromScreenEdge,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
+                    child: _TappableFocusableField(
+                      minHeight: 2 * iFormFieldMinimumHeight + 4.0,
                       onTap: () {
                         showModalBottomSheet(
                           context: context,
@@ -176,87 +176,26 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                         );
                       },
                       child: Row(
-                        spacing: 4.0,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          Expanded(
-                            child: Container(
-                              constraints: BoxConstraints(minHeight: 2 * iFormFieldMinimumHeight + 4.0),
-                              decoration: BoxDecoration(
-                                color: defaultInputColor,
-                                border: defaultInputBorder != null
-                                    ? Border.fromBorderSide(defaultInputBorder.borderSide)
-                                    : null,
-                                borderRadius: defaultInputBorderRadius.copyWith(
-                                  topRight: iTileBorderRadius.topRight,
-                                  bottomRight: iTileBorderRadius.bottomRight,
-                                ),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 4.0,
+                            children: <Widget>[
+                              CurrencyView(
+                                amount: 5000,
+                                style: context.textTheme.displayLarge,
+                                decimalsStyle: context.textTheme.displaySmall,
                               ),
-                              child: Center(
-                                child: CurrencyView(
-                                  amount: 5000,
-                                  style: context.textTheme.displayMedium,
-                                  decimalsStyle: context.textTheme.bodyLarge,
-                                ),
-                              ),
-                            ),
-                          ),
 
-                          SizedBox(
-                            width: 144.0,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              spacing: 4.0,
-                              children: <Widget>[
-                                // ~ Rate (Unit price)
-                                BlocBuilder<EditTransactionCubit, EditTransactionState>(
-                                  buildWhen: (prev, curr) {
-                                    return prev.rate != curr.rate ||
-                                        prev.rateError != curr.rateError ||
-                                        (prev.status != curr.status && curr.isError && curr.rateError != null);
-                                  },
-                                  builder: (context, state) {
-                                    return _TappableFocusableField(
-                                      errorText: state.rateError,
-                                      child: Text(
-                                        state.rate == null
-                                            ? 'e.g. 1,500'
-                                            : NumberFormat.decimalPattern('en_IN').format(state.rate),
-                                        style: state.rate == null ? TextStyle(color: Colors.grey) : null,
-                                        textAlign: TextAlign.right,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    );
-                                  },
-                                ),
-
-                                // ~ No. of Units (Quantity)
-                                BlocBuilder<EditTransactionCubit, EditTransactionState>(
-                                  buildWhen: (prev, curr) {
-                                    return prev.qnty != curr.qnty ||
-                                        prev.qntyError != curr.qntyError ||
-                                        (prev.status != curr.status && curr.isError && curr.qntyError != null);
-                                  },
-                                  builder: (context, state) {
-                                    $logger.i('Quantity is Rebuilding');
-                                    return _TappableFocusableField(
-                                      errorText: state.qntyError,
-                                      child: Text(
-                                        state.qnty == null
-                                            ? 'e.g. 15'
-                                            : NumberFormat.decimalPattern('en_IN').format(state.qnty),
-                                        style: state.qnty == null ? TextStyle(color: Colors.grey) : null,
-                                        textAlign: TextAlign.right,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
+                              Text('20 units @ Rs. 250', style: TextStyle(color: Colors.grey)),
+                            ],
                           ),
+                          SimpleChip(child: Text('INR')),
                         ],
-                      ).withLabel('Amount'),
-                    ),
+                      ),
+                    ).withLabel('Amount'),
                   ),
                 ),
 
@@ -1047,8 +986,6 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
         child: Focus(focusNode: _focusNode, onFocusChange: handleFocusUpdate, child: content),
       );
     }
-
-    // return content;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
