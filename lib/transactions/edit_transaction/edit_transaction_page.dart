@@ -64,13 +64,6 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
     // final genres = AmcGenre.values;
     final types = TransactionType.values;
 
-    final inputTheme = InputDecorationTheme.of(context);
-    final defaultInputColor = inputTheme.fillColor ?? context.colors.secondaryContainer;
-    final defaultInputBorder = WidgetStateProperty.resolveAs<InputBorder?>(inputTheme.border, {});
-    final defaultInputBorderRadius = defaultInputBorder is OutlineInputBorder
-        ? defaultInputBorder.borderRadius
-        : BorderRadius.zero;
-
     $logger.i('Rebuilding edit transaction screen');
 
     return BlocListener<EditTransactionCubit, EditTransactionState>(
@@ -125,36 +118,36 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 // ),
 
                 // ~~~ AMC ~~~
-                // Column(
-                //   spacing: iFormFieldLabelSpacing,
-                //   crossAxisAlignment: CrossAxisAlignment.start,
-                //   mainAxisSize: MainAxisSize.min,
-                //   children: <Widget>[
-                //     BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
-                //       selector: (state) => state.genre,
-                //       builder: (context, genre) {
-                //         final label = switch (genre) {
-                //           AmcGenre.mf => 'Asset management company (AMC)',
-                //           AmcGenre.stock => 'Company',
-                //           AmcGenre.insurance => 'Insurance provider',
-                //           _ => 'Company / Service provider',
-                //         };
-                //         return Padding(
-                //           padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                //           child: FadeIn(
-                //             // key: Key(label),
-                //             from: Offset(0.0, 0.4),
-                //             child: Text(label, overflow: TextOverflow.ellipsis),
-                //           ),
-                //         );
-                //       },
-                //     ),
-                //     _AmcPicker(),
-                //   ],
-                // ),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: iPaddingFromScreenEdge,
+                    // child: Column(
+                    //   spacing: iFormFieldLabelSpacing,
+                    //   crossAxisAlignment: CrossAxisAlignment.start,
+                    //   mainAxisSize: MainAxisSize.min,
+                    //   children: <Widget>[
+                    //     BlocSelector<EditTransactionCubit, EditTransactionState, AmcGenre>(
+                    //       selector: (state) => state.genre,
+                    //       builder: (context, genre) {
+                    //         final label = switch (genre) {
+                    //           AmcGenre.mf => 'Asset management company (AMC)',
+                    //           AmcGenre.stock => 'Company',
+                    //           AmcGenre.insurance => 'Insurance provider',
+                    //           _ => 'Company / Service provider',
+                    //         };
+                    //         return Padding(
+                    //           padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    //           child: FadeIn(
+                    //             key: Key(label),
+                    //             from: Offset(0.0, 0.4),
+                    //             child: Text(label, overflow: TextOverflow.ellipsis),
+                    //           ),
+                    //         );
+                    //       },
+                    //     ),
+                    //     _AmcPicker(),
+                    //   ],
+                    // ),
                     child: _AmcPicker().withLabel('Asset management company (AMC)'),
                   ),
                 ),
@@ -175,9 +168,11 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                           builder: (context) => BlocProvider.value(value: cubit, child: _AmountPickerWidget()),
                         );
                       },
+                      suggestion: Text('Tap to edit amount'),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Column(
                             mainAxisSize: MainAxisSize.min,
@@ -237,6 +232,17 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                             child: BlocSelector<EditTransactionCubit, EditTransactionState, TransactionType>(
                               selector: (state) => state.type,
                               builder: (context, type) {
+                                // return InveslyChoiceChips<TransactionType>(
+                                //   value: type,
+                                //   options: types,
+                                //   labelBuilder: (context, value) => Text(value.title, overflow: TextOverflow.ellipsis),
+                                //   onChanged: (value) {
+                                //     if (value == null) return;
+                                //     cubit.updateTransactionType(value);
+                                //   },
+                                //   extended: true,
+                                //   padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+                                // );
                                 return RollingThroughOptions<TransactionType>(
                                   value: type,
                                   padding: iFormFieldContentPadding,
@@ -249,24 +255,6 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                             ),
                           ).withLabel('Type'),
                         ),
-                        // Expanded(
-                        //   child: BlocSelector<EditTransactionCubit, EditTransactionState, TransactionType>(
-                        //     selector: (state) => state.type,
-                        //     builder: (context, type) {
-                        //       return InveslyChoiceChips<TransactionType>(
-                        //         value: type,
-                        //         options: types,
-                        //         labelBuilder: (context, value) => Text(value.title, overflow: TextOverflow.ellipsis),
-                        //         onChanged: (value) {
-                        //           if (value == null) return;
-                        //           cubit.updateTransactionType(value);
-                        //         },
-                        //         extended: true,
-                        //         padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                        //       );
-                        //     },
-                        //   ).withLabel('Type'),
-                        // ),
 
                         // ~ Date ~
                         Expanded(child: _DatePicker().withLabel('Date')),
@@ -275,15 +263,6 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                   ),
                 ),
 
-                const SliverGap(iFormFieldsInterSpacing),
-
-                // ~~~ Total amount ~~~
-                // SliverToBoxAdapter(
-                //   child: Padding(
-                //     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                //     child:
-                //   ),
-                // ),
                 const SliverGap(iFormFieldsInterSpacing),
 
                 // ~~~ Note ~~~
@@ -570,81 +549,6 @@ class _AccountPickerWidget2State extends State<_AccountPickerWidget2> {
   }
 }
 
-// class _AvatarPickerWidget extends FormField<int> {
-//   _AvatarPickerWidget({
-//     super.key,
-//     required List<String> avatars,
-//     super.initialValue,
-//     ValueChanged<int>? onChanged,
-//     super.validator,
-//     super.onSaved,
-//   }) : super(
-//          builder: (FormFieldState<int> field) {
-//            final __AvatarPickerWidgetState state = field as __AvatarPickerWidgetState;
-//            void onChangedHandler(int idx) {
-//              onChanged?.call(idx);
-//            }
-
-//            return SizedBox(
-//              height: 150.0,
-//              child: PageView.builder(
-//                controller: state.controller,
-//                itemBuilder: (context, index) {
-//                  return AnimatedBuilder(
-//                    animation: state.controller,
-//                    builder: (context, _) {
-//                      double scale = 1.0;
-//                      double itemOffset = 0.0;
-//                      double page = state.controller.initialPage.toDouble();
-//                      final position = state.controller.position;
-//                      if (position.hasPixels && position.hasContentDimensions) {
-//                        page = state.controller.page ?? page;
-//                      }
-//                      itemOffset = page - index;
-
-//                      final num t = (1 - (itemOffset.abs() * 0.6)).clamp(0.3, 1.0);
-//                      scale = Curves.easeOut.transform(t as double);
-
-//                      return Transform.scale(
-//                        scale: scale,
-//                        child: Image.asset(
-//                          avatars[index],
-//                          color: Color.fromRGBO(255, 255, 255, scale),
-//                          colorBlendMode: BlendMode.modulate,
-//                        ),
-//                      );
-//                    },
-//                  );
-//                },
-//                itemCount: avatars.length,
-//                onPageChanged: onChangedHandler,
-//              ),
-//            );
-//          },
-//        );
-
-//   @override
-//   FormFieldState<int> createState() => __AvatarPickerWidgetState();
-// }
-
-// class __AvatarPickerWidgetState extends FormFieldState<int> {
-//   late final PageController _avatarController;
-
-//   PageController get controller => _avatarController;
-
-//   @override
-//   void initState() {
-//     _avatarController = PageController(initialPage: widget.initialValue ?? 0, viewportFraction: 0.35);
-//     super.initState();
-//   }
-
-//   @override
-//   void dispose() {
-//     _avatarController.dispose();
-//     super.dispose();
-//   }
-// }
-
 class _AmcPicker extends StatelessWidget {
   const _AmcPicker({super.key});
 
@@ -705,84 +609,91 @@ class _AmcPicker extends StatelessWidget {
           child = Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
+            verticalDirection: VerticalDirection.up,
+            spacing: -24.0,
             children: <Widget>[
-              Padding(
-                padding: iFormFieldContentPadding,
-                child: const Text('Search AMC', style: TextStyle(color: Colors.grey)),
-              ),
-              BlocBuilder<StatCubit, StatState>(
-                builder: (context, statState) {
-                  if (statState.isError) {
-                    return SizedBox.shrink();
-                  }
-
-                  late final Widget content;
-
-                  if (statState.isLoaded && statState.stats.isNotEmpty) {
-                    final amcs = statState.stats.map((stat) => stat.amc);
-
-                    // calculate width of first five chips
-                    double totalWidth = 0;
-                    for (int i = 0; i < amcs.length && i < 5; i++) {
-                      final amc = amcs.elementAt(i);
-                      totalWidth += amc.name.length * 6.0 + 32.0; // Approximate width calculation
+              Container(
+                decoration: BoxDecoration(borderRadius: iCardBorderRadius, color: context.colors.secondary),
+                padding: EdgeInsets.only(top: 24.0),
+                clipBehavior: Clip.hardEdge,
+                child: BlocBuilder<StatCubit, StatState>(
+                  builder: (context, statState) {
+                    if (statState.isError) {
+                      return SizedBox.shrink();
                     }
 
-                    content = SingleChildScrollView(
-                      padding: iFormFieldContentPadding.copyWith(top: 0, bottom: 0),
-                      scrollDirection: Axis.horizontal,
-                      child: LimitedBox(
-                        maxWidth: math.max(screenWidth, totalWidth),
-                        child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 6.0,
-                          children: List.generate(amcs.length, (index) {
-                            final amc = amcs.elementAt(index);
-                            return SimpleChip(
-                              padding: const EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
-                              onTap: () => cubit.updateAmc(amc),
-                              child: Text(amc.name, style: context.textTheme.bodySmall),
-                            );
-                          }),
-                        ),
-                      ),
-                    );
-                  } else {
-                    content = const Skeletonizer(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 6.0,
-                        children: <Widget>[
-                          Skeleton.leaf(
-                            child: SimpleChip(
-                              padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
-                              child: Text('AMC loading...'),
-                            ),
-                          ),
-                          Skeleton.leaf(
-                            child: SimpleChip(
-                              padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
-                              child: Text('AMC loading...'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+                    late final Widget content;
 
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      const InveslyDivider(),
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 0.0),
-                        child: Text('Recommended AMCs', style: TextStyle(fontSize: 14.0)),
-                      ),
-                      Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: content),
-                    ],
-                  );
-                },
+                    if (statState.isLoaded && statState.stats.isNotEmpty) {
+                      final amcs = statState.stats.map((stat) => stat.amc);
+
+                      // calculate width of first five chips
+                      double totalWidth = 0;
+                      for (int i = 0; i < amcs.length && i < 5; i++) {
+                        final amc = amcs.elementAt(i);
+                        totalWidth += amc.name.length * 6.0 + 32.0; // Approximate width calculation
+                      }
+
+                      content = SingleChildScrollView(
+                        padding: iFormFieldContentPadding.copyWith(top: 0, bottom: 0),
+                        scrollDirection: Axis.horizontal,
+                        child: LimitedBox(
+                          maxWidth: math.max(screenWidth, totalWidth),
+                          child: Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: List.generate(amcs.length, (index) {
+                              final amc = amcs.elementAt(index);
+                              return SimpleChip(
+                                padding: const EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
+                                onTap: () => cubit.updateAmc(amc),
+                                child: Text(amc.name, style: context.textTheme.bodySmall),
+                              );
+                            }),
+                          ),
+                        ),
+                      );
+                    } else {
+                      content = const Skeletonizer(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 6.0,
+                          children: <Widget>[
+                            Skeleton.leaf(
+                              child: SimpleChip(
+                                padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
+                                child: Text('AMC loading...'),
+                              ),
+                            ),
+                            Skeleton.leaf(
+                              child: SimpleChip(
+                                padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
+                                child: Text('AMC loading...'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 0.0),
+                          child: Text('Recommended AMCs', style: TextStyle(fontSize: 14.0)),
+                        ),
+                        Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: content),
+                      ],
+                    );
+                  },
+                ),
+              ),
+
+              _TappableFocusableField(
+                // padding: iFormFieldContentPadding,
+                child: const Text('Search AMC', style: TextStyle(color: Colors.grey)),
               ),
             ],
           );
@@ -876,6 +787,7 @@ class _TappableFocusableField extends StatefulWidget {
     this.padding = iFormFieldContentPadding,
     this.minHeight,
     this.borderRadius,
+    this.suggestion,
   });
 
   final bool enabled;
@@ -889,6 +801,7 @@ class _TappableFocusableField extends StatefulWidget {
   final EdgeInsets padding;
   final double? minHeight;
   final BorderRadius? borderRadius;
+  final Widget? suggestion;
 
   @override
   State<_TappableFocusableField> createState() => _TappableFocusableFieldState();
@@ -933,7 +846,7 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
   @override
   Widget build(BuildContext context) {
     final inputTheme = InputDecorationTheme.of(context);
-    final defaultColor = inputTheme.fillColor ?? context.colors.secondaryContainer;
+    final defaultColor = inputTheme.fillColor ?? context.colors.secondaryContainer.lighten(50);
     final resolvedBorder = WidgetStateProperty.resolveAs<InputBorder?>(inputTheme.border, statesController.value);
     final effectiveBorderRadius =
         widget.borderRadius ?? (resolvedBorder is OutlineInputBorder ? resolvedBorder.borderRadius : BorderRadius.zero);
@@ -984,6 +897,31 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
       content = TextFieldTapRegion(
         onTapOutside: hasFocus ? (event) => _onTapOutside(context, event) : null,
         child: Focus(focusNode: _focusNode, onFocusChange: handleFocusUpdate, child: content),
+      );
+    }
+
+    if (widget.suggestion != null) {
+      final suggestion = DefaultTextStyle(
+        style: context.textTheme.bodySmall!.copyWith(color: context.colors.onSecondaryContainer),
+        child: widget.suggestion!,
+      );
+
+      final margin = effectiveBorderRadius.topLeft.y * 2;
+      content = Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: -margin,
+        verticalDirection: VerticalDirection.up,
+        children: <Widget>[
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(borderRadius: effectiveBorderRadius, color: context.colors.secondaryContainer),
+            padding: widget.padding.copyWith(top: margin + 8.0, bottom: 8.0),
+            clipBehavior: Clip.hardEdge,
+            child: suggestion,
+          ),
+          content,
+        ],
       );
     }
 
