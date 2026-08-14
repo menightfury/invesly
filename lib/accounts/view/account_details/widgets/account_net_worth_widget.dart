@@ -40,7 +40,7 @@ class AccountNetWorthWidget extends StatelessWidget {
             children: <Widget>[
               Text('Net Worth', style: context.textTheme.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant)),
               CurrencyView(
-                amount: state.totalInvested,
+                state.totalInvested,
                 style: context.textTheme.displayMedium?.copyWith(
                   color: context.colors.primary,
                   fontWeight: FontWeight.bold,
@@ -92,7 +92,7 @@ class _GenreBreakdownRow extends StatelessWidget {
         Row(
           spacing: 8.0,
           children: <Widget>[
-            CurrencyView(amount: amount, style: context.textTheme.bodySmall),
+            CurrencyView(amount, style: context.textTheme.bodySmall),
             Text(percentage, style: context.textTheme.bodySmall?.copyWith(color: context.colors.onSurfaceVariant)),
           ],
         ),

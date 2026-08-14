@@ -506,7 +506,7 @@ class _GenreOverviewSection extends StatelessWidget {
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
           return CurrencyView(
-            amount: currentAmount,
+            currentAmount,
             style: textTheme.headlineLarge?.copyWith(color: color),
             decimalsStyle: textTheme.headlineSmall?.copyWith(color: color),
             currencyStyle: textTheme.bodyMedium?.copyWith(color: color),
@@ -527,7 +527,7 @@ class _GenreOverviewSection extends StatelessWidget {
     return BlocSelector<AppCubit, AppState, bool>(
       selector: (state) => state.isPrivateMode,
       builder: (context, isPrivateMode) {
-        return CurrencyView(amount: state.totalInvested, privateMode: isPrivateMode);
+        return CurrencyView(state.totalInvested, privateMode: isPrivateMode);
       },
     );
   }
@@ -543,7 +543,7 @@ class _GenreOverviewSection extends StatelessWidget {
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
           return CurrencyView(
-            amount: returns,
+            returns,
             privateMode: isPrivateMode,
             style: TextStyle(color: returns < 0 ? Colors.red : Colors.teal),
           );
@@ -659,7 +659,7 @@ class _HoldingStatCard extends StatelessWidget {
                     label: Text('Invested', style: labelStyle, overflow: TextOverflow.ellipsis),
                     value: BlocSelector<AppCubit, AppState, bool>(
                       selector: (state) => state.isPrivateMode,
-                      builder: (context, isPrivate) => CurrencyView(amount: st.totalInvested, privateMode: isPrivate),
+                      builder: (context, isPrivate) => CurrencyView(st.totalInvested, privateMode: isPrivate),
                     ),
                   ),
                 ),
@@ -704,7 +704,7 @@ class _HoldingStatCard extends StatelessWidget {
                                       selector: (state) => state.isPrivateMode,
                                       builder: (context, isPrivate) {
                                         return CurrencyView(
-                                          amount: currentValue!,
+                                          currentValue!,
                                           privateMode: isPrivate,
                                           style: TextStyle(color: color),
                                         );
@@ -727,7 +727,7 @@ class _HoldingStatCard extends StatelessWidget {
                                       selector: (state) => state.isPrivateMode,
                                       builder: (context, isPrivate) {
                                         return CurrencyView(
-                                          amount: amountReturn!,
+                                          amountReturn!,
                                           privateMode: isPrivate,
                                           style: TextStyle(color: color),
                                         );

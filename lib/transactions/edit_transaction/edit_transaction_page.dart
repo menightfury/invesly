@@ -100,8 +100,6 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                   snap: true,
                   floating: true,
                   title: Text('${cubit.state.isNewTransaction ? 'Add' : 'Edit'} Investment'),
-                  // actions: <Widget>[_AccountPickerWidget()],
-                  // actionsPadding: const EdgeInsets.only(right: 16.0),
                 ),
 
                 // // ~ Title
@@ -154,69 +152,6 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
 
                 const SliverGap(iFormFieldsInterSpacing),
 
-                // ~~~ Amount ~~~
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: iPaddingFromScreenEdge,
-                    child: _TappableFocusableField(
-                      minHeight: 2 * iFormFieldMinimumHeight + 4.0,
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          useSafeArea: true,
-                          isScrollControlled: true,
-                          builder: (context) => BlocProvider.value(value: cubit, child: _AmountPickerWidget()),
-                        );
-                      },
-                      suggestion: Text('Tap to edit amount'),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 4.0,
-                            children: <Widget>[
-                              CurrencyView(
-                                amount: 5000,
-                                style: context.textTheme.displayLarge,
-                                decimalsStyle: context.textTheme.displaySmall,
-                              ),
-
-                              Text('20 units @ Rs. 250', style: TextStyle(color: Colors.grey)),
-                            ],
-                          ),
-                          SimpleChip(child: Text('INR')),
-                        ],
-                      ),
-                    ).withLabel('Amount'),
-                  ),
-                ),
-
-                const SliverGap(iFormFieldsInterSpacing),
-
-                // ~ Account picker
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: iPaddingFromScreenEdge,
-                    child: Column(
-                      spacing: iFormFieldLabelSpacing,
-                      crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.only(left: 12.0),
-                          child: Text('Select account', overflow: TextOverflow.ellipsis),
-                        ),
-                        _AccountPickerWidget2(),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SliverGap(iFormFieldsInterSpacing),
-
                 // ~~~ Type and Date ~~~
                 SliverToBoxAdapter(
                   child: Padding(
@@ -258,6 +193,70 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
 
                         // ~ Date ~
                         Expanded(child: _DatePicker().withLabel('Date')),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SliverGap(iFormFieldsInterSpacing),
+
+                // ~~~ Amount ~~~
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: iPaddingFromScreenEdge,
+                    child: _TappableFocusableField(
+                      minHeight: 2 * iFormFieldMinimumHeight + 4.0,
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          useSafeArea: true,
+                          isScrollControlled: true,
+                          builder: (context) => BlocProvider.value(value: cubit, child: _AmountPickerWidget()),
+                        );
+                      },
+                      suggestion: Text('Tap to edit amount'),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 4.0,
+                            children: <Widget>[
+                              CurrencyView(
+                                5000,
+                                style: context.textTheme.displayLarge,
+                                decimalsStyle: context.textTheme.displaySmall,
+                                showCurrencySymbol: false,
+                              ),
+
+                              Text('20 units @ Rs. 250', style: TextStyle(color: Colors.grey)),
+                            ],
+                          ),
+                          SimpleChip(child: Text('INR')),
+                        ],
+                      ),
+                    ).withLabel('Amount'),
+                  ),
+                ),
+
+                const SliverGap(iFormFieldsInterSpacing),
+
+                // ~ Account picker
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: iPaddingFromScreenEdge,
+                    child: Column(
+                      spacing: iFormFieldLabelSpacing,
+                      crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12.0),
+                          child: Text('Select account', overflow: TextOverflow.ellipsis),
+                        ),
+                        _AccountPickerWidget2(),
                       ],
                     ),
                   ),
@@ -610,7 +609,7 @@ class _AmcPicker extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             verticalDirection: VerticalDirection.up,
-            spacing: -24.0,
+            spacing: 24.0,
             children: <Widget>[
               Container(
                 decoration: BoxDecoration(borderRadius: iCardBorderRadius, color: context.colors.secondary),
@@ -906,22 +905,17 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
         child: widget.suggestion!,
       );
 
-      final margin = effectiveBorderRadius.topLeft.y * 2;
-      content = Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: -margin,
-        verticalDirection: VerticalDirection.up,
-        children: <Widget>[
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(borderRadius: effectiveBorderRadius, color: context.colors.secondaryContainer),
-            padding: widget.padding.copyWith(top: margin + 8.0, bottom: 8.0),
-            clipBehavior: Clip.hardEdge,
-            child: suggestion,
-          ),
-          content,
-        ],
+      content = Container(
+        decoration: BoxDecoration(borderRadius: effectiveBorderRadius, color: context.colors.secondaryContainer),
+        clipBehavior: Clip.hardEdge,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            content,
+            Padding(padding: widget.padding.copyWith(top: 8.0, bottom: 8.0), child: suggestion),
+          ],
+        ),
       );
     }
 

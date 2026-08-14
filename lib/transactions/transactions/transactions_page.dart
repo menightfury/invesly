@@ -264,7 +264,7 @@ class __PageContentState extends State<_PageContent> with TickerProviderStateMix
                                             crossAxisAlignment: CrossAxisAlignment.end,
                                             children: <Widget>[
                                               CurrencyView(
-                                                amount: trn.totalAmount,
+                                                trn.totalAmount,
                                                 style: context.textTheme.headlineSmall?.copyWith(
                                                   color: trn.transactionType.color(context),
                                                 ),

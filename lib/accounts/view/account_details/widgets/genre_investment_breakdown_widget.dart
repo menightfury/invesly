@@ -106,10 +106,7 @@ class _GenreCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 spacing: 2.0,
                 children: <Widget>[
-                  CurrencyView(
-                    amount: amount,
-                    style: context.textTheme.labelLarge?.copyWith(color: genre.color),
-                  ),
+                  CurrencyView(amount, style: context.textTheme.labelLarge?.copyWith(color: genre.color)),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
                     decoration: BoxDecoration(

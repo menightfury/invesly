@@ -135,7 +135,7 @@ class _AccountsListState extends State<_AccountsList> {
                                           selector: (state) => state.isPrivateMode,
                                           builder: (context, privateMode) {
                                             return CurrencyView(
-                                              amount: amount,
+                                              amount,
                                               style: context.textTheme.headlineLarge?.copyWith(
                                                 color: isSelected ? context.colors.onPrimary : context.colors.primary,
                                               ),

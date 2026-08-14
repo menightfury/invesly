@@ -267,7 +267,7 @@ class _AmcOverviewSection extends StatelessWidget {
                             ? BlocSelector<AppCubit, AppState, bool>(
                                 selector: (state) => state.isPrivateMode,
                                 builder: (context, isPrivate) {
-                                  return CurrencyView(amount: avgBuyPrice!, privateMode: isPrivate);
+                                  return CurrencyView(avgBuyPrice!, privateMode: isPrivate);
                                 },
                               )
                             : const Text('N/A', overflow: TextOverflow.ellipsis),
@@ -284,7 +284,7 @@ class _AmcOverviewSection extends StatelessWidget {
                             ? BlocSelector<AppCubit, AppState, bool>(
                                 selector: (state) => state.isPrivateMode,
                                 builder: (context, isPrivate) {
-                                  return CurrencyView(amount: totalInvested!, privateMode: isPrivate);
+                                  return CurrencyView(totalInvested!, privateMode: isPrivate);
                                 },
                               )
                             : const Text('N/A', overflow: TextOverflow.ellipsis),
@@ -308,9 +308,7 @@ class _AmcOverviewSection extends StatelessWidget {
                             ),
                           ],
                         ),
-                        value: ltp != null
-                            ? CurrencyView(amount: ltp)
-                            : const Text('N/A', overflow: TextOverflow.ellipsis),
+                        value: ltp != null ? CurrencyView(ltp) : const Text('N/A', overflow: TextOverflow.ellipsis),
                         color: state.isLtpError ? colors.errorContainer : null,
                         valueColor: state.isLtpError ? colors.error : null,
                       ),
@@ -336,7 +334,7 @@ class _AmcOverviewSection extends StatelessWidget {
                                 selector: (state) => state.isPrivateMode,
                                 builder: (context, isPrivate) {
                                   return CurrencyView(
-                                    amount: currentValue!,
+                                    currentValue!,
                                     privateMode: isPrivate,
                                     style: textTheme.headlineLarge?.copyWith(color: color),
                                     decimalsStyle: textTheme.headlineSmall?.copyWith(color: color),
@@ -370,7 +368,7 @@ class _AmcOverviewSection extends StatelessWidget {
                                 selector: (state) => state.isPrivateMode,
                                 builder: (context, isPrivate) {
                                   return CurrencyView(
-                                    amount: amountReturn!,
+                                    amountReturn!,
                                     privateMode: isPrivate,
                                     style: TextStyle(color: color),
                                   );
@@ -630,7 +628,7 @@ class _Transactions extends StatelessWidget {
         selector: (state) => state.isPrivateMode,
         builder: (context, isPrivateMode) {
           return CurrencyView(
-            amount: trn.totalAmount,
+            trn.totalAmount,
             privateMode: isPrivateMode,
             style: textTheme.titleLarge?.copyWith(color: color),
           );

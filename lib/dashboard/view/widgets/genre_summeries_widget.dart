@@ -49,7 +49,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
                             selector: (state) => state.isPrivateMode,
                             builder: (context, isPrivateMode) {
                               return CurrencyView(
-                                amount: totalAmount ?? 0.0,
+                                totalAmount ?? 0.0,
                                 style: textTheme.displayMedium,
                                 decimalsStyle: textTheme.headlineSmall,
                                 currencyStyle: textTheme.displaySmall,
@@ -169,7 +169,7 @@ class _GenreSummariesWidgetState extends State<_GenreSummariesWidget> {
               selector: (state) => state.isPrivateMode,
               builder: (context, isPrivateMode) {
                 return CurrencyView(
-                  amount: totalAmount ?? 0.0,
+                  totalAmount ?? 0.0,
                   style: context.textTheme.headlineLarge?.copyWith(color: isSelected ? Colors.white : genre.color),
                   decimalsStyle: context.textTheme.headlineSmall?.copyWith(
                     fontSize: 13.0,

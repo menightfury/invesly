@@ -6,22 +6,24 @@ import 'package:intl/intl.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/data/currencies.dart';
 import 'package:invesly/common/model/currency.dart';
+
 // import 'single_digit_flip_counter.dart';
 
 class CurrencyView extends StatelessWidget {
   /// Creates a widget that takes an amount and display it in a localized currency
   /// format with the decimals smaller that the rest of the text.
-  const CurrencyView({
+  const CurrencyView(
+    this.amount, {
     super.key,
-    required this.amount,
     this.animated = true,
     // this.currency,
+    this.privateMode = false,
     this.locale = 'en_IN',
     this.decimalDigits = 2,
     this.style,
     this.decimalsStyle,
+    this.showCurrencySymbol = true,
     this.currencyStyle,
-    this.privateMode = false,
     this.compactView = false,
   });
 
@@ -44,6 +46,8 @@ class CurrencyView extends StatelessWidget {
   /// Style of the text that corresponds to the decimal part of the number to be displayed.
   /// If not defined, a less prominent style than the integerStyle will be used.
   final TextStyle? decimalsStyle;
+
+  final bool showCurrencySymbol;
 
   /// Style of the text that corresponds to the currency symbol. By default will be
   /// the same as the `decimalStyle`. This property is only defined and
@@ -74,10 +78,12 @@ class CurrencyView extends StatelessWidget {
             TextSpan(
               style: style,
               children: [
-                // Currency symbol
-                TextSpan(text: currency.symbol, style: currencyStyle ?? decimalsStyle ?? style),
-                // Spacer
-                if (currency.symbol.length > 1) const TextSpan(text: ' '),
+                if (showCurrencySymbol) ...[
+                  // Currency symbol
+                  TextSpan(text: currency.symbol, style: currencyStyle ?? decimalsStyle ?? style),
+                  // Spacer
+                  const TextSpan(text: ' '),
+                ],
 
                 // Integer part
                 TextSpan(text: parts[0], style: style),

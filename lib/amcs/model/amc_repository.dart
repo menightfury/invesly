@@ -112,7 +112,7 @@ class AmcRepository {
 
       // If the server did return a 200 OK response, parse the JSON.
       // Use the compute function to run parse in a separate Isolate.
-      return compute<String, List<AmcInDb>>((body) {
+      return await compute<String, List<AmcInDb>>((body) {
         final parsed = (jsonDecode(body) as List<Object?>).cast<Map<String, dynamic>>();
         return parsed.map<AmcInDb>(AmcTable.instance.fromMap).toList();
       }, response.body);

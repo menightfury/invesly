@@ -55,7 +55,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
                               selector: (state) => state.isPrivateMode,
                               builder: (context, isPrivateMode) {
                                 return CurrencyView(
-                                  amount: totalAmount ?? 0.0,
+                                  totalAmount ?? 0.0,
                                   style: textTheme.headlineLarge?.copyWith(color: widget.genre.color),
                                   decimalsStyle: textTheme.headlineSmall?.copyWith(color: widget.genre.color),
                                   currencyStyle: textTheme.bodyMedium?.copyWith(color: widget.genre.color),
@@ -102,7 +102,7 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
               selector: (state) => state.isPrivateMode,
               builder: (context, isPrivateMode) {
                 return CurrencyView(
-                  amount: stat.totalInvested,
+                  stat.totalInvested,
                   style: context.textTheme.headlineMedium?.copyWith(color: widget.genre.color),
                   decimalsStyle: context.textTheme.headlineSmall?.copyWith(fontSize: 13.0, color: widget.genre.color),
                   currencyStyle: context.textTheme.bodySmall?.copyWith(color: widget.genre.color),
