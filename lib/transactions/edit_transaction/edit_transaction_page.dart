@@ -554,7 +554,6 @@ class _AmcPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditTransactionCubit>();
-    final screenWidth = MediaQuery.sizeOf(context).width;
 
     return BlocBuilder<EditTransactionCubit, EditTransactionState>(
       buildWhen: (prev, curr) {
@@ -565,153 +564,142 @@ class _AmcPicker extends StatelessWidget {
       builder: (context, state) {
         $logger.i('AMC Picker Rebuilding');
         late final Widget child;
+        late final Widget suggestion;
 
         if (state.amc != null) {
           final amc = state.amc!;
 
-          child = Padding(
-            padding: iFormFieldContentPadding,
-            child: Row(
-              spacing: 8.0,
-              children: <Widget>[
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 6.0,
-                    children: <Widget>[
-                      Text(amc.name, overflow: TextOverflow.ellipsis),
-                      SimpleChip(
-                        color: context.colors.primary,
-                        child: Text(
-                          (amc.genre ?? AmcGenre.misc).title,
-                          style: TextStyle(color: context.colors.onPrimary),
-                        ),
-                      ),
-                      if (amc.tags?.isNotEmpty ?? false)
-                        Wrap(
-                          spacing: 4.0,
-                          runSpacing: 4.0,
-                          children: amc.tags!
-                              .map((tag) => SimpleChip(child: Text(tag, style: context.textTheme.labelSmall)))
-                              .toList(),
-                        ),
-                    ],
-                  ),
-                ),
-
-                Icon(Icons.cancel),
-              ],
-            ),
-          );
-        } else {
-          child = Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            verticalDirection: VerticalDirection.up,
-            spacing: 24.0,
+          child = Row(
+            spacing: 8.0,
             children: <Widget>[
-              Container(
-                decoration: BoxDecoration(borderRadius: iCardBorderRadius, color: context.colors.secondary),
-                padding: EdgeInsets.only(top: 24.0),
-                clipBehavior: Clip.hardEdge,
-                child: BlocBuilder<StatCubit, StatState>(
-                  builder: (context, statState) {
-                    if (statState.isError) {
-                      return SizedBox.shrink();
-                    }
-
-                    late final Widget content;
-
-                    if (statState.isLoaded && statState.stats.isNotEmpty) {
-                      final amcs = statState.stats.map((stat) => stat.amc);
-
-                      // calculate width of first five chips
-                      double totalWidth = 0;
-                      for (int i = 0; i < amcs.length && i < 5; i++) {
-                        final amc = amcs.elementAt(i);
-                        totalWidth += amc.name.length * 6.0 + 32.0; // Approximate width calculation
-                      }
-
-                      content = SingleChildScrollView(
-                        padding: iFormFieldContentPadding.copyWith(top: 0, bottom: 0),
-                        scrollDirection: Axis.horizontal,
-                        child: LimitedBox(
-                          maxWidth: math.max(screenWidth, totalWidth),
-                          child: Wrap(
-                            spacing: 6.0,
-                            runSpacing: 6.0,
-                            children: List.generate(amcs.length, (index) {
-                              final amc = amcs.elementAt(index);
-                              return SimpleChip(
-                                padding: const EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
-                                onTap: () => cubit.updateAmc(amc),
-                                child: Text(amc.name, style: context.textTheme.bodySmall),
-                              );
-                            }),
-                          ),
-                        ),
-                      );
-                    } else {
-                      content = const Skeletonizer(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          spacing: 6.0,
-                          children: <Widget>[
-                            Skeleton.leaf(
-                              child: SimpleChip(
-                                padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
-                                child: Text('AMC loading...'),
-                              ),
-                            ),
-                            Skeleton.leaf(
-                              child: SimpleChip(
-                                padding: EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0),
-                                child: Text('AMC loading...'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 0.0),
-                          child: Text('Recommended AMCs', style: TextStyle(fontSize: 14.0)),
-                        ),
-                        Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: content),
-                      ],
-                    );
-                  },
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 6.0,
+                  children: <Widget>[
+                    Text(amc.name, overflow: TextOverflow.ellipsis),
+                    SimpleChip(
+                      color: context.colors.primary,
+                      child: Text(
+                        (amc.genre ?? AmcGenre.misc).title,
+                        style: TextStyle(color: context.colors.onPrimary),
+                      ),
+                    ),
+                    if (amc.tags?.isNotEmpty ?? false)
+                      Wrap(
+                        spacing: 4.0,
+                        runSpacing: 4.0,
+                        children: amc.tags!
+                            .map((tag) => SimpleChip(child: Text(tag, style: context.textTheme.labelSmall)))
+                            .toList(),
+                      ),
+                  ],
                 ),
               ),
 
-              _TappableFocusableField(
-                // padding: iFormFieldContentPadding,
-                child: const Text('Search AMC', style: TextStyle(color: Colors.grey)),
+              // ~ AMC reset button
+              IconButton(
+                onPressed: () => cubit.resetAmc(),
+                color: context.theme.disabledColor,
+                icon: Icon(Icons.cancel),
               ),
             ],
+          );
+          suggestion = Padding(
+            padding: iFormFieldContentPadding.copyWith(top: 0.0, bottom: 0.0),
+            child: Text('Available units / share: 30.475'),
+          );
+        } else {
+          child = Text('Search AMC', style: TextStyle(color: context.theme.disabledColor));
+
+          const chipPadding = EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0);
+          suggestion = BlocBuilder<StatCubit, StatState>(
+            builder: (context, statState) {
+              if (statState.isError) {
+                return SizedBox.shrink();
+              }
+
+              late final Widget content;
+
+              if (statState.isLoaded && statState.stats.isNotEmpty) {
+                final amcs = statState.stats.map((stat) => stat.amc);
+                final screenWidth = MediaQuery.sizeOf(context).width;
+
+                // calculate width of first five chips
+                double totalWidth = 0;
+                for (int i = 0; i < amcs.length && i < 5; i++) {
+                  final amc = amcs.elementAt(i);
+                  totalWidth += amc.name.length * 6.0 + 32.0; // Approximate width calculation
+                }
+
+                content = SingleChildScrollView(
+                  padding: iFormFieldContentPadding.copyWith(top: 0, bottom: 0),
+                  scrollDirection: Axis.horizontal,
+                  child: LimitedBox(
+                    maxWidth: math.max(screenWidth, totalWidth),
+                    child: Wrap(
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: List.generate(amcs.length, (index) {
+                        final amc = amcs.elementAt(index);
+                        return SimpleChip(
+                          padding: chipPadding,
+                          onTap: () => cubit.updateAmc(amc),
+                          color: context.colors.surface,
+                          child: Text(amc.name, style: context.textTheme.bodySmall),
+                        );
+                      }),
+                    ),
+                  ),
+                );
+              } else {
+                content = Skeletonizer(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 6.0,
+                    children: List.generate(2, (_) {
+                      return const Skeleton.leaf(
+                        child: SimpleChip(padding: chipPadding, child: Text('AMC loading...')),
+                      );
+                    }).toList(),
+                  ),
+                );
+              }
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8.0,
+                children: <Widget>[
+                  Padding(
+                    padding: iFormFieldContentPadding.copyWith(top: 0.0, bottom: 0.0),
+                    child: const Text('Recommended AMCs', style: TextStyle(fontSize: 14.0)),
+                  ),
+                  content,
+                ],
+              );
+            },
           );
         }
 
         return _TappableFocusableField(
-          padding: EdgeInsets.zero,
-          onTap: () async {
-            final newAmc = await context.push<InveslyAmc>(
-              InveslyAmcPickerWidget(
-                keyword: state.amc?.name,
-                genre: state.amc?.genre,
-                onPickup: (amc) => Navigator.pop(context, amc),
-              ),
-            );
-            if (newAmc == null) return;
-            cubit.updateAmc(newAmc);
-          },
+          onTap: state.amc == null
+              ? () async {
+                  final newAmc = await context.push<InveslyAmc>(
+                    InveslyAmcPickerWidget(
+                      keyword: state.amc?.name,
+                      genre: state.amc?.genre,
+                      onPickup: (amc) => Navigator.pop(context, amc),
+                    ),
+                  );
+                  if (newAmc == null) return;
+                  cubit.updateAmc(newAmc);
+                }
+              : null,
           errorText: state.amcError,
+          suggestion: suggestion,
+          suggestionPadding: const EdgeInsets.symmetric(vertical: 8.0),
           child: child,
         );
       },
@@ -787,6 +775,7 @@ class _TappableFocusableField extends StatefulWidget {
     this.minHeight,
     this.borderRadius,
     this.suggestion,
+    this.suggestionPadding,
   });
 
   final bool enabled;
@@ -801,6 +790,7 @@ class _TappableFocusableField extends StatefulWidget {
   final double? minHeight;
   final BorderRadius? borderRadius;
   final Widget? suggestion;
+  final EdgeInsetsGeometry? suggestionPadding;
 
   @override
   State<_TappableFocusableField> createState() => _TappableFocusableFieldState();
@@ -865,6 +855,7 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
       );
     }
 
+    // ~ inner container
     content = Container(
       decoration: BoxDecoration(
         color: WidgetStateProperty.resolveAs<Color?>(defaultColor, statesController.value),
@@ -888,6 +879,7 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
         child: content,
       );
     }
+
     if (hasError) {
       content = Shake(child: content);
     }
@@ -905,6 +897,7 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
         child: widget.suggestion!,
       );
 
+      // ~ outer container
       content = Container(
         decoration: BoxDecoration(borderRadius: effectiveBorderRadius, color: context.colors.secondaryContainer),
         clipBehavior: Clip.hardEdge,
@@ -913,7 +906,16 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             content,
-            Padding(padding: widget.padding.copyWith(top: 8.0, bottom: 8.0), child: suggestion),
+            Container(
+              foregroundDecoration: BoxDecoration(
+                border: Border.all(color: context.colors.secondaryContainer),
+                borderRadius: effectiveBorderRadius.copyWith(topLeft: Radius.zero, topRight: Radius.zero),
+              ),
+              child: Padding(
+                padding: widget.suggestionPadding ?? widget.padding.copyWith(top: 8.0, bottom: 8.0),
+                child: suggestion,
+              ),
+            ),
           ],
         ),
       );

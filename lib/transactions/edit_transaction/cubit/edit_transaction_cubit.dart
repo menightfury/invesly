@@ -44,7 +44,11 @@ class EditTransactionCubit extends Cubit<EditTransactionState> {
   }
 
   void updateAmc(InveslyAmc amc) {
-    emit(state.copyWith(status: EditTransactionStatus.edited, amc: amc, amcError: () => null));
+    emit(state.copyWith(status: EditTransactionStatus.edited, amc: () => amc, amcError: () => null));
+  }
+
+  void resetAmc() {
+    emit(state.copyWith(status: EditTransactionStatus.edited, amc: () => null));
   }
 
   void updateTransactionType(TransactionType type) {

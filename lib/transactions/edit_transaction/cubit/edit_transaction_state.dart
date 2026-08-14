@@ -87,7 +87,7 @@ class EditTransactionState extends Equatable {
     AmcGenre? genre,
     DateTime? date,
     String? Function()? dateError,
-    InveslyAmc? amc,
+    InveslyAmc? Function()? amc,
     String? Function()? amcError,
     String? notes,
   }) {
@@ -109,7 +109,7 @@ class EditTransactionState extends Equatable {
       genre: genre ?? this.genre,
       date: date ?? this.date,
       dateError: dateError != null ? dateError() : this.dateError, // Allows resetting to null
-      amc: amc ?? this.amc,
+      amc: amc != null ? amc() : this.amc, // Allows resetting to null
       amcError: amcError != null ? amcError() : this.amcError, // Allows resetting to null
       notes: notes ?? this.notes,
     );
