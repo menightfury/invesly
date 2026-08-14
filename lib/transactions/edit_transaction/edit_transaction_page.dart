@@ -903,7 +903,7 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
           padding: widget.suggestionPadding ?? widget.padding.copyWith(top: 8.0, bottom: 8.0),
           child: DefaultTextStyle(
             style: context.textTheme.bodySmall!.copyWith(color: context.colors.onSecondaryContainer),
-            child: widget.suggestion!,
+            child: FadeIn(duration: 500.ms, child: widget.suggestion!),
           ),
         ),
       );
