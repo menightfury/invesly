@@ -892,9 +892,20 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
     }
 
     if (widget.suggestion != null) {
-      final suggestion = DefaultTextStyle(
-        style: context.textTheme.bodySmall!.copyWith(color: context.colors.onSecondaryContainer),
-        child: widget.suggestion!,
+      // ~ Suggestion container - Required for horizontally scrollable widgets
+      final suggestion = DecoratedBox(
+        position: DecorationPosition.foreground,
+        decoration: BoxDecoration(
+          border: Border.all(color: context.colors.secondaryContainer),
+          borderRadius: effectiveBorderRadius.copyWith(topLeft: Radius.zero, topRight: Radius.zero),
+        ),
+        child: Padding(
+          padding: widget.suggestionPadding ?? widget.padding.copyWith(top: 8.0, bottom: 8.0),
+          child: DefaultTextStyle(
+            style: context.textTheme.bodySmall!.copyWith(color: context.colors.onSecondaryContainer),
+            child: widget.suggestion!,
+          ),
+        ),
       );
 
       // ~ outer container
@@ -904,19 +915,7 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            content,
-            Container(
-              foregroundDecoration: BoxDecoration(
-                border: Border.all(color: context.colors.secondaryContainer),
-                borderRadius: effectiveBorderRadius.copyWith(topLeft: Radius.zero, topRight: Radius.zero),
-              ),
-              child: Padding(
-                padding: widget.suggestionPadding ?? widget.padding.copyWith(top: 8.0, bottom: 8.0),
-                child: suggestion,
-              ),
-            ),
-          ],
+          children: <Widget>[content, suggestion],
         ),
       );
     }
