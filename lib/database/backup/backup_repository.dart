@@ -96,14 +96,10 @@ class BackupRepository {
   // Select a database file for importing
   Future<File?> selectDbFile() async {
     try {
-      final result = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['db', 'sqlite3'],
-        allowMultiple: false,
-      );
+      final result = await FilePicker.pickFile(type: FileType.custom, allowedExtensions: ['db', 'sqlite3']);
       if (result == null) return null;
 
-      return File(result.files.single.path!);
+      return File(result.path!);
     } catch (e) {
       throw Exception(e.toString());
     }
@@ -112,14 +108,13 @@ class BackupRepository {
   // Select a CSV file for importing
   Future<File?> selectCsvFile() async {
     try {
-      final result = await FilePicker.pickFiles(
+      final result = await FilePicker.pickFile(
         type: Platform.isWindows ? FileType.custom : FileType.any,
         allowedExtensions: ['csv'],
-        allowMultiple: false,
       );
       if (result == null) return null;
 
-      return File(result.files.single.path!);
+      return File(result.path!);
     } catch (e) {
       throw Exception(e.toString());
     }

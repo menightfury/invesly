@@ -29,7 +29,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
 
   void readFile() async {
     final result = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
-    if (result == null || result.files.isEmpty) {
+    if (result.isEmpty) {
       emit(const ImportTransactionsState(csvStatus: CsvStatus.error, errorMsg: 'No file selected'));
       return;
     }
@@ -37,7 +37,7 @@ class ImportTransactionsCubit extends Cubit<ImportTransactionsState> {
     emit(const ImportTransactionsState(csvStatus: CsvStatus.loading));
 
     try {
-      final csvString = await File(result.files.first.path!).readAsString();
+      final csvString = await File(result.first.path!).readAsString();
       final parsedCSV = BackupRepository.processCsv(csvString);
 
       final firstRowLength = parsedCSV.first.length;
