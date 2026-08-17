@@ -7,7 +7,7 @@ import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/amcs/view/amc_details/amc_details_page.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
-import 'package:invesly/common/presentations/animations/animated_expanded.dart';
+import 'package:invesly/common/presentations/animations/animated_expand.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/components/add_transaction_button.dart';
 import 'package:invesly/common/presentations/widgets/simple_card.dart';
@@ -799,7 +799,7 @@ class _HoldingStatCard extends StatelessWidget {
       spacing: 4.0,
       runSpacing: 4.0,
       children: tags.map((tag) {
-        return SimpleChip(color: context.colors.tertiary, titleColor: context.colors.onTertiary, child: Text(tag));
+        return SimpleChip(color: context.colors.tertiary, childColor: context.colors.onTertiary, child: Text(tag));
       }).toList(),
     );
   }

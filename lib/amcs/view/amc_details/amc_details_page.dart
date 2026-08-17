@@ -452,7 +452,7 @@ class _AmcOverviewSection extends StatelessWidget {
     if (state.isAmcError) {
       return SimpleChip(
         color: context.colors.error,
-        titleColor: context.colors.onError,
+        childColor: context.colors.onError,
         child: const Text('Error loading AMC details'),
       );
     }
@@ -474,7 +474,7 @@ class _AmcOverviewSection extends StatelessWidget {
 
               return SimpleChip(
                 color: context.colors.primary,
-                titleColor: context.colors.onPrimary,
+                childColor: context.colors.onPrimary,
                 padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                 icon: Icon(Icons.account_circle_rounded, size: 16.0, color: context.colors.onPrimary),
                 child: Text(account.name, overflow: TextOverflow.ellipsis),
@@ -485,7 +485,7 @@ class _AmcOverviewSection extends StatelessWidget {
           if (amc.genre != null)
             SimpleChip(
               color: context.colors.tertiary,
-              titleColor: context.colors.onTertiary,
+              childColor: context.colors.onTertiary,
               padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: Text(amc.genre!.title, overflow: TextOverflow.ellipsis),
             ),
@@ -498,7 +498,7 @@ class _AmcOverviewSection extends StatelessWidget {
 
               return SimpleChip(
                 color: context.colors.tertiary,
-                titleColor: context.colors.onTertiary,
+                childColor: context.colors.onTertiary,
                 padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                 child: Text(tag, overflow: TextOverflow.ellipsis),
               );

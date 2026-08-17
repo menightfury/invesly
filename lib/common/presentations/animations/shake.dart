@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+/// A widget that shakes its child when triggered.
 class Shake extends StatefulWidget {
   const Shake({
     super.key,
@@ -13,11 +14,22 @@ class Shake extends StatefulWidget {
     this.shake = true,
   });
 
+  /// The widget to shake.
   final Widget child;
+
+  /// The offset of the shake in pixels.
   final double shakeOffset;
+
+  /// The direction of the shake.
   final Axis direction;
+
+  /// The number of shakes to perform.
   final int shakeCount;
+
+  /// The duration of the shake animation.
   final Duration duration;
+
+  /// whether to shake the [child]
   final bool shake;
 
   @override
@@ -32,7 +44,10 @@ class ShakeState extends State<Shake> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this, duration: widget.duration);
-    _animation = CurvedAnimation(parent: _controller, curve: SineCurve(count: widget.shakeCount));
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: SineCurve(count: widget.shakeCount),
+    );
     _controller.addStatusListener(_updateStatus);
     if (widget.shake) {
       shake();
@@ -73,39 +88,13 @@ class ShakeState extends State<Shake> with SingleTickerProviderStateMixin {
       animation: _controller,
       child: widget.child,
       builder: (context, child) {
-        final offset =
-            widget.direction == Axis.horizontal
-                ? Offset(_animation.value * widget.shakeOffset, 0)
-                : Offset(0, _animation.value * widget.shakeOffset);
+        final offset = widget.direction == Axis.horizontal
+            ? Offset(_animation.value * widget.shakeOffset, 0)
+            : Offset(0, _animation.value * widget.shakeOffset);
 
         return Transform.translate(offset: offset, child: child);
       },
     );
-  }
-}
-
-class ShakeWidget2 extends AnimatedWidget {
-  const ShakeWidget2({
-    super.key,
-    required Animation<double> shakeAnimation,
-    required this.child,
-    this.duration = const Duration(milliseconds: 200),
-    this.shakeCount = 3,
-    this.shakeOffset = 10.0,
-  }) : super(listenable: shakeAnimation);
-
-  final Widget child;
-  final double shakeOffset;
-  final int shakeCount;
-  final Duration duration;
-
-  /// The animation that controls the shaking of the child.
-  Animation<double> get _animation => listenable as Animation<double>;
-
-  @override
-  Widget build(BuildContext context) {
-    final offset = math.sin(shakeCount * 2 * math.pi * _animation.value);
-    return Transform.translate(offset: Offset(offset * shakeOffset, 0), child: child);
   }
 }
 

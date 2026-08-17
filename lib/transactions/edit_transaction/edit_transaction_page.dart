@@ -11,6 +11,7 @@ import 'package:invesly/amcs/view/widgets/amc_picker_widget.dart';
 import 'package:invesly/common/cubit/app_cubit.dart';
 import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
+import 'package:invesly/common/presentations/animations/animated_expand.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/presentations/widgets/calculator.dart';
@@ -646,8 +647,9 @@ class _AmcPicker extends StatelessWidget {
                         return SimpleChip(
                           padding: chipPadding,
                           onTap: () => cubit.updateAmc(amc),
-                          color: context.colors.surface,
-                          child: Text(amc.name, style: context.textTheme.bodySmall),
+                          color: context.colors.secondary,
+                          childColor: context.colors.onSecondary,
+                          child: Text(amc.name),
                         );
                       }),
                     ),
@@ -903,7 +905,7 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
           padding: widget.suggestionPadding ?? widget.padding.copyWith(top: 8.0, bottom: 8.0),
           child: DefaultTextStyle(
             style: context.textTheme.bodySmall!.copyWith(color: context.colors.onSecondaryContainer),
-            child: FadeIn(duration: 500.ms, child: widget.suggestion!),
+            child: AnimatedExpand(expand: true, duration: 500.ms, child: widget.suggestion!),
           ),
         ),
       );

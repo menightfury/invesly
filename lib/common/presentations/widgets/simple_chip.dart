@@ -4,19 +4,19 @@ class SimpleChip extends StatelessWidget {
   const SimpleChip({
     super.key,
     this.icon,
-    required this.child,
     this.color,
-    this.titleColor,
+    this.childColor,
     this.padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
     this.onTap,
+    required this.child,
   });
 
   final Widget? icon;
-  final Widget child;
   final Color? color;
-  final Color? titleColor;
+  final Color? childColor;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onTap;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class SimpleChip extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     Widget content = DefaultTextStyle(
-      style: textTheme.labelSmall!.copyWith(color: titleColor),
+      style: textTheme.labelSmall!.copyWith(color: childColor),
       overflow: TextOverflow.ellipsis,
       child: child,
     );

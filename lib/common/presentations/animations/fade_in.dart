@@ -8,7 +8,6 @@ class FadeIn extends StatefulWidget {
     super.key,
     required this.child,
     this.duration = const Duration(milliseconds: 240),
-    this.enable = true,
     this.from = const Offset(0, -0.1),
     this.curve = Curves.fastOutSlowIn,
     this.controller,
@@ -16,7 +15,6 @@ class FadeIn extends StatefulWidget {
 
   final Widget child;
   final Duration duration;
-  final bool enable;
   final Offset from;
   final Curve curve;
   final void Function(AnimationController)? controller;
@@ -44,9 +42,9 @@ class _FadeInState extends State<FadeIn> with SingleTickerProviderStateMixin {
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: widget.curve));
 
-    if (widget.enable) {
-      _controller.forward();
-    }
+    // if (widget.enable) {
+    _controller.forward();
+    // }
 
     if (widget.controller != null) {
       widget.controller?.call(_controller);
@@ -61,25 +59,19 @@ class _FadeInState extends State<FadeIn> with SingleTickerProviderStateMixin {
 
   @override
   void didUpdateWidget(covariant FadeIn oldWidget) {
-    if (widget.enable != oldWidget.enable && widget.enable) {
-      _controller
-        ..reset()
-        ..forward();
-    }
+    // if (widget.enable != oldWidget.enable && widget.enable) {
+    _controller
+      ..reset()
+      ..forward();
+    // }
     super.didUpdateWidget(oldWidget);
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return FractionalTranslation(
-          translation: _position.value,
-          child: Opacity(opacity: _opacity.value, child: child),
-        );
-      },
-      child: widget.child,
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(position: _position, child: widget.child),
     );
   }
 }

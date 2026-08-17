@@ -78,11 +78,11 @@ class AsyncFormField<T> extends FormField<T> {
                  ),
                ),
 
-               //  if (hasError)
-               Padding(
-                 padding: padding.resolve(TextDirection.ltr).copyWith(top: 0.0, bottom: 0.0),
-                 child: FadeIn(from: Offset(0.0, -0.25), enable: state.hasError, child: error ?? SizedBox.shrink()),
-               ),
+               if (state.hasError)
+                 Padding(
+                   padding: padding.resolve(TextDirection.ltr).copyWith(top: 0.0, bottom: 0.0),
+                   child: FadeIn(from: Offset(0.0, -0.25), child: error!),
+                 ),
              ],
            );
          },

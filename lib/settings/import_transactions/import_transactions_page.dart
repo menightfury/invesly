@@ -3,7 +3,7 @@ import 'package:invesly/accounts/model/account_repository.dart';
 import 'package:invesly/accounts/view/widgets/account_picker_widget.dart';
 import 'package:invesly/amcs/model/amc_repository.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
-import 'package:invesly/common/presentations/animations/animated_expanded.dart';
+import 'package:invesly/common/presentations/animations/animated_expand.dart';
 import 'package:invesly/common/presentations/widgets/async_form_field.dart';
 import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common/presentations/widgets/rolling_through_options.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'animated_expanded.dart';
+import 'animated_expand.dart';
 
 class ScrollToHide extends StatefulWidget {
   const ScrollToHide({
