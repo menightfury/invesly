@@ -12,15 +12,15 @@ class EditAccountCubit extends Cubit<EditAccountState> {
           id: initial?.id,
           name: initial?.name,
           description: initial?.description,
-          iconName: initial?.iconName ?? InveslyAccountIcon.wallet.name,
+          icon: initial?.icon ?? InveslyAccountIcon.wallet,
           colorValue: initial?.colorValue ?? Colors.blueAccent.toARGB32(),
         ),
       );
 
   final AccountRepository _repository;
 
-  void updateIcon(String value) {
-    emit(state.copyWith(iconName: value));
+  void updateIcon(InveslyAccountIcon value) {
+    emit(state.copyWith(icon: value));
   }
 
   void updateColor(int value) {
@@ -53,7 +53,7 @@ class EditAccountCubit extends Cubit<EditAccountState> {
     final account = AccountInDb(
       id: state.id ?? 0,
       name: state.name!,
-      iconName: state.iconName,
+      iconName: state.icon.name,
       colorValue: state.colorValue,
       description: state.description?.trim().isEmpty == true ? null : state.description?.trim(),
     );

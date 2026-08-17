@@ -150,7 +150,7 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                 // ~ Name
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: iPaddingFromScreenEdge,
                     child: BlocBuilder<EditAccountCubit, EditAccountState>(
                       buildWhen: (prev, curr) {
                         return prev.nameError != curr.nameError || (prev.status != curr.status && curr.isError);
@@ -181,7 +181,7 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                 // ~ Description
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: iPaddingFromScreenEdge,
                     child: TextField(
                       maxLines: 3,
                       controller: _descriptionController,
@@ -197,25 +197,29 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                 // ~ Icon Picker
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Wrap(
-                      spacing: 12.0,
-                      runSpacing: 12.0,
-                      children: InveslyAccountIcon.values.map((iconOption) {
-                        final isSelected = cubit.state.iconName == iconOption.name;
-                        return InkWell(
-                          borderRadius: BorderRadius.circular(999.0),
-                          onTap: () => cubit.updateIcon(iconOption.name),
-                          child: iconOption.buildWidget(
-                            context,
-                            padding: 12.0,
-                            color: isSelected ? selectedColor : theme.colorScheme.onSurfaceVariant,
-                            backgroundColor: isSelected
-                                ? selectedColor.withAlpha(0x33)
-                                : theme.colorScheme.surfaceContainerHighest,
-                          ),
+                    padding: iPaddingFromScreenEdge,
+                    child: BlocSelector<EditAccountCubit, EditAccountState, InveslyAccountIcon>(
+                      selector: (state) => state.icon,
+                      builder: (context, state) {
+                        return Wrap(
+                          spacing: 12.0,
+                          runSpacing: 12.0,
+                          children: InveslyAccountIcon.values.map((icon) {
+                            final isSelected = cubit.state.icon == icon;
+                            return GestureDetector(
+                              onTap: () => cubit.updateIcon(icon),
+                              child: icon.buildWidget(
+                                context,
+                                padding: 12.0,
+                                color: isSelected ? context.colors.onSecondary : theme.colorScheme.onSurfaceVariant,
+                                backgroundColor: isSelected
+                                    ? context.colors.secondary
+                                    : context.colors.surfaceContainerHighest,
+                              ),
+                            );
+                          }).toList(),
                         );
-                      }).toList(),
+                      },
                     ).withLabel('Icon'),
                   ),
                 ),
@@ -225,45 +229,28 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
                 // ~ Color Picker
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 12.0,
-                      children: <Widget>[
-                        Text('Color', style: theme.textTheme.labelLarge),
-                        InkWell(
-                          borderRadius: BorderRadius.circular(16.0),
-                          onTap: () async {
-                            final color = await InveslyColorPickerWidget.showModal(
-                              context,
-                              selectedColor: selectedColor,
-                            );
-                            if (color != null && context.mounted) {
-                              cubit.updateColor(color.toARGB32());
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                    padding: iPaddingFromScreenEdge,
+                    child: GestureDetector(
+                      onTap: () async {
+                        final color = await InveslyColorPickerWidget.showModal(context, selectedColor: selectedColor);
+                        if (color != null && context.mounted) {
+                          cubit.updateColor(color.toARGB32());
+                        }
+                      },
+                      child: Wrap(
+                        spacing: 12.0,
+                        runSpacing: 12.0,
+                        children: <Widget>[
+                          DecoratedBox(
                             decoration: BoxDecoration(
-                              color: selectedColor.withAlpha(0x33),
-                              borderRadius: BorderRadius.circular(16.0),
-                              border: Border.all(color: selectedColor),
+                              color: theme.colorScheme.secondaryContainer,
+                              shape: BoxShape.circle,
                             ),
-                            child: Row(
-                              children: <Widget>[
-                                Container(
-                                  width: 24.0,
-                                  height: 24.0,
-                                  decoration: BoxDecoration(color: selectedColor, shape: BoxShape.circle),
-                                ),
-                                const Gap(12.0),
-                                Text('Tap to choose a color', style: theme.textTheme.bodyMedium),
-                              ],
-                            ),
+                            child: SizedBox.square(dimension: 24.0, child: Center(child: Text('Icon'))),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ).withLabel('Color'),
                   ),
                 ),
 
