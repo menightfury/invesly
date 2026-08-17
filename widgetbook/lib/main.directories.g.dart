@@ -11,10 +11,37 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:widgetbook/widgetbook.dart' as _widgetbook;
+import 'package:widgetbook_workspace/amc_picker_wb.dart'
+    as _widgetbook_workspace_amc_picker_wb;
 import 'package:widgetbook_workspace/simple_card_wb.dart'
-    as _widgetbook_workspace_simple_card;
+    as _widgetbook_workspace_simple_card_wb;
 
 final directories = <_widgetbook.WidgetbookNode>[
+  _widgetbook.WidgetbookFolder(
+    name: 'amcs',
+    children: [
+      _widgetbook.WidgetbookFolder(
+        name: 'view',
+        children: [
+          _widgetbook.WidgetbookFolder(
+            name: 'widgets',
+            children: [
+              _widgetbook.WidgetbookComponent(
+                name: 'InveslyAmcPickerWidget',
+                useCases: [
+                  _widgetbook.WidgetbookUseCase(
+                    name: 'Default',
+                    builder: _widgetbook_workspace_amc_picker_wb
+                        .buildAmcPickerUseCase,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  ),
   _widgetbook.WidgetbookFolder(
     name: 'common',
     children: [
@@ -29,7 +56,7 @@ final directories = <_widgetbook.WidgetbookNode>[
                 useCases: [
                   _widgetbook.WidgetbookUseCase(
                     name: 'Default',
-                    builder: _widgetbook_workspace_simple_card
+                    builder: _widgetbook_workspace_simple_card_wb
                         .buildSimpleCardUseCase,
                   ),
                 ],
