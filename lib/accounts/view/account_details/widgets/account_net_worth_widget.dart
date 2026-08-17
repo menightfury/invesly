@@ -12,9 +12,9 @@ class AccountNetWorthWidget extends StatelessWidget {
       builder: (context, state) {
         if (state.isError) {
           return SimpleCard(
-            label: Text('Error loading net worth', style: TextStyle(color: context.colors.error)),
             color: context.colors.errorContainer,
             padding: const EdgeInsets.all(20.0),
+            child: Text('Error loading net worth', style: TextStyle(color: context.colors.error)),
           );
         }
 
@@ -27,8 +27,8 @@ class AccountNetWorthWidget extends StatelessWidget {
 
         if (state.isEmpty) {
           return SimpleCard(
-            label: Text('No investments yet', style: TextStyle(color: context.colors.onSurfaceVariant)),
             padding: const EdgeInsets.all(20.0),
+            child: Text('No investments yet', style: TextStyle(color: context.colors.onSurfaceVariant)),
           );
         }
 

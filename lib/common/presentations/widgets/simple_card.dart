@@ -14,7 +14,7 @@ class SimpleCard extends StatelessWidget {
     this.padding,
     this.clipBehavior = Clip.antiAlias,
     this.label,
-    this.child,
+    required this.child,
     this.contentSpacing = 8.0,
     this.constraints,
   }) : assert(elevation == null || elevation >= 0.0);
@@ -28,7 +28,7 @@ class SimpleCard extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final EdgeInsetsGeometry? padding;
   final Widget? label;
-  final Widget? child;
+  final Widget child;
   final double? contentSpacing;
   final BoxConstraints? constraints;
 
@@ -38,37 +38,31 @@ class SimpleCard extends StatelessWidget {
     final cardTheme = CardTheme.of(context);
     final effectiveShape = shape ?? RoundedRectangleBorder(borderRadius: borderRadius ?? BorderRadius.zero);
 
-    Widget? labelText, childText;
+    Widget content = child;
 
     if (label != null) {
-      labelText = DefaultTextStyle(
-        style: theme.textTheme.bodyMedium!,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        child: label!,
-      );
-    }
-
-    if (child != null) {
-      childText = DefaultTextStyle(
-        style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.w600),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        child: child!,
-      );
-    }
-
-    Widget? content = childText;
-
-    if (labelText != null) {
       content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         spacing: contentSpacing ?? 0.0,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          labelText,
-          Align(alignment: Alignment.bottomRight, child: content),
+          DefaultTextStyle(
+            style: theme.textTheme.bodyMedium!,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            child: label!,
+          ),
+
+          Align(
+            alignment: Alignment.bottomRight,
+            child: DefaultTextStyle(
+              style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.w600),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              child: content,
+            ),
+          ),
         ],
       );
     }

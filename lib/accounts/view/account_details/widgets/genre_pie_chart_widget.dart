@@ -19,9 +19,9 @@ class _GenrePieChartWidgetState extends State<GenrePieChartWidget> {
       builder: (context, state) {
         if (state.isError) {
           return SimpleCard(
-            label: Text('Error loading chart', style: TextStyle(color: context.colors.error)),
             color: context.colors.errorContainer,
             padding: const EdgeInsets.all(20.0),
+            child: Text('Error loading chart', style: TextStyle(color: context.colors.error)),
           );
         }
 

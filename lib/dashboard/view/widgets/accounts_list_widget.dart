@@ -199,9 +199,9 @@ class _AccountsListState extends State<_AccountsList> {
                   children: List.generate(2, (_) {
                     return const Skeleton.leaf(
                       child: SimpleCard(
-                        label: Text('Loading accounts...'),
                         padding: cardPadding,
                         constraints: cardConstraint,
+                        child: Text('Loading accounts...'),
                       ),
                     );
                   }),
