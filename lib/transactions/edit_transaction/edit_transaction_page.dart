@@ -383,9 +383,9 @@ class _AccountPickerWidget2State extends State<_AccountPickerWidget2> {
         // ~ Error state
         if (accountsState.isError) {
           return SimpleCard(
-            label: Text('Failed to load accounts', style: TextStyle(color: context.colors.error)),
             padding: cardPadding,
             color: context.colors.errorContainer,
+            child: Text('Failed to load accounts', style: TextStyle(color: context.colors.error)),
           );
         }
 
@@ -539,7 +539,7 @@ class _AccountPickerWidget2State extends State<_AccountPickerWidget2> {
           child: Row(
             children: List.generate(2, (_) {
               return const Skeleton.leaf(
-                child: SimpleCard(label: Text('Loading accounts...'), padding: cardPadding),
+                child: SimpleCard(padding: cardPadding, child: Text('Loading accounts...')),
               );
             }),
           ),
