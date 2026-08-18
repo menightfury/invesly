@@ -87,11 +87,11 @@ class AppStyle {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: WidgetStateColor.resolveWith((state) {
-          if (state.contains(WidgetState.error)) {
-            return colorScheme.errorContainer;
-          }
           if (state.contains(WidgetState.disabled)) {
             return Colors.black12;
+          }
+          if (state.contains(WidgetState.error)) {
+            return colorScheme.errorContainer;
           }
           return colorScheme.secondaryContainer.lighten(50);
         }),
@@ -100,15 +100,21 @@ class AppStyle {
         // isDense: true,
         hintStyle: const TextStyle(color: Colors.black38),
         border: WidgetStateInputBorder.resolveWith((states) {
-          late final BorderSide side;
+          late final Color color;
           if (states.contains(WidgetState.disabled)) {
-            side = BorderSide(color: Colors.black38);
+            color = Colors.black38;
+          } else if (states.contains(WidgetState.error)) {
+            color = colorScheme.error;
           } else if (states.contains(WidgetState.focused)) {
-            side = BorderSide(color: colorScheme.primary);
+            color = colorScheme.primary;
           } else {
-            side = BorderSide(color: colorScheme.secondaryContainer);
+            color = colorScheme.secondaryContainer;
           }
-          return OutlineInputBorder(borderRadius: iTextFieldBorderRadius, borderSide: side);
+
+          return OutlineInputBorder(
+            borderRadius: iTextFieldBorderRadius,
+            borderSide: BorderSide(color: color),
+          );
         }),
         // enabledBorder: OutlineInputBorder(
         //   borderRadius: iTextFieldBorderRadius,

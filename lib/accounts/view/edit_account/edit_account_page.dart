@@ -1,6 +1,7 @@
 import 'package:invesly/accounts/view/edit_account/cubit/edit_account_cubit.dart';
 import 'package:invesly/accounts/model/account_model.dart';
 import 'package:invesly/accounts/model/account_repository.dart';
+import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common/extensions/widget_extension.dart';
 import 'package:invesly/common/presentations/animations/shake.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
@@ -58,8 +59,6 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
   Widget build(BuildContext context) {
     $logger.i('Rebuilding edit account screen');
     final cubit = context.read<EditAccountCubit>();
-    final theme = Theme.of(context);
-    final selectedColor = Color(cubit.state.colorValue);
 
     return BlocListener<EditAccountCubit, EditAccountState>(
       listenWhen: (prev, curr) => prev.status != curr.status && curr.isFailureOrSuccess,
@@ -194,63 +193,52 @@ class _EditAccountPageContentState extends State<_EditAccountPageContent> {
 
                 const SliverGap(iFormFieldsInterSpacing),
 
+                // ~ Color Picker
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: iPaddingFromScreenEdge,
+                    child: BlocSelector<EditAccountCubit, EditAccountState, Color>(
+                      selector: (state) => state.color,
+                      builder: (context, color) {
+                        return InveslyColorPickerWidget(
+                          selectedColor: color,
+                          onPickup: (value) => cubit.updateColor(value),
+                        );
+                      },
+                    ).withLabel('Color'),
+                  ),
+                ),
+
+                const SliverGap(iFormFieldsInterSpacing),
+
                 // ~ Icon Picker
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: iPaddingFromScreenEdge,
-                    child: BlocSelector<EditAccountCubit, EditAccountState, InveslyAccountIcon>(
-                      selector: (state) => state.icon,
+                    child: BlocBuilder<EditAccountCubit, EditAccountState>(
+                      buildWhen: (prev, curr) => prev.color != curr.color || prev.icon != curr.icon,
                       builder: (context, state) {
                         return Wrap(
                           spacing: 12.0,
                           runSpacing: 12.0,
                           children: InveslyAccountIcon.values.map((icon) {
-                            final isSelected = cubit.state.icon == icon;
+                            final isSelected = state.icon == icon;
                             return GestureDetector(
                               onTap: () => cubit.updateIcon(icon),
                               child: icon.buildWidget(
                                 context,
                                 padding: 12.0,
-                                color: isSelected ? context.colors.onSecondary : theme.colorScheme.onSurfaceVariant,
+                                color: isSelected ? cubit.state.color : context.colors.onSurfaceVariant,
                                 backgroundColor: isSelected
-                                    ? context.colors.secondary
+                                    ? cubit.state.color.lighten(80)
                                     : context.colors.surfaceContainerHighest,
+                                border: isSelected ? Border.all(color: cubit.state.color) : null,
                               ),
                             );
                           }).toList(),
                         );
                       },
                     ).withLabel('Icon'),
-                  ),
-                ),
-
-                const SliverGap(iFormFieldsInterSpacing),
-
-                // ~ Color Picker
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: iPaddingFromScreenEdge,
-                    child: GestureDetector(
-                      onTap: () async {
-                        final color = await InveslyColorPickerWidget.showModal(context, selectedColor: selectedColor);
-                        if (color != null && context.mounted) {
-                          cubit.updateColor(color.toARGB32());
-                        }
-                      },
-                      child: Wrap(
-                        spacing: 12.0,
-                        runSpacing: 12.0,
-                        children: <Widget>[
-                          DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.secondaryContainer,
-                              shape: BoxShape.circle,
-                            ),
-                            child: SizedBox.square(dimension: 24.0, child: Center(child: Text('Icon'))),
-                          ),
-                        ],
-                      ),
-                    ).withLabel('Color'),
                   ),
                 ),
 

@@ -13,26 +13,26 @@ class EditAccountCubit extends Cubit<EditAccountState> {
           name: initial?.name,
           description: initial?.description,
           icon: initial?.icon ?? InveslyAccountIcon.wallet,
-          colorValue: initial?.colorValue ?? Colors.blueAccent.toARGB32(),
+          color: initial?.color ?? Colors.red, // TODO
         ),
       );
 
   final AccountRepository _repository;
 
-  void updateIcon(InveslyAccountIcon value) {
-    emit(state.copyWith(icon: value));
+  void updateIcon(InveslyAccountIcon icon) {
+    emit(state.copyWith(icon: icon));
   }
 
-  void updateColor(int value) {
-    emit(state.copyWith(colorValue: value));
+  void updateColor(Color color) {
+    emit(state.copyWith(color: color));
   }
 
-  void updateName(String value) {
-    emit(state.copyWith(status: EditAccountStatus.edited, name: value, nameError: () => null));
+  void updateName(String name) {
+    emit(state.copyWith(status: EditAccountStatus.edited, name: name, nameError: () => null));
   }
 
-  void updateDescription(String value) {
-    emit(state.copyWith(status: EditAccountStatus.edited, description: value));
+  void updateDescription(String description) {
+    emit(state.copyWith(status: EditAccountStatus.edited, description: description));
   }
 
   void updateInitialBalance(String value) {
@@ -50,11 +50,11 @@ class EditAccountCubit extends Cubit<EditAccountState> {
       return;
     }
 
-    final account = AccountInDb(
+    final account = InveslyAccount(
       id: state.id ?? 0,
       name: state.name!,
-      iconName: state.icon.name,
-      colorValue: state.colorValue,
+      icon: state.icon,
+      color: state.color,
       description: state.description?.trim().isEmpty == true ? null : state.description?.trim(),
     );
     try {

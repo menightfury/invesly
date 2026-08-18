@@ -1,3 +1,4 @@
+import 'package:invesly/common/extensions/color_extension.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/table_schema.dart';
 
@@ -27,29 +28,43 @@ enum InveslyAccountIcon {
     BuildContext context, {
     Color? color,
     Color? backgroundColor,
+    BoxBorder? border,
     double? iconSize,
     double? radius,
     double? padding = 8.0,
   }) {
-    return Icon(
-      data,
-      color: color,
-      size: iconSize,
-    ).inContainer(context, color: backgroundColor, radius: radius, padding: padding);
+    return Icon(data, color: color, size: iconSize).inContainer(
+      context,
+      color: backgroundColor ?? color?.lighten(80),
+      border: border,
+      radius: radius,
+      padding: padding,
+    );
   }
 }
 
 class InveslyAccount extends AccountInDb {
-  InveslyAccount({required super.id, required super.name, super.description, this.icon = _defaultIcon, this.color})
-    : super(iconName: icon.name, colorValue: color?.toARGB32());
+  InveslyAccount({
+    required super.id,
+    required super.name,
+    super.description,
+    this.icon = _defaultIcon,
+    this.color = _defaultColor,
+  }) : super(iconName: icon.name, colorValue: color.toARGB32());
 
-  InveslyAccount.empty({int? id, super.name = 'Default', super.description, this.icon = _defaultIcon, this.color})
-    : super(id: id ?? 0, iconName: icon.name, colorValue: color?.toARGB32());
+  InveslyAccount.empty({
+    int? id,
+    super.name = 'Default',
+    super.description,
+    this.icon = _defaultIcon,
+    this.color = _defaultColor,
+  }) : super(id: id ?? 0, iconName: icon.name, colorValue: color.toARGB32());
 
   final InveslyAccountIcon icon;
-  final Color? color;
+  final Color color;
 
   static const InveslyAccountIcon _defaultIcon = InveslyAccountIcon.wallet;
+  static const Color _defaultColor = Colors.blueAccent; // TODO:
 
   factory InveslyAccount.fromDb(AccountInDb account) {
     return InveslyAccount(
@@ -57,7 +72,7 @@ class InveslyAccount extends AccountInDb {
       name: account.name,
       description: account.description,
       icon: InveslyAccountIcon.fromName(account.iconName) ?? _defaultIcon,
-      color: account.colorValue != null ? Color(account.colorValue!) : null,
+      color: account.colorValue != null ? Color(account.colorValue!) : _defaultColor,
     );
   }
 }

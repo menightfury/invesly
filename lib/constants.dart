@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-const iPaddingFromScreenEdge = EdgeInsetsGeometry.symmetric(horizontal: 12.0);
+const iPaddingFromScreenEdge = EdgeInsets.symmetric(horizontal: 12.0);
 
 const iButtonPadding = EdgeInsetsGeometry.symmetric(horizontal: 20.0, vertical: 16.0);
 const iButtonBorderRadius = BorderRadius.all(Radius.circular(16.0));

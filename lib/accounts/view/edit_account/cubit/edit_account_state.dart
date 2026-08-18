@@ -9,7 +9,7 @@ class EditAccountState extends Equatable {
     this.name,
     this.nameError,
     this.icon = InveslyAccountIcon.wallet,
-    this.colorValue = 0xFF1976D2,
+    this.color = Colors.red, // TODO:
     this.description,
     this.initialBalance,
   });
@@ -19,7 +19,7 @@ class EditAccountState extends Equatable {
   final String? name;
   final String? nameError;
   final InveslyAccountIcon icon;
-  final int colorValue;
+  final Color color;
   final String? description;
   final double? initialBalance;
 
@@ -36,7 +36,7 @@ class EditAccountState extends Equatable {
     String? name,
     String? Function()? nameError,
     InveslyAccountIcon? icon,
-    int? colorValue,
+    Color? color,
     String? description,
     double? initialBalance,
   }) {
@@ -46,14 +46,14 @@ class EditAccountState extends Equatable {
       name: name ?? this.name,
       nameError: nameError != null ? nameError.call() : this.nameError,
       icon: icon ?? this.icon,
-      colorValue: colorValue ?? this.colorValue,
+      color: color ?? this.color,
       description: description ?? this.description,
       initialBalance: initialBalance ?? this.initialBalance,
     );
   }
 
   @override
-  List<Object?> get props => [status, id, name, nameError, icon, colorValue, description, initialBalance];
+  List<Object?> get props => [status, id, name, nameError, icon, color, description, initialBalance];
 }
 
 extension EditAccountStateX on EditAccountState {

@@ -24,20 +24,28 @@ class InveslyColorPickerWidget extends StatelessWidget {
     Color(0xFF008B85),
   ];
 
-  static Future<Color?> showModal(BuildContext context, {List<Color>? colors, Color? selectedColor}) async {
+  static Future<Color?> showModal(BuildContext context, {Color? selectedColor, List<Color>? colors}) async {
     return await showModalBottomSheet<Color?>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return InveslyColorPickerWidget(
-          selectedColor: selectedColor,
-          onPickup: (color) => Navigator.maybePop(context, color),
+        return SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: iPaddingFromScreenEdge.copyWith(bottom: 16.0),
+            child: InveslyColorPickerWidget(
+              header: const Text('Pick a color'),
+              selectedColor: selectedColor,
+              colors: colors ?? defaultColors,
+              onPickup: (color) => Navigator.maybePop(context, color),
+            ),
+          ),
         );
       },
     );
   }
 
-  static const _circleSize = 48.0;
+  static const _circleSize = 40.0;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +66,7 @@ class InveslyColorPickerWidget extends StatelessWidget {
       content = Column(spacing: 16.0, mainAxisSize: MainAxisSize.min, children: <Widget>[headerContent, content]);
     }
 
-    return Padding(padding: iPaddingFromScreenEdge, child: content);
+    return content;
   }
 
   Widget _buildSelectableColorCircle(BuildContext context, Color color) {
@@ -66,22 +74,36 @@ class InveslyColorPickerWidget extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => onPickup?.call(color),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border.all(width: 3.0, color: color, strokeAlign: BorderSide.strokeAlignCenter),
-          shape: BoxShape.circle,
-        ),
-        child: SizedBox.square(
-          dimension: _circleSize,
-          child: AnimatedPadding(
-            duration: 500.ms,
-            padding: isSelected ? const EdgeInsets.all(6.0) : EdgeInsets.zero,
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          // ~ Outer
+          AnimatedScale(
+            duration: 300.ms,
+            scale: isSelected ? 1.25 : 0.9,
+            curve: Curves.bounceIn,
             child: DecoratedBox(
-              decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-              child: isSelected ? const Icon(Icons.check_rounded, color: Colors.white) : null,
+              decoration: BoxDecoration(
+                border: Border.all(width: 2.0, color: color, strokeAlign: BorderSide.strokeAlignInside),
+                shape: BoxShape.circle,
+              ),
+              child: SizedBox.square(dimension: _circleSize),
             ),
           ),
-        ),
+
+          // ~ Inner
+          DecoratedBox(
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+            child: SizedBox.square(
+              dimension: _circleSize,
+              child: AnimatedScale(
+                duration: 200.ms,
+                scale: isSelected ? 1.0 : 0.0,
+                child: const Icon(Icons.check_rounded, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

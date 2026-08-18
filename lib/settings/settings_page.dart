@@ -171,7 +171,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                 // onTap: () => context.read<AppCubit>().saveCurrentAccount(account.id),
                                 icon: account.icon.buildWidget(
                                   context,
-                                  backgroundColor: account.color?.withAlpha(0x33),
+                                  color: account.color,
+                                  border: Border.all(color: account.color),
                                 ),
                                 title: Text(account.name.toSentenceCase(), overflow: TextOverflow.ellipsis),
                                 subtitle: isCurrentAccount ? const Text('Primary account') : null,
