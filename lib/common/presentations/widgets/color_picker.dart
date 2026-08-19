@@ -6,7 +6,7 @@ class InveslyColorPickerWidget extends StatelessWidget {
     this.selectedColor,
     this.onPickup,
     this.header,
-    this.colors = defaultColors,
+    this.colors = InveslyColors.colors,
   });
 
   final Color? selectedColor;
@@ -14,17 +14,11 @@ class InveslyColorPickerWidget extends StatelessWidget {
   final Widget? header;
   final List<Color> colors;
 
-  static const defaultColors = <Color>[
-    Color(0xFF34A853),
-    Color(0xFF4285F4),
-    Color(0xFF00E5FF),
-    Color(0xFF3F51B5),
-    Color(0xFFF05131),
-    Color(0xFFE1BEE7),
-    Color(0xFF008B85),
-  ];
-
-  static Future<Color?> showModal(BuildContext context, {Color? selectedColor, List<Color>? colors}) async {
+  static Future<Color?> showModal(
+    BuildContext context, {
+    Color? selectedColor,
+    List<Color> colors = InveslyColors.colors,
+  }) async {
     return await showModalBottomSheet<Color?>(
       context: context,
       isScrollControlled: true,
@@ -36,7 +30,7 @@ class InveslyColorPickerWidget extends StatelessWidget {
             child: InveslyColorPickerWidget(
               header: const Text('Pick a color'),
               selectedColor: selectedColor,
-              colors: colors ?? defaultColors,
+              colors: colors,
               onPickup: (color) => Navigator.maybePop(context, color),
             ),
           ),
