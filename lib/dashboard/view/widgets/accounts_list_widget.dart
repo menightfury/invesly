@@ -95,7 +95,7 @@ class _AccountsListState extends State<_AccountsList> {
                                 child: SimpleCard(
                                   padding: cardPadding,
                                   constraints: cardConstraint,
-                                  color: isSelected ? context.colors.primary : null,
+                                  color: isSelected ? account.color : null,
                                   // shape: RoundedRectangleBorder(
                                   //   borderRadius: iCardBorderRadius,
                                   //   side: isSelected ? BorderSide(width: 2.0, color: context.colors.primary)
