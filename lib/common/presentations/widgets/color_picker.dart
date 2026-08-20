@@ -71,7 +71,7 @@ class InveslyColorPickerWidget extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
-          // ~ Outer
+          // ~ Outer circle
           AnimatedScale(
             duration: 300.ms,
             scale: isSelected ? 1.25 : 0.9,
@@ -85,7 +85,7 @@ class InveslyColorPickerWidget extends StatelessWidget {
             ),
           ),
 
-          // ~ Inner
+          // ~ Inner circle
           DecoratedBox(
             decoration: BoxDecoration(shape: BoxShape.circle, color: color),
             child: SizedBox.square(

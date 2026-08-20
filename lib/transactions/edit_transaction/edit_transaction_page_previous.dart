@@ -557,11 +557,7 @@ class _AccountPickerWidget extends StatelessWidget {
               onPickup: (value) => cubit.updateAccount(value.id),
               side: BorderSide.none,
               color: isError ? context.colors.errorContainer : null,
-              avatar: account?.icon.buildWidget(
-                context,
-                backgroundColor: account.color?.withAlpha(0x33),
-                color: account.color,
-              ),
+              avatar: account?.icon.buildWidget(context, color: account.color),
               child: Text(
                 account?.name ?? state.accountId?.toString() ?? 'Select account',
                 style: TextStyle(color: state.accountId == null ? Colors.grey : null),
@@ -659,11 +655,7 @@ class _AccountPickerWidget2State extends State<_AccountPickerWidget2> {
                                   mainAxisSize: MainAxisSize.min,
                                   spacing: 12.0,
                                   children: <Widget>[
-                                    account.icon.buildWidget(
-                                      context,
-                                      backgroundColor: account.color?.withAlpha(0x33),
-                                      color: account.color,
-                                    ),
+                                    account.icon.buildWidget(context, color: account.color),
                                     Text(
                                       account.name,
                                       overflow: TextOverflow.ellipsis,

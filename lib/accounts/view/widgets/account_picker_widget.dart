@@ -167,13 +167,7 @@ class _AccountsListState extends State<_AccountsList> {
                         final account = accounts.elementAt(index);
                         return RadioSectionTile<int>(
                           value: account.id,
-                          icon: account.icon.buildWidget(
-                            context,
-                            radius: 36.0,
-                            backgroundColor: account.color?.withAlpha(0x33),
-                            color: account.color,
-                            iconSize: 18.0,
-                          ),
+                          icon: account.icon.buildWidget(context, radius: 36.0, color: account.color, iconSize: 18.0),
                           title: Text(account.name, overflow: TextOverflow.ellipsis),
                           controlAffinity: ListTileControlAffinity.trailing,
                         );

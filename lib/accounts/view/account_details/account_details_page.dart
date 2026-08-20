@@ -110,11 +110,7 @@ class _AccountPickerWidget extends StatelessWidget {
         return AccountPickerWidget(
           accountId: activeAccountId,
           onPickup: (value) => context.read<AccountDetailsCubit>().updateActiveAccountId(value.id),
-          avatar: account?.icon.buildWidget(
-            context,
-            color: account.color,
-            backgroundColor: account.color?.withAlpha(0x33),
-          ),
+          avatar: account?.icon.buildWidget(context, color: account.color),
           child: Text(account?.name ?? activeAccountId?.toString() ?? 'Select account'),
         );
       },

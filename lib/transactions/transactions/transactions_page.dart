@@ -405,10 +405,7 @@ class _TransactionFiltersSelectionState extends State<TransactionFiltersSelectio
             return InveslyChoiceChips<InveslyAccount>.multi(
               options: accounts,
               labelBuilder: (context, account) => Text(account.name),
-              iconBuilder: (context, account) => CircleAvatar(
-                backgroundColor: account.color?.withAlpha(0x33),
-                child: Icon(account.icon.data, color: account.color, size: 18.0),
-              ),
+              iconBuilder: (context, account) => account.icon.buildWidget(context, color: account.color),
               selected: accounts.toSet(),
               onChanged: (value) => cubit.updateSelectedAccounts(value),
             );

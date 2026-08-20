@@ -268,11 +268,7 @@ class _ImportTransactionsScreenState extends State<_ImportTransactionsScreen> {
                     return Row(
                       spacing: 16.0,
                       children: <Widget>[
-                        value.icon.buildWidget(
-                          context,
-                          color: value.color,
-                          backgroundColor: value.color?.withAlpha(0x33),
-                        ),
+                        value.icon.buildWidget(context, color: value.color),
                         Text(value.name, textAlign: TextAlign.right, overflow: TextOverflow.ellipsis),
                       ],
                     );

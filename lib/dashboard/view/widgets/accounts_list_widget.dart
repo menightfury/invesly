@@ -106,11 +106,7 @@ class _AccountsListState extends State<_AccountsList> {
                                     mainAxisSize: MainAxisSize.min,
                                     spacing: 12.0,
                                     children: <Widget>[
-                                      account.icon.buildWidget(
-                                        context,
-                                        backgroundColor: account.color?.withAlpha(0x33),
-                                        color: account.color,
-                                      ),
+                                      account.icon.buildWidget(context, color: account.color),
                                       Text(
                                         account.name,
                                         overflow: TextOverflow.ellipsis,

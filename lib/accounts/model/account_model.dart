@@ -64,7 +64,7 @@ class InveslyAccount extends AccountInDb {
   final Color color;
 
   static const InveslyAccountIcon _defaultIcon = InveslyAccountIcon.wallet;
-  static const Color _defaultColor = Colors.red;
+  static const Color _defaultColor = InveslyColors.green;
 
   factory InveslyAccount.fromDb(AccountInDb account) {
     final icon = account.iconName != null ? InveslyAccountIcon.fromName(account.iconName!) : null;
