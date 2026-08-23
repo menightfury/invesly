@@ -1,25 +1,26 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:invesly/common/presentations/animations/animated_physical_shape.dart';
+import 'package:invesly/constants.dart';
 
 class SimpleCard extends StatelessWidget {
-  SimpleCard({
+  const SimpleCard({
     super.key,
     this.margin,
-    this.padding,
+    this.padding = iCardPadding,
     this.color,
     this.elevation,
     this.shadowColor,
     this.shape,
-    this.borderRadius,
+    this.borderRadius = iCardBorderRadius,
     this.clipBehavior,
     this.label,
     required this.child,
     this.contentSpacing,
     this.constraints,
-  }) : assert(margin == null || margin.isNonNegative),
-       assert(padding == null || padding.isNonNegative),
-       assert(elevation == null || elevation >= 0.0);
+  }) : assert(elevation == null || elevation >= 0.0);
 
   /// The border of the widget.
   ///
@@ -62,7 +63,7 @@ class SimpleCard extends StatelessWidget {
   final BoxConstraints? constraints;
 
   // ~ Convert elevation to Shadow
-  List<BoxShadow> elevationShadow(double elevation) {
+  List<BoxShadow> _elevationToShadow(double elevation) {
     final levels = kElevationToShadow.keys.toList();
 
     if (elevation <= 0) {
@@ -95,19 +96,34 @@ class SimpleCard extends StatelessWidget {
 
     final a = kElevationToShadow[lower]!;
     final b = kElevationToShadow[upper]!;
+    final shadowLength = math.min(a.length, b.length);
 
-    return List.generate(3, (i) {
+    return List.generate(shadowLength, (i) {
+      final alpha = switch (i) {
+        0 => 0.2,
+        1 => 0.14,
+        _ => 0.12,
+      };
       return BoxShadow(
-        offset: Offset(lerpDouble(a[i].offset.dx, b[i].offset.dx, t)!, lerpDouble(a[i].offset.dy, b[i].offset.dy, t)!),
+        offset: Offset.lerp(a[i].offset, b[i].offset, t)!,
         blurRadius: lerpDouble(a[i].blurRadius, b[i].blurRadius, t)!,
         spreadRadius: lerpDouble(a[i].spreadRadius, b[i].spreadRadius, t)!,
-        color: a[i].color,
+        color: color?.withValues(alpha: alpha) ?? a[i].color,
       );
     });
   }
 
+  BoxShadow _updateShadowColor(BoxShadow shadow, Color color) {
+    return shadow.copyWith(
+      color: shadow.color.withValues(red: color.r, green: color.g, blue: color.b),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    assert(margin == null || margin!.isNonNegative);
+    assert(padding == null || padding!.isNonNegative);
+
     final theme = Theme.of(context);
     final cardTheme = CardTheme.of(context);
     final effectiveShape = shape ?? RoundedRectangleBorder(borderRadius: borderRadius ?? BorderRadius.zero);
@@ -141,6 +157,14 @@ class SimpleCard extends StatelessWidget {
       );
     }
 
+    List<BoxShadow>? shadows;
+    if (elevation != null) {
+      shadows = _elevationToShadow(elevation!);
+      if (shadowColor != null) {
+        shadows = shadows.map((shadow) => _updateShadowColor(shadow, shadowColor!)).toList();
+      }
+    }
+
     return Container(
       margin: margin,
       constraints: constraints,
@@ -149,12 +173,137 @@ class SimpleCard extends StatelessWidget {
       decoration: ShapeDecoration(
         color: color ?? cardTheme.color ?? theme.cardTheme.color ?? theme.colorScheme.surfaceContainerLow,
         shape: effectiveShape,
-        shadows: elevation != null ? elevationShadow(elevation!) : null,
-        // elevation: elevation ?? cardTheme.elevation ?? 0.0,
-        // shadowColor: shadowColor ?? cardTheme.shadowColor ?? theme.colorScheme.shadow,
+        shadows: shadows,
       ),
       child: content,
     );
+  }
+}
+
+class SimpleCard2 extends StatelessWidget {
+  const SimpleCard2({
+    super.key,
+    this.margin,
+    this.padding = iCardPadding,
+    this.color,
+    this.elevation,
+    this.shadowColor,
+    this.shape,
+    this.borderRadius = iCardBorderRadius,
+    this.clipBehavior,
+    this.label,
+    required this.child,
+    this.contentSpacing,
+    this.constraints,
+  }) : assert(elevation == null || elevation >= 0.0);
+
+  /// The border of the widget.
+  ///
+  /// This border will be painted, and in addition the outer path of the border
+  /// determines the physical shape.
+  final ShapeBorder? shape;
+
+  /// {@macro flutter.material.Material.clipBehavior}
+  ///
+  /// Defaults to [Clip.none].
+  final Clip? clipBehavior;
+
+  /// The target z-coordinate relative to the parent at which to place this
+  /// physical object.
+  ///
+  /// The value will always be non-negative.
+  final double? elevation;
+
+  /// The target background color.
+  final Color? color;
+
+  /// The target shadow color.
+  final Color? shadowColor;
+
+  final BorderRadius? borderRadius;
+
+  final EdgeInsetsGeometry? margin;
+
+  final EdgeInsetsGeometry? padding;
+
+  final Widget? label;
+
+  /// The widget below this widget in the tree.
+  ///
+  /// {@macro flutter.widgets.ProxyWidget.child}
+  final Widget child;
+
+  final double? contentSpacing;
+
+  final BoxConstraints? constraints;
+
+  @override
+  Widget build(BuildContext context) {
+    assert(margin == null || margin!.isNonNegative);
+    assert(padding == null || padding!.isNonNegative);
+
+    final theme = Theme.of(context);
+    final cardTheme = CardTheme.of(context);
+    final effectiveShape = shape ?? RoundedRectangleBorder(borderRadius: borderRadius ?? BorderRadius.zero);
+
+    Widget content = child;
+
+    if (label != null) {
+      content = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        spacing: contentSpacing ?? 0.0,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          DefaultTextStyle(
+            style: theme.textTheme.bodyMedium!,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            child: label!,
+          ),
+
+          Align(
+            alignment: Alignment.bottomRight,
+            child: DefaultTextStyle(
+              style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.w600),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              child: content,
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (padding != null) {
+      content = Padding(padding: padding!, child: content);
+    }
+
+    if (constraints != null) {
+      content = ConstrainedBox(constraints: constraints!, child: content);
+    }
+
+    content = ColoredBox(
+      color: color ?? cardTheme.color ?? theme.cardTheme.color ?? theme.colorScheme.surfaceContainerLow,
+      child: content,
+    );
+
+    Widget card = AnimatedPhysicalShape(
+      curve: Curves.fastOutSlowIn,
+      duration: iThemeChangeDuration,
+      clipBehavior: clipBehavior ?? cardTheme.clipBehavior ?? Clip.antiAlias,
+      shape: effectiveShape,
+      elevation: elevation ?? cardTheme.elevation ?? 0.0,
+      color: color ?? cardTheme.color ?? theme.cardTheme.color ?? theme.colorScheme.surfaceContainerLow,
+      shadowColor: shadowColor ?? cardTheme.shadowColor ?? theme.colorScheme.shadow,
+      child: content,
+    );
+
+    if (margin != null) {
+      card = Padding(padding: margin!, child: card);
+    }
+
+    return card;
   }
 }
 
