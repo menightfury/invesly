@@ -11,10 +11,18 @@ Widget buildSimpleCardUseCase(BuildContext context) {
       spacing: 16.0,
       children: <Widget>[
         SimpleCard(
-          elevation: 2.0,
+          elevation: 4.0,
           // color: Colors.redAccent,
-          shadowColor: Colors.red,
+          // shadowColor: Colors.red,
+          // borderRadius: BorderRadius.all(Radius.circular(2.0)),
           child: const Text('Simple Card'),
+        ),
+
+        SimpleCard2(
+          elevation: 4.0,
+          // color: Colors.redAccent,
+          // shadowColor: Colors.red,
+          child: const Text('Simple Card 2'),
         ),
 
         Material(
@@ -24,17 +32,12 @@ Widget buildSimpleCardUseCase(BuildContext context) {
           child: const Padding(padding: iCardPadding, child: Text('Material')),
         ),
 
-        SimpleCard2(
-          elevation: 2.0,
-          // color: Colors.redAccent,
-          shadowColor: Colors.red,
-          child: const Text('Simple Card 2'),
-        ),
-
         AnimatedSimpleCard(
           elevation: 2.0,
           // color: Colors.redAccent,
+          borderRadius: BorderRadius.all(Radius.circular(2.0)),
           shadowColor: Colors.red,
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           child: const Text('Animated Simple Card'),
         ),
       ],

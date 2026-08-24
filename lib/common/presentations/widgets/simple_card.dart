@@ -22,7 +22,6 @@ class SimpleCard extends StatelessWidget {
     required this.child,
   }) : assert(margin == null || margin.isNonNegative),
        assert(padding == null || padding.isNonNegative),
-       assert(!(shape != null && borderRadius != null)),
        assert(elevation == null || elevation >= 0.0);
 
   /// The border of the widget.
@@ -320,7 +319,6 @@ class AnimatedSimpleCard extends ImplicitlyAnimatedWidget {
     required this.child,
   }) : assert(margin == null || margin.isNonNegative),
        assert(padding == null || padding.isNonNegative),
-       assert(!(shape != null && borderRadius != null)),
        assert(elevation == null || elevation >= 0.0);
 
   /// The border of the widget.
@@ -366,16 +364,16 @@ class AnimatedSimpleCard extends ImplicitlyAnimatedWidget {
   @override
   AnimatedWidgetBaseState<AnimatedSimpleCard> createState() => _AnimatedSimpleCardState();
 
-  // @override
-  // void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  //   super.debugFillProperties(properties);
-  //   properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('margin', margin));
-  //   properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('padding', padding));
-  //   // properties.add(DiagnosticsProperty<ShapeBorder>('shape', shape));
-  //   properties.add(ColorProperty('color', color));
-  //   properties.add(DoubleProperty('elevation', elevation));
-  //   properties.add(ColorProperty('shadowColor', shadowColor));
-  // }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('margin', margin));
+    properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('padding', padding));
+    properties.add(DiagnosticsProperty<ShapeBorder>('shape', shape));
+    properties.add(ColorProperty('color', color));
+    properties.add(DoubleProperty('elevation', elevation));
+    properties.add(ColorProperty('shadowColor', shadowColor));
+  }
 }
 
 class _AnimatedSimpleCardState extends AnimatedWidgetBaseState<AnimatedSimpleCard> {
@@ -384,7 +382,7 @@ class _AnimatedSimpleCardState extends AnimatedWidgetBaseState<AnimatedSimpleCar
   ColorTween? _color;
   Tween<double>? _elevation;
   ColorTween? _shadowColor;
-  // ShapeBorderTween? _border;
+  ShapeBorderTween? _border;
   Tween<double>? _spacing;
 
   ShapeBorder get effectiveShape =>
@@ -402,9 +400,9 @@ class _AnimatedSimpleCardState extends AnimatedWidgetBaseState<AnimatedSimpleCar
               (dynamic value) => EdgeInsetsGeometryTween(begin: value as EdgeInsetsGeometry),
             )
             as EdgeInsetsGeometryTween?;
-    // _border =
-    //     visitor(_border, effectiveShape, (dynamic value) => ShapeBorderTween(begin: value as ShapeBorder))
-    //         as ShapeBorderTween?;
+    _border =
+        visitor(_border, effectiveShape, (dynamic value) => ShapeBorderTween(begin: value as ShapeBorder))
+            as ShapeBorderTween?;
     _color = visitor(_color, widget.color, (dynamic value) => ColorTween(begin: value as Color)) as ColorTween?;
     _elevation =
         visitor(_elevation, widget.elevation, (dynamic value) => Tween<double>(begin: value as double))
@@ -427,9 +425,9 @@ class _AnimatedSimpleCardState extends AnimatedWidgetBaseState<AnimatedSimpleCar
       color: _color?.evaluate(animation),
       elevation: _elevation?.evaluate(animation),
       shadowColor: _shadowColor?.evaluate(animation),
-      // shape: _border?.evaluate(animation),
+      shape: _border?.evaluate(animation),
       clipBehavior: widget.clipBehavior ?? cardTheme.clipBehavior ?? Clip.none,
-      constraints: widget.constraints!,
+      constraints: widget.constraints,
       contentSpacing: _spacing?.evaluate(animation),
       label: widget.label,
       child: widget.child,
