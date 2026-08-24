@@ -557,7 +557,7 @@ class _AmcPicker extends StatelessWidget {
       builder: (context, state) {
         $logger.i('AMC Picker Rebuilding');
         late final Widget child;
-        late final Widget suggestion;
+        Widget? suggestion;
 
         if (state.amc != null) {
           final amc = state.amc!;
@@ -607,74 +607,67 @@ class _AmcPicker extends StatelessWidget {
           child = Text('Search AMC', style: TextStyle(color: context.theme.disabledColor));
 
           const chipPadding = EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0);
-          suggestion = BlocBuilder<StatCubit, StatState>(
-            builder: (context, statState) {
-              if (statState.isError) {
-                return SizedBox.shrink();
-              }
+          final statState = context.watch<StatCubit>().state;
 
-              late final Widget content;
-
-              if (statState.isLoaded && statState.stats.isNotEmpty) {
-                final amcs = statState.stats.map((stat) => stat.amc);
-                final screenWidth = MediaQuery.sizeOf(context).width;
-
-                // calculate width of first five chips
-                double totalWidth = 0;
-                for (int i = 0; i < amcs.length && i < 5; i++) {
-                  final amc = amcs.elementAt(i);
-                  totalWidth += amc.name.length * 6.0 + 32.0; // Approximate width calculation
-                }
-
-                content = SingleChildScrollView(
-                  padding: iFormFieldContentPadding.copyWith(top: 0, bottom: 0),
-                  scrollDirection: Axis.horizontal,
-                  child: LimitedBox(
-                    maxWidth: math.max(screenWidth, totalWidth),
-                    child: Wrap(
-                      spacing: 8.0,
-                      runSpacing: 8.0,
-                      children: List.generate(amcs.length, (index) {
-                        final amc = amcs.elementAt(index);
-                        return SimpleChip(
-                          padding: chipPadding,
-                          onTap: () => cubit.updateAmc(amc),
-                          color: context.colors.secondary,
-                          childColor: context.colors.onSecondary,
-                          child: Text(amc.name),
-                        );
-                      }),
-                    ),
-                  ),
-                );
-              } else {
-                content = Skeletonizer(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 6.0,
-                    children: List.generate(2, (_) {
-                      return const Skeleton.leaf(
-                        child: SimpleChip(padding: chipPadding, child: Text('AMC loading...')),
-                      );
-                    }).toList(),
-                  ),
-                );
-              }
-
-              return Column(
+          if (statState.isLoading) {
+            suggestion = Skeletonizer(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 8.0,
-                children: <Widget>[
-                  Padding(
-                    padding: iFormFieldContentPadding.copyWith(top: 0.0, bottom: 0.0),
-                    child: const Text('Recommended AMCs', style: TextStyle(fontSize: 14.0)),
-                  ),
-                  content,
-                ],
-              );
-            },
-          );
+                spacing: 6.0,
+                children: List.generate(2, (_) {
+                  return const Skeleton.leaf(
+                    child: SimpleChip(padding: chipPadding, child: Text('AMC loading...')),
+                  );
+                }).toList(),
+              ),
+            );
+          } else if (statState.isLoaded && statState.stats.isNotEmpty) {
+            final amcs = statState.stats.map((stat) => stat.amc);
+            final screenWidth = MediaQuery.sizeOf(context).width;
+
+            // calculate width of first five chips
+            double totalWidth = 0;
+            for (int i = 0; i < amcs.length && i < 5; i++) {
+              final amc = amcs.elementAt(i);
+              totalWidth += amc.name.length * 6.0 + 32.0; // Approximate width calculation
+            }
+
+            suggestion = SingleChildScrollView(
+              padding: iFormFieldContentPadding.copyWith(top: 0, bottom: 0),
+              scrollDirection: Axis.horizontal,
+              child: LimitedBox(
+                maxWidth: math.max(screenWidth, totalWidth),
+                child: Wrap(
+                  spacing: 8.0,
+                  runSpacing: 8.0,
+                  children: List.generate(amcs.length, (index) {
+                    final amc = amcs.elementAt(index);
+                    return SimpleChip(
+                      padding: chipPadding,
+                      onTap: () => cubit.updateAmc(amc),
+                      color: context.colors.secondary,
+                      childColor: context.colors.onSecondary,
+                      child: Text(amc.name),
+                    );
+                  }),
+                ),
+              ),
+            );
+          }
+          if (suggestion != null) {
+            suggestion = Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8.0,
+              children: <Widget>[
+                Padding(
+                  padding: iFormFieldContentPadding.copyWith(top: 0.0, bottom: 0.0),
+                  child: const Text('Recommended AMCs', style: TextStyle(fontSize: 14.0)),
+                ),
+                suggestion,
+              ],
+            );
+          }
         }
 
         return _TappableFocusableField(
