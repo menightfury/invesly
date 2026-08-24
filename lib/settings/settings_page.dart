@@ -85,8 +85,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       final accounts = accountsState.accounts;
 
                       if (accounts.isEmpty) {
-                        return const SimpleCard(
-                          child: EmptyWidget(label: Text('No accounts found. Please add an account.')),
+                        return SimpleCard(
+                          child: const EmptyWidget(label: Text('No accounts found. Please add an account.')),
                         );
                       }
 

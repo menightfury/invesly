@@ -193,11 +193,11 @@ class _AccountsListState extends State<_AccountsList> {
                   mainAxisSize: MainAxisSize.min,
                   spacing: 8.0,
                   children: List.generate(2, (_) {
-                    return const Skeleton.leaf(
+                    return Skeleton.leaf(
                       child: SimpleCard(
                         padding: cardPadding,
                         constraints: cardConstraint,
-                        child: Text('Loading accounts...'),
+                        child: const Text('Loading accounts...'),
                       ),
                     );
                   }),

@@ -749,8 +749,8 @@ class _AccountPickerWidget2State extends State<_AccountPickerWidget2> {
         return Skeletonizer(
           child: Row(
             children: List.generate(2, (_) {
-              return const Skeleton.leaf(
-                child: SimpleCard(padding: cardPadding, child: Text('Loading accounts...')),
+              return Skeleton.leaf(
+                child: SimpleCard(padding: cardPadding, child: const Text('Loading accounts...')),
               );
             }),
           ),

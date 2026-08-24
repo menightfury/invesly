@@ -30,6 +30,13 @@ Widget buildSimpleCardUseCase(BuildContext context) {
           shadowColor: Colors.red,
           child: const Text('Simple Card 2'),
         ),
+
+        AnimatedSimpleCard(
+          elevation: 2.0,
+          // color: Colors.redAccent,
+          shadowColor: Colors.red,
+          child: const Text('Animated Simple Card'),
+        ),
       ],
     ),
   );
