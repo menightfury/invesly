@@ -645,8 +645,9 @@ class _AmcPicker extends StatelessWidget {
                     return SimpleChip(
                       padding: chipPadding,
                       onTap: () => cubit.updateAmc(amc),
-                      color: context.colors.secondary,
-                      childColor: context.colors.onSecondary,
+                      // color: context.colors.secondaryContainer.darken(20),
+                      // childColor: context.colors.onSecondary,
+                      borderSide: BorderSide(color: context.colors.secondary),
                       child: Text(amc.name),
                     );
                   }),

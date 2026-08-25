@@ -8,6 +8,7 @@ class SimpleChip extends StatelessWidget {
     this.childColor,
     this.padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
     this.onTap,
+    this.borderSide,
     required this.child,
   });
 
@@ -16,6 +17,7 @@ class SimpleChip extends StatelessWidget {
   final Color? childColor;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onTap;
+  final BorderSide? borderSide;
   final Widget child;
 
   @override
@@ -33,12 +35,12 @@ class SimpleChip extends StatelessWidget {
       content = Row(mainAxisSize: MainAxisSize.min, spacing: 4.0, children: <Widget>[icon!, content]);
     }
 
-    content = ClipPath(
-      clipper: ShapeBorderClipper(shape: const StadiumBorder()),
-      child: ColoredBox(
+    content = DecoratedBox(
+      decoration: ShapeDecoration(
+        shape: StadiumBorder(side: borderSide ?? BorderSide.none),
         color: color ?? colorScheme.primaryContainer,
-        child: Padding(padding: padding, child: content),
       ),
+      child: Padding(padding: padding, child: content),
     );
 
     if (onTap != null) {
