@@ -15,6 +15,8 @@ import 'package:widgetbook_workspace/color_picker_wb.dart'
     as _widgetbook_workspace_color_picker_wb;
 import 'package:widgetbook_workspace/simple_card_wb.dart'
     as _widgetbook_workspace_simple_card_wb;
+import 'package:widgetbook_workspace/simple_chip_wb.dart'
+    as _widgetbook_workspace_simple_chip_wb;
 
 final directories = <_widgetbook.WidgetbookNode>[
   _widgetbook.WidgetbookFolder(
@@ -43,6 +45,16 @@ final directories = <_widgetbook.WidgetbookNode>[
                     name: 'Default',
                     builder: _widgetbook_workspace_simple_card_wb
                         .buildSimpleCardUseCase,
+                  ),
+                ],
+              ),
+              _widgetbook.WidgetbookComponent(
+                name: 'SimpleChip',
+                useCases: [
+                  _widgetbook.WidgetbookUseCase(
+                    name: 'Default',
+                    builder: _widgetbook_workspace_simple_chip_wb
+                        .buildSimpleChipUseCase,
                   ),
                 ],
               ),
