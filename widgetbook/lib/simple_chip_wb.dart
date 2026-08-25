@@ -14,7 +14,7 @@ Widget buildSimpleChipUseCase(BuildContext context) {
           // color: Colors.redAccent,
           // shadowColor: Colors.red,
           // borderRadius: BorderRadius.all(Radius.circular(2.0)),
-          child: const Text('Simple Card'),
+          child: const Text('Simple Chip'),
         ),
       ],
     ),

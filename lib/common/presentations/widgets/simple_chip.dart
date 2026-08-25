@@ -37,8 +37,14 @@ class SimpleChip extends StatelessWidget {
 
     content = DecoratedBox(
       decoration: ShapeDecoration(
-        shape: StadiumBorder(side: borderSide ?? BorderSide.none),
-        color: color ?? colorScheme.primaryContainer,
+        shape: StadiumBorder(side: BorderSide(color: Color(0xFFBDBDBD), width: 1.0)),
+        // color: color ?? colorScheme.primaryContainer,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: [0.0, 0.55, 1.0],
+          colors: [Colors.white, Color(0xFFFFFFFF), Color(0xFFDCE2FF)],
+        ),
       ),
       child: Padding(padding: padding, child: content),
     );
