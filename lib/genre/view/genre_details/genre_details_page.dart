@@ -318,7 +318,6 @@ class _HoldingSortAndFilterOptionsState extends State<_HoldingSortAndFilterOptio
                   _holdingSortOption.value = option;
                 },
                 child: Section(
-                  margin: EdgeInsets.zero,
                   tiles: HoldingSortOption.values.map((option) {
                     return RadioSectionTile<HoldingSortOption>(
                       title: Text(

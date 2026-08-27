@@ -6,18 +6,11 @@ enum _SectionVariant { scrollable, fixed }
 const _defaultPadding = EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
 
 class Section extends StatelessWidget {
-  const Section({
-    super.key,
-    this.title,
-    this.subTitle,
-    this.icon,
-    this.trailingIcon,
-    required List<Widget> tiles,
-    this.margin = const EdgeInsets.symmetric(horizontal: 16.0),
-  }) : tileCount = tiles.length,
-       _variant = _SectionVariant.fixed,
-       _tiles = tiles,
-       _tileBuilder = null;
+  const Section({super.key, this.title, this.subTitle, this.icon, this.trailingIcon, required List<Widget> tiles})
+    : tileCount = tiles.length,
+      _variant = _SectionVariant.fixed,
+      _tiles = tiles,
+      _tileBuilder = null;
 
   // TODO: Remove this constructor
   const Section.builder({
@@ -28,7 +21,6 @@ class Section extends StatelessWidget {
     this.trailingIcon,
     required this.tileCount,
     required IndexedWidgetBuilder tileBuilder,
-    this.margin = const EdgeInsets.symmetric(horizontal: 16.0),
   }) : assert(tileCount >= 0),
        _variant = _SectionVariant.scrollable,
        _tiles = null,
@@ -42,7 +34,6 @@ class Section extends StatelessWidget {
   final _SectionVariant _variant;
   final List<Widget>? _tiles;
   final IndexedWidgetBuilder? _tileBuilder;
-  final EdgeInsetsGeometry margin;
 
   bool get hasTiles => tileCount > 0;
 
@@ -66,8 +57,6 @@ class Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    assert(margin.isNonNegative);
-
     final theme = Theme.of(context);
     final tileTheme = ListTileTheme.of(context);
     final titleText = DefaultTextStyle(style: theme.textTheme.headlineMedium!, child: title ?? const SizedBox.shrink());
@@ -105,7 +94,7 @@ class Section extends StatelessWidget {
       child = SizedBox.shrink();
     }
 
-    child = ClipRRect(
+    return ClipRRect(
       borderRadius: iTileBorderRadius,
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -132,8 +121,6 @@ class Section extends StatelessWidget {
         ],
       ),
     );
-
-    return Padding(padding: margin, child: child);
   }
 }
 

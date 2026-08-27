@@ -162,7 +162,6 @@ class _AccountsListState extends State<_AccountsList> {
                       }
                     },
                     child: Section(
-                      margin: EdgeInsets.zero,
                       tiles: List.generate(accounts.length, (index) {
                         final account = accounts.elementAt(index);
                         return RadioSectionTile<int>(

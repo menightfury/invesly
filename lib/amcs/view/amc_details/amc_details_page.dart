@@ -587,7 +587,6 @@ class _Transactions extends StatelessWidget {
                       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                     );
                   }),
-                  margin: EdgeInsets.zero,
                 ),
               ),
             );

@@ -310,7 +310,6 @@ class _SearchResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Section.builder(
-      margin: EdgeInsets.zero,
       tileCount: amcs.length,
       tileBuilder: (context, index) {
         final amc = amcs.elementAt(index);

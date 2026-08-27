@@ -16,7 +16,6 @@ import 'package:invesly/common/model/currency.dart';
 import 'package:invesly/common/presentations/widgets/color_picker.dart';
 import 'package:invesly/common/presentations/widgets/date_format_picker.dart';
 import 'package:invesly/common/presentations/widgets/popups.dart';
-import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/database/backup/backup_repository.dart';
 import 'package:invesly/database/backup/restore_drive_backup_page.dart';
@@ -63,105 +62,49 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    const mainAxisExtent = 8.0;
+
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
           slivers: <Widget>[
             SliverAppBar(floating: true, snap: true, title: const Text('Profile & Settings')),
-            SliverList(
-              delegate: SliverChildListDelegate.fixed([
-                // ~~~ User Profile Section ~~~
-                BlocBuilder<AccountsCubit, AccountsState>(
+
+            // ~~~ User Profile Section ~~~
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: iPaddingFromScreenEdge,
+                child: BlocBuilder<AccountsCubit, AccountsState>(
                   builder: (context, accountsState) {
                     // ~ Error state
                     if (accountsState.isError) {
-                      return SimpleCard(
-                        color: context.colors.errorContainer,
-                        child: Text('Error loading accounts', style: TextStyle(color: context.colors.onErrorContainer)),
+                      return Section(
+                        title: const Text('Accounts'),
+                        tiles: <Widget>[
+                          SectionTile(
+                            tileColor: context.colors.errorContainer,
+                            title: Text(
+                              'Error loading accounts',
+                              style: TextStyle(color: context.colors.onErrorContainer),
+                            ),
+                          ),
+                        ],
                       );
                     }
+
                     // ~ Loaded state
                     if (accountsState is AccountsLoadedState) {
                       final accounts = accountsState.accounts;
 
+                      late final List<Widget> tiles;
                       if (accounts.isEmpty) {
-                        return SimpleCard(
-                          child: const EmptyWidget(label: Text('No accounts found. Please add an account.')),
-                        );
-                      }
-
-                      return Section(
-                        title: Text('Accounts (${accounts.length})'),
-                        trailingIcon: FilledButton.tonalIcon(
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                            minimumSize: const Size.square(0.0),
-                            backgroundColor: context.colors.primary,
-                            foregroundColor: context.colors.onPrimary,
+                        tiles = <Widget>[
+                          const SectionTile(
+                            title: EmptyWidget(label: Text('No accounts found. Please add an account.')),
                           ),
-                          onPressed: () => context.push(const EditAccountPage()),
-                          label: Text(
-                            'Add new account',
-                            style: context.textTheme.bodySmall?.copyWith(color: context.colors.onPrimary),
-                          ),
-                          icon: Icon(Icons.add_rounded, color: context.colors.onPrimary),
-                          // MenuItemButton(
-                          //       leadingIcon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
-                          //       onPressed: () => context.push(const EditAccountPage()),
-                          //       child: const Text('Add new account'),
-                          //     ),
-                        ),
-                        // trailingIcon: MenuAnchor(
-                        //   menuChildren: [
-                        //     BlocSelector<AppCubit, AppState, bool>(
-                        //       selector: (state) => state.user.isNotNullOrEmpty,
-                        //       builder: (_, userExists) {
-                        //         if (userExists) {
-                        //           return const SizedBox.shrink();
-                        //         }
-                        //         return MenuItemButton(
-                        //           leadingIcon: Icon(Icons.login_rounded, color: context.theme.primaryColor),
-                        //           onPressed: () => startLoginFlow(context),
-                        //           child: const Text('Sign in'),
-                        //         );
-                        //       },
-                        //     ),
-                        //     MenuItemButton(
-                        //       leadingIcon: Icon(Icons.add_rounded, color: context.theme.primaryColor),
-                        //       onPressed: () => context.push(const EditAccountPage()),
-                        //       child: const Text('Add new account'),
-                        //     ),
-                        //     BlocSelector<AppCubit, AppState, bool>(
-                        //       selector: (state) => state.user.isNullOrEmpty,
-                        //       builder: (_, userNotExists) {
-                        //         if (userNotExists) {
-                        //           return const SizedBox.shrink();
-                        //         }
-                        //         return MenuItemButton(
-                        //           leadingIcon: Icon(Icons.logout_rounded, color: context.colors.error),
-                        //           onPressed: () => startLogoutFlow(context),
-                        //           // style: MenuItemButton.styleFrom(
-                        //           //   backgroundColor: context.colors.error.withAlpha(0x1F),
-                        //           // ),
-                        //           child: Text('Sign out', style: TextStyle(color: context.colors.error)),
-                        //         );
-                        //       },
-                        //     ),
-                        //   ],
-                        //   // alignmentOffset: Offset(-130, 0),
-                        //   style: MenuStyle(
-                        //     alignment: Alignment(-6.0, -1.0),
-                        //     shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: iCardBorderRadius)),
-                        //   ),
-                        //   builder: (context, controller, child) {
-                        //     return IconButton(
-                        //       onPressed: () => controller.isOpen ? controller.close() : controller.open(),
-                        //       icon: child!,
-                        //     );
-                        //   },
-                        //   child: const Icon(Icons.more_vert),
-                        // ),
-                        tiles: List.generate(accounts.length, (index) {
+                        ];
+                      } else {
+                        tiles = List.generate(accounts.length, (index) {
                           final account = accounts.elementAt(index);
                           return BlocSelector<AppCubit, AppState, int?>(
                             selector: (state) => state.primaryAccountId,
@@ -188,9 +131,29 @@ class _SettingsPageState extends State<SettingsPage> {
                               );
                             },
                           );
-                        }),
+                        });
+                      }
+
+                      return Section(
+                        title: Text('Accounts (${accounts.length})'),
+                        trailingIcon: FilledButton.tonalIcon(
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                            minimumSize: const Size.square(0.0),
+                            backgroundColor: context.colors.primary,
+                            foregroundColor: context.colors.onPrimary,
+                          ),
+                          onPressed: () => context.push(const EditAccountPage()),
+                          label: Text(
+                            'Add new account',
+                            style: context.textTheme.bodySmall?.copyWith(color: context.colors.onPrimary),
+                          ),
+                          icon: Icon(Icons.add_rounded, color: context.colors.onPrimary),
+                        ),
+                        tiles: tiles,
                       );
                     }
+
                     // ~ Otherwise - initial or loading state
                     return Skeletonizer(
                       child: Section(
@@ -202,11 +165,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     );
                   },
                 ),
+              ),
+            ),
 
-                const Gap(16.0),
+            const SliverGap(mainAxisExtent),
 
-                // ~~~ Settings Section ~~~
-                Section(
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: iPaddingFromScreenEdge,
+                child: Section(
                   title: const Text('General'),
                   subTitle: const Text('Currency, language, etc.'),
                   // icon: const Icon(Icons.settings_outlined),
@@ -279,10 +246,16 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ],
                 ),
+              ),
+            ),
 
-                const Gap(16.0),
+            const SliverGap(mainAxisExtent),
 
-                Section(
+            // ~ Theme section
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: iPaddingFromScreenEdge,
+                child: Section(
                   title: const Text('Appearance'),
                   subTitle: const Text('App theme, colors'),
                   // icon: const Icon(Icons.palette_outlined),
@@ -337,10 +310,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ],
                 ),
+              ),
+            ),
 
-                const Gap(16.0),
+            const SliverGap(mainAxisExtent),
 
-                // ~~~ Backup & Restore Section ~~~
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: iPaddingFromScreenEdge,
+                child: // ~~~ Backup & Restore Section ~~~
                 Section(
                   title: const Text('Backup & Restore'),
                   subTitle: const Text('Last backup: 2023-10-01'), // TODO: Update date
@@ -399,10 +377,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ],
                 ),
+              ),
+            ),
 
-                const Gap(16.0),
+            const SliverGap(mainAxisExtent),
 
-                Section(
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: iPaddingFromScreenEdge,
+                child: Section(
                   title: const Text('Terms & Privacy'),
                   subTitle: const Text('Privacy policy, terms of service, etc.'),
                   // icon: const Icon(Icons.gavel_rounded),
@@ -421,10 +404,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ],
                 ),
+              ),
+            ),
 
-                const Gap(16.0),
+            const SliverGap(mainAxisExtent),
 
-                Section(
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: iPaddingFromScreenEdge,
+                child: Section(
                   title: const Text('Help us'),
                   subTitle: const Text('Thank you for your contribution to Invesly'),
                   tiles: [
@@ -463,10 +451,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ],
                 ),
-
-                const Gap(32.0),
-              ]),
+              ),
             ),
+
+            const SliverGap(mainAxisExtent * 4),
           ],
         ),
       ),

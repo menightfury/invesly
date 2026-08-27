@@ -91,7 +91,6 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
       }
 
       return Section(
-        margin: EdgeInsets.zero,
         tiles: List.generate(math.min(stats.length, 5), (i) {
           final stat = stats.elementAt(i);
           return SectionTile(
@@ -117,8 +116,6 @@ class _IndividualGenreWidgetState extends State<_IndividualGenreWidget> {
     }
 
     return Section(
-      margin: EdgeInsets.zero,
-
       tiles: List.generate(3, (_) {
         return SectionTile(
           tileColor: context.theme.canvasColor.lighten(30),

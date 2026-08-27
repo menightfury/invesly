@@ -216,7 +216,6 @@ class _DriveFilesState extends State<_DriveFiles> {
                         groupValue: selectedFile,
                         onChanged: (value) => _selectedFile.value = value,
                         child: Section(
-                          margin: EdgeInsets.zero,
                           tiles: recentFiles.map((file) {
                             return RadioSectionTile(
                               title: FormattedDate(
