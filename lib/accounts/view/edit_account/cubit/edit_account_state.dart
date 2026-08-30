@@ -8,8 +8,8 @@ class EditAccountState extends Equatable {
     this.id,
     this.name,
     this.nameError,
-    this.icon = InveslyAccountIcon.wallet,
-    this.color = Colors.red, // TODO:
+    this.icon = InveslyAccountIcon.savings,
+    this.color = InveslyColors.red,
     this.description,
     this.initialBalance,
   });

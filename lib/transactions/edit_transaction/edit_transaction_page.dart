@@ -116,6 +116,13 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
                 //   ),
                 // ),
 
+                // ~ Account picker
+                SliverToBoxAdapter(
+                  child: Padding(padding: iPaddingFromScreenEdge, child: _AccountPickerWidget().withLabel('Account')),
+                ),
+
+                const SliverGap(iFormFieldsInterSpacing),
+
                 // ~~~ AMC ~~~
                 SliverToBoxAdapter(
                   child: Padding(
@@ -244,27 +251,6 @@ class _EditTransactionPageContentState extends State<_EditTransactionPageContent
 
                 const SliverGap(iFormFieldsInterSpacing),
 
-                // ~ Account picker
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: iPaddingFromScreenEdge,
-                    child: Column(
-                      spacing: iFormFieldLabelSpacing,
-                      crossAxisAlignment: CrossAxisAlignment.start, // CrossAxisAlignment.stretch
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.only(left: 12.0),
-                          child: Text('Select account', overflow: TextOverflow.ellipsis),
-                        ),
-                        _AccountPickerWidget2(),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SliverGap(iFormFieldsInterSpacing),
-
                 // ~~~ Note ~~~
                 SliverToBoxAdapter(
                   child: Padding(
@@ -329,21 +315,13 @@ class _AccountPickerWidget extends StatelessWidget {
             : null;
 
         $logger.i('Account Picker Rebuilding');
-        return LimitedBox(
-          maxWidth: 176,
-          child: Shake(
-            shake: isError,
-            child: AccountPickerWidget(
-              accountId: state.accountId,
-              onPickup: (value) => cubit.updateAccount(value.id),
-              side: BorderSide.none,
-              color: isError ? context.colors.errorContainer : null,
-              avatar: account?.icon.buildWidget(context, color: account.color),
-              child: Text(
-                account?.name ?? state.accountId?.toString() ?? 'Select account',
-                style: TextStyle(color: state.accountId == null ? Colors.grey : null),
-              ),
-            ),
+        return Shake(
+          shake: isError,
+          child: AccountPickerWidget(
+            account: account,
+            onChanged: (value) => cubit.updateAccount(value.id),
+            side: BorderSide.none,
+            color: isError ? context.colors.errorContainer : null,
           ),
         );
       },
@@ -556,6 +534,8 @@ class _AmcPicker extends StatelessWidget {
       },
       builder: (context, state) {
         $logger.i('AMC Picker Rebuilding');
+        final statState = context.watch<StatCubit>().state;
+
         late final Widget child;
         Widget? suggestion;
 
@@ -599,15 +579,20 @@ class _AmcPicker extends StatelessWidget {
               ),
             ],
           );
-          suggestion = Padding(
-            padding: iFormFieldContentPadding.copyWith(top: 0.0, bottom: 0.0),
-            child: Text('Available units / share: 30.475'),
-          );
+
+          if (statState.isLoaded) {
+            suggestion = BlocSelector<EditTransactionCubit, EditTransactionState, int?>(
+              selector: (state) => state.accountId,
+              builder: (context, accountId) {
+                final stat = statState.getStat(accountId: accountId, amcId: amc.id);
+                return Text('Available ${amc.genre == AmcGenre.stock ? 'share' : 'units'}: ${stat?.totalQnty ?? 0}');
+              },
+            );
+          }
         } else {
           child = Text('Search AMC', style: TextStyle(color: context.theme.disabledColor));
 
           const chipPadding = EdgeInsetsGeometry.symmetric(horizontal: 16.0, vertical: 10.0);
-          final statState = context.watch<StatCubit>().state;
 
           if (statState.isLoading) {
             suggestion = Skeletonizer(
@@ -655,6 +640,7 @@ class _AmcPicker extends StatelessWidget {
               ),
             );
           }
+
           if (suggestion != null) {
             suggestion = Column(
               mainAxisSize: MainAxisSize.min,
@@ -672,6 +658,7 @@ class _AmcPicker extends StatelessWidget {
         }
 
         return _TappableFocusableField(
+          padding: EdgeInsets.zero,
           onTap: state.amc == null
               ? () async {
                   final newAmc = await context.push<InveslyAmc>(
@@ -687,8 +674,7 @@ class _AmcPicker extends StatelessWidget {
               : null,
           errorText: state.amcError,
           suggestion: suggestion,
-          suggestionPadding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: child,
+          child: Padding(padding: iFormFieldContentPadding, child: child),
         );
       },
     );
@@ -763,7 +749,6 @@ class _TappableFocusableField extends StatefulWidget {
     this.minHeight,
     this.borderRadius,
     this.suggestion,
-    this.suggestionPadding,
   });
 
   final bool enabled;
@@ -778,7 +763,6 @@ class _TappableFocusableField extends StatefulWidget {
   final double? minHeight;
   final BorderRadius? borderRadius;
   final Widget? suggestion;
-  final EdgeInsetsGeometry? suggestionPadding;
 
   @override
   State<_TappableFocusableField> createState() => _TappableFocusableFieldState();
@@ -888,7 +872,7 @@ class _TappableFocusableFieldState extends State<_TappableFocusableField> {
           borderRadius: effectiveBorderRadius.copyWith(topLeft: Radius.zero, topRight: Radius.zero),
         ),
         child: Padding(
-          padding: widget.suggestionPadding ?? widget.padding.copyWith(top: 8.0, bottom: 8.0),
+          padding: widget.padding.copyWith(top: 8.0, bottom: 8.0),
           child: DefaultTextStyle(
             style: context.textTheme.bodySmall!.copyWith(color: context.colors.onSecondaryContainer),
             child: AnimatedExpand(expand: true, duration: 500.ms, child: widget.suggestion!),

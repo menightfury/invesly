@@ -21,6 +21,8 @@ const iFormFieldMinimumHeight = 58.0;
 const iThemeChangeDuration = Duration(milliseconds: 400);
 
 class InveslyColors {
+  const InveslyColors._();
+
   static const Color green = Color(0xFF249D8F);
   static const Color blue = Color(0xFF3368A0);
   static const Color violet = Color(0xFF744577);
@@ -28,10 +30,6 @@ class InveslyColors {
   static const Color red = Color(0xFFBD4444);
   static const Color yellow = Color(0xFFFACE68);
   static const Color orange = Color(0xFFFF7444);
-
-  const InveslyColors(this.data);
-
-  final int data;
 
   static const List<Color> colors = <Color>[green, blue, violet, indigo, red, yellow, orange];
 }

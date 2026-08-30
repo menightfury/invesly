@@ -16,9 +16,17 @@ class StatInDb extends TableDataModel {
 
   final int accountId;
   final String amcId;
+
+  /// Total number of transactions including investment, redemption etc.
   final int numTrns;
+
+  /// Total available quantity, i.e. invested quantity - redeemed quantity
   final double totalQnty;
+
+  /// Total amount invested
   final double totalInvested;
+
+  /// Total amount redeemed
   final double totalRedeemed;
   final double? xirr;
 

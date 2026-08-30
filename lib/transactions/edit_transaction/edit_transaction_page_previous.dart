@@ -553,15 +553,10 @@ class _AccountPickerWidget extends StatelessWidget {
           child: Shake(
             shake: isError,
             child: AccountPickerWidget(
-              accountId: state.accountId,
-              onPickup: (value) => cubit.updateAccount(value.id),
+              account: account,
+              onChanged: (value) => cubit.updateAccount(value.id),
               side: BorderSide.none,
               color: isError ? context.colors.errorContainer : null,
-              avatar: account?.icon.buildWidget(context, color: account.color),
-              child: Text(
-                account?.name ?? state.accountId?.toString() ?? 'Select account',
-                style: TextStyle(color: state.accountId == null ? Colors.grey : null),
-              ),
             ),
           ),
         );

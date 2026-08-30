@@ -1,5 +1,6 @@
 import 'package:invesly/accounts/cubit/accounts_cubit.dart';
 import 'package:invesly/common/presentations/animations/fade_in.dart';
+import 'package:invesly/common/presentations/widgets/simple_card.dart';
 import 'package:invesly/common_libs.dart';
 import 'package:invesly/accounts/view/edit_account/edit_account_page.dart';
 import 'package:invesly/accounts/model/account_model.dart';
@@ -7,22 +8,18 @@ import 'package:invesly/accounts/model/account_model.dart';
 class AccountPickerWidget extends StatelessWidget {
   const AccountPickerWidget({
     super.key,
-    this.accountId,
-    this.onPickup,
+    this.account,
+    this.onChanged,
     this.showAddAccountOption = true,
     this.enabled = true,
-    required this.child,
-    this.avatar,
     this.side,
     this.color,
   });
 
-  final int? accountId;
-  final ValueChanged<InveslyAccount>? onPickup;
+  final InveslyAccount? account;
+  final ValueChanged<InveslyAccount>? onChanged;
   final bool showAddAccountOption;
   final bool enabled;
-  final Widget child;
-  final Widget? avatar;
   final BorderSide? side;
   final Color? color;
 
@@ -47,36 +44,53 @@ class AccountPickerWidget extends StatelessWidget {
   Future<void> _handlePressed(BuildContext context) async {
     final newAccount = await AccountPickerWidget.showModal(
       context,
-      accountId: accountId,
+      accountId: account?.id,
       showAddAccountOption: showAddAccountOption,
     );
     if (newAccount == null) return;
-    onPickup?.call(newAccount);
+    onChanged?.call(newAccount);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final label = DefaultTextStyle(
-      style: theme.textTheme.bodyMedium!.copyWith(color: enabled ? null : theme.disabledColor),
-      overflow: TextOverflow.ellipsis,
-      maxLines: 1,
-      child: child,
-    );
 
-    return FadeIn(
-      key: ValueKey(accountId),
-      duration: 300.ms,
-      child: ActionChip(
-        label: label,
-        avatar: avatar,
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-        onPressed: enabled ? () => _handlePressed(context) : null,
-        side: side,
-        color: WidgetStateProperty.resolveWith<Color?>((states) {
-          if (states.contains(WidgetState.disabled)) return theme.disabledColor;
-          return color;
-        }),
+    late final Widget avatar;
+    if (account != null) {
+      avatar = account!.icon.buildWidget(context, color: account!.color);
+    } else {
+      avatar = Icon(Icons.add_rounded, color: Colors.white).inContainer(context, color: context.theme.disabledColor);
+    }
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: enabled ? () => _handlePressed(context) : null,
+      child: FadeIn(
+        key: ValueKey(account),
+        duration: 300.ms,
+        child: SimpleCard(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 12.0,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              avatar,
+              Text(
+                account?.name ?? 'Select account',
+                style: theme.textTheme.bodyMedium!.copyWith(color: enabled ? null : theme.disabledColor),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ],
+          ),
+
+          // side: side,
+          // color: WidgetStateProperty.resolveWith<Color?>((states) {
+          //   if (states.contains(WidgetState.disabled)) return theme.disabledColor;
+          //   return color;
+          // }),
+        ),
       ),
     );
   }

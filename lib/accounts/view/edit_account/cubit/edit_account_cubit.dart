@@ -8,13 +8,15 @@ class EditAccountCubit extends Cubit<EditAccountState> {
   EditAccountCubit({required AccountRepository repository, InveslyAccount? initial})
     : _repository = repository,
       super(
-        EditAccountState(
-          id: initial?.id,
-          name: initial?.name,
-          description: initial?.description,
-          icon: initial?.icon ?? InveslyAccountIcon.wallet,
-          color: initial?.color ?? Colors.red, // TODO
-        ),
+        initial != null
+            ? EditAccountState(
+                id: initial.id,
+                name: initial.name,
+                description: initial.description,
+                icon: initial.icon,
+                color: initial.color,
+              )
+            : const EditAccountState(),
       );
 
   final AccountRepository _repository;
